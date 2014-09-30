@@ -104,8 +104,8 @@ expr
                     | ( database_name '.' )? table_name )							#notIn
  | ( ( K_NOT )? K_EXISTS )? '(' select_stmt ')'										#notExists
  | K_CASE expr? ( K_WHEN expr K_THEN expr )+ ( K_ELSE expr )? K_END					#case
- | op=(K_LOW | K_HIGH) expr												#preferenceLOW
- | expr K_AROUND expr																#preferenceAROUND
+ | op=(K_LOW | K_HIGH) expr	('{' expr '}')?											#preferenceLOWHIGH
+ | expr op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) expr									#preferenceAROUND
  ;
 
 ordering_term : expr ( K_COLLATE collation_name )? ( K_ASC | K_DESC )? ;
@@ -244,8 +244,11 @@ keyword
  | K_WHERE
  //Preference
  | K_AROUND
+ | K_DISFAVOUR
+ | K_FAVOUR
  | K_HIGH
  | K_LOW
+ | K_OTHERS
  | K_PREFERENCE
  ;
 
@@ -373,9 +376,13 @@ K_WHEN : W H E N;
 K_WHERE : W H E R E;
 //Preference Keywords
 K_AROUND : A R O U N D;
+K_DISFAVOUR : D I S F A V O U R;
+K_FAVOUR : F A V O U R;
 K_HIGH : H I G H;
 K_LOW : L O W;
+K_OTHERS : O T H E R S;
 K_PREFERENCE : P R E F E R E N C E;
+
 
 
  /*

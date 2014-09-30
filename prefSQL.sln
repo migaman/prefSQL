@@ -7,6 +7,8 @@ Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "SQLSkyline", "SQLSkyline\SQ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLParser", "SQLParser\SQLParser.csproj", "{125A1438-E65A-4F43-A9EC-23A7BC7E68D7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLParserTest", "SQLParserTest\SQLParserTest.csproj", "{A16FED8B-5148-43FD-9A94-B795457346CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +25,10 @@ Global
 		{125A1438-E65A-4F43-A9EC-23A7BC7E68D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{125A1438-E65A-4F43-A9EC-23A7BC7E68D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{125A1438-E65A-4F43-A9EC-23A7BC7E68D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A16FED8B-5148-43FD-9A94-B795457346CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A16FED8B-5148-43FD-9A94-B795457346CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A16FED8B-5148-43FD-9A94-B795457346CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A16FED8B-5148-43FD-9A94-B795457346CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
