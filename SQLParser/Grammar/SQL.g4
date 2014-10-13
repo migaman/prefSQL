@@ -106,6 +106,7 @@ expr
  | K_CASE expr? ( K_WHEN expr K_THEN expr )+ ( K_ELSE expr )? K_END					#case
  | op=(K_LOW | K_HIGH) expr	('{' expr '}')?											#preferenceLOWHIGH
  | expr op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) expr									#preferenceAROUND
+ | '(' expr ',' expr ')'															#geocoordinate
  ;
 
 ordering_term : expr ( K_COLLATE collation_name )? ( K_ASC | K_DESC )? ;

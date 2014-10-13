@@ -23,14 +23,23 @@ namespace prefSQL.SQLParser
         {
             try
             {
+                //Ablauf aktuell
+                /*
+                    1.Pareto Front
+                    2.Filter auf die Kritik (z.B. Preis < 50000')
+                    3.Pareto Front aufgrund der Präferenzen
+                    4.Similarity berechnen
+                */
+
 
 
                 String strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name AS colour FROM cars " +
                     "LEFT OUTER JOIN colors ON cars.color_id = colors.ID " +
                     //"WHERE horsepower > 10 AND price < 10000 " +
-                    //"PREFERENCE LOW colors.name {'rot' >> 'blau' >> OTHERS >> 'grau'} ";
-                    "PREFERENCE LOW price ";
+                    "PREFERENCE LOW colors.name {'rot' == 'blau' >> OTHERS >> 'grau'} ";
+                    //"PREFERENCE LOW price ";
                     //"PREFERENCE colors.name DISFAVOUR 'rot' ";
+                    //"PREFERENCE Location AROUND (47.0484, 8.32629) ";
                 Console.WriteLine(strPrefSQL);
                 Console.WriteLine("--------------------------------------------");
 
