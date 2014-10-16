@@ -35,15 +35,15 @@ error : UNEXPECTED_CHAR
    }
  ;
 
+ 
+
+
 sql_stmt_list : ';'* sql_stmt ( ';'+ sql_stmt )* ';'* ;
 
 sql_stmt : ( select_stmt) ;
 
  
-select_stmt
- : ( common_table_expression ( ',' common_table_expression )* )?
-   select_or_values ( compound_operator select_or_values )*
-   ( K_ORDER K_BY ordering_term ( ',' ordering_term )* )?
+select_stmt : select_or_values ( compound_operator select_or_values )*  ( K_ORDER K_BY ordering_term ( ',' ordering_term )* )?
  ;
 
 select_or_values
@@ -55,10 +55,7 @@ select_or_values
  | K_VALUES '(' expr ( ',' expr )* ')' ( ',' '(' expr ( ',' expr )* ')' )*
  ;
 
-
-type_name
- : name+ ( '(' signed_number ')'
-         | '(' signed_number ',' signed_number ')' )?
+type_name : name+ ( '(' signed_number ')' | '(' signed_number ',' signed_number ')' )?
  ;
 
 
@@ -78,8 +75,7 @@ type_name
 
 expr
  : literal_value																						#opLiteral
- | BIND_PARAMETER																						#opBindParameter
- | ( ( database_name '.' )? table_name '.' )? column_name												#opDatabaseName
+ | column_term																							#opDatabaseName
  | unary_operator expr																					#opUnary
  | expr '||' expr																						#opOr
  | expr ( '*' | '/' | '%' ) expr																		#opPoint
@@ -104,20 +100,18 @@ expr
                     | ( database_name '.' )? table_name )							#notIn
  | ( ( K_NOT )? K_EXISTS )? '(' select_stmt ')'										#notExists
  | K_CASE expr? ( K_WHEN expr K_THEN expr )+ ( K_ELSE expr )? K_END					#case
- | op=(K_LOW | K_HIGH) expr	('{' expr '}')?											#preferenceLOWHIGH
+ //| op=(K_LOW | K_HIGH) expr	('{' expr '}')?											#preferenceLOWHIGH
+ //Don't use expression. The word after Low or High must be a column name!!
+ | op=(K_LOW | K_HIGH) column_term ('{' expr '}')?									#preferenceLOWHIGH
  | expr op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) expr									#preferenceAROUND
  | '(' expr ',' expr ')'															#geocoordinate
  ;
 
+
+column_term : ( ( database_name '.' )? table_name '.' )? column_name;
 ordering_term : expr ( K_COLLATE collation_name )? ( K_ASC | K_DESC )? ;
 
-common_table_expression : table_name ( '(' column_name ( ',' column_name )* ')' )? K_AS '(' select_stmt ')';
-
-result_column
- : '*'
- | table_name '.' '*'
- | expr ( K_AS? column_alias )?
- ;
+result_column : '*' | table_name '.' '*'  | expr ( K_AS? column_alias )?;
 
 table_or_subquery
  : ( database_name '.' )? table_name ( K_AS? table_alias )?
@@ -127,19 +121,11 @@ table_or_subquery
  | '(' select_stmt ')' ( K_AS? table_alias )?
  ;
 
-join_clause
- : table_or_subquery ( join_operator table_or_subquery join_constraint )*
- ;
+join_clause : table_or_subquery ( join_operator table_or_subquery join_constraint )* ;
 
-join_operator
- : ','
- | K_NATURAL? ( K_LEFT K_OUTER? | K_INNER | K_CROSS )? K_JOIN
- ;
+join_operator: ',' | K_NATURAL? ( K_LEFT K_OUTER? | K_INNER | K_CROSS )? K_JOIN;
 
-join_constraint
- : ( K_ON expr
-   | K_USING '(' column_name ( ',' column_name )* ')' )?
- ;
+join_constraint: ( K_ON expr  | K_USING '(' column_name ( ',' column_name )* ')' )?;
 
 select_core
  : K_SELECT ( K_DISTINCT | K_ALL )? result_column ( ',' result_column )*
@@ -150,21 +136,13 @@ select_core
  | K_VALUES '(' expr ( ',' expr )* ')' ( ',' '(' expr ( ',' expr )* ')' )*
  ;
 
-compound_operator
- : K_UNION
- | K_UNION K_ALL
- | K_INTERSECT
- | K_EXCEPT
- ;
+compound_operator: K_UNION | K_UNION K_ALL | K_INTERSECT | K_EXCEPT;
 
-signed_number
- : ( '+' | '-' )? NUMERIC_LITERAL
- ;
+signed_number : ( '+' | '-' )? NUMERIC_LITERAL;
 
 literal_value
  : NUMERIC_LITERAL
  | STRING_LITERAL
- | BLOB_LITERAL
  | K_NULL
  | K_CURRENT_TIME
  | K_CURRENT_DATE
@@ -178,15 +156,10 @@ unary_operator
  | K_NOT
  ;
 
-error_message
- : STRING_LITERAL
- ;
+error_message: STRING_LITERAL;
 
 
-column_alias
- : IDENTIFIER
- | STRING_LITERAL
- ;
+column_alias: IDENTIFIER | STRING_LITERAL;
 
 keyword
  : K_ALL
@@ -254,42 +227,24 @@ keyword
  ;
 
 
-name
- : any_name
- ;
+name : any_name;
 
-function_name
- : any_name
- ;
+function_name : any_name;
 
-database_name
- : any_name
- ;
+database_name : any_name;
 
-table_name 
- : any_name
- ;
+table_name : any_name;
 
 
-new_table_name 
- : any_name
- ;
+new_table_name : any_name;
 
-column_name 
- : any_name
- ;
+column_name : any_name;
 
-collation_name 
- : any_name
- ;
+collation_name : any_name;
 
+table_alias : any_name;
 
-table_alias 
- : any_name
- ;
-
-any_name
- : IDENTIFIER 
+any_name : IDENTIFIER 
  | keyword
  | STRING_LITERAL
  | '(' any_name ')'
@@ -402,17 +357,9 @@ NUMERIC_LITERAL
  | '.' DIGIT+ ( E [-+]? DIGIT+ )?
  ;
 
-BIND_PARAMETER
- : '?' DIGIT*
- | [:@$] IDENTIFIER
- ;
 
 STRING_LITERAL
  : '\'' ( ~'\'' | '\'\'' )* '\''
- ;
-
-BLOB_LITERAL
- : X STRING_LITERAL
  ;
 
 SINGLE_LINE_COMMENT
@@ -427,13 +374,9 @@ SPACES
  : [ \u000B\t\r\n] -> channel(HIDDEN)
  ;
 
-UNEXPECTED_CHAR
- : .
- ;
+UNEXPECTED_CHAR : . ;
 
-
-
-
+ 
 fragment DIGIT : [0-9];
 
 fragment A : [aA];

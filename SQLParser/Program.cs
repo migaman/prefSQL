@@ -4,6 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;
+
 
 
 namespace prefSQL.SQLParser
@@ -34,10 +37,12 @@ namespace prefSQL.SQLParser
 
 
                 String strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name AS colour FROM cars " +
+                //String strPrefSQL = "SELECT * FROM cars " +
+                //String strPrefSQL = "SELECT id FROM cars " +
                     "LEFT OUTER JOIN colors ON cars.color_id = colors.ID " +
                     //"WHERE horsepower > 10 AND price < 10000 " +
                     "PREFERENCE LOW colors.name {'rot' == 'blau' >> OTHERS >> 'grau'} ";
-                    //"PREFERENCE LOW price ";
+                    //"PREFERENCE LOW price AND LOW mileage AND LOW horsepower";
                     //"PREFERENCE colors.name DISFAVOUR 'rot' ";
                     //"PREFERENCE Location AROUND (47.0484, 8.32629) ";
                 Console.WriteLine(strPrefSQL);
