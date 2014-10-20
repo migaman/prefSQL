@@ -14,6 +14,21 @@ namespace prefSQL.SQLParser
 {
     public class SQLCommon
     {
+        public enum Algorithm
+        {
+            NativeSQL,
+            BNL,
+            DQ,
+        };
+
+        private Algorithm _SkylineType = Algorithm.NativeSQL;
+
+        public Algorithm SkylineType
+        {
+            get { return _SkylineType; }
+            set { _SkylineType = value; }
+        }
+
         
 
         public String parsePreferenceSQL(String strInput)

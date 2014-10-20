@@ -52,6 +52,7 @@ namespace prefSQL.SQLParser
 
 
                 SQLCommon parser = new SQLCommon();
+                parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
                 String strSQL = parser.parsePreferenceSQL(strPrefSQL);
 
                 Console.WriteLine(strSQL);
