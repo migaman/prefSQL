@@ -36,13 +36,15 @@ namespace prefSQL.SQLParser
 
 
 
-                String strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name AS colour FROM cars " +
-                //String strPrefSQL = "SELECT * FROM cars " +
-                //String strPrefSQL = "SELECT id FROM cars " +
-                    "LEFT OUTER JOIN colors ON cars.color_id = colors.ID " +
+                //String strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name, mileage FROM cars " +
+                    String strPrefSQL = "SELECT * FROM cars " +
+                    //String strPrefSQL = "SELECT id FROM cars " +
+                    //"LEFT OUTER JOIN colors ON cars.color_id = colors.ID " +
                     //"WHERE horsepower > 10 AND price < 10000 " +
-                    "PREFERENCE LOW colors.name {'rot' == 'blau' >> OTHERS >> 'grau'} ";
-                    //"PREFERENCE LOW price AND LOW mileage AND LOW horsepower";
+                    //"PREFERENCE LOW name {'rot' == 'blau' >> OTHERS >> 'grau'} AND LOW price";
+                    //"AND Low price ";
+                    //"AND LOW fuels.name {'Benzin' >> 'Gas' >> OTHERS >> 'Diesel'} ";
+                    "PREFERENCE LOW cars.price AND LOW mileage";
                     //"PREFERENCE colors.name DISFAVOUR 'rot' ";
                     //"PREFERENCE Location AROUND (47.0484, 8.32629) ";
                 Console.WriteLine(strPrefSQL);

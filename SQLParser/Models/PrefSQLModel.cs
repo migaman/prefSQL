@@ -10,7 +10,7 @@ namespace prefSQL.SQLParser.Models
     {
         private List<AttributeModel> _skyline = new List<AttributeModel>();
         private List<String> _orderBy = new List<String>();
-        
+        private HashSet<String> _innerTableAlias = new HashSet<string>();
 
         public List<AttributeModel> Skyline
         {
@@ -26,7 +26,11 @@ namespace prefSQL.SQLParser.Models
         }
 
         
-
+        public HashSet<String> InnerTableAlias
+        {
+            set { _innerTableAlias = value; }
+            get { return _innerTableAlias; }
+        }
         
 
 

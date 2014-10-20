@@ -48,18 +48,24 @@ namespace prefSQL.SQLParser
 
                 SQLVisitor visitor = new SQLVisitor();
                 PrefSQLModel prefSQL = visitor.Visit(tree);
-                String strWHERE = buildWHEREClause(prefSQL);
-                String strOrderBy = buildORDERBYClause(prefSQL);
+                
 
-                Console.WriteLine("Result: " + strWHERE);
-                Console.WriteLine("--------------------------------------------");
-
+                
                 
                 if (strInput.IndexOf("PREFERENCE") > 0)
                 {
                     strNewSQL = strInput.Substring(0, strInput.IndexOf("PREFERENCE") - 1);
+
+                    String strWHERE = buildWHEREClause(prefSQL, strNewSQL);
+                    String strOrderBy = buildORDERBYClause(prefSQL);
+
+
                     strNewSQL += strWHERE;
                     strNewSQL += strOrderBy;
+
+                    Console.WriteLine("Result: " + strWHERE);
+                    Console.WriteLine("--------------------------------------------");
+
                     
                 }
                 else
@@ -86,7 +92,7 @@ namespace prefSQL.SQLParser
 
 
         //Create the WHERE-Clause from the preferene model
-        private String buildWHEREClause(PrefSQLModel model)
+        private String buildWHEREClause(PrefSQLModel model, String strPreSQL)
         {
             String strSQL = "";
 
@@ -106,9 +112,20 @@ namespace prefSQL.SQLParser
                         strWhereEqual += " AND ";
                         strWhereBetter += " OR ";
                     }
+
+                    if (model.Skyline[iChild].Table == "")
+                    {
+                        model.Skyline[iChild].Table = "cars";
+                    }
+
+
                     strWhereEqual += "h1.{column} " + model.Skyline[iChild].Op + "= {TABLE}.{column}";
                     strWhereBetter += "h1.{column} " + model.Skyline[iChild].Op + " {TABLE}.{column}";
-
+                    //strWhereEqual += model.Skyline[iChild].InnerColumn + " "  + model.Skyline[iChild].Op + " " + model.Skyline[iChild].Table + ".{column}";
+                    //strWhereBetter += model.Skyline[iChild].InnerColumn + " " + model.Skyline[iChild].Op + " " + model.Skyline[iChild].Table + ".{column}";
+                    //strWhereEqual += model.Skyline[iChild].InnerColumn + " " + model.Skyline[iChild].Op + "= " +  "{column}";
+                    //strWhereBetter += model.Skyline[iChild].InnerColumn + " " + model.Skyline[iChild].Op + " " + "{column}";
+                    //strSQL = strSQL.Replace("{TABLE}", model.Skyline[iChild].Table);
 
                     strWhereEqual = strWhereEqual.Replace("{column}", model.Skyline[iChild].Column);
                     strWhereBetter = strWhereBetter.Replace("{column}", model.Skyline[iChild].Column);
@@ -122,11 +139,10 @@ namespace prefSQL.SQLParser
                 strWhereBetter += ") ";
 
 
-                strSQL = " WHERE NOT EXISTS(" +
-                        "SELECT 1 FROM {TABLE_COMPARE} h1 " + strWhereEqual + strWhereBetter + ") ";
+                //strSQL = " WHERE NOT EXISTS(SELECT * FROM (" + strPreSQL + ") h1 " + strWhereEqual + strWhereBetter + ") ";
+                strSQL = " WHERE NOT EXISTS(SELECT 1 FROM cars h1 " + strWhereEqual + strWhereBetter + ") ";
 
                 //TODO: replace with correct table name
-                strSQL = strSQL.Replace("{TABLE_COMPARE}", "cars");
                 strSQL = strSQL.Replace("{TABLE}", "cars");
             }
             return strSQL;

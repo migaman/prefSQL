@@ -45,6 +45,26 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
+        public void TestSKYLINE6Dimensions()
+        {
+            String strPrefSQL = "SELECT * FROM cars PREFERENCE LOW price AND LOW mileage AND HIGH horsepower AND HIGH enginesize AND HIGH registration AND LOW consumption";
+
+            String expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT 1 FROM cars h1 WHERE h1.price <= cars.price AND h1.mileage <= cars.mileage AND h1.horsepower >= cars.horsepower AND h1.enginesize >= cars.enginesize AND h1.Registration >= cars.Registration AND h1.Consumption <= cars.Consumption AND ( h1.price < cars.price OR h1.mileage < cars.mileage OR h1.horsepower > cars.horsepower OR h1.EngineSize > cars.EngineSize OR h1.Registration > cars.Registration OR h1.Consumption < cars.Consumption) )  ORDER BY price ASC, mileage ASC, horsepower DESC, enginesize DESC, registration DESC, consumption ASC";
+            SQLCommon common = new SQLCommon();
+            String actual = common.parsePreferenceSQL(strPrefSQL);
+
+            // assert
+
+            Assert.AreEqual(expected, actual, true, "SQL not built correctly");
+
+
+
+        }
+
+
+
+
+        [TestMethod]
         public void TestLOW()
         {
             String strPrefSQL = "SELECT * FROM cars PREFERENCE LOW mileage";

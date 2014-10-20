@@ -70,5 +70,8 @@
     <Compile Include="TableUDF.cs" />
     <Compile Include="InsertTransmission.cs" />
     <Compile Include="GetCar.cs" />
+    <Compile Include="Skyline.cs" />
+    <Compile Include="SP_Skyline.cs" />
+    <Compile Include="SP_SkylineBNL.cs" />
   </ItemGroup>
 </Project>

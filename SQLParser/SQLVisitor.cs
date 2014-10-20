@@ -13,19 +13,22 @@ namespace prefSQL.SQLParser
 {
     class SQLVisitor : SQLBaseVisitor<PrefSQLModel>
     {
+
+
         public override PrefSQLModel VisitPreferenceLOWHIGH(SQLParser.PreferenceLOWHIGHContext context)
         {
             String strSQL = "";
             PrefSQLModel pref = new PrefSQLModel();
             String strColumn = "";
+            String strTable = "";
             String strOperator = "";
 
             //With only 2 expressions it is a numeric LOW preference 
             if (context.ChildCount == 2)
             {
                 //Abfrage auf Keyword LOW oder HIGH, danach ein ORDER BY daraus machen
-                strColumn = context.GetChild(1).GetText();
-                
+                strColumn = getColumn(context.GetChild(1));
+                strTable = getTable(context.GetChild(1));
                 
                 if (context.op.Type == SQLParser.K_LOW)
                 {
@@ -39,8 +42,9 @@ namespace prefSQL.SQLParser
 
                 }
 
+
                 //Add the preference to the list               
-                pref.Skyline.Add(new AttributeModel(strColumn, strOperator));
+                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, "h1." + strColumn, "h1"));
 
             }
             //Otherwise it is a text LOW preference --> Text text must be converted in a given sortorder
@@ -48,11 +52,14 @@ namespace prefSQL.SQLParser
             {
 
                 //Build CASE ORDER with arguments
-                String strExpr = context.expr().GetText(); //context.expr(1).GetText();
-                strColumn = context.GetChild(1).GetText(); // +context.GetChild(2).GetText() + context.GetChild(3).GetText(); //context.expr(0).GetText();
+                String strExpr = context.expr().GetText();
+                strColumn = getColumn(context.GetChild(1));
+                strTable = getTable(context.GetChild(1));
                 string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split Zechen sind == und >>
                 string strSQLOrderBy = "";
                 string strSQLELSE = "";
+                string strSQLInnerOrderBy = "";
+                string strInnerColumn = "";
 
                 //Define sort order value for each attribute
                 int iWeight = 0;
@@ -70,27 +77,31 @@ namespace prefSQL.SQLParser
                             strSQLELSE = " ELSE " + iWeight;
                             break;
                         default:
-                            strSQLOrderBy += " WHEN " + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
+                            strSQLOrderBy += " WHEN " + strTable + "." + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
+                            strSQLInnerOrderBy += " WHEN " +  "h1." + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
                             break;
                     }
 
                 }
                 strSQL = "CASE" + strSQLOrderBy + strSQLELSE + " END";
-
+                strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLELSE + " END";
+                strColumn = strSQL;
 
                 //Depending on LOW or HIGH do an ASCENDING or DESCENDING sort
                 if (context.op.Type == SQLParser.K_LOW)
                 {
 
                     strSQL += " ASC";
+                    strOperator = "<";
                 }
                 else if (context.op.Type == SQLParser.K_HIGH)
                 {
                     strSQL += " DESC";
+                    strOperator = ">";
 
                 }
                 //Add the preference to the list               
-                pref.Skyline.Add(new AttributeModel(strColumn, "UNDEFINED"));
+                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strInnerColumn, "h1"));
             }
 
 
@@ -156,6 +167,38 @@ namespace prefSQL.SQLParser
             //return strSQL + base.VisitPreferenceAROUND(context);
 
 
+        }
+
+
+
+
+        private String getColumn(IParseTree tree)
+        {
+            if (tree.ChildCount == 1)
+            {
+                //Syntax column only (price)
+                return tree.GetText();
+            }
+            else
+            {
+                //Syntax Table with column (cars.price)
+                return tree.GetChild(2).GetText();
+            }
+        }
+
+
+        private String getTable(IParseTree tree)
+        {
+            if (tree.ChildCount == 1)
+            {
+                //Syntax column only (price)
+                return "";
+            }
+            else
+            {
+                //Syntax Table with column (cars.price)
+                return tree.GetChild(0).GetText();
+            }
         }
 
     }
