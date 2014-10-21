@@ -13,6 +13,15 @@ namespace prefSQL.SQLParser
 {
     class SQLVisitor : SQLBaseVisitor<PrefSQLModel>
     {
+        public override PrefSQLModel VisitTable_or_subquery(SQLParser.Table_or_subqueryContext context)
+        {
+            return base.VisitTable_or_subquery(context);
+        }
+
+        public override PrefSQLModel VisitTable_name(SQLParser.Table_nameContext context)
+        {
+            return base.VisitTable_name(context);
+        }
 
 
         public override PrefSQLModel VisitPreferenceLOWHIGH(SQLParser.PreferenceLOWHIGHContext context)
@@ -26,10 +35,11 @@ namespace prefSQL.SQLParser
             //With only 2 expressions it is a numeric LOW preference 
             if (context.ChildCount == 2)
             {
-                //Abfrage auf Keyword LOW oder HIGH, danach ein ORDER BY daraus machen
+                //Separate Column and Table
                 strColumn = getColumn(context.GetChild(1));
                 strTable = getTable(context.GetChild(1));
-                
+
+                //Keyword LOW or HIGH, build ORDER BY
                 if (context.op.Type == SQLParser.K_LOW)
                 {
                     strSQL = strColumn + " ASC";
@@ -44,10 +54,11 @@ namespace prefSQL.SQLParser
 
 
                 //Add the preference to the list               
-                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, "h1." + strColumn, "h1"));
+                pref.Skyline.Add(new AttributeModel(strTable + "." + strColumn, strOperator, strTable, strTable + "_" + "INNER", strTable + "_INNER." + strColumn));
+                pref.Tables.Add(strTable);
 
             }
-            //Otherwise it is a text LOW preference --> Text text must be converted in a given sortorder
+            //Otherwise it is a text LOW/HIGH preference --> Text text must be converted in a given sortorder
             else
             {
 
@@ -55,7 +66,7 @@ namespace prefSQL.SQLParser
                 String strExpr = context.expr().GetText();
                 strColumn = getColumn(context.GetChild(1));
                 strTable = getTable(context.GetChild(1));
-                string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split Zechen sind == und >>
+                string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split signs are == and >>
                 string strSQLOrderBy = "";
                 string strSQLELSE = "";
                 string strSQLInnerOrderBy = "";
@@ -78,7 +89,7 @@ namespace prefSQL.SQLParser
                             break;
                         default:
                             strSQLOrderBy += " WHEN " + strTable + "." + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
-                            strSQLInnerOrderBy += " WHEN " +  "h1." + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
+                            strSQLInnerOrderBy += " WHEN " + strTable + "_INNER." + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
                             break;
                     }
 
@@ -101,7 +112,8 @@ namespace prefSQL.SQLParser
 
                 }
                 //Add the preference to the list               
-                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strInnerColumn, "h1"));
+                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn));
+                pref.Tables.Add(strTable);
             }
 
 
@@ -124,6 +136,8 @@ namespace prefSQL.SQLParser
             pref.Skyline.AddRange(right.Skyline);
             pref.OrderBy.AddRange(left.OrderBy);
             pref.OrderBy.AddRange(right.OrderBy);
+            pref.Tables.UnionWith(left.Tables);
+            pref.Tables.UnionWith(right.Tables);
             return pref;
 
         }
@@ -138,24 +152,24 @@ namespace prefSQL.SQLParser
                 case SQLParser.K_AROUND:
                     //Value should be as close as possible to a given numeric value
                     //Check if its a geocoordinate
-                    if (context.expr(1).GetType().ToString() == "prefSQL.SQLParser.SQLParser+GeocoordinateContext")
+                    if (context.GetChild(2).GetType().ToString() == "prefSQL.SQLParser.SQLParser+GeocoordinateContext")
                     {
-                        strSQL = "ABS(DISTANCE(" + context.expr(0).GetText() + ", \"" + context.expr(1).GetChild(1).GetText() + "," + context.expr(1).GetChild(3).GetText() + "\")) ASC";
+                        strSQL = "ABS(DISTANCE(" + context.GetChild(0).GetText() + ", \"" + context .GetChild(2).GetChild(1).GetText() + "," + context.GetChild(2).GetChild(3).GetText() + "\")) ASC";
                     }
                     else
                     {
-                        strSQL = "ABS(" + context.expr(0).GetText() + " - " + context.expr(1).GetText() + ") ASC";
+                        strSQL = "ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ") ASC";
                     }
                     break;
 
                 case SQLParser.K_FAVOUR:
                     //Value should be as close as possible to a given string value
-                    strSQL = "CASE WHEN " + context.expr(0).GetText() + " = " + context.expr(1).GetText() + " THEN 1 ELSE 2 END ASC";
+                    strSQL = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END ASC";
                     break;
 
                 case SQLParser.K_DISFAVOUR:
                     //Value should be as far away as possible to a given string value
-                    strSQL = "CASE WHEN " + context.expr(0).GetText() + " = " + context.expr(1).GetText() + " THEN 1 ELSE 2 END DESC";
+                    strSQL = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END DESC";
                     break;
 
             }
@@ -176,12 +190,12 @@ namespace prefSQL.SQLParser
         {
             if (tree.ChildCount == 1)
             {
-                //Syntax column only (price)
+                //Syntax column only (column)
                 return tree.GetText();
             }
             else
             {
-                //Syntax Table with column (cars.price)
+                //Syntax Table with column (table.column)
                 return tree.GetChild(2).GetText();
             }
         }
@@ -191,12 +205,12 @@ namespace prefSQL.SQLParser
         {
             if (tree.ChildCount == 1)
             {
-                //Syntax column only (price)
+                //Syntax column only (column)
                 return "";
             }
             else
             {
-                //Syntax Table with column (cars.price)
+                //Syntax Table with column (table.column)
                 return tree.GetChild(0).GetText();
             }
         }

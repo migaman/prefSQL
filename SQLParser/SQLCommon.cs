@@ -9,6 +9,7 @@ using Antlr4.Runtime.Tree;
 using Antlr4.Runtime.Tree.Pattern;
 
 using prefSQL.SQLParser.Models;
+using System.Text.RegularExpressions;
 
 namespace prefSQL.SQLParser
 {
@@ -63,29 +64,30 @@ namespace prefSQL.SQLParser
 
                 SQLVisitor visitor = new SQLVisitor();
                 PrefSQLModel prefSQL = visitor.Visit(tree);
-                
 
-                
-                
-                if (strInput.IndexOf("PREFERENCE") > 0)
+                //Check if parse was successful
+                if (prefSQL != null)
                 {
-                    strNewSQL = strInput.Substring(0, strInput.IndexOf("PREFERENCE") - 1);
+                    if (strInput.IndexOf("PREFERENCE") > 0)
+                    {
+                        strNewSQL = strInput.Substring(0, strInput.IndexOf("PREFERENCE") - 1);
 
-                    String strWHERE = buildWHEREClause(prefSQL, strNewSQL);
-                    String strOrderBy = buildORDERBYClause(prefSQL);
+                        String strWHERE = buildWHEREClause(prefSQL, strNewSQL);
+                        String strOrderBy = buildORDERBYClause(prefSQL);
 
 
-                    strNewSQL += strWHERE;
-                    strNewSQL += strOrderBy;
+                        strNewSQL += strWHERE;
+                        strNewSQL += strOrderBy;
 
-                    Console.WriteLine("Result: " + strWHERE);
-                    Console.WriteLine("--------------------------------------------");
+                        Console.WriteLine("Result: " + strWHERE);
+                        Console.WriteLine("--------------------------------------------");
 
-                    
-                }
-                else
-                {
-                    strNewSQL = strInput;
+
+                    }
+                    else
+                    {
+                        strNewSQL = strInput;
+                    }
                 }
 
             }
@@ -130,18 +132,30 @@ namespace prefSQL.SQLParser
 
                     if (model.Skyline[iChild].Table == "")
                     {
+                        //TODO: ged rid of cars!!
                         model.Skyline[iChild].Table = "cars";
                     }
 
 
-                    strWhereEqual += "h1.{column} " + model.Skyline[iChild].Op + "= {TABLE}.{column}";
-                    strWhereBetter += "h1.{column} " + model.Skyline[iChild].Op + " {TABLE}.{column}";
+                    strWhereEqual += "{INNERcolumn} " + model.Skyline[iChild].Op + "= {column}";
+                    strWhereBetter += "{INNERcolumn} " + model.Skyline[iChild].Op + " {column}";
+
+
+                    //strWhereEqual = strWhereEqual.Replace("{TABLE}", model.Skyline[iChild].Table);
+                    //strWhereBetter = strWhereBetter.Replace("{TABLE}", model.Skyline[iChild].Table);
+
+
                     //strWhereEqual += model.Skyline[iChild].InnerColumn + " "  + model.Skyline[iChild].Op + " " + model.Skyline[iChild].Table + ".{column}";
                     //strWhereBetter += model.Skyline[iChild].InnerColumn + " " + model.Skyline[iChild].Op + " " + model.Skyline[iChild].Table + ".{column}";
                     //strWhereEqual += model.Skyline[iChild].InnerColumn + " " + model.Skyline[iChild].Op + "= " +  "{column}";
                     //strWhereBetter += model.Skyline[iChild].InnerColumn + " " + model.Skyline[iChild].Op + " " + "{column}";
                     //strSQL = strSQL.Replace("{TABLE}", model.Skyline[iChild].Table);
 
+                    //strWhereEqual = strWhereEqual.Replace("{column}", model.Skyline[iChild].Column);
+                    //strWhereBetter = strWhereBetter.Replace("{column}", model.Skyline[iChild].Column);
+
+                    strWhereEqual = strWhereEqual.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumn);
+                    strWhereBetter = strWhereBetter.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumn);
                     strWhereEqual = strWhereEqual.Replace("{column}", model.Skyline[iChild].Column);
                     strWhereBetter = strWhereBetter.Replace("{column}", model.Skyline[iChild].Column);
 
@@ -153,12 +167,23 @@ namespace prefSQL.SQLParser
                 //closing bracket for 2nd condition
                 strWhereBetter += ") ";
 
+                //Format strPreSQL
+                foreach(String strTable in model.Tables)
+                {
+                    //Ersetzen von Tabellennamen in Spalten
+                    strPreSQL = strPreSQL.Replace(strTable + ".", strTable + "_INNER.");
+                    
+                    //Tabellenname mit neuem ALIAS ergänzen
+                    string pattern = @"\b" + strTable + @"\b";
+                    string replace = strTable + " " + strTable +  "_INNER";
+                    strPreSQL = Regex.Replace(strPreSQL, pattern, replace, RegexOptions.IgnoreCase);
+                }
 
+
+                //INNER WHERE in einem eigenen SELECT (SELECT * FROM) abhandeln damit nur ein ALIAS nötig!
                 //strSQL = " WHERE NOT EXISTS(SELECT * FROM (" + strPreSQL + ") h1 " + strWhereEqual + strWhereBetter + ") ";
-                strSQL = " WHERE NOT EXISTS(SELECT 1 FROM cars h1 " + strWhereEqual + strWhereBetter + ") ";
+                strSQL = " WHERE NOT EXISTS(" + strPreSQL + " " + strWhereEqual + strWhereBetter + ") ";
 
-                //TODO: replace with correct table name
-                strSQL = strSQL.Replace("{TABLE}", "cars");
             }
             return strSQL;
         }

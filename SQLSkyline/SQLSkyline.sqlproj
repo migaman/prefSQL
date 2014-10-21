@@ -73,5 +73,6 @@
     <Compile Include="Skyline.cs" />
     <Compile Include="SP_Skyline.cs" />
     <Compile Include="SP_SkylineBNL.cs" />
+    <Compile Include="SP_Skyline7.cs" />
   </ItemGroup>
 </Project>

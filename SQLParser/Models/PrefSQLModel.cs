@@ -8,9 +8,23 @@ namespace prefSQL.SQLParser.Models
 {
     class PrefSQLModel
     {
+        private String _tableName = "";
         private List<AttributeModel> _skyline = new List<AttributeModel>();
         private List<String> _orderBy = new List<String>();
+        private HashSet<String> _tables = new HashSet<string>();
+
+        public HashSet<String> Tables
+        {
+            get { return _tables; }
+            set { _tables = value; }
+        }
         private HashSet<String> _innerTableAlias = new HashSet<string>();
+
+        public String TableName
+        {
+            get { return _tableName; }
+            set { _tableName = value; }
+        }
 
         public List<AttributeModel> Skyline
         {

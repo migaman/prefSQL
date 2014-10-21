@@ -82,11 +82,11 @@ expr
  | expr ( '+' | '-' ) expr																				#opLine
  | expr ( '<<' | '>>' | '&' | '|' ) expr																#opDoubleOrder
  | expr ( '<' | '<=' | '>' | '>=' ) expr																#opOrder
- | expr ( '=' | '==' | '!=' | '<>' | K_IS | K_IS K_NOT | K_IN | K_LIKE | K_MATCH ) expr	#opequal
+ | expr ( '=' | '==' | '!=' | '<>' | K_IS | K_IS K_NOT | K_IN | K_LIKE | K_MATCH ) expr					#opequal
  | expr K_AND expr																	#exprand
  | expr K_OR expr																	#expror
  | function_name '(' ( K_DISTINCT? expr ( ',' expr )* | '*' )? ')'					#function
- | '(' expr ')'																		#exprexpr
+ | '(' expr ')'																		#exprInBracket
  | K_CAST '(' expr K_AS type_name ')'												#cast
  | expr K_COLLATE collation_name													#collate
  | expr K_NOT? ( K_LIKE | K_MATCH ) expr ( K_ESCAPE expr )?		#not
@@ -100,11 +100,11 @@ expr
                     | ( database_name '.' )? table_name )							#notIn
  | ( ( K_NOT )? K_EXISTS )? '(' select_stmt ')'										#notExists
  | K_CASE expr? ( K_WHEN expr K_THEN expr )+ ( K_ELSE expr )? K_END					#case
- //| op=(K_LOW | K_HIGH) expr	('{' expr '}')?											#preferenceLOWHIGH
  //Don't use expression. The word after Low or High must be a column name!!
  | op=(K_LOW | K_HIGH) column_term ('{' expr '}')?									#preferenceLOWHIGH
- | expr op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) expr									#preferenceAROUND
+ | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) expr							#preferenceAROUND
  | '(' expr ',' expr ')'															#geocoordinate
+ //| K_WEIGHTED expr													#prefWeighted
  ;
 
 
@@ -224,6 +224,7 @@ keyword
  | K_LOW
  | K_OTHERS
  | K_PREFERENCE
+ | K_WEIGHTED
  ;
 
 
@@ -338,6 +339,7 @@ K_HIGH : H I G H;
 K_LOW : L O W;
 K_OTHERS : O T H E R S;
 K_PREFERENCE : P R E F E R E N C E;
+K_WEIGHTED : W E I G H T E D;
 
 
 
