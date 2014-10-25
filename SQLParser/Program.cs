@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using System.Text;
+using System.IO;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 
@@ -19,8 +20,8 @@ namespace prefSQL.SQLParser
         [STAThread]
         private static void Main(string[] args) 
         {
-            //GeneratePerformanceQueries();
-            (new Program()).Run();
+            GeneratePerformanceQueries();
+            //(new Program()).Run();
         }
 
 
@@ -91,8 +92,10 @@ namespace prefSQL.SQLParser
             String[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGH cars.registration", "LOW cars.consumption", "HIGH cars.doors", "LOW colors.name {'rot' == 'blau' >> OTHERS >> 'grau'}", "LOW fuels.name {'Benzin' >> OTHERS >> 'Diesel'}", "LOW bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> 'OTHERS' >> 'Pick-Up'}", "LOW cars.title {'MERCEDES-BENZ SL 600' >> OTHERS}", "LOW makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS >> 'FERRARI'}", "LOW conditions.name {'Neu' >> OTHERS}" };
             String[] sizes = { "small", "medium", "large", "superlarge" };
 
-
-            String strPerformanceQuery = "set statistics time on\n";
+            
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("set statistics time on");
+            
 
             for (int i = columns.GetUpperBound(0); i >= 1; i--)
             {
@@ -139,14 +142,23 @@ namespace prefSQL.SQLParser
 
 
                 //Format for each of the customer profiles
-                strPerformanceQuery += "--" + (i + 1) + " dimensions, " + (countJoins) + " joins\n";
+                sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
+                sb.AppendLine("PRINT '----- " + (i + 1) + " dimensions, " + (countJoins) + " join(s) ------'");
+                sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
                 foreach (String size in sizes)
                 {
-                    strPerformanceQuery += strSQL.Replace("cars", "cars_" + size) + "\n";
+                    sb.AppendLine(strSQL.Replace("cars", "cars_" + size));
+                     
                 }
 
 
-                strPerformanceQuery += "\n\n\n";
+                //strPerformanceQuery += "\n\n\n";
+                sb.AppendLine("");
+                sb.AppendLine("");
+                sb.AppendLine("");
+                //Console.WriteLine();
+
+                
 
 
                 //Remove current column
@@ -154,10 +166,14 @@ namespace prefSQL.SQLParser
                 preferences = preferences.Where(w => w != preferences[i]).ToArray();
             }
             //
-            strPerformanceQuery += "set statistics time off\n";
+            sb.AppendLine("set statistics time off");
 
-            //Write output to the console
-            Console.WriteLine(strPerformanceQuery);
+            //Write in file
+            StreamWriter outfile = new StreamWriter("E:\\Doc\\Studies\\PRJ_Thesis\\10 Arcmedia Profiles\\Performance_Auto.sql");
+            outfile.Write(sb.ToString());
+            outfile.Close();
+            Console.WriteLine("THE END!!");
+
         }
 
 
