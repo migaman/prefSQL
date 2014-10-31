@@ -66,6 +66,7 @@ namespace prefSQL.SQLParser
 
                 SQLCommon parser = new SQLCommon();
                 parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
+                parser.ParetoImplementation = SQLCommon.ParetoInterpretation.Composition;
                 String strSQL = parser.parsePreferenceSQL(strPrefSQL);
 
                 Console.WriteLine(strSQL);

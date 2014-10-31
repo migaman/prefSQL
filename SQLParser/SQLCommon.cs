@@ -22,13 +22,30 @@ namespace prefSQL.SQLParser
             DQ,
         };
 
-        private Algorithm _SkylineType = Algorithm.NativeSQL;
+        public enum ParetoInterpretation
+        {
+            Composition,     //better, identical or incomparable in all attribute values
+            Accumulation,   //better or identical in all attribute values
+            
+        };
 
+
+        private Algorithm _SkylineType = Algorithm.NativeSQL;
+        
         public Algorithm SkylineType
         {
             get { return _SkylineType; }
             set { _SkylineType = value; }
         }
+
+        private ParetoInterpretation _ParetoImplementation = ParetoInterpretation.Composition;
+
+        public ParetoInterpretation ParetoImplementation
+        {
+            get { return _ParetoImplementation; }
+            set { _ParetoImplementation = value; }
+        }
+
 
         
 
@@ -118,6 +135,7 @@ namespace prefSQL.SQLParser
             {
                 String strWhereEqual = "WHERE ";
                 String strWhereBetter = " AND ( ";
+                String strWhereIncomparable = "AND ( ";
                 Boolean bFirst = true;
 
                 for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
@@ -140,24 +158,13 @@ namespace prefSQL.SQLParser
                     strWhereEqual += "{INNERcolumn} " + model.Skyline[iChild].Op + "= {column}";
                     strWhereBetter += "{INNERcolumn} " + model.Skyline[iChild].Op + " {column}";
 
-
-                    //strWhereEqual = strWhereEqual.Replace("{TABLE}", model.Skyline[iChild].Table);
-                    //strWhereBetter = strWhereBetter.Replace("{TABLE}", model.Skyline[iChild].Table);
-
-
-                    //strWhereEqual += model.Skyline[iChild].InnerColumn + " "  + model.Skyline[iChild].Op + " " + model.Skyline[iChild].Table + ".{column}";
-                    //strWhereBetter += model.Skyline[iChild].InnerColumn + " " + model.Skyline[iChild].Op + " " + model.Skyline[iChild].Table + ".{column}";
-                    //strWhereEqual += model.Skyline[iChild].InnerColumn + " " + model.Skyline[iChild].Op + "= " +  "{column}";
-                    //strWhereBetter += model.Skyline[iChild].InnerColumn + " " + model.Skyline[iChild].Op + " " + "{column}";
-                    //strSQL = strSQL.Replace("{TABLE}", model.Skyline[iChild].Table);
-
-                    //strWhereEqual = strWhereEqual.Replace("{column}", model.Skyline[iChild].Column);
-                    //strWhereBetter = strWhereBetter.Replace("{column}", model.Skyline[iChild].Column);
-
                     strWhereEqual = strWhereEqual.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumn);
                     strWhereBetter = strWhereBetter.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumn);
                     strWhereEqual = strWhereEqual.Replace("{column}", model.Skyline[iChild].Column);
                     strWhereBetter = strWhereBetter.Replace("{column}", model.Skyline[iChild].Column);
+
+                    strWhereIncomparable = "";
+                    //AND ( CASE WHEN b.color NOT IN 'red' THEN 99 END <> CASE WHEN cars.color NOT IN 'red' THEN 99 END   )
 
                     bFirst = false;
 
@@ -166,6 +173,7 @@ namespace prefSQL.SQLParser
                 }
                 //closing bracket for 2nd condition
                 strWhereBetter += ") ";
+                strWhereIncomparable += " ) ";
 
                 //Format strPreSQL
                 foreach(String strTable in model.Tables)
@@ -182,7 +190,14 @@ namespace prefSQL.SQLParser
 
                 //INNER WHERE in einem eigenen SELECT (SELECT * FROM) abhandeln damit nur ein ALIAS nötig!
                 //strSQL = " WHERE NOT EXISTS(SELECT * FROM (" + strPreSQL + ") h1 " + strWhereEqual + strWhereBetter + ") ";
-                strSQL = " WHERE NOT EXISTS(" + strPreSQL + " " + strWhereEqual + strWhereBetter + ") ";
+                if (_ParetoImplementation == ParetoInterpretation.Composition)
+                {
+                    strSQL = " WHERE NOT EXISTS(" + strPreSQL + " " + strWhereEqual + strWhereBetter + ") ";
+                }
+                else
+                {
+                    strSQL = " WHERE NOT EXISTS(" + strPreSQL + " " + strWhereEqual + strWhereBetter + strWhereIncomparable + ") ";
+                }
 
             }
             return strSQL;
@@ -265,3 +280,85 @@ namespace prefSQL.SQLParser
 
 
 }
+
+
+
+
+/*
+ * --Fall 1: rot besser als grün > schwarz --> Funktioniert
+SELECT cars.id, cars.Price, colors.Name, colors.id
+FROM cars
+LEFT OUTER JOIN colors ON cars.Color_Id = Colors.Id
+WHERE NOT EXISTS
+(
+	SELECT b.id, b.Price, c.Name FROM cars b
+	LEFT OUTER JOIN colors c ON b.Color_Id = c.Id
+	WHERE  b.Price <= cars.Price 
+		AND 
+		--Mindestens so gut Klausel
+			(
+				--Rot > Blau
+				CASE WHEN c.Name = 'rot' THEN 1 WHEN c.Name = 'grün' THEN 2 WHEN c.Name = 'schwarz' THEN 3 END <= CASE WHEN colors.Name = 'rot' THEN 1 WHEN colors.Name = 'grün' THEN 2 WHEN colors.Name = 'schwarz' THEN 3 END
+				OR
+				--gleiche Farbe
+				c.Name = colors.Name
+			)
+				
+		--Besser-Klausel
+		AND (
+			b.Price < cars.Price 
+			OR 
+			CASE WHEN c.Name = 'rot' THEN 1 WHEN c.Name = 'grün' THEN 2 WHEN c.Name = 'schwarz' THEN 3 END < CASE WHEN colors.Name = 'rot' THEN 1 WHEN colors.Name = 'grün' THEN 2 WHEN colors.Name = 'schwarz' THEN 3 END)
+
+)
+
+/*
+select * from cars 
+--where Color_Id = 3
+order by Price
+
+select * from Colors
+--blau = 3
+--grün = 9
+--rot = 12
+*/
+
+/*
+ * 
+ * 
+ * --Fall 2: rot besser als schwarz > alle anderen --> Funktioniert
+
+SELECT cars.id, cars.Price, colors.Name
+FROM cars
+LEFT OUTER JOIN colors ON cars.Color_Id = Colors.Id
+WHERE NOT EXISTS
+(
+	SELECT b.id, b.Price, c.Name
+	 
+	 FROM cars b
+	LEFT OUTER JOIN colors c ON b.Color_Id = c.Id
+	WHERE  
+		--Mindestens so gut Klausel
+		b.Price <= cars.Price 
+		AND 
+			(
+				--Türkis > Gelb > alles andere
+				--Speziell ist beim OTHERS, dass die Bedingung dann nicht zutreffen darf weil sonst z.B. grün mit rot verglichen wird!!
+				CASE WHEN c.Name = 'türkis' THEN 1 WHEN c.Name = 'gelb' THEN 2 ELSE 999 END <= CASE WHEN colors.Name = 'türkis' THEN 1 WHEN colors.Name = 'gelb' THEN 2 ELSE 99 END
+				OR
+				--gleiche Farbe
+				c.Name = colors.Name
+			)
+				
+		--Besser-Klausel
+	AND (
+			b.Price < cars.Price 
+			OR 
+			CASE WHEN c.Name = 'türkis' THEN 1 WHEN c.Name = 'gelb' THEN 2 ELSE 99 END  < CASE WHEN colors.Name = 'türkis' THEN 1 WHEN colors.Name = 'gelb' THEN 2 ELSE 99 END)
+			
+)
+
+ORDER by cars.price
+ * 
+ * */
+
