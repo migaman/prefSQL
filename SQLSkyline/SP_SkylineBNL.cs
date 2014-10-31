@@ -13,72 +13,6 @@ using System.Collections;
 
 public partial class StoredProcedures
 {
-
-    private static Boolean compareValues(String op, int value1, int value2, bool greaterThan, bool umgekehrt)
-    {
-        if (umgekehrt == true)
-        {
-            if (op == "LOW")
-                op = "HIGH";
-            else
-                op = "LOW";
-        }
-
-        if (greaterThan == false)
-        {
-            if (op == "LOW")
-            {
-                if (value1 >= value2)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else if (op == "HIGH")
-            {
-                if (value1 <= value2)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        }
-        else
-        {
-            if (op == "LOW")
-            {
-                if (value1 > value2)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else if (op == "HIGH")
-            {
-                if (value1 < value2)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        }
-        return false;
-
-    }
-
-
     [Microsoft.SqlServer.Server.SqlProcedure]
     public static void SP_SkylineBNL(SqlString strQuery, SqlString strOperators)
     {
@@ -92,9 +26,6 @@ public partial class StoredProcedures
         {
             connection.Open();
             SqlCommand sqlCommand = new SqlCommand(strQuery.ToString(), connection);
-
-
-
             SqlDataReader sqlReader = sqlCommand.ExecuteReader();
 
             //Alle Objekte nur einmal lesen (SqlDataReader kann nur vorwärts lesen!!)
@@ -150,18 +81,9 @@ public partial class StoredProcedures
                             bDominated = true;
                             break;
                         }
+                        
+
                         //Nun noch prüfen ob der neue Punkt den im Window dominiert
-                        /*else if (sqlReader.GetInt32(1) <= result[1] && sqlReader.GetInt32(2) <= result[2] && sqlReader.GetInt32(3) >= result[3]
-                            && (sqlReader.GetInt32(1) < result[1] || sqlReader.GetInt32(2) < result[2] || sqlReader.GetInt32(3) > result[3]))
-                        {
-                            //Der neue Punkt dominiert den im Window --> Punkt im Window löschen und weitertesten
-                            resultCollection.RemoveAt(i);
-                            idCollection.RemoveAt(i);
-                        }*/
-
-
-
-                        //Dominiert werden
                         equalThan = false;
                         greaterThan = false;
                         for (int iCol = 1; iCol <= result.GetUpperBound(0); iCol++)
@@ -253,4 +175,73 @@ public partial class StoredProcedures
         }
 
     }
+
+
+
+
+
+    private static Boolean compareValues(String op, int value1, int value2, bool greaterThan, bool umgekehrt)
+    {
+        if (umgekehrt == true)
+        {
+            if (op == "LOW")
+                op = "HIGH";
+            else
+                op = "LOW";
+        }
+
+        if (greaterThan == false)
+        {
+            if (op == "LOW")
+            {
+                if (value1 >= value2)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else if (op == "HIGH")
+            {
+                if (value1 <= value2)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        else
+        {
+            if (op == "LOW")
+            {
+                if (value1 > value2)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else if (op == "HIGH")
+            {
+                if (value1 < value2)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        return false;
+
+    }
+
 }

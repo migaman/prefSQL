@@ -14,7 +14,7 @@ public partial class UserDefinedFunctions
     [Microsoft.SqlServer.Server.SqlFunction]
     public static SqlString ScalarUDF()
     {
-        // Put your code here
+        //Just for proof of concept
         return new SqlString("Hello World!");
     }
 

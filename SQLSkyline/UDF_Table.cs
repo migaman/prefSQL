@@ -36,6 +36,7 @@ public partial class UserDefinedFunctions
         FillRowMethodName = "TableUDF_FillRow")]
     public static IEnumerable TableUDF()
     {
+        //Just for proof of concept
         var tableResults = new ArrayList
         {
             new TableType {Sequence = 1, Text = "Hello"},

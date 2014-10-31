@@ -14,7 +14,7 @@ public partial class StoredProcedures
     [Microsoft.SqlServer.Server.SqlProcedure]
     public static void InsertTransmission(SqlString name)
     {
-        // Put your code here
+        //Just for proof of concept
         using (SqlConnection conn = new SqlConnection("context connection=true"))
         {
             SqlCommand InsertCommand = new SqlCommand();

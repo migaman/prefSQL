@@ -59,7 +59,6 @@
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
   <ItemGroup>
     <Folder Include="Properties" />
-    <Folder Include="NewFolder1\" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -67,13 +66,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ScalarUDF.cs" />
-    <Compile Include="TableUDF.cs" />
-    <Compile Include="InsertTransmission.cs" />
-    <Compile Include="GetCar.cs" />
-    <Compile Include="Skyline.cs" />
-    <Compile Include="SP_Skyline.cs" />
     <Compile Include="SP_SkylineBNL.cs" />
-    <Compile Include="SP_Skyline7.cs" />
+    <Compile Include="SP_InsertTransmission.cs" />
+    <Compile Include="UDF_Table.cs" />
+    <Compile Include="UDF_Scalar.cs" />
   </ItemGroup>
 </Project>
