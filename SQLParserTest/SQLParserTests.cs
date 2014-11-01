@@ -8,6 +8,20 @@ namespace prefSQL.SQLParserTest
     public class SQLParserTests
     {
 
+        [TestMethod]
+        public void TestSKYLINE2DimensionsTextJoinNoOthers()
+        {
+            String strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID PREFERENCE LOW cars.price AND LOW colors.name {'rot' >> 'grün' >> 'schwarz'}";
+
+            String expected = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.Price, colors_INNER.Name FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE cars_INNER.price <= cars.price AND (CASE WHEN colors_INNER.name = 'rot' THEN 0 WHEN colors_INNER.name = 'grün' THEN 1 WHEN colors_INNER.name = 'schwarz' THEN 2 END <= CASE WHEN colors.name = 'rot' THEN 0 WHEN colors.name = 'grün' THEN 1 WHEN colors.name = 'schwarz' THEN 2 END OR colors_INNER.name = colors.name) AND ( cars_INNER.price < cars.price OR CASE WHEN colors_INNER.name = 'rot' THEN 0 WHEN colors_INNER.name = 'grün' THEN 1 WHEN colors_INNER.name = 'schwarz' THEN 2 END < CASE WHEN colors.name = 'rot' THEN 0 WHEN colors.name = 'grün' THEN 1 WHEN colors.name = 'schwarz' THEN 2 END) )  ORDER BY price ASC, CASE WHEN colors.name = 'rot' THEN 0 WHEN colors.name = 'grün' THEN 1 WHEN colors.name = 'schwarz' THEN 2 END ASC";
+            SQLCommon common = new SQLCommon();
+            String actual = common.parsePreferenceSQL(strPrefSQL);
+
+            // assert
+
+            Assert.AreEqual(expected, actual, true, "SQL not built correctly");
+        }
+
 
         [TestMethod]
         public void TestSKYLINE2DimensionsTextNoJoin()

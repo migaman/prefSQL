@@ -20,8 +20,8 @@ namespace prefSQL.SQLParser
         [STAThread]
         private static void Main(string[] args) 
         {
-            GeneratePerformanceQueries();
-            //(new Program()).Run();
+            //GeneratePerformanceQueries();
+            (new Program()).Run();
         }
 
 
@@ -40,23 +40,22 @@ namespace prefSQL.SQLParser
                     4.Similarity berechnen
                 */
 
-
-
                 //String strPrefSQL = "SELECT cars.id, cars.title, colors.name, fuels.name FROM cars " +
                 //String strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name, mileage FROM cars " +
-                String strPrefSQL = "SELECT cars.id, cars.title FROM cars " +
+                String strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars " +
                 //String strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage, cars.horsepower, cars.enginesize, cars.registration, cars.consumption, cars.doors, colors.name, fuels.name FROM cars " +
                 //String strPrefSQL = "SELECT cars.id, cars.title, colors.name AS colourname, fuels.name AS fuelname, cars.price FROM cars " +
                     //String strPrefSQL = "SELECT id FROM cars " +
                     "LEFT OUTER JOIN colors ON cars.color_id = colors.ID " +
-                    "LEFT OUTER JOIN fuels ON cars.fuel_id = fuels.ID " +
+                    //"LEFT OUTER JOIN fuels ON cars.fuel_id = fuels.ID " +
                     //"WHERE cars.horsepower > 10 AND cars.price < 10000 " +
                     //"PREFERENCE LOW colors.name {'rot' == 'blau' >> OTHERS >> 'grau'} AND LOW cars.price";
                     //"PREFERENCE LOW cars.title {'MERCEDES-BENZ SL 600' >> OTHERS} AND LOW cars.price";
                     //"PREFERENCE LOW colors.name {'rot' >> OTHERS} AND LOW cars.price";
                     //"PREFERENCE Low cars.price AND Low cars.mileage";
                     //"PREFERENCE LOW cars.price AND LOW cars.mileage AND HIGH cars.horsepower AND HIGH cars.enginesize AND HIGH cars.registration AND LOW cars.consumption AND HIGH cars.doors AND LOW colors.name {'rot' == 'blau' >> OTHERS >> 'grau'} AND LOW fuels.name {'Benzin' >> OTHERS >> 'Diesel'}";
-                    "PREFERENCE LOW cars.price AND LOW cars.mileage AND LOW fuels.name {'Benzin' >> OTHERS >> 'Diesel'}";
+                    //"PREFERENCE LOW cars.price AND LOW cars.mileage AND LOW fuels.name {'Benzin' >> OTHERS >> 'Diesel'}";
+                    "PREFERENCE LOW cars.price AND LOW colors.name {'rot' >> 'grün' >> 'schwarz'}";
                     //"PREFERENCE LOW colors.name {'gelb' >> OTHERS >> 'grau'} AND LOW fuels.name {'Benzin' >> OTHERS >> 'Diesel'} AND LOW cars.price ";
                     //"PREFERENCE colors.name DISFAVOUR 'rot' ";
                     //"PREFERENCE cars.location AROUND (47.0484, 8.32629) ";

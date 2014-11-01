@@ -54,7 +54,7 @@ namespace prefSQL.SQLParser
 
 
                 //Add the preference to the list               
-                pref.Skyline.Add(new AttributeModel(strTable + "." + strColumn, strOperator, strTable, strTable + "_" + "INNER", strTable + "_INNER." + strColumn));
+                pref.Skyline.Add(new AttributeModel(strTable + "." + strColumn, strOperator, strTable, strTable + "_" + "INNER", strTable + "_INNER." + strColumn, "", "", false));
                 pref.Tables.Add(strTable);
 
             }
@@ -71,6 +71,9 @@ namespace prefSQL.SQLParser
                 string strSQLELSE = "";
                 string strSQLInnerOrderBy = "";
                 string strInnerColumn = "";
+                string strSingleColumn = strTable + "." + getColumn(context.GetChild(1));
+                string strInnerSingleColumn = strTable + "_INNER." + getColumn(context.GetChild(1));
+                Boolean includeOthers = false;
 
                 //Define sort order value for each attribute
                 int iWeight = 0;
@@ -86,6 +89,7 @@ namespace prefSQL.SQLParser
                         case "OTHERS":
                             //Special word others = all other attributes are defined with this order by value
                             strSQLELSE = " ELSE " + iWeight;
+                            includeOthers = true;
                             break;
                         default:
                             strSQLOrderBy += " WHEN " + strTable + "." + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
@@ -112,7 +116,7 @@ namespace prefSQL.SQLParser
 
                 }
                 //Add the preference to the list               
-                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn));
+                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn, strSingleColumn, strInnerSingleColumn, includeOthers));
                 pref.Tables.Add(strTable);
             }
 

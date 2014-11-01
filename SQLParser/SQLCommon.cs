@@ -135,26 +135,27 @@ namespace prefSQL.SQLParser
             {
                 String strWhereEqual = "WHERE ";
                 String strWhereBetter = " AND ( ";
-                String strWhereIncomparable = "AND ( ";
+                //String strWhereIncomparable = "AND ( ";
                 Boolean bFirst = true;
 
+                //Build the where clause with each column in the skyline
                 for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
                 {
+                    Boolean needsTextORClause = false;
+                    needsTextORClause = !model.Skyline[iChild].SingleColumn.Equals("") && !model.Skyline[iChild].IncludesOthers;
 
-                    //First record has a slightly different syntax
                     if (bFirst == false)
                     {
                         strWhereEqual += " AND ";
                         strWhereBetter += " OR ";
                     }
 
-                    if (model.Skyline[iChild].Table == "")
+                    //Falls Text-Spalte ein zusätzliches OR einbauen für den Vergleich Farbe = Farbe
+                    if (needsTextORClause == true)
                     {
-                        //TODO: ged rid of cars!!
-                        model.Skyline[iChild].Table = "cars";
+                        strWhereEqual += "(";
                     }
-
-
+                    
                     strWhereEqual += "{INNERcolumn} " + model.Skyline[iChild].Op + "= {column}";
                     strWhereBetter += "{INNERcolumn} " + model.Skyline[iChild].Op + " {column}";
 
@@ -163,17 +164,19 @@ namespace prefSQL.SQLParser
                     strWhereEqual = strWhereEqual.Replace("{column}", model.Skyline[iChild].Column);
                     strWhereBetter = strWhereBetter.Replace("{column}", model.Skyline[iChild].Column);
 
-                    strWhereIncomparable = "";
-                    //AND ( CASE WHEN b.color NOT IN 'red' THEN 99 END <> CASE WHEN cars.color NOT IN 'red' THEN 99 END   )
-
+                    //Falls Text-Spalte ein zusätzliches OR einbauen für den Vergleich Farbe = Farbe
+                    if (needsTextORClause == true)
+                    {
+                        strWhereEqual += " OR " + model.Skyline[iChild].InnerSingleColumn + " = " + model.Skyline[iChild].SingleColumn;
+                        strWhereEqual += ")";
+                    }
                     bFirst = false;
-
+                    
 
 
                 }
                 //closing bracket for 2nd condition
                 strWhereBetter += ") ";
-                strWhereIncomparable += " ) ";
 
                 //Format strPreSQL
                 foreach(String strTable in model.Tables)
@@ -196,7 +199,7 @@ namespace prefSQL.SQLParser
                 }
                 else
                 {
-                    strSQL = " WHERE NOT EXISTS(" + strPreSQL + " " + strWhereEqual + strWhereBetter + strWhereIncomparable + ") ";
+                    strSQL = " WHERE NOT EXISTS(" + strPreSQL + " " + strWhereEqual + strWhereBetter + "" + ") ";
                 }
 
             }
