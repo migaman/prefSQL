@@ -9,7 +9,7 @@ namespace prefSQL.SQLParser.Models
     class AttributeModel
     {
 
-        public AttributeModel(String strColumn, String strOperator, String strTable, String strInnerTable, String strInnerColumn, String strSingleColumn, String strInnerSingleColumn, Boolean includeOthers)
+        public AttributeModel(String strColumn, String strOperator, String strTable, String strInnerTable, String strInnerColumn, String strSingleColumn, String strInnerSingleColumn, Boolean includeOthers, String strInnerColumnAccumulation)
         {
             Column = strColumn;
             Op = strOperator;
@@ -19,6 +19,7 @@ namespace prefSQL.SQLParser.Models
             SingleColumn = strSingleColumn; //User for the additional OR with text values
             InnerSingleColumn = strInnerSingleColumn;
             IncludesOthers = includeOthers;
+            InnerColumnAccumulation = strInnerColumnAccumulation;
         }
 
         public Boolean IncludesOthers { get; set; }
@@ -31,6 +32,8 @@ namespace prefSQL.SQLParser.Models
         public string Column { get; set; }
 
         public string InnerColumn { get; set; }
+
+        public string InnerColumnAccumulation { get; set; }
 
         public string InnerTable { get; set; }
 

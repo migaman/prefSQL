@@ -55,7 +55,8 @@ namespace prefSQL.SQLParser
                     //"PREFERENCE Low cars.price AND Low cars.mileage";
                     //"PREFERENCE LOW cars.price AND LOW cars.mileage AND HIGH cars.horsepower AND HIGH cars.enginesize AND HIGH cars.registration AND LOW cars.consumption AND HIGH cars.doors AND LOW colors.name {'rot' == 'blau' >> OTHERS >> 'grau'} AND LOW fuels.name {'Benzin' >> OTHERS >> 'Diesel'}";
                     //"PREFERENCE LOW cars.price AND LOW cars.mileage AND LOW fuels.name {'Benzin' >> OTHERS >> 'Diesel'}";
-                    "PREFERENCE LOW cars.price AND LOW colors.name {'rot' >> 'grün' >> 'schwarz'}";
+                    //"PREFERENCE LOW cars.price AND LOW colors.name {'rot' >> 'grün' >> 'schwarz'}";
+                    "PREFERENCE LOW cars.price AND LOW colors.name {'türkis' >> 'gelb' >> OTHERS}";
                     //"PREFERENCE LOW colors.name {'gelb' >> OTHERS >> 'grau'} AND LOW fuels.name {'Benzin' >> OTHERS >> 'Diesel'} AND LOW cars.price ";
                     //"PREFERENCE colors.name DISFAVOUR 'rot' ";
                     //"PREFERENCE cars.location AROUND (47.0484, 8.32629) ";
@@ -65,7 +66,8 @@ namespace prefSQL.SQLParser
 
                 SQLCommon parser = new SQLCommon();
                 parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
-                parser.ParetoImplementation = SQLCommon.ParetoInterpretation.Composition;
+                //parser.ParetoImplementation = SQLCommon.ParetoInterpretation.Composition;
+                parser.ParetoImplementation = SQLCommon.ParetoInterpretation.Accumulation;
                 String strSQL = parser.parsePreferenceSQL(strPrefSQL);
 
                 Console.WriteLine(strSQL);

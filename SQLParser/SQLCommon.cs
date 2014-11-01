@@ -142,7 +142,18 @@ namespace prefSQL.SQLParser
                 for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
                 {
                     Boolean needsTextORClause = false;
-                    needsTextORClause = !model.Skyline[iChild].SingleColumn.Equals("") && !model.Skyline[iChild].IncludesOthers;
+
+                    if (_ParetoImplementation == ParetoInterpretation.Composition)
+                    {
+                        //Competition
+                        needsTextORClause = !model.Skyline[iChild].SingleColumn.Equals("") && !model.Skyline[iChild].IncludesOthers;
+                    }
+                    else
+                    {
+                        //Accumulation
+                        needsTextORClause = !model.Skyline[iChild].SingleColumn.Equals("");
+                    }
+
 
                     if (bFirst == false)
                     {
@@ -159,7 +170,16 @@ namespace prefSQL.SQLParser
                     strWhereEqual += "{INNERcolumn} " + model.Skyline[iChild].Op + "= {column}";
                     strWhereBetter += "{INNERcolumn} " + model.Skyline[iChild].Op + " {column}";
 
-                    strWhereEqual = strWhereEqual.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumn);
+                    
+                    if (_ParetoImplementation == ParetoInterpretation.Composition)
+                    {
+                        strWhereEqual = strWhereEqual.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumn);
+                    }
+                    else
+                    {
+                        //Falls Accumulation soll das ELSE (OTHERS) mit einem höheren Wert ausgeführt werdne
+                        strWhereEqual = strWhereEqual.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumnAccumulation);
+                    }
                     strWhereBetter = strWhereBetter.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumn);
                     strWhereEqual = strWhereEqual.Replace("{column}", model.Skyline[iChild].Column);
                     strWhereBetter = strWhereBetter.Replace("{column}", model.Skyline[iChild].Column);
@@ -193,14 +213,9 @@ namespace prefSQL.SQLParser
 
                 //INNER WHERE in einem eigenen SELECT (SELECT * FROM) abhandeln damit nur ein ALIAS nötig!
                 //strSQL = " WHERE NOT EXISTS(SELECT * FROM (" + strPreSQL + ") h1 " + strWhereEqual + strWhereBetter + ") ";
-                if (_ParetoImplementation == ParetoInterpretation.Composition)
-                {
-                    strSQL = " WHERE NOT EXISTS(" + strPreSQL + " " + strWhereEqual + strWhereBetter + ") ";
-                }
-                else
-                {
-                    strSQL = " WHERE NOT EXISTS(" + strPreSQL + " " + strWhereEqual + strWhereBetter + "" + ") ";
-                }
+                
+                strSQL = " WHERE NOT EXISTS(" + strPreSQL + " " + strWhereEqual + strWhereBetter + ") ";
+                                
 
             }
             return strSQL;

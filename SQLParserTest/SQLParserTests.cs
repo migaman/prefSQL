@@ -7,13 +7,28 @@ namespace prefSQL.SQLParserTest
     [TestClass]
     public class SQLParserTests
     {
+        [TestMethod]
+        public void TestSKYLINE2DimensionsTextJoinOthersAccumulation()
+        {
+            String strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID PREFERENCE LOW cars.price AND LOW colors.name {'türkis' >> 'gelb' >> OTHERS}";
+
+            String expected = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.Price, colors_INNER.Name FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE cars_INNER.price <= cars.price AND (CASE WHEN colors_INNER.name = 'türkis' THEN 0 WHEN colors_INNER.name = 'gelb' THEN 100 ELSE 201 END <= CASE WHEN colors.name = 'türkis' THEN 0 WHEN colors.name = 'gelb' THEN 100 ELSE 200 END OR colors_INNER.name = colors.name) AND ( cars_INNER.price < cars.price OR CASE WHEN colors_INNER.name = 'türkis' THEN 0 WHEN colors_INNER.name = 'gelb' THEN 100 ELSE 200 END < CASE WHEN colors.name = 'türkis' THEN 0 WHEN colors.name = 'gelb' THEN 100 ELSE 200 END) )  ORDER BY price ASC, CASE WHEN colors.name = 'türkis' THEN 0 WHEN colors.name = 'gelb' THEN 100 ELSE 200 END ASC";
+            SQLCommon common = new SQLCommon();
+            common.ParetoImplementation = SQLCommon.ParetoInterpretation.Accumulation;
+            String actual = common.parsePreferenceSQL(strPrefSQL);
+
+            // assert
+
+            Assert.AreEqual(expected, actual, true, "SQL not built correctly");
+        }
+
 
         [TestMethod]
         public void TestSKYLINE2DimensionsTextJoinNoOthers()
         {
             String strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID PREFERENCE LOW cars.price AND LOW colors.name {'rot' >> 'grün' >> 'schwarz'}";
 
-            String expected = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.Price, colors_INNER.Name FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE cars_INNER.price <= cars.price AND (CASE WHEN colors_INNER.name = 'rot' THEN 0 WHEN colors_INNER.name = 'grün' THEN 1 WHEN colors_INNER.name = 'schwarz' THEN 2 END <= CASE WHEN colors.name = 'rot' THEN 0 WHEN colors.name = 'grün' THEN 1 WHEN colors.name = 'schwarz' THEN 2 END OR colors_INNER.name = colors.name) AND ( cars_INNER.price < cars.price OR CASE WHEN colors_INNER.name = 'rot' THEN 0 WHEN colors_INNER.name = 'grün' THEN 1 WHEN colors_INNER.name = 'schwarz' THEN 2 END < CASE WHEN colors.name = 'rot' THEN 0 WHEN colors.name = 'grün' THEN 1 WHEN colors.name = 'schwarz' THEN 2 END) )  ORDER BY price ASC, CASE WHEN colors.name = 'rot' THEN 0 WHEN colors.name = 'grün' THEN 1 WHEN colors.name = 'schwarz' THEN 2 END ASC";
+            String expected = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.Price, colors_INNER.Name FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE cars_INNER.price <= cars.price AND (CASE WHEN colors_INNER.name = 'rot' THEN 0 WHEN colors_INNER.name = 'grün' THEN 100 WHEN colors_INNER.name = 'schwarz' THEN 200 END <= CASE WHEN colors.name = 'rot' THEN 0 WHEN colors.name = 'grün' THEN 100 WHEN colors.name = 'schwarz' THEN 200 END OR colors_INNER.name = colors.name) AND ( cars_INNER.price < cars.price OR CASE WHEN colors_INNER.name = 'rot' THEN 0 WHEN colors_INNER.name = 'grün' THEN 100 WHEN colors_INNER.name = 'schwarz' THEN 200 END < CASE WHEN colors.name = 'rot' THEN 0 WHEN colors.name = 'grün' THEN 100 WHEN colors.name = 'schwarz' THEN 200 END) )  ORDER BY price ASC, CASE WHEN colors.name = 'rot' THEN 0 WHEN colors.name = 'grün' THEN 100 WHEN colors.name = 'schwarz' THEN 200 END ASC";
             SQLCommon common = new SQLCommon();
             String actual = common.parsePreferenceSQL(strPrefSQL);
 
@@ -28,7 +43,7 @@ namespace prefSQL.SQLParserTest
         {
             String strPrefSQL = "SELECT cars.id, cars.price, cars.title FROM cars PREFERENCE LOW cars.title {'MERCEDES-BENZ SL 600' >> OTHERS} AND LOW cars.price";
 
-            String expected = "SELECT cars.id, cars.price, cars.title FROM cars WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.price, cars_INNER.title FROM cars cars_INNER WHERE CASE WHEN cars_INNER.title = 'MERCEDES-BENZ SL 600' THEN 0 ELSE 1 END <= CASE WHEN cars.title = 'MERCEDES-BENZ SL 600' THEN 0 ELSE 1 END AND cars_INNER.price <= cars.price AND ( CASE WHEN cars_INNER.title = 'MERCEDES-BENZ SL 600' THEN 0 ELSE 1 END < CASE WHEN cars.title = 'MERCEDES-BENZ SL 600' THEN 0 ELSE 1 END OR cars_INNER.price < cars.price) )  ORDER BY CASE WHEN cars.title = 'MERCEDES-BENZ SL 600' THEN 0 ELSE 1 END ASC, price ASC";
+            String expected = "SELECT cars.id, cars.price, cars.title FROM cars WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.price, cars_INNER.title FROM cars cars_INNER WHERE CASE WHEN cars_INNER.title = 'MERCEDES-BENZ SL 600' THEN 0 ELSE 100 END <= CASE WHEN cars.title = 'MERCEDES-BENZ SL 600' THEN 0 ELSE 100 END AND cars_INNER.price <= cars.price AND ( CASE WHEN cars_INNER.title = 'MERCEDES-BENZ SL 600' THEN 0 ELSE 100 END < CASE WHEN cars.title = 'MERCEDES-BENZ SL 600' THEN 0 ELSE 100 END OR cars_INNER.price < cars.price) )  ORDER BY CASE WHEN cars.title = 'MERCEDES-BENZ SL 600' THEN 0 ELSE 100 END ASC, price ASC";
             SQLCommon common = new SQLCommon();
             String actual = common.parsePreferenceSQL(strPrefSQL);
 
@@ -44,7 +59,7 @@ namespace prefSQL.SQLParserTest
         {
             String strPrefSQL = "SELECT cars.id, cars.price, cars.title, colors.name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID PREFERENCE LOW colors.name {'rot' >> OTHERS} AND LOW cars.price";
 
-            String expected = "SELECT cars.id, cars.price, cars.title, colors.name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.price, cars_INNER.title, colors_INNER.name FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE CASE WHEN colors_INNER.name = 'rot' THEN 0 ELSE 1 END <= CASE WHEN colors.name = 'rot' THEN 0 ELSE 1 END AND cars_INNER.price <= cars.price AND ( CASE WHEN colors_INNER.name = 'rot' THEN 0 ELSE 1 END < CASE WHEN colors.name = 'rot' THEN 0 ELSE 1 END OR cars_INNER.price < cars.price) )  ORDER BY CASE WHEN colors.name = 'rot' THEN 0 ELSE 1 END ASC, price ASC";
+            String expected = "SELECT cars.id, cars.price, cars.title, colors.name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.price, cars_INNER.title, colors_INNER.name FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE CASE WHEN colors_INNER.name = 'rot' THEN 0 ELSE 100 END <= CASE WHEN colors.name = 'rot' THEN 0 ELSE 100 END AND cars_INNER.price <= cars.price AND ( CASE WHEN colors_INNER.name = 'rot' THEN 0 ELSE 100 END < CASE WHEN colors.name = 'rot' THEN 0 ELSE 100 END OR cars_INNER.price < cars.price) )  ORDER BY CASE WHEN colors.name = 'rot' THEN 0 ELSE 100 END ASC, price ASC";
 
             SQLCommon common = new SQLCommon();
             String actual = common.parsePreferenceSQL(strPrefSQL);
@@ -132,8 +147,7 @@ namespace prefSQL.SQLParserTest
         {
             String strPrefSQL = "SELECT * FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID PREFERENCE LOW colors.name {'rot' >> 'blau' >> OTHERS >> 'grau'} ";
 
-            String expected = "SELECT * FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID " +
-                            "ORDER BY CASE WHEN colors.name = 'rot' THEN 0 WHEN colors.name = 'blau' THEN 1 WHEN colors.name = 'grau' THEN 3 ELSE 2 END ASC";
+            String expected = "SELECT * FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID ORDER BY CASE WHEN colors.name = 'rot' THEN 0 WHEN colors.name = 'blau' THEN 100 WHEN colors.name = 'grau' THEN 300 ELSE 200 END ASC";
             SQLCommon common = new SQLCommon();
             String actual = common.parsePreferenceSQL(strPrefSQL);
 

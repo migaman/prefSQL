@@ -54,7 +54,7 @@ namespace prefSQL.SQLParser
 
 
                 //Add the preference to the list               
-                pref.Skyline.Add(new AttributeModel(strTable + "." + strColumn, strOperator, strTable, strTable + "_" + "INNER", strTable + "_INNER." + strColumn, "", "", false));
+                pref.Skyline.Add(new AttributeModel(strTable + "." + strColumn, strOperator, strTable, strTable + "_" + "INNER", strTable + "_INNER." + strColumn, "", "", false, strTable + "_INNER." + strColumn));
                 pref.Tables.Add(strTable);
 
             }
@@ -69,8 +69,10 @@ namespace prefSQL.SQLParser
                 string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split signs are == and >>
                 string strSQLOrderBy = "";
                 string strSQLELSE = "";
+                string strSQLELSEAccumulation = "";
                 string strSQLInnerOrderBy = "";
                 string strInnerColumn = "";
+                string strInnerColumnAccumulation = "";
                 string strSingleColumn = strTable + "." + getColumn(context.GetChild(1));
                 string strInnerSingleColumn = strTable + "_INNER." + getColumn(context.GetChild(1));
                 Boolean includeOthers = false;
@@ -82,13 +84,14 @@ namespace prefSQL.SQLParser
                     switch (strTemp[i])
                     {
                         case ">>":
-                            iWeight++; //Gewicht erhöhen, da >> Operator
+                            iWeight+=100; //Gewicht erhöhen, da >> Operator
                             break;
                         case "==":
                             break;  //Gewicht bleibt gleich da == Operator
                         case "OTHERS":
                             //Special word others = all other attributes are defined with this order by value
                             strSQLELSE = " ELSE " + iWeight;
+                            strSQLELSEAccumulation = " ELSE " + (iWeight + 1); //Add one, so that equal-clause cannot be true with same level-values, but other names
                             includeOthers = true;
                             break;
                         default:
@@ -100,6 +103,7 @@ namespace prefSQL.SQLParser
                 }
                 strSQL = "CASE" + strSQLOrderBy + strSQLELSE + " END";
                 strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLELSE + " END";
+                strInnerColumnAccumulation = "CASE" + strSQLInnerOrderBy + strSQLELSEAccumulation + " END";
                 strColumn = strSQL;
 
                 //Depending on LOW or HIGH do an ASCENDING or DESCENDING sort
@@ -116,7 +120,7 @@ namespace prefSQL.SQLParser
 
                 }
                 //Add the preference to the list               
-                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn, strSingleColumn, strInnerSingleColumn, includeOthers));
+                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn, strSingleColumn, strInnerSingleColumn, includeOthers, strInnerColumnAccumulation));
                 pref.Tables.Add(strTable);
             }
 
