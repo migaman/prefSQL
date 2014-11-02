@@ -146,12 +146,12 @@ namespace prefSQL.SQLParser
                     if (_ParetoImplementation == ParetoInterpretation.Composition)
                     {
                         //Competition
-                        needsTextORClause = !model.Skyline[iChild].SingleColumn.Equals("") && !model.Skyline[iChild].IncludesOthers;
+                        needsTextORClause = !model.Skyline[iChild].ColumnName.Equals("") && !model.Skyline[iChild].ContainsOTHERSKeyword;
                     }
                     else
                     {
                         //Accumulation
-                        needsTextORClause = !model.Skyline[iChild].SingleColumn.Equals("");
+                        needsTextORClause = !model.Skyline[iChild].ColumnName.Equals("");
                     }
 
 
@@ -173,21 +173,21 @@ namespace prefSQL.SQLParser
                     
                     if (_ParetoImplementation == ParetoInterpretation.Composition)
                     {
-                        strWhereEqual = strWhereEqual.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumn);
+                        strWhereEqual = strWhereEqual.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumnExpression);
                     }
                     else
                     {
                         //Falls Accumulation soll das ELSE (OTHERS) mit einem höheren Wert ausgeführt werdne
-                        strWhereEqual = strWhereEqual.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumnAccumulation);
+                        strWhereEqual = strWhereEqual.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumnExpressionAccumulation);
                     }
-                    strWhereBetter = strWhereBetter.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumn);
-                    strWhereEqual = strWhereEqual.Replace("{column}", model.Skyline[iChild].Column);
-                    strWhereBetter = strWhereBetter.Replace("{column}", model.Skyline[iChild].Column);
+                    strWhereBetter = strWhereBetter.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumnExpression);
+                    strWhereEqual = strWhereEqual.Replace("{column}", model.Skyline[iChild].ColumnExpression);
+                    strWhereBetter = strWhereBetter.Replace("{column}", model.Skyline[iChild].ColumnExpression);
 
                     //Falls Text-Spalte ein zusätzliches OR einbauen für den Vergleich Farbe = Farbe
                     if (needsTextORClause == true)
                     {
-                        strWhereEqual += " OR " + model.Skyline[iChild].InnerSingleColumn + " = " + model.Skyline[iChild].SingleColumn;
+                        strWhereEqual += " OR " + model.Skyline[iChild].InnerColumnName + " = " + model.Skyline[iChild].ColumnName;
                         strWhereEqual += ")";
                     }
                     bFirst = false;

@@ -83,6 +83,7 @@ expr
  | expr ( '<<' | '>>' | '&' | '|' ) expr																#opDoubleOrder
  | expr ( '<' | '<=' | '>' | '>=' ) expr																#opOrder
  | expr ( '=' | '==' | '!=' | '<>' | K_IS | K_IS K_NOT | K_IN | K_LIKE | K_MATCH ) expr					#opequal
+ | '{' exprOwnPreference '}'														#exprOwnPreferenceOp																	
  | expr K_AND expr																	#exprand
  | expr K_OR expr																	#expror
  | function_name '(' ( K_DISTINCT? expr ( ',' expr )* | '*' )? ')'					#function
@@ -106,7 +107,20 @@ expr
  | '(' expr ',' expr ')'															#geocoordinate
  //| K_WEIGHTED expr													#prefWeighted
  ;
+ /*
+exprPreference
+	: literal_value
+	| column_term
+	| exprPreference ( '<<' | '>>') exprPreference															
+	| '{' exprPreference ',' exprPreference '}'																		
+;
+*/
 
+//For own preferences 
+exprOwnPreference
+	: column_term
+	| exprOwnPreference ',' exprOwnPreference
+;
 
 column_term : ( ( database_name '.' )? table_name '.' )? column_name;
 ordering_term : expr ( K_COLLATE collation_name )? ( K_ASC | K_DESC )? ;
