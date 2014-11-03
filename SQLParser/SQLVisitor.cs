@@ -12,22 +12,9 @@ using prefSQL.SQLParser.Models;
 namespace prefSQL.SQLParser
 {
     
-
-
     class SQLVisitor : SQLBaseVisitor<PrefSQLModel>
     {
-
-        public const string strTableSuffix = "_INNER"; //Table suffix for the inner query
-
-        public override PrefSQLModel VisitTable_or_subquery(SQLParser.Table_or_subqueryContext context)
-        {
-            return base.VisitTable_or_subquery(context);
-        }
-
-        public override PrefSQLModel VisitTable_name(SQLParser.Table_nameContext context)
-        {
-            return base.VisitTable_name(context);
-        }
+        public const string InnerTableSuffix = "_INNER"; //Table suffix for the inner query
 
 
         public override PrefSQLModel VisitPreferenceLOWHIGH(SQLParser.PreferenceLOWHIGHContext context)
@@ -60,7 +47,7 @@ namespace prefSQL.SQLParser
 
 
                 //Add the preference to the list               
-                pref.Skyline.Add(new AttributeModel(strTable + "." + strColumn, strOperator, strTable, strTable + strTableSuffix, strTable + strTableSuffix + "." + strColumn, "", "", false, strTable + strTableSuffix + "." + strColumn));
+                pref.Skyline.Add(new AttributeModel(strTable + "." + strColumn, strOperator, strTable, strTable + InnerTableSuffix, strTable + InnerTableSuffix + "." + strColumn, "", ""));
                 pref.Tables.Add(strTable);
 
             }
@@ -75,14 +62,11 @@ namespace prefSQL.SQLParser
                 string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split signs are == and >>
                 string strSQLOrderBy = "";
                 string strSQLELSE = "";
-                string strSQLELSEAccumulation = "";
+                string strSQLInnerELSE = "";
                 string strSQLInnerOrderBy = "";
-                //string strSQLInnerAccumulationOrderBy = "";
                 string strInnerColumn = "";
-                string strInnerColumnAccumulation = "";
                 string strSingleColumn = strTable + "." + getColumn(context.GetChild(1));
-                string strInnerSingleColumn = strTable + strTableSuffix + "." + getColumn(context.GetChild(1));
-                Boolean includeOthers = false;
+                string strInnerSingleColumn = strTable + InnerTableSuffix + "." + getColumn(context.GetChild(1));
 
                 //Define sort order value for each attribute
                 int iWeight = 0;
@@ -96,11 +80,14 @@ namespace prefSQL.SQLParser
                         case "==":
                             break;  //Gewicht bleibt gleich da == Operator
                         case "OTHERS":
-                            //Special word others = all other attributes are defined with this order by value
+                            ////Add one, so that equal-clause cannot be true with same level-values, but other names
+                            strSQLELSE = " ELSE " + (iWeight);
+                            strSQLInnerELSE = " ELSE " + (iWeight + 1);
+                            break;
+                        case "OTHERSEQUAL":
+                            //Special word OTHERSEQUAL = all other attributes are defined with this order by value
                             strSQLELSE = " ELSE " + iWeight;
-                            //Speziell ist beim OTHERS, dass die Bedingung dann nicht zutreffen darf weil sonst z.B. grün mit rot verglichen wird!!
-                            strSQLELSEAccumulation = " ELSE " + (iWeight + 1); //Add one, so that equal-clause cannot be true with same level-values, but other names
-                            includeOthers = true;
+                            strSQLInnerELSE = " ELSE " + iWeight;
                             break;
                         default:
                             //Check if it contains multiple values
@@ -110,25 +97,21 @@ namespace prefSQL.SQLParser
                                 strTemp[i] = strTemp[i].Replace("{", "(").Replace("}", ")");
                                 strSQLOrderBy += " WHEN " + strTable + "." + strColumn + " IN " + strTemp[i] + " THEN " + iWeight.ToString();
                                 //This values are always incomparable (otherwise the = should be used)
-                                strSQLInnerOrderBy += " WHEN " + strTable + strTableSuffix + "." + strColumn + " IN " + strTemp[i] + " THEN " + (iWeight + 1);
-                                //strSQLInnerAccumulationOrderBy += " WHEN " + strTable + strTableSuffix + "." + strColumn + " IN " + strTemp[i] + " THEN " + (iWeight + 1);
+                                strSQLInnerOrderBy += " WHEN " + strTable + InnerTableSuffix + "." + strColumn + " IN " + strTemp[i] + " THEN " + (iWeight + 1);
                             }
                             else
                             {
                                 //Single value --> construct = statement
                                 strSQLOrderBy += " WHEN " + strTable + "." + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
                                 //This values are always comparable (otherwise the {x, y} should be used)
-                                strSQLInnerOrderBy += " WHEN " + strTable + strTableSuffix + "." + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
-                                //strSQLInnerAccumulationOrderBy += " WHEN " + strTable + strTableSuffix + "." + strColumn + " = " + strTemp[i] + " THEN " + (iWeight+1);
+                                strSQLInnerOrderBy += " WHEN " + strTable + InnerTableSuffix + "." + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
                             }
                             break;
                     }
 
                 }
                 strSQL = "CASE" + strSQLOrderBy + strSQLELSE + " END";
-                strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLELSE + " END";
-                strInnerColumnAccumulation = "CASE" + strSQLInnerOrderBy + strSQLELSEAccumulation + " END";
-                //strInnerColumnAccumulation = "CASE" + strSQLInnerAccumulationOrderBy + strSQLELSEAccumulation + " END";
+                strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLInnerELSE + " END";
                 strColumn = strSQL;
 
                 //Depending on LOW or HIGH do an ASCENDING or DESCENDING sort
@@ -145,7 +128,7 @@ namespace prefSQL.SQLParser
 
                 }
                 //Add the preference to the list               
-                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn, strSingleColumn, strInnerSingleColumn, includeOthers, strInnerColumnAccumulation));
+                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn, strSingleColumn, strInnerSingleColumn));
                 pref.Tables.Add(strTable);
             }
 
@@ -178,7 +161,7 @@ namespace prefSQL.SQLParser
         public override PrefSQLModel VisitPreferenceAROUND(SQLParser.PreferenceAROUNDContext context)
         {
             String strSQL = "";
-            //Abfrage auf Keyword AROUND, FAVOUR und DISFAVOUR, danach ein ORDER BY daraus machen
+            //Query Keywords AROUND, FAVOUR and DISFAVOUR, after that create an ORDER BY of it
 
             switch (context.op.Type)
             {
@@ -210,10 +193,6 @@ namespace prefSQL.SQLParser
             PrefSQLModel pref = new PrefSQLModel();
             pref.OrderBy.Add(strSQL);
             return pref;
-
-            //return strSQL + base.VisitPreferenceAROUND(context);
-
-
         }
 
 

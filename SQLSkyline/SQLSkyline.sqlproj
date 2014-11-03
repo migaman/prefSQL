@@ -67,8 +67,5 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="SP_SkylineBNL.cs" />
-    <Compile Include="SP_InsertTransmission.cs" />
-    <Compile Include="UDF_Table.cs" />
-    <Compile Include="UDF_Scalar.cs" />
   </ItemGroup>
 </Project>

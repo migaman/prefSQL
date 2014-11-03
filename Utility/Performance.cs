@@ -14,7 +14,7 @@ namespace Utility
         {
             //Add more columns
             String[] columns = { "cars.price", "cars.mileage", "cars.horsepower", "cars.enginesize", "cars.registration", "cars.consumption", "cars.doors", "colors.name", "fuels.name", "bodies.name", "cars.title", "makes.name", "conditions.name" };
-            String[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGH cars.registration", "LOW cars.consumption", "HIGH cars.doors", "LOW colors.name {'rot' == 'blau' >> OTHERS >> 'grau'}", "LOW fuels.name {'Benzin' >> OTHERS >> 'Diesel'}", "LOW bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> 'OTHERS' >> 'Pick-Up'}", "LOW cars.title {'MERCEDES-BENZ SL 600' >> OTHERS}", "LOW makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS >> 'FERRARI'}", "LOW conditions.name {'Neu' >> OTHERS}" };
+            String[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGH cars.registration", "LOW cars.consumption", "HIGH cars.doors", "LOW colors.name {'rot' == 'blau' >> OTHERS >> 'grau'}", "LOW fuels.name {'Benzin' >> OTHERS >> 'Diesel'}", "LOW bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS >> 'Pick-Up'}", "LOW cars.title {'MERCEDES-BENZ SL 600' >> OTHERS}", "LOW makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS >> 'FERRARI'}", "LOW conditions.name {'Neu' >> OTHERS}" };
             String[] sizes = { "small", "medium", "large", "superlarge" };
 
 
@@ -63,6 +63,7 @@ namespace Utility
                 //Convert to real SQL
                 SQLCommon parser = new SQLCommon();
                 parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
+                //parser.ParetoImplementation = SQLCommon.ParetoInterpretation.Accumulation;
                 strSQL = parser.parsePreferenceSQL(strSQL);
 
 
@@ -72,6 +73,7 @@ namespace Utility
                 sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
                 foreach (String size in sizes)
                 {
+                    sb.AppendLine("GO"); //we need this in order the profiler shows each query in a new line
                     sb.AppendLine(strSQL.Replace("cars", "cars_" + size));
 
                 }

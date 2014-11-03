@@ -10,6 +10,7 @@ namespace Utility
     {
         static void Main(string[] args)
         {
+
             Performance p = new Performance();
             p.GeneratePerformanceQueries();
         }

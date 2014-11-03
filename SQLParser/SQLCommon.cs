@@ -22,13 +22,6 @@ namespace prefSQL.SQLParser
             DQ,
         };
 
-        public enum ParetoInterpretation
-        {
-            Composition,     //better, identical or incomparable in all attribute values
-            Accumulation,   //better or identical in all attribute values
-            
-        };
-
 
         private Algorithm _SkylineType = Algorithm.NativeSQL;
         
@@ -38,17 +31,7 @@ namespace prefSQL.SQLParser
             set { _SkylineType = value; }
         }
 
-        private ParetoInterpretation _ParetoImplementation = ParetoInterpretation.Composition;
-
-        public ParetoInterpretation ParetoImplementation
-        {
-            get { return _ParetoImplementation; }
-            set { _ParetoImplementation = value; }
-        }
-
-
         
-
         public String parsePreferenceSQL(String strInput)
         {
             AntlrInputStream inputStream = new AntlrInputStream(strInput);
@@ -60,22 +43,6 @@ namespace prefSQL.SQLParser
             try
             {
                 IParseTree tree = parser.parse();
-
-                //Tree
-                //Preorder(tree, 0);
-               // parser.RemoveErrorListeners();
-                
-                /*ParseTreePattern p = parser.CompileParseTreePattern("<ID> = <expr>;", SQLParser.RULE_sql_stmt);
-                ParseTreeMatch m = p.Match(tree);
-
-                if (m.Succeeded == true) 
-                {
-                    Console.WriteLine("PRÄFERENZEN!!");
-                }*/
-
-                //parser.setErrorStrategy(new BailErrorStrategy());
-
-
                 Console.WriteLine("Tree: " + tree.ToStringTree(parser));
                 
 
@@ -89,14 +56,24 @@ namespace prefSQL.SQLParser
                     {
                         strNewSQL = strInput.Substring(0, strInput.IndexOf("PREFERENCE") - 1);
 
-                        String strWHERE = buildWHEREClause(prefSQL, strNewSQL);
-                        String strOrderBy = buildORDERBYClause(prefSQL);
+                        if (_SkylineType == Algorithm.NativeSQL)
+                        {
+                            String strWHERE = buildWHEREClause(prefSQL, strNewSQL);
+                            String strOrderBy = buildORDERBYClause(prefSQL);
 
 
-                        strNewSQL += strWHERE;
-                        strNewSQL += strOrderBy;
+                            strNewSQL += strWHERE;
+                            strNewSQL += strOrderBy;
+                            Console.WriteLine("Result: " + strWHERE);
+                        }
+                        else if (_SkylineType == Algorithm.BNL)
+                        {
+                            String strPreferences = buildPreferencesBNL(prefSQL, strNewSQL);
 
-                        Console.WriteLine("Result: " + strWHERE);
+                            strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strNewSQL + "', '" + strPreferences + "'";
+
+                        }
+                        
                         Console.WriteLine("--------------------------------------------");
 
 
@@ -135,7 +112,6 @@ namespace prefSQL.SQLParser
             {
                 String strWhereEqual = "WHERE ";
                 String strWhereBetter = " AND ( ";
-                //String strWhereIncomparable = "AND ( ";
                 Boolean bFirst = true;
 
                 //Build the where clause with each column in the skyline
@@ -143,16 +119,8 @@ namespace prefSQL.SQLParser
                 {
                     Boolean needsTextORClause = false;
 
-                    if (_ParetoImplementation == ParetoInterpretation.Composition)
-                    {
-                        //Competition
-                        needsTextORClause = !model.Skyline[iChild].ColumnName.Equals("") && !model.Skyline[iChild].ContainsOTHERSKeyword;
-                    }
-                    else
-                    {
-                        //Accumulation
-                        needsTextORClause = !model.Skyline[iChild].ColumnName.Equals("");
-                    }
+                    //Competition
+                    needsTextORClause = !model.Skyline[iChild].ColumnName.Equals("");
 
 
                     if (bFirst == false)
@@ -170,16 +138,7 @@ namespace prefSQL.SQLParser
                     strWhereEqual += "{INNERcolumn} " + model.Skyline[iChild].Op + "= {column}";
                     strWhereBetter += "{INNERcolumn} " + model.Skyline[iChild].Op + " {column}";
 
-                    
-                    if (_ParetoImplementation == ParetoInterpretation.Composition)
-                    {
-                        strWhereEqual = strWhereEqual.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumnExpression);
-                    }
-                    else
-                    {
-                        //Falls Accumulation soll das ELSE (OTHERS) mit einem höheren Wert ausgeführt werdne
-                        strWhereEqual = strWhereEqual.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumnExpressionAccumulation);
-                    }
+                    strWhereEqual = strWhereEqual.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumnExpression);
                     strWhereBetter = strWhereBetter.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumnExpression);
                     strWhereEqual = strWhereEqual.Replace("{column}", model.Skyline[iChild].ColumnExpression);
                     strWhereBetter = strWhereBetter.Replace("{column}", model.Skyline[iChild].ColumnExpression);
@@ -201,19 +160,16 @@ namespace prefSQL.SQLParser
                 //Format strPreSQL
                 foreach(String strTable in model.Tables)
                 {
-                    //Ersetzen von Tabellennamen in Spalten
+                    //Replace tablename 
                     strPreSQL = strPreSQL.Replace(strTable + ".", strTable + "_INNER.");
                     
-                    //Tabellenname mit neuem ALIAS ergänzen
+                    //Add ALIAS to tablename
                     string pattern = @"\b" + strTable + @"\b";
                     string replace = strTable + " " + strTable +  "_INNER";
                     strPreSQL = Regex.Replace(strPreSQL, pattern, replace, RegexOptions.IgnoreCase);
                 }
 
 
-                //INNER WHERE in einem eigenen SELECT (SELECT * FROM) abhandeln damit nur ein ALIAS nötig!
-                //strSQL = " WHERE NOT EXISTS(SELECT * FROM (" + strPreSQL + ") h1 " + strWhereEqual + strWhereBetter + ") ";
-                
                 strSQL = " WHERE NOT EXISTS(" + strPreSQL + " " + strWhereEqual + strWhereBetter + ") ";
                                 
 
@@ -222,8 +178,30 @@ namespace prefSQL.SQLParser
         }
 
 
+        private String buildPreferencesBNL(PrefSQLModel model, String strPreSQL)
+        {
+            String strSQL = "";
 
-        //Create the WHERE-Clause from the preferene model
+            //Build Skyline only if more than one attribute
+            if (model.Skyline.Count > 1)
+            {
+                //Build the where clause with each column in the skyline
+                for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
+                {
+                    String op = "";
+                    if (model.Skyline[iChild].Op.Equals("<"))
+                        op = "LOW";
+                    else
+                        op = "HIGH";
+                    strSQL += ";" + op;
+
+                }
+            }
+            return strSQL;
+        }
+
+
+        //Create the ORDERBY-Clause from the preferene model
         private String buildORDERBYClause(PrefSQLModel model)
         {
             String strSQL = "";
@@ -247,136 +225,9 @@ namespace prefSQL.SQLParser
         }
 
 
-
-        /*public void Preorder(ITree Tree, int Depth)
-        {
-            if (Tree == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < Depth; i++)
-            {
-                Console.Write("  ");
-            }
-
-            if (Tree.GetType() == typeof(prefSQL.SQLParser.SQLParser.ExprandContext))
-            {
-                //There is an AND-Clause
-
-                String strTest = "Visit AND" + ": " + Tree.ToString();
-            }
-
-            if (Tree != null)
-            {
-                Console.WriteLine(Tree);
-
-
-                for (int iChild = 0; iChild <= Tree.ChildCount; iChild++)
-                {
-                    Preorder(Tree.GetChild(iChild), Depth + 1);
-                }
-
-                /*if (Tree.ChildCount > 0)
-                {
-                    Preorder(Tree.GetChild(0), Depth + 1);
-                }
-
-                if (Tree.ChildCount > 1)
-                {
-                    Preorder(Tree.GetChild(1), Depth + 1);
-                }*//*
-
-            }
-
-
-
-        }*/
-
     }
 
 
 
 }
-
-
-
-
-/*
- * --Fall 1: rot besser als grün > schwarz --> Funktioniert
-SELECT cars.id, cars.Price, colors.Name, colors.id
-FROM cars
-LEFT OUTER JOIN colors ON cars.Color_Id = Colors.Id
-WHERE NOT EXISTS
-(
-	SELECT b.id, b.Price, c.Name FROM cars b
-	LEFT OUTER JOIN colors c ON b.Color_Id = c.Id
-	WHERE  b.Price <= cars.Price 
-		AND 
-		--Mindestens so gut Klausel
-			(
-				--Rot > Blau
-				CASE WHEN c.Name = 'rot' THEN 1 WHEN c.Name = 'grün' THEN 2 WHEN c.Name = 'schwarz' THEN 3 END <= CASE WHEN colors.Name = 'rot' THEN 1 WHEN colors.Name = 'grün' THEN 2 WHEN colors.Name = 'schwarz' THEN 3 END
-				OR
-				--gleiche Farbe
-				c.Name = colors.Name
-			)
-				
-		--Besser-Klausel
-		AND (
-			b.Price < cars.Price 
-			OR 
-			CASE WHEN c.Name = 'rot' THEN 1 WHEN c.Name = 'grün' THEN 2 WHEN c.Name = 'schwarz' THEN 3 END < CASE WHEN colors.Name = 'rot' THEN 1 WHEN colors.Name = 'grün' THEN 2 WHEN colors.Name = 'schwarz' THEN 3 END)
-
-)
-
-/*
-select * from cars 
---where Color_Id = 3
-order by Price
-
-select * from Colors
---blau = 3
---grün = 9
---rot = 12
-*/
-
-/*
- * 
- * 
- * --Fall 2: rot besser als schwarz > alle anderen --> Funktioniert
-
-SELECT cars.id, cars.Price, colors.Name
-FROM cars
-LEFT OUTER JOIN colors ON cars.Color_Id = Colors.Id
-WHERE NOT EXISTS
-(
-	SELECT b.id, b.Price, c.Name
-	 
-	 FROM cars b
-	LEFT OUTER JOIN colors c ON b.Color_Id = c.Id
-	WHERE  
-		--Mindestens so gut Klausel
-		b.Price <= cars.Price 
-		AND 
-			(
-				--Türkis > Gelb > alles andere
-				--Speziell ist beim OTHERS, dass die Bedingung dann nicht zutreffen darf weil sonst z.B. grün mit rot verglichen wird!!
-				CASE WHEN c.Name = 'türkis' THEN 1 WHEN c.Name = 'gelb' THEN 2 ELSE 999 END <= CASE WHEN colors.Name = 'türkis' THEN 1 WHEN colors.Name = 'gelb' THEN 2 ELSE 99 END
-				OR
-				--gleiche Farbe
-				c.Name = colors.Name
-			)
-				
-		--Besser-Klausel
-	AND (
-			b.Price < cars.Price 
-			OR 
-			CASE WHEN c.Name = 'türkis' THEN 1 WHEN c.Name = 'gelb' THEN 2 ELSE 99 END  < CASE WHEN colors.Name = 'türkis' THEN 1 WHEN colors.Name = 'gelb' THEN 2 ELSE 99 END)
-			
-)
-
-ORDER by cars.price
- * 
- * */
 

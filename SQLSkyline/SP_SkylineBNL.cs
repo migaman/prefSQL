@@ -14,7 +14,7 @@ using System.Collections;
 public partial class StoredProcedures
 {
     [Microsoft.SqlServer.Server.SqlProcedure]
-    public static void SP_SkylineBNL(SqlString strQuery, SqlString strOperators)
+    public static void SP_SkylineBNL(SqlString strQuery, SqlString strOperators, String strQueryNative)
     {
         ArrayList idCollection = new ArrayList();
         ArrayList resultCollection = new ArrayList();
@@ -31,15 +31,20 @@ public partial class StoredProcedures
             //Alle Objekte nur einmal lesen (SqlDataReader kann nur vorwärts lesen!!)
             while (sqlReader.Read())
             {
-                //
+                
+                //Prüfen ob Liste noch leer ist
                 if (resultCollection.Count == 0)
                 {
                     //Liste ist leer --> Das heisst erster Eintrag ins Window werfen
                     //Erste Spalte ist die ID
                     int[] record = new int[sqlReader.FieldCount];
-                    for (int i = 1; i < record.GetUpperBound(0) + 1; i++)
+                    for (int i = 0; i <= record.GetUpperBound(0); i++)
                     {
-                        record[i] = sqlReader.GetInt32(i);
+                        //LOW und HIGH Spalte in record abfüllen
+                        if (operators[i].Equals("LOW") || operators[i].Equals("HIGH"))
+                        {
+                            record[i] = sqlReader.GetInt32(i);
+                        }
                     }
                     resultCollection.Add(record);
                     idCollection.Add(sqlReader.GetInt32(0));
@@ -56,22 +61,26 @@ public partial class StoredProcedures
                         //Dominanz
                         Boolean equalThan = false;
                         Boolean greaterThan = false;
-                        for (int iCol = 1; iCol <= result.GetUpperBound(0); iCol++)
+                        for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
                         {
                             String op = operators[iCol];
-                            if (compareValues(op, sqlReader.GetInt32(iCol), result[iCol], false, false) == true)
+                            //Nur LOW und HIGH Attribute vergleichen
+                            if (op.Equals("LOW") || op.Equals("HIGH"))
                             {
-                                equalThan = true;
-                                if (compareValues(op, sqlReader.GetInt32(iCol), result[iCol], true, false) == true)
+                                if (compareValues(op, sqlReader.GetInt32(iCol), result[iCol], false, false) == true)
                                 {
-                                    //minimum einer muss grösser sein
-                                    greaterThan = true;
+                                    equalThan = true;
+                                    if (compareValues(op, sqlReader.GetInt32(iCol), result[iCol], true, false) == true)
+                                    {
+                                        //minimum einer muss grösser sein
+                                        greaterThan = true;
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                equalThan = false;
-                                break;
+                                else
+                                {
+                                    equalThan = false;
+                                    break;
+                                }
                             }
                         }
 
@@ -86,22 +95,26 @@ public partial class StoredProcedures
                         //Nun noch prüfen ob der neue Punkt den im Window dominiert
                         equalThan = false;
                         greaterThan = false;
-                        for (int iCol = 1; iCol <= result.GetUpperBound(0); iCol++)
+                        for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
                         {
                             String op = operators[iCol];
-                            if (compareValues(op, sqlReader.GetInt32(iCol), result[iCol], false, true) == true)
+                            //Nur LOW und HIGH Attribute vergleichen
+                            if (op.Equals("LOW") || op.Equals("HIGH"))
                             {
-                                equalThan = true;
-                                if (compareValues(op, sqlReader.GetInt32(iCol), result[iCol], true, true) == true)
+                                if (compareValues(op, sqlReader.GetInt32(iCol), result[iCol], false, true) == true)
                                 {
-                                    //minimum einer muss grösser sein
-                                    greaterThan = true;
+                                    equalThan = true;
+                                    if (compareValues(op, sqlReader.GetInt32(iCol), result[iCol], true, true) == true)
+                                    {
+                                        //minimum einer muss grösser sein
+                                        greaterThan = true;
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                equalThan = false;
-                                break;
+                                else
+                                {
+                                    equalThan = false;
+                                    break;
+                                }
                             }
                         }
 
@@ -119,12 +132,18 @@ public partial class StoredProcedures
                         //Neuer Punkt wird nicht dominiert. In das Window aufnehmen
                         //resultCollection.Add(new CarResult(sqlReader.GetSqlInt32(0), sqlReader.GetSqlInt32(1), sqlReader.GetSqlInt32(2), sqlReader.GetSqlInt32(3)));
                         int[] record = new int[sqlReader.FieldCount];
-                        for (int i = 1; i < record.GetUpperBound(0) + 1; i++)
+                        for (int i = 0; i <= record.GetUpperBound(0); i++)
                         {
-                            record[i] = sqlReader.GetInt32(i);
+                            //LOW und HIGH Spalte in record abfüllen
+                            if (operators[i].Equals("LOW") || operators[i].Equals("HIGH"))
+                            {
+                                record[i] = sqlReader.GetInt32(i);
+                            }
                         }
                         resultCollection.Add(record);
                         idCollection.Add(sqlReader.GetInt32(0));
+
+
                     }
 
                 }
@@ -133,10 +152,10 @@ public partial class StoredProcedures
             sqlReader.Close();
 
 
-
+            //Store current collection in temporary table and return the result of the table
 
             //Da SQLDataReader nur vorwärts lesen kann, neu lesen mit Parametersn
-            string cmdText = strQuery.ToString() + " WHERE id IN ({0})";
+            string cmdText = strQueryNative.ToString() + " WHERE cars.id IN ({0})";
 
             ArrayList paramNames = new ArrayList();
             String inClause = "";
@@ -158,10 +177,11 @@ public partial class StoredProcedures
 
 
             sqlReader = sqlCommand.ExecuteReader();
-
-
+            
 
             SqlContext.Pipe.Send(sqlReader);
+
+            
 
         }
         catch (Exception ex)

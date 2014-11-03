@@ -9,7 +9,7 @@ namespace prefSQL.SQLParser.Models
     class AttributeModel
     {
 
-        public AttributeModel(String strColumnExpression, String strOperator, String strTable, String strInnerTable, String strInnerColumnExpression, String strColumnName, String strInnerColumnName, Boolean bIncludeOthers, String strInnerColumnAccumulation)
+        public AttributeModel(String strColumnExpression, String strOperator, String strTable, String strInnerTable, String strInnerColumnExpression, String strColumnName, String strInnerColumnName)
         {
             Table = strTable;                                       //Tablename for the mainquery       (i.e. cars)
             InnerTable = strInnerTable;                             //Tablename for the subquery        (i.e. cars_INNER)
@@ -18,12 +18,8 @@ namespace prefSQL.SQLParser.Models
             Op = strOperator;                                       //Operator                          (<, >)
             ColumnName = strColumnName;                             //Used for the additional OR with text values (i.e. OR colors_INNER.name = colors.name)
             InnerColumnName = strInnerColumnName;                   //Dito
-            ContainsOTHERSKeyword = bIncludeOthers;                 //Defines if the Preference contains the OTHERS keyword
-            InnerColumnExpressionAccumulation = strInnerColumnAccumulation;   //Used for incomparability (Skylinetype = Accumulation), with this the ELSE CASE does not result in a TRUE state
         }
 
-        
-        public Boolean ContainsOTHERSKeyword { get; set; }
 
         public string ColumnName { get; set; }
 
@@ -33,7 +29,6 @@ namespace prefSQL.SQLParser.Models
 
         public string InnerColumnExpression { get; set; }
 
-        public string InnerColumnExpressionAccumulation { get; set; }
 
         public string InnerTable { get; set; }
 

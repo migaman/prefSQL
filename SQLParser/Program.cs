@@ -39,6 +39,7 @@ namespace prefSQL.SQLParser
                 //String strPrefSQL = "SELECT cars.id, cars.title, colors.name, fuels.name FROM cars " +
                 //String strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name, mileage FROM cars " +
                 String strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars " +
+                //String strPrefSQL = "SELECT cars.id, cars.Price, cars.mileage FROM cars " +
                 //String strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage, cars.horsepower, cars.enginesize, cars.registration, cars.consumption, cars.doors, colors.name, fuels.name FROM cars " +
                 //String strPrefSQL = "SELECT cars.id, cars.title, colors.name AS colourname, fuels.name AS fuelname, cars.price FROM cars " +
                     //String strPrefSQL = "SELECT id FROM cars " +
@@ -48,13 +49,13 @@ namespace prefSQL.SQLParser
                     //"PREFERENCE LOW colors.name {'rot' == 'blau' >> OTHERS >> 'grau'} AND LOW cars.price";
                     //"PREFERENCE LOW cars.title {'MERCEDES-BENZ SL 600' >> OTHERS} AND LOW cars.price";
                     //"PREFERENCE LOW colors.name {'rot' >> OTHERS} AND LOW cars.price";
-                    //"PREFERENCE Low cars.price AND Low cars.mileage";
+                    //"PREFERENCE Low cars.price AND Low cars.mileage ";
                     //"PREFERENCE LOW cars.price AND LOW cars.mileage AND HIGH cars.horsepower AND HIGH cars.enginesize AND HIGH cars.registration AND LOW cars.consumption AND HIGH cars.doors AND LOW colors.name {'rot' == 'blau' >> OTHERS >> 'grau'} AND LOW fuels.name {'Benzin' >> OTHERS >> 'Diesel'}";
                     //"PREFERENCE LOW cars.price AND LOW cars.mileage AND LOW fuels.name {'Benzin' >> OTHERS >> 'Diesel'}";
-                    //"PREFERENCE LOW cars.price AND LOW colors.name {'rot' >> 'grün' >> 'schwarz'}";
-                    //"PREFERENCE LOW cars.price AND LOW colors.name {'pink' >> 'rot' == 'schwarz' >> 'beige' == 'gelb'}";
+                    "PREFERENCE LOW cars.price AND LOW colors.name {'rot' >> OTHERS}";
+                   // "PREFERENCE LOW cars.price AND LOW colors.name {'pink' >> 'rot' == 'schwarz' >> 'beige' == 'gelb'}";
 
-                    "PREFERENCE LOW cars.price AND LOW colors.name {'pink' >> {'rot', 'schwarz'} >> 'beige' == 'gelb'}";
+                    //"PREFERENCE LOW cars.price AND LOW colors.name {'pink' >> {'rot', 'schwarz'} >> 'beige' == 'gelb'}";
 
                     //"PREFERENCE LOW colors.name {'gelb' >> OTHERS >> 'grau'} AND LOW fuels.name {'Benzin' >> OTHERS >> 'Diesel'} AND LOW cars.price ";
                     //"PREFERENCE colors.name DISFAVOUR 'rot' ";
@@ -65,8 +66,7 @@ namespace prefSQL.SQLParser
 
                 SQLCommon parser = new SQLCommon();
                 parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
-                //parser.ParetoImplementation = SQLCommon.ParetoInterpretation.Composition;
-                parser.ParetoImplementation = SQLCommon.ParetoInterpretation.Accumulation;
+                //parser.SkylineType = SQLCommon.Algorithm.BNL;
                 String strSQL = parser.parsePreferenceSQL(strPrefSQL);
 
                 Console.WriteLine(strSQL);
