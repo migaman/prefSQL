@@ -10,9 +10,11 @@ namespace Utility
     {
         static void Main(string[] args)
         {
+            /*Demo d = new Demo();
+            d.generateDemoQueries();*/
 
             Performance p = new Performance();
-            p.GeneratePerformanceQueries();
+            p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.NativeSQL);
         }
     }
 }

@@ -68,9 +68,15 @@ namespace prefSQL.SQLParser
                         }
                         else if (_SkylineType == Algorithm.BNL)
                         {
-                            String strPreferences = buildPreferencesBNL(prefSQL, strNewSQL);
-
-                            strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strNewSQL + "', '" + strPreferences + "'";
+                            String strOperators = "";
+                            String strPreferences = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
+                            String strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
+                            String strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
+                            //String strFirstSQL = strSQLBeforeFrom + strPreferences + " " + strSQLAfterFrom;
+                            String strFirstSQL = "SELECT cars.id " + strPreferences + " " + strSQLAfterFrom;
+                            String strOrderBy = buildORDERBYClause(prefSQL);
+                            strFirstSQL += strOrderBy.Replace("'", "''");
+                            strNewSQL = "EXEC dbo.SP_SkylineBNL '"  + strFirstSQL + "', '" + strOperators + "', '" + strNewSQL + "', 'cars'";
 
                         }
                         
@@ -178,7 +184,7 @@ namespace prefSQL.SQLParser
         }
 
 
-        private String buildPreferencesBNL(PrefSQLModel model, String strPreSQL)
+        private String buildPreferencesBNL(PrefSQLModel model, String strPreSQL, ref String strOperators)
         {
             String strSQL = "";
 
@@ -193,10 +199,21 @@ namespace prefSQL.SQLParser
                         op = "LOW";
                     else
                         op = "HIGH";
-                    strSQL += ";" + op;
+                    strOperators += ";" + op;
+
+                    if (model.Skyline[iChild].ColumnName.Equals(""))
+                    {
+                        strSQL += ", " + model.Skyline[iChild].ColumnExpression.Replace("'", "''");
+                    }
+                    else
+                    {
+                        strSQL += ", " + model.Skyline[iChild].ColumnExpression.Replace("'", "''");
+                    }
+
 
                 }
             }
+            
             return strSQL;
         }
 

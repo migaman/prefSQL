@@ -10,13 +10,15 @@ namespace Utility
 {
     class Performance
     {
-        public void GeneratePerformanceQueries()
+        public void GeneratePerformanceQueries(SQLCommon.Algorithm algorithmType)
         {
             //Add more columns
             String[] columns = { "cars.price", "cars.mileage", "cars.horsepower", "cars.enginesize", "cars.registration", "cars.consumption", "cars.doors", "colors.name", "fuels.name", "bodies.name", "cars.title", "makes.name", "conditions.name" };
-            String[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGH cars.registration", "LOW cars.consumption", "HIGH cars.doors", "LOW colors.name {'rot' == 'blau' >> OTHERS >> 'grau'}", "LOW fuels.name {'Benzin' >> OTHERS >> 'Diesel'}", "LOW bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS >> 'Pick-Up'}", "LOW cars.title {'MERCEDES-BENZ SL 600' >> OTHERS}", "LOW makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS >> 'FERRARI'}", "LOW conditions.name {'Neu' >> OTHERS}" };
+            //Use the correct line, depending on how incomparable items should be compared
+            //String[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGH cars.registration", "LOW cars.consumption", "HIGH cars.doors", "LOW colors.name {'rot' == 'blau' >> OTHERS >> 'grau'}", "LOW fuels.name {'Benzin' >> OTHERS >> 'Diesel'}", "LOW bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS >> 'Pick-Up'}", "LOW cars.title {'MERCEDES-BENZ SL 600' >> OTHERS}", "LOW makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS >> 'FERRARI'}", "LOW conditions.name {'Neu' >> OTHERS}" };
+            String[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGH cars.registration", "LOW cars.consumption", "HIGH cars.doors", "LOW colors.name {'rot' == 'blau' >> OTHERSEQUAL >> 'grau'}", "LOW fuels.name {'Benzin' >> OTHERSEQUAL >> 'Diesel'}", "LOW bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERSEQUAL >> 'Pick-Up'}", "LOW cars.title {'MERCEDES-BENZ SL 600' >> OTHERSEQUAL}", "LOW makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERSEQUAL >> 'FERRARI'}", "LOW conditions.name {'Neu' >> OTHERSEQUAL}" };
             String[] sizes = { "small", "medium", "large", "superlarge" };
-
+            
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("set statistics time on");
@@ -62,8 +64,7 @@ namespace Utility
 
                 //Convert to real SQL
                 SQLCommon parser = new SQLCommon();
-                parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
-                //parser.ParetoImplementation = SQLCommon.ParetoInterpretation.Accumulation;
+                parser.SkylineType = algorithmType; // SQLCommon.Algorithm.NativeSQL;
                 strSQL = parser.parsePreferenceSQL(strSQL);
 
 
@@ -96,7 +97,16 @@ namespace Utility
             sb.AppendLine("set statistics time off");
 
             //Write in file
-            StreamWriter outfile = new StreamWriter("E:\\Doc\\Studies\\PRJ_Thesis\\10 Arcmedia Profiles\\Performance_Auto.sql");
+            String strFileName = "";
+            if(algorithmType == SQLCommon.Algorithm.NativeSQL) 
+            {
+                strFileName = "E:\\Doc\\Studies\\PRJ_Thesis\\10 Arcmedia Profiles\\Performance_Native_Auto.sql";
+            }
+            else
+            {
+                strFileName = "E:\\Doc\\Studies\\PRJ_Thesis\\10 Arcmedia Profiles\\Performance_BNL_Auto.sql";
+            }
+            StreamWriter outfile = new StreamWriter(strFileName);
             outfile.Write(sb.ToString());
             outfile.Close();
             Console.WriteLine("THE END!!");
