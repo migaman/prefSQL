@@ -47,8 +47,8 @@ namespace Utility
                     //"LEFT OUTER JOIN bodies ON cars.body_id = bodies.ID " +
                     //"LEFT OUTER JOIN fuels ON cars.fuel_id = fuels.ID " +
                     //"WHERE cars.horsepower > 10 AND cars.price < 10000 " +
-                "PREFERENCE LOW cars.price AND colors.name FAVOUR 'rot'";
-                //"PREFERENCE HIGH colors.name {'rot' == 'blau' >> OTHERS >> 'grau'} AND LOW cars.price";
+                //"PREFERENCE LOW cars.price AND colors.name FAVOUR 'rot'";
+                "PREFERENCE HIGH colors.name {'schwarz' >> OTHERS} AND LOW cars.price";
                 //"PREFERENCE HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERS} AND LOW cars.price";
                 //"PREFERENCE HIGH colors.name {'rot' >> OTHERS} AND LOW cars.price";
                 //"PREFERENCE HIGH cars.price AND Low cars.mileage ";
@@ -72,12 +72,25 @@ namespace Utility
 
 
                 SQLCommon parser = new SQLCommon();
-                parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
-                //parser.SkylineType = SQLCommon.Algorithm.BNL;
+                //parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
+                parser.SkylineType = SQLCommon.Algorithm.BNL;
 
                 String strSQL = parser.parsePreferenceSQL(strPrefSQL);
 
                 Debug.WriteLine(strSQL);
+
+
+                String str1 = "SELECT cars.id , CASE WHEN colors.name = 'schwarz' THEN 0 ELSE 100 END, cars.price FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID ORDER BY CASE WHEN colors.name = 'schwarz' THEN 0 ELSE 100 END ASC, price ASC";
+                String str2 = ";LOW;LOW";
+                String str3 = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID";
+                String str4 = "cars";
+                //String str5 = ";INCOMPARABLE;";
+                
+
+
+                SkylineBNL bnl = new SkylineBNL();
+                bnl.SP_SkylineBNL(str1, str2, str3, str4);
+
 
 
                 Debug.WriteLine("------------------------------------------\nDONE");

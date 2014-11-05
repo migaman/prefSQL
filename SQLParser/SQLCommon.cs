@@ -85,6 +85,10 @@ namespace prefSQL.SQLParser
                         strFirstSQL += strOrderBy.Replace("'", "''");
                         strNewSQL = "EXEC dbo.SP_SkylineBNL '"  + strFirstSQL + "', '" + strOperators + "', '" + strNewSQL + "', 'cars'";
 
+
+                        
+
+
                     }
                 }
                 else
