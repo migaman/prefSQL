@@ -47,7 +47,7 @@ select_stmt : select_or_values ( compound_operator select_or_values )*  ( K_ORDE
  ;
 
 select_or_values
- : K_SELECT ( K_DISTINCT | K_ALL )? result_column ( ',' result_column )*
+ : K_SELECT (top)? ( K_DISTINCT | K_ALL )? result_column ( ',' result_column )*
    ( K_FROM ( table_or_subquery ( ',' table_or_subquery )* | join_clause ) )?
    ( K_WHERE expr )?
    ( K_PREFERENCE expr )?
@@ -72,6 +72,10 @@ type_name : name+ ( '(' signed_number ')' | '(' signed_number ',' signed_number 
     AND
     OR
 */
+
+
+top :  K_TOP expr																						#visitTop
+	;
 
 expr
  : literal_value																						#opLiteral
@@ -100,11 +104,11 @@ expr
                       ')'															
                     | ( database_name '.' )? table_name )							#notIn
  | ( ( K_NOT )? K_EXISTS )? '(' select_stmt ')'										#notExists
- | K_CASE expr? ( K_WHEN expr K_THEN expr )+ ( K_ELSE expr )? K_END					#case
+ | K_CASE expr? ( K_WHEN expr K_THEN expr )+ ( K_ELSE expr )? K_END									#case
  //Don't use expression. The word after Low or High must be a column name!!
- | op=(K_LOW | K_HIGH) column_term ('{' expr '}')?									#preferenceLOWHIGH
- | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) expr							#preferenceAROUND
- | '(' expr ',' expr ')'															#geocoordinate
+ | op=(K_LOW | K_HIGH) column_term ('{' expr '}')?													#preferenceLOWHIGH
+ | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term)		#preferenceAROUND
+ 							
  //| K_WEIGHTED expr													#prefWeighted
  ;
  /*
@@ -115,6 +119,9 @@ exprPreference
 	| '{' exprPreference ',' exprPreference '}'																		
 ;
 */
+
+
+geocoordinate :'(' expr ',' expr ')';
 
 //For own preferences 
 exprOwnPreference
@@ -223,6 +230,7 @@ keyword
  | K_OUTER
  | K_RIGHT
  | K_SELECT
+ | K_TOP
  | K_TABLE
  | K_THEN
  | K_UNION
@@ -341,6 +349,7 @@ K_RIGHT : R I G H T;
 K_SELECT : S E L E C T;
 K_TABLE : T A B L E;
 K_THEN : T H E N;
+K_TOP : T O P;
 K_UNION : U N I O N;
 K_USING : U S I N G;
 K_VALUES : V A L U E S;

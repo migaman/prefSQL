@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using prefSQL.SQLParser;
 using System.IO;
+using System.Diagnostics;
 
 namespace Utility
 {
@@ -15,8 +16,8 @@ namespace Utility
             //Add more columns
             String[] columns = { "cars.price", "cars.mileage", "cars.horsepower", "cars.enginesize", "cars.registration", "cars.consumption", "cars.doors", "colors.name", "fuels.name", "bodies.name", "cars.title", "makes.name", "conditions.name" };
             //Use the correct line, depending on how incomparable items should be compared
-            //String[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGH cars.registration", "LOW cars.consumption", "HIGH cars.doors", "LOW colors.name {'rot' == 'blau' >> OTHERS >> 'grau'}", "LOW fuels.name {'Benzin' >> OTHERS >> 'Diesel'}", "LOW bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS >> 'Pick-Up'}", "LOW cars.title {'MERCEDES-BENZ SL 600' >> OTHERS}", "LOW makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS >> 'FERRARI'}", "LOW conditions.name {'Neu' >> OTHERS}" };
-            String[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGH cars.registration", "LOW cars.consumption", "HIGH cars.doors", "LOW colors.name {'rot' == 'blau' >> OTHERSEQUAL >> 'grau'}", "LOW fuels.name {'Benzin' >> OTHERSEQUAL >> 'Diesel'}", "LOW bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERSEQUAL >> 'Pick-Up'}", "LOW cars.title {'MERCEDES-BENZ SL 600' >> OTHERSEQUAL}", "LOW makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERSEQUAL >> 'FERRARI'}", "LOW conditions.name {'Neu' >> OTHERSEQUAL}" };
+            //String[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGH cars.registration", "LOW cars.consumption", "HIGH cars.doors", "HIGH colors.name {'rot' == 'blau' >> OTHERS >> 'grau'}", "HIGH fuels.name {'Benzin' >> OTHERS >> 'Diesel'}", "HIGH bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS >> 'Pick-Up'}", "HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERS}", "HIGH makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS >> 'FERRARI'}", "HIGH conditions.name {'Neu' >> OTHERS}" };
+            String[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGH cars.registration", "LOW cars.consumption", "HIGH cars.doors", "HIGH colors.name {'rot' == 'blau' >> OTHERSEQUAL >> 'grau'}", "HIGH fuels.name {'Benzin' >> OTHERSEQUAL >> 'Diesel'}", "HIGH bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERSEQUAL >> 'Pick-Up'}", "HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERSEQUAL}", "HIGH makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERSEQUAL >> 'FERRARI'}", "HIGH conditions.name {'Neu' >> OTHERSEQUAL}" };
             String[] sizes = { "small", "medium", "large", "superlarge" };
             
 
@@ -84,7 +85,7 @@ namespace Utility
                 sb.AppendLine("");
                 sb.AppendLine("");
                 sb.AppendLine("");
-                //Console.WriteLine();
+                //Debug.WriteLine();
 
 
 
@@ -109,7 +110,7 @@ namespace Utility
             StreamWriter outfile = new StreamWriter(strFileName);
             outfile.Write(sb.ToString());
             outfile.Close();
-            Console.WriteLine("THE END!!");
+            Debug.WriteLine("THE END!!");
 
         }
 

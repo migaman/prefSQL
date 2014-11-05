@@ -10,6 +10,7 @@ using Antlr4.Runtime.Tree.Pattern;
 
 using prefSQL.SQLParser.Models;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace prefSQL.SQLParser
 {
@@ -32,7 +33,7 @@ namespace prefSQL.SQLParser
         }
 
         
-        public String parsePreferenceSQL(String strInput)
+        public String parsePreferenceSQL(String strInput) 
         {
             AntlrInputStream inputStream = new AntlrInputStream(strInput);
             SQLLexer sqlLexer = new SQLLexer(inputStream);
@@ -42,66 +43,62 @@ namespace prefSQL.SQLParser
 
             try
             {
-                IParseTree tree = parser.parse();
-                Console.WriteLine("Tree: " + tree.ToStringTree(parser));
-                
+                //Add error listener to parser
+                ErrorListener listener = new ErrorListener();
+                parser.AddErrorListener(listener);
 
+                //Parse query
+                IParseTree tree = parser.parse();
+                Debug.WriteLine("Tree: " + tree.ToStringTree(parser));
+                
+                //Visit parsetree
                 SQLVisitor visitor = new SQLVisitor();
                 PrefSQLModel prefSQL = visitor.Visit(tree);
 
+
+                
+
                 //Check if parse was successful
-                if (prefSQL != null)
+                if (prefSQL != null && strInput.IndexOf("PREFERENCE") > 0)
                 {
-                    if (strInput.IndexOf("PREFERENCE") > 0)
+                    strNewSQL = strInput.Substring(0, strInput.IndexOf("PREFERENCE") - 1);
+
+                    if (_SkylineType == Algorithm.NativeSQL)
                     {
-                        strNewSQL = strInput.Substring(0, strInput.IndexOf("PREFERENCE") - 1);
-
-                        if (_SkylineType == Algorithm.NativeSQL)
-                        {
-                            String strWHERE = buildWHEREClause(prefSQL, strNewSQL);
-                            String strOrderBy = buildORDERBYClause(prefSQL);
+                        String strWHERE = buildWHEREClause(prefSQL, strNewSQL);
+                        String strOrderBy = buildORDERBYClause(prefSQL);
 
 
-                            strNewSQL += strWHERE;
-                            strNewSQL += strOrderBy;
-                            Console.WriteLine("Result: " + strWHERE);
-                        }
-                        else if (_SkylineType == Algorithm.BNL)
-                        {
-                            String strOperators = "";
-                            String strPreferences = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
-                            String strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
-                            String strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
-                            //String strFirstSQL = strSQLBeforeFrom + strPreferences + " " + strSQLAfterFrom;
-                            String strFirstSQL = "SELECT cars.id " + strPreferences + " " + strSQLAfterFrom;
-                            String strOrderBy = buildORDERBYClause(prefSQL);
-                            strFirstSQL += strOrderBy.Replace("'", "''");
-                            strNewSQL = "EXEC dbo.SP_SkylineBNL '"  + strFirstSQL + "', '" + strOperators + "', '" + strNewSQL + "', 'cars'";
-
-                        }
-                        
-                        Console.WriteLine("--------------------------------------------");
-
-
+                        strNewSQL += strWHERE;
+                        strNewSQL += strOrderBy;
+                        Debug.WriteLine("Result: " + strWHERE);
                     }
-                    else
+                    else if (_SkylineType == Algorithm.BNL)
                     {
-                        strNewSQL = strInput;
+                        String strOperators = "";
+                        String strPreferences = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
+                        String strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
+                        String strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
+                        //String strFirstSQL = strSQLBeforeFrom + strPreferences + " " + strSQLAfterFrom;
+                        String strFirstSQL = "SELECT cars.id " + strPreferences + " " + strSQLAfterFrom;
+                        String strOrderBy = buildORDERBYClause(prefSQL);
+                        strFirstSQL += strOrderBy.Replace("'", "''");
+                        strNewSQL = "EXEC dbo.SP_SkylineBNL '"  + strFirstSQL + "', '" + strOperators + "', '" + strNewSQL + "', 'cars'";
+
                     }
                 }
+                else
+                {
+                    //Query does not contain a preference --> return original query
+                    strNewSQL = strInput;
+                }
+            }
 
-            }
-            catch (Antlr4.Runtime.InputMismatchException e)
-            {
-                Console.WriteLine("Wrong syntax " + e.Message);
-            }
-            catch(Antlr4.Runtime.NoViableAltException e)
-            {
-                Console.WriteLine("Wrong syntax " + e.Message);
-            }
             catch(Exception e)
             {
-                Console.WriteLine("Wrong syntax " + e.Message);
+                //Syntaxerror
+                /// <exception cref="Exception">This is exception is thrown because the String is not a valid PrefSQL Query</exception>
+                throw new Exception(e.Message);
             }
             return strNewSQL;
 
@@ -173,6 +170,17 @@ namespace prefSQL.SQLParser
                     string pattern = @"\b" + strTable + @"\b";
                     string replace = strTable + " " + strTable +  "_INNER";
                     strPreSQL = Regex.Replace(strPreSQL, pattern, replace, RegexOptions.IgnoreCase);
+                }
+
+                //Check if SQL contains TOP Keywords
+                if(strPreSQL.Contains("TOP"))
+                {
+                    //Remove Top Keyword
+                    //TODO: Do this in SQLVisitor --> this one might not always work
+                    int iPosTop = strPreSQL.IndexOf("TOP");
+                    int iPosTopEnd = strPreSQL.Substring(iPosTop+3).TrimStart().IndexOf(" ");
+                    String strSQLAfterTOP = strPreSQL.Substring(iPosTop + 3).TrimStart();
+                    strPreSQL = strPreSQL.Substring(0, iPosTop) + strSQLAfterTOP.Substring(iPosTopEnd+1);
                 }
 
 

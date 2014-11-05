@@ -16,6 +16,10 @@ namespace prefSQL.SQLParser
     {
         public const string InnerTableSuffix = "_INNER"; //Table suffix for the inner query
 
+        public override PrefSQLModel VisitTop(SQLParser.TopContext context)
+        {
+            return base.VisitTop(context);
+        }
 
         public override PrefSQLModel VisitPreferenceLOWHIGH(SQLParser.PreferenceLOWHIGHContext context)
         {
@@ -115,13 +119,13 @@ namespace prefSQL.SQLParser
                 strColumn = strSQL;
 
                 //Depending on LOW or HIGH do an ASCENDING or DESCENDING sort
-                if (context.op.Type == SQLParser.K_LOW)
+                if (context.op.Type == SQLParser.K_HIGH)
                 {
 
                     strSQL += " ASC";
                     strOperator = "<";
                 }
-                else if (context.op.Type == SQLParser.K_HIGH)
+                else if (context.op.Type == SQLParser.K_LOW)
                 {
                     strSQL += " DESC";
                     strOperator = ">";
@@ -158,39 +162,76 @@ namespace prefSQL.SQLParser
 
         }
 
+        
+
         public override PrefSQLModel VisitPreferenceAROUND(SQLParser.PreferenceAROUNDContext context)
         {
             String strSQL = "";
+            PrefSQLModel pref = new PrefSQLModel();
+            String strColumn = "";
+            String strTable = "";
+            String strOperator = "";
+            String strInnerColumnExpression = "";
+
             //Query Keywords AROUND, FAVOUR and DISFAVOUR, after that create an ORDER BY of it
+
+            strColumn = getColumn(context.GetChild(0));
+            strTable = getTable(context.GetChild(0));
 
             switch (context.op.Type)
             {
                 case SQLParser.K_AROUND:
+                    
                     //Value should be as close as possible to a given numeric value
                     //Check if its a geocoordinate
                     if (context.GetChild(2).GetType().ToString() == "prefSQL.SQLParser.SQLParser+GeocoordinateContext")
                     {
                         strSQL = "ABS(DISTANCE(" + context.GetChild(0).GetText() + ", \"" + context .GetChild(2).GetChild(1).GetText() + "," + context.GetChild(2).GetChild(3).GetText() + "\")) ASC";
+                        strColumn = "ABS(DISTANCE(" + context.GetChild(0).GetText() + ", \"" + context.GetChild(2).GetChild(1).GetText() + "," + context.GetChild(2).GetChild(3).GetText() + "\"))";
+                        strInnerColumnExpression = strColumn.Replace(strTable, strTable + InnerTableSuffix);
                     }
                     else
                     {
                         strSQL = "ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ") ASC";
+                        strColumn = "ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ")";
+                        strInnerColumnExpression = strColumn.Replace(strTable, strTable + InnerTableSuffix);
                     }
+                    strOperator = "<";
+
+                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", ""));
+
                     break;
 
                 case SQLParser.K_FAVOUR:
                     //Value should be as close as possible to a given string value
                     strSQL = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END ASC";
+                    strColumn = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
+                    strInnerColumnExpression = strColumn.Replace(strTable, strTable + InnerTableSuffix);
+                    strOperator = "<";
+
+                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", ""));
+
                     break;
 
                 case SQLParser.K_DISFAVOUR:
                     //Value should be as far away as possible to a given string value
                     strSQL = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END DESC";
+                    strColumn = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
+                    strInnerColumnExpression = strColumn.Replace(strTable, strTable + InnerTableSuffix);
+                    strOperator = ">";
+
+
+                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", ""));
+
                     break;
 
             }
 
-            PrefSQLModel pref = new PrefSQLModel();
+
+
+            //Add the preference to the list               
+            
+            pref.Tables.Add(strTable);
             pref.OrderBy.Add(strSQL);
             return pref;
         }

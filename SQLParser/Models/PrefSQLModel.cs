@@ -12,6 +12,13 @@ namespace prefSQL.SQLParser.Models
         private List<AttributeModel> _skyline = new List<AttributeModel>();
         private List<String> _orderBy = new List<String>();
         private HashSet<String> _tables = new HashSet<string>();
+        private String _sql = "";
+
+        public String Sql
+        {
+            get { return _sql; }
+            set { _sql = value; }
+        }
 
         public HashSet<String> Tables
         {

@@ -6,7 +6,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{125A1438-E65A-4F43-A9EC-23A7BC7E68D7}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>prefSQL.SQLParser</RootNamespace>
     <AssemblyName>SQLParser</AssemblyName>
@@ -51,7 +51,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>prefSQL.SQLParser.Program</StartupObject>
+    <StartupObject>
+    </StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Antlr4.Runtime">
@@ -69,10 +70,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ErrorListener.cs" />
     <Compile Include="Models\AttributeModel.cs" />
     <Compile Include="Models\PrefSQLModel.cs" />
     <Compile Include="SQLCommon.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SQLVisitor.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
