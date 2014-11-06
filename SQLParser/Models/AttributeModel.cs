@@ -9,7 +9,7 @@ namespace prefSQL.SQLParser.Models
     class AttributeModel
     {
 
-        public AttributeModel(String strColumnExpression, String strOperator, String strTable, String strInnerTable, String strInnerColumnExpression, String strColumnName, String strInnerColumnName)
+        public AttributeModel(string strColumnExpression, string strOperator, string strTable, string strInnerTable, string strInnerColumnExpression, string strColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute)
         {
             Table = strTable;                                       //Tablename for the mainquery       (i.e. cars)
             InnerTable = strInnerTable;                             //Tablename for the subquery        (i.e. cars_INNER)
@@ -18,6 +18,8 @@ namespace prefSQL.SQLParser.Models
             Op = strOperator;                                       //Operator                          (<, >)
             ColumnName = strColumnName;                             //Used for the additional OR with text values (i.e. OR colors_INNER.name = colors.name)
             InnerColumnName = strInnerColumnName;                   //Dito
+            Comparable = isComparable;                              //Check if at least one value is incomparable
+            IncomparableAttribute = strIncomporableAttribute;       //Attribute that returns the textvalue if the value is incomparable
         }
 
 
@@ -36,5 +38,10 @@ namespace prefSQL.SQLParser.Models
         public string Op { get; set; }
 
         public string Table { get; set; }
+
+        public bool Comparable { get; set; }
+
+
+        public String IncomparableAttribute { get; set; }
     }
 }

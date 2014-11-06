@@ -15,11 +15,19 @@ namespace Utility
             /*Demo d = new Demo();
             d.generateDemoQueries();*/
 
-            /*Performance p = new Performance();
-            p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.NativeSQL);*/
+            Performance p = new Performance();
+            p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.BNL);
 
-            Program prg = new Program();
-            prg.Run();
+            /*Program prg = new Program();
+            prg.Run();*/
+
+
+            //Test SkylineBNL Algorithm
+            /*String str1 = "SELECT cars.id , CASE WHEN colors.name = 'schwarz' THEN 0 ELSE 100 END, colors.name, cars.price FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID ORDER BY CASE WHEN colors.name = 'schwarz' THEN 0 ELSE 100 END ASC, price ASC";
+            String str2 = ";LOW_INCOMPARABLE;INCOMPARABLE;LOW";
+            String str3 = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID";
+            String str4 = "cars";*/
+            //SkylineBNL.SP_SkylineBNL(str1, str2, str3, str4);
         }
 
 
@@ -80,16 +88,6 @@ namespace Utility
                 Debug.WriteLine(strSQL);
 
 
-                String str1 = "SELECT cars.id , CASE WHEN colors.name = 'schwarz' THEN 0 ELSE 100 END, cars.price FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID ORDER BY CASE WHEN colors.name = 'schwarz' THEN 0 ELSE 100 END ASC, price ASC";
-                String str2 = ";LOW;LOW";
-                String str3 = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID";
-                String str4 = "cars";
-                //String str5 = ";INCOMPARABLE;";
-                
-
-
-                SkylineBNL bnl = new SkylineBNL();
-                bnl.SP_SkylineBNL(str1, str2, str3, str4);
 
 
 

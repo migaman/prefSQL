@@ -51,7 +51,7 @@ namespace prefSQL.SQLParser
 
 
                 //Add the preference to the list               
-                pref.Skyline.Add(new AttributeModel(strTable + "." + strColumn, strOperator, strTable, strTable + InnerTableSuffix, strTable + InnerTableSuffix + "." + strColumn, "", ""));
+                pref.Skyline.Add(new AttributeModel(strTable + "." + strColumn, strOperator, strTable, strTable + InnerTableSuffix, strTable + InnerTableSuffix + "." + strColumn, "", "", true, ""));
                 pref.Tables.Add(strTable);
 
             }
@@ -71,6 +71,10 @@ namespace prefSQL.SQLParser
                 string strInnerColumn = "";
                 string strSingleColumn = strTable + "." + getColumn(context.GetChild(1));
                 string strInnerSingleColumn = strTable + InnerTableSuffix + "." + getColumn(context.GetChild(1));
+                string strSQLIncomparableAttribute = "";
+                string strIncomporableAttribute = "";
+                string strIncomporableAttributeELSE = "";
+                Boolean bComparable = true;
 
                 //Define sort order value for each attribute
                 int iWeight = 0;
@@ -87,11 +91,14 @@ namespace prefSQL.SQLParser
                             ////Add one, so that equal-clause cannot be true with same level-values, but other names
                             strSQLELSE = " ELSE " + (iWeight);
                             strSQLInnerELSE = " ELSE " + (iWeight + 1);
+                            strIncomporableAttributeELSE = "ELSE " + strTable + "." + strColumn; //Not comparable --> give string value of field
+                            bComparable = false;
                             break;
                         case "OTHERSEQUAL":
                             //Special word OTHERSEQUAL = all other attributes are defined with this order by value
                             strSQLELSE = " ELSE " + iWeight;
                             strSQLInnerELSE = " ELSE " + iWeight;
+                            strIncomporableAttributeELSE = " ELSE ''"; //Comparable give empty column
                             break;
                         default:
                             //Check if it contains multiple values
@@ -102,6 +109,8 @@ namespace prefSQL.SQLParser
                                 strSQLOrderBy += " WHEN " + strTable + "." + strColumn + " IN " + strTemp[i] + " THEN " + iWeight.ToString();
                                 //This values are always incomparable (otherwise the = should be used)
                                 strSQLInnerOrderBy += " WHEN " + strTable + InnerTableSuffix + "." + strColumn + " IN " + strTemp[i] + " THEN " + (iWeight + 1);
+                                //Not comparable --> give string value of field
+                                strSQLIncomparableAttribute += " WHEN " + strTable + "." + strColumn + " IN " + strTemp[i] + " THEN " + strTable + "." + strColumn;
                             }
                             else
                             {
@@ -109,6 +118,7 @@ namespace prefSQL.SQLParser
                                 strSQLOrderBy += " WHEN " + strTable + "." + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
                                 //This values are always comparable (otherwise the {x, y} should be used)
                                 strSQLInnerOrderBy += " WHEN " + strTable + InnerTableSuffix + "." + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
+                                strSQLIncomparableAttribute += " WHEN " + strTable + "." + strColumn + " = " + strTemp[i] + " THEN ''"; //comparable
                             }
                             break;
                     }
@@ -116,6 +126,7 @@ namespace prefSQL.SQLParser
                 }
                 strSQL = "CASE" + strSQLOrderBy + strSQLELSE + " END";
                 strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLInnerELSE + " END";
+                strIncomporableAttribute = "CASE" + strSQLIncomparableAttribute + strIncomporableAttributeELSE + " END";
                 strColumn = strSQL;
 
                 //Depending on LOW or HIGH do an ASCENDING or DESCENDING sort
@@ -132,7 +143,7 @@ namespace prefSQL.SQLParser
 
                 }
                 //Add the preference to the list               
-                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn, strSingleColumn, strInnerSingleColumn));
+                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute));
                 pref.Tables.Add(strTable);
             }
 
@@ -198,7 +209,7 @@ namespace prefSQL.SQLParser
                     }
                     strOperator = "<";
 
-                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", ""));
+                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", "", true, ""));
 
                     break;
 
@@ -209,7 +220,7 @@ namespace prefSQL.SQLParser
                     strInnerColumnExpression = strColumn.Replace(strTable, strTable + InnerTableSuffix);
                     strOperator = "<";
 
-                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", ""));
+                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", "", true, ""));
 
                     break;
 
@@ -221,7 +232,7 @@ namespace prefSQL.SQLParser
                     strOperator = ">";
 
 
-                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", ""));
+                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", "", true, ""));
 
                     break;
 
