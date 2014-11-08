@@ -226,7 +226,7 @@ namespace prefSQL.SQLParser
                     if (model.Skyline[iChild].Comparable == false)
                     {
                         strSQL += ", " + model.Skyline[iChild].IncomparableAttribute.Replace("'", "''");
-                        strOperators += "_INCOMPARABLE;INCOMPARABLE";
+                        strOperators += ";INCOMPARABLE";
                     }
 
 

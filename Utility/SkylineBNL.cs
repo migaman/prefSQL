@@ -13,6 +13,8 @@ using System.Diagnostics;
 
 namespace Utility
 {
+    //Hinweis: Wenn mit startswith statt equals gearbeitet wird führt dies zu massiven performance problemen, z.B. large dataset 30 statt 3 Sekunden mit 13 Dimensionen!!
+    //TODO: Vergleiche immer mit equals und nie mit z.B. startsWith oder Contains oder so....
 
     //same as the SP SkyineBNL --> for testing the performance and debugging
     class SkylineBNL
@@ -183,6 +185,8 @@ namespace Utility
 
         private static void addToWindow(SqlDataReader sqlReader, String[] operators, ref ArrayList resultCollection, ref ArrayList idCollection, ref ArrayList resultStringCollection)
         {
+
+
             //Liste ist leer --> Das heisst erster Eintrag ins Window werfen
             //Erste Spalte ist die ID
             long[] record = new long[sqlReader.FieldCount];
@@ -190,7 +194,7 @@ namespace Utility
             for (int i = 0; i <= record.GetUpperBound(0); i++)
             {
                 //LOW und HIGH Spalte in record abfüllen
-                if (operators[i].StartsWith("LOW") || operators[i].StartsWith("HIGH"))
+                if (operators[i].Equals("LOW") || operators[i].Equals("HIGH"))
                 {
                     Type type = sqlReader.GetFieldType(i);
                     if (type == typeof(int))
@@ -199,21 +203,22 @@ namespace Utility
                     }
                     else if (type == typeof(DateTime))
                     {
-                        record[i] = sqlReader.GetDateTime(i).Ticks;
+                        record[i] = sqlReader.GetDateTime(i).Year * 10000 + sqlReader.GetDateTime(i).Month * 100 + sqlReader.GetDateTime(i).Day;
                     }
 
                     //Check if long value is incomparable
-
-                    if (operators[i].Contains("INCOMPARABLE"))
+                    if (i+1 <= record.GetUpperBound(0) && operators[i+1].Equals("INCOMPARABLE"))
                     {
                         //Incomparable field is always the next one
                         type = sqlReader.GetFieldType(i+1);
                         if (type == typeof(string))
                         {
-                            recordString[i] = sqlReader.GetString(i+1);
+                            recordString[i] = sqlReader.GetString(i + 1);
                         }
 
                     }
+
+
 
 
                 }
@@ -233,7 +238,7 @@ namespace Utility
             {
                 String op = operators[iCol];
                 //Compare only LOW and HIGH attributes
-                if (op.StartsWith("LOW") || op.StartsWith("HIGH"))
+                if (op.Equals("LOW") || op.Equals("HIGH"))
                 {
                     //Convert value if it is a date
                     long value = 0;
@@ -244,7 +249,7 @@ namespace Utility
                     }
                     else if (type == typeof(DateTime))
                     {
-                        value = sqlReader.GetDateTime(iCol).Ticks;
+                        value = sqlReader.GetDateTime(iCol).Year * 10000 + sqlReader.GetDateTime(iCol).Month * 100 + sqlReader.GetDateTime(iCol).Day;
                     }
 
                     if (compareValues(op, value, result[iCol], false, bSecondMethod) == true)
@@ -259,7 +264,7 @@ namespace Utility
                         {
                             //It is the same long value
                             //Check if the value must be text compared
-                            if(op.Contains("INCOMPARABLE"))
+                            if(iCol+1 <= result.GetUpperBound(0) && operators[iCol+1].Equals("INCOMPARABLE"))
                             {
                                 //String value is always the next field
                                 String strValue = sqlReader.GetString(iCol + 1);
@@ -293,7 +298,7 @@ namespace Utility
         {
             if (backwards == true)
             {
-                if (op.StartsWith("LOW"))
+                if (op.Equals("LOW"))
                     op.Replace("LOW", "HIGH");
                 else
                     op.Replace("HIGH", "LOW");
@@ -301,7 +306,7 @@ namespace Utility
 
             if (greaterThan == false)
             {
-                if (op.StartsWith("LOW"))
+                if (op.Equals("LOW"))
                 {
                     if (value1 >= value2)
                     {
@@ -312,7 +317,7 @@ namespace Utility
                         return false;
                     }
                 }
-                else if (op.StartsWith("HIGH"))
+                else if (op.Equals("HIGH"))
                 {
                     if (value1 <= value2)
                     {
@@ -326,7 +331,7 @@ namespace Utility
             }
             else
             {
-                if (op.StartsWith("LOW"))
+                if (op.Equals("LOW"))
                 {
                     if (value1 > value2)
                     {
@@ -337,7 +342,7 @@ namespace Utility
                         return false;
                     }
                 }
-                else if (op.StartsWith("HIGH"))
+                else if (op.Equals("HIGH"))
                 {
                     if (value1 < value2)
                     {
