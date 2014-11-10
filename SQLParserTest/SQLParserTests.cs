@@ -37,11 +37,41 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
+        public void TestWithUnconventialJOIN()
+        {
+            String strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name FROM cars, colors WHERE cars.Color_Id = colors.Id PREFERENCE LOW cars.price AND HIGH colors.name {'grau' >> 'rot'}";
+
+            String expected = "SELECT cars.id, cars.title, cars.price, colors.name FROM cars, colors WHERE cars.Color_Id = colors.Id AND NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.price, colors_INNER.name FROM cars cars_INNER, colors colors_INNER WHERE cars_INNER.Color_Id = colors_INNER.Id  AND cars_INNER.price <= cars.price AND (CASE WHEN colors_INNER.name = 'grau' THEN 0 WHEN colors_INNER.name = 'rot' THEN 100 END <= CASE WHEN colors.name = 'grau' THEN 0 WHEN colors.name = 'rot' THEN 100 END OR colors_INNER.name = colors.name) AND ( cars_INNER.price < cars.price OR CASE WHEN colors_INNER.name = 'grau' THEN 0 WHEN colors_INNER.name = 'rot' THEN 100 END < CASE WHEN colors.name = 'grau' THEN 0 WHEN colors.name = 'rot' THEN 100 END) )  ORDER BY price ASC, CASE WHEN colors.name = 'grau' THEN 0 WHEN colors.name = 'rot' THEN 100 END ASC";
+            SQLCommon common = new SQLCommon();
+            String actual = common.parsePreferenceSQL(strPrefSQL);
+
+            // assert
+
+            Assert.AreEqual(expected, actual, true, "SQL not built correctly");
+        }
+
+
+        [TestMethod]
+        public void TestWithWHEREClause()
+        {
+            String strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage FROM cars WHERE cars.price > 10000 PREFERENCE LOW cars.price AND Low cars.mileage";
+
+            String expected = "SELECT cars.id, cars.title, cars.price, cars.mileage FROM cars WHERE cars.price > 10000 AND NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.price, cars_INNER.mileage FROM cars cars_INNER WHERE cars_INNER.price > 10000  AND cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage) )  ORDER BY price ASC, mileage ASC";
+            SQLCommon common = new SQLCommon();
+            String actual = common.parsePreferenceSQL(strPrefSQL);
+
+            // assert
+
+            Assert.AreEqual(expected, actual, true, "SQL not built correctly");
+        }
+
+
+        [TestMethod]
         public void TestWithoutPreference()
         {
-            String strPrefSQL = "SELECT TOP 5 cars.id, cars.title, cars.Price, colors.Name FROM cars";
+            String strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars";
 
-            String expected = "SELECT TOP 5 cars.id, cars.title, cars.Price, colors.Name FROM cars";
+            String expected = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars";
             SQLCommon common = new SQLCommon();
             String actual = common.parsePreferenceSQL(strPrefSQL);
 
@@ -152,6 +182,24 @@ namespace prefSQL.SQLParserTest
         public void TestSKYLINE2Dimensions()
         {
             String strPrefSQL = "SELECT * FROM cars PREFERENCE LOW cars.price AND LOW cars.mileage";
+
+            String expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage) )  ORDER BY price ASC, mileage ASC";
+            SQLCommon common = new SQLCommon();
+            String actual = common.parsePreferenceSQL(strPrefSQL);
+
+            // assert
+
+            Assert.AreEqual(expected, actual, true, "SQL not built correctly");
+
+
+
+        }
+
+
+        [TestMethod]
+        public void TestSKYLINE2DimensionswithALIAS()
+        {
+            String strPrefSQL = "SELECT * FROM cars t1 PREFERENCE LOW t1.price AND LOW t1.mileage";
 
             String expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage) )  ORDER BY price ASC, mileage ASC";
             SQLCommon common = new SQLCommon();

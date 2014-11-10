@@ -113,13 +113,25 @@ namespace prefSQL.SQLParser
         private String buildWHEREClause(PrefSQLModel model, String strPreSQL)
         {
             String strSQL = "";
+            bool containsWHEREClause = false;
 
             //Build Skyline only if more than one attribute
             if (model.Skyline.Count > 1)
             {
-                String strWhereEqual = "WHERE ";
+                String strWhereEqual = "";
                 String strWhereBetter = " AND ( ";
                 Boolean bFirst = true;
+
+                //Only add WHERE if there is not already a where clause
+                containsWHEREClause = strPreSQL.IndexOf("WHERE") > 0;
+                if(containsWHEREClause == true)
+                {
+                    strWhereEqual = " AND ";
+                }
+                else
+                {
+                    strWhereEqual = "WHERE ";
+                }
 
                 //Build the where clause with each column in the skyline
                 for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
@@ -187,8 +199,17 @@ namespace prefSQL.SQLParser
                     strPreSQL = strPreSQL.Substring(0, iPosTop) + strSQLAfterTOP.Substring(iPosTopEnd+1);
                 }
 
+                if (containsWHEREClause == true)
+                {
+                    strSQL = " AND ";
+                }
+                else
+                {
+                    strSQL = " WHERE ";
+                }
+                strSQL += "NOT EXISTS(" + strPreSQL + " " + strWhereEqual + strWhereBetter + ") ";
 
-                strSQL = " WHERE NOT EXISTS(" + strPreSQL + " " + strWhereEqual + strWhereBetter + ") ";
+                
                                 
 
             }

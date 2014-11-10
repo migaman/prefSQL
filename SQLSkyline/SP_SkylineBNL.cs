@@ -63,20 +63,27 @@ public partial class StoredProcedures
                         string[] strResult = (string[])resultStringCollection[i];
 
                         //Dominanz
-                        Boolean equalThan = false;
-                        Boolean greaterThan = false;
-                        compare(sqlReader, operators, result, strResult, ref equalThan, ref greaterThan, false);
-
-                        if (equalThan == true && greaterThan == true)
+                        
+                        //compare(sqlReader, operators, result, strResult, ref equalThan, ref greaterThan, false);
+                        int comparison = compare(sqlReader, operators, result, strResult, false);
+                        if (comparison == 1)
                         {
                             //New point is dominated. No further testing necessary
                             bDominated = true;
                             break;
                         }
 
+                        /*if (equalThan == true && greaterThan == true)
+                        {
+                            //New point is dominated. No further testing necessary
+                            bDominated = true;
+                            break;
+                        }*/
 
+
+                        //It is not possible that the new point dominates the one in the window --> REason is ORDER BY
                         //Now, check if the new point dominates the one in the window
-                        equalThan = false;
+                        /*equalThan = false;
                         greaterThan = false;
                         compare(sqlReader, operators, result, strResult, ref equalThan, ref greaterThan, true);
 
@@ -85,7 +92,7 @@ public partial class StoredProcedures
                             //The new record dominates the one in the windows. Remove point from window and test further
                             resultCollection.RemoveAt(i);
                             idCollection.RemoveAt(i);
-                        }
+                        }*/
 
 
                     }
@@ -192,7 +199,7 @@ public partial class StoredProcedures
                 }
                 else if (type == typeof(DateTime))
                 {
-                    record[i] = sqlReader.GetDateTime(i).Year * 10000 + sqlReader.GetDateTime(i).Month * 100 + sqlReader.GetDateTime(i).Day;
+                    record[i] = sqlReader.GetDateTime(i).Ticks; // sqlReader.GetDateTime(i).Year * 10000 + sqlReader.GetDateTime(i).Month * 100 + sqlReader.GetDateTime(i).Day;
                 }
 
                 //Check if long value is incomparable
@@ -219,10 +226,11 @@ public partial class StoredProcedures
     }
 
 
-    private static void compare(SqlDataReader sqlReader, String[] operators, long[] result, string[] stringResult, ref Boolean equalThan, ref Boolean greaterThan, Boolean bSecondMethod)
+    private static int compare(SqlDataReader sqlReader, String[] operators, long[] result, string[] stringResult, Boolean bSecondMethod)
     {
-        //Boolean equalThan = false;
-        //Boolean greaterThan = false;
+        int returnValue = 0;
+        bool greaterThan = false;
+        
         for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
         {
             String op = operators[iCol];
@@ -238,13 +246,15 @@ public partial class StoredProcedures
                 }
                 else if (type == typeof(DateTime))
                 {
-                    value = sqlReader.GetDateTime(iCol).Year * 10000 + sqlReader.GetDateTime(iCol).Month * 100 + sqlReader.GetDateTime(iCol).Day;
+                    value = sqlReader.GetDateTime(iCol).Ticks; // sqlReader.GetDateTime(iCol).Year * 10000 + sqlReader.GetDateTime(iCol).Month * 100 + sqlReader.GetDateTime(iCol).Day;
                 }
 
-                if (compareValues(op, value, result[iCol], false, bSecondMethod) == true)
+                int comparison = compareValues(op, value, result[iCol], bSecondMethod);
+                
+                if (comparison >= 1)
                 {
-                    equalThan = true;
-                    if (compareValues(op, value, result[iCol], true, bSecondMethod) == true)
+                    returnValue = 1;
+                    if (comparison == 2)
                     {
                         //at least one must be greater than
                         greaterThan = true;
@@ -260,8 +270,7 @@ public partial class StoredProcedures
                             //If it is not the same String value, the values are incomparable!!
                             if (strValue != stringResult[iCol])
                             {
-                                equalThan = false;
-                                break;
+                                return 0;
                             }
 
 
@@ -270,80 +279,42 @@ public partial class StoredProcedures
                 }
                 else
                 {
-                    equalThan = false;
-                    break;
+                    return 0;
                 }
             }
         }
 
-
-
-
-
+        //all equal and at least one must be greater than
+        if (returnValue == 1 && greaterThan == true)
+            return 1;
+        else
+            return 0;
 
     }
 
-    private static Boolean compareValues(String op, long value1, long value2, bool greaterThan, bool backwards)
+    private static int compareValues(String op, long value1, long value2, bool backwards)
     {
-        if (backwards == true)
+        //Switch numbers on certain case
+        if (op.Equals("HIGH") && backwards == false || backwards == true && op.Equals("LOW"))
         {
-            if (op.Equals("LOW"))
-                op.Replace("LOW", "HIGH");
-            else
-                op.Replace("HIGH", "LOW");
+            long tmpValue = value1;
+            value1 = value2;
+            value2 = tmpValue;
         }
 
-        if (greaterThan == false)
+
+        if (value1 >= value2)
         {
-            if (op.Equals("LOW"))
-            {
-                if (value1 >= value2)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else if (op.Equals("HIGH"))
-            {
-                if (value1 <= value2)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
+            if (value1 > value2)
+                return 2;
+            else
+                return 1;
+
         }
         else
         {
-            if (op.Equals("LOW"))
-            {
-                if (value1 > value2)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else if (op.Equals("HIGH"))
-            {
-                if (value1 < value2)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
+            return 0;
         }
-        return false;
 
     }
 
