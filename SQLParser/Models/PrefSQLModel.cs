@@ -9,6 +9,13 @@ namespace prefSQL.SQLParser.Models
     class PrefSQLModel
     {
         private String _tableName = "";
+        private bool _includesTOP = false;
+
+        public bool IncludesTOP
+        {
+            get { return _includesTOP; }
+            set { _includesTOP = value; }
+        }
         private String _tableAliasName = "";
 
         public String TableAliasName

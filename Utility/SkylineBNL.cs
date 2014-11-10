@@ -14,7 +14,7 @@ using System.Diagnostics;
 namespace Utility
 {
     //Hinweis: Wenn mit startswith statt equals gearbeitet wird führt dies zu massiven performance problemen, z.B. large dataset 30 statt 3 Sekunden mit 13 Dimensionen!!
-    //TODO: Vergleiche immer mit equals und nie mit z.B. startsWith oder Contains oder so....
+    //WICHTIG: Vergleiche immer mit equals und nie mit z.B. startsWith oder Contains oder so.... --> Enorme Performance Unterschiede
 
     //same as the SP SkyineBNL --> for testing the performance and debugging
     class SkylineBNL
@@ -70,11 +70,7 @@ namespace Utility
                             string[] strResult = (string[])resultStringCollection[i];
 
                             //Dominanz
-                            Boolean equalThan = false;
-                            Boolean greaterThan = false;
-                            compare(sqlReader, operators, result, strResult, ref equalThan, ref greaterThan);
-                            
-                            if (equalThan == true && greaterThan == true)
+                            if (compare(sqlReader, operators, result, strResult) == true)
                             {
                                 //New point is dominated. No further testing necessary
                                 bDominated = true;
@@ -83,16 +79,7 @@ namespace Utility
 
 
                             //Now, check if the new point dominates the one in the window
-                            /*equalThan = false;
-                            greaterThan = false;
-                            compare(sqlReader, operators, result, strResult, ref equalThan, ref greaterThan, true);
-
-                            if (equalThan == true && greaterThan == true)
-                            {
-                                //The new record dominates the one in the windows. Remove point from window and test further
-                                resultCollection.RemoveAt(i);
-                                idCollection.RemoveAt(i);
-                            }*/
+                            //It is not possible that the new point dominates the one in the window --> Raason data is ORDERED
 
 
                         }
@@ -152,10 +139,7 @@ namespace Utility
                 sqlReader = sqlCommand.ExecuteReader();
 
 
-                if (bSQLCLR == true)
-                {
-                    SqlContext.Pipe.Send(sqlReader);
-                }
+
                 
 
 
@@ -171,10 +155,6 @@ namespace Utility
                 SqlCommand sqlCommand = new SqlCommand(strError, connection);
                 SqlDataReader sqlReader = sqlCommand.ExecuteReader();
 
-                if (bSQLCLR == true)
-                {
-                    SqlContext.Pipe.Send(sqlReader);
-                }
 
 
             }
@@ -234,8 +214,10 @@ namespace Utility
         }
 
 
-        private static void compare(SqlDataReader sqlReader, String[] operators, long[] result, string[] stringResult, ref Boolean equalThan, ref Boolean greaterThan) 
+        private static bool compare(SqlDataReader sqlReader, string[] operators, long[] result, string[] stringResult) 
         {
+            bool greaterThan = false;
+
             //Boolean equalThan = false;
             //Boolean greaterThan = false;
             for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
@@ -256,11 +238,10 @@ namespace Utility
                         value = sqlReader.GetDateTime(iCol).Year * 10000 + sqlReader.GetDateTime(iCol).Month * 100 + sqlReader.GetDateTime(iCol).Day;
                     }
 
-                    int comparison = compareValues(op, value, result[iCol]);
-                    
+                    int comparison = compareValue(op, value, result[iCol]);
+
                     if (comparison >= 1)
                     {
-                        equalThan = true;
                         if (comparison == 2)
                         {
                             //at least one must be greater than
@@ -277,8 +258,8 @@ namespace Utility
                                 //If it is not the same String value, the values are incomparable!!
                                 if (!strValue.Equals(stringResult[iCol]))
                                 {
-                                    equalThan = false;
-                                    break;
+                                    //Value is incomparable --> return false
+                                    return false;
                                 }
 
                                 
@@ -287,8 +268,8 @@ namespace Utility
                     }
                     else
                     {
-                        equalThan = false;
-                        break;
+                        //Value is smaller --> return false
+                        return false;
                     }
                     
                     
@@ -296,7 +277,12 @@ namespace Utility
             }
 
 
-
+            //all equal and at least one must be greater than
+            //if (equalTo == true && greaterThan == true)
+            if (greaterThan == true)
+                return true;
+            else
+                return false;
 
 
 
@@ -348,33 +334,21 @@ namespace Utility
                             long[] result = (long[])resultCollection[i];
 
                             //Dominanz
-                            int comparison = compareLevel(sqlReader, operators, result, false);
-
-                            if (comparison == 1)
+                            if (compareLevel(sqlReader, operators, result) == true)
                             {
                                 //New point is dominated. No further testing necessary
                                 bDominated = true;
                                 break;
+
                             }
 
-                            //It is not possible that the new point dominates the one in the window --> REason is ORDER BY
                             //Now, check if the new point dominates the one in the window
-                            /*comparison = compareLevel(sqlReader, operators, result, true);
-
-                            if (comparison == 1)
-                            {
-                                //The new record dominates the one in the windows. Remove point from window and test further
-                                resultCollection.RemoveAt(i);
-                                idCollection.RemoveAt(i);
-                            }*/
-
+                            //It is not possible that the new point dominates the one in the window --> Raason data is ORDERED
 
                         }
                         if (bDominated == false)
                         {
                             addToWindow(sqlReader, operators, ref resultCollection, ref idCollection);
-
-
                         }
 
                     }
@@ -426,12 +400,6 @@ namespace Utility
                 sqlReader = sqlCommand.ExecuteReader();
 
 
-                if (bSQLCLR == true)
-                {
-                    SqlContext.Pipe.Send(sqlReader);
-                }
-
-
 
             }
             catch (Exception ex)
@@ -460,8 +428,6 @@ namespace Utility
 
         private static void addToWindow(SqlDataReader sqlReader, String[] operators, ref ArrayList resultCollection, ref ArrayList idCollection)
         {
-
-
             //Liste ist leer --> Das heisst erster Eintrag ins Window werfen
             //Erste Spalte ist die ID
             long[] record = new long[sqlReader.FieldCount];
@@ -490,9 +456,9 @@ namespace Utility
         }
 
 
-        private static int compareLevel(SqlDataReader sqlReader, String[] operators, long[] result, Boolean bSecondMethod)
+
+        private static bool compareLevel(SqlDataReader sqlReader, String[] operators, long[] result)
         {
-            int returnValue = 0;
             bool greaterThan = false;
             
             for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
@@ -513,11 +479,10 @@ namespace Utility
                         value = sqlReader.GetDateTime(iCol).Ticks; // sqlReader.GetDateTime(iCol).Year * 10000 + sqlReader.GetDateTime(iCol).Month * 100 + sqlReader.GetDateTime(iCol).Day;
                     }
 
-                    int comparison = compareValues(op, value, result[iCol]);
+                    int comparison = compareValue(op, value, result[iCol]);
                     
                     if (comparison >= 1)
                     {
-                        returnValue = 1;
                         if (comparison == 2)
                         {
                             //at least one must be greater than
@@ -527,16 +492,16 @@ namespace Utility
                     }
                     else
                     {
-                        return 0;
+                        return false;
                     }
                 }
             }
 
             //all equal and at least one must be greater than
-            if (returnValue == 1 && greaterThan == true)
-                return 1;
+            if (greaterThan == true)
+                return true;
             else
-                return 0;
+                return false;
 
 
         }
@@ -550,8 +515,7 @@ namespace Utility
          * 1 = equal
          * 2 = greater than
          * */
-
-        private static int compareValues(String op, long value1, long value2)
+        private static int compareValue(String op, long value1, long value2)
         {
 
             //Switch numbers on certain case

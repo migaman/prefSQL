@@ -47,7 +47,7 @@ select_stmt : select_or_values ( compound_operator select_or_values )*  ( K_ORDE
  ;
 
 select_or_values
- : K_SELECT (top)? ( K_DISTINCT | K_ALL )? result_column ( ',' result_column )*
+ : K_SELECT (top_keyword)? ( K_DISTINCT | K_ALL )? result_column ( ',' result_column )*
    ( K_FROM ( table_or_subquery ( ',' table_or_subquery )* | join_clause ) )?
    ( K_WHERE expr )?
    ( K_PREFERENCE expr )?
@@ -74,8 +74,7 @@ type_name : name+ ( '(' signed_number ')' | '(' signed_number ',' signed_number 
 */
 
 
-top :  K_TOP expr																						#visitTop
-	;
+
 
 expr
  : literal_value																						#opLiteral
@@ -144,7 +143,7 @@ table_or_subquery
 
 join_clause : table_or_subquery ( join_operator table_or_subquery join_constraint )* ;
 
-join_operator: ',' | K_NATURAL? ( K_LEFT K_OUTER? | K_INNER | K_CROSS )? K_JOIN;
+join_operator: ',' | ( K_LEFT K_OUTER? | K_INNER | K_CROSS )? K_JOIN;
 
 join_constraint: ( K_ON expr  | K_USING '(' column_name ( ',' column_name )* ')' )?;
 
@@ -189,10 +188,8 @@ keyword
  | K_ASC
  | K_BETWEEN
  | K_BY
- | K_CASCADE
  | K_CASE
  | K_CAST
- | K_CHECK
  | K_COLLATE
  | K_CROSS
  | K_CURRENT_DATE
@@ -218,7 +215,6 @@ keyword
  | K_LEFT
  | K_LIKE
  | K_MATCH
- | K_NATURAL
  | K_NO
  | K_NOT
  | K_NOTNULL
@@ -268,6 +264,8 @@ collation_name : any_name;
 
 table_alias : any_name;
 
+top_keyword :  K_TOP expr;
+
 any_name : IDENTIFIER 
  | keyword
  | STRING_LITERAL
@@ -306,10 +304,8 @@ K_AS : A S;
 K_ASC : A S C;
 K_BETWEEN : B E T W E E N;
 K_BY : B Y;
-K_CASCADE : C A S C A D E;
 K_CASE : C A S E;
 K_CAST : C A S T;
-K_CHECK : C H E C K;
 K_COLLATE : C O L L A T E;
 K_CROSS : C R O S S;
 K_CURRENT_DATE : C U R R E N T '_' D A T E;
@@ -335,7 +331,6 @@ K_JOIN : J O I N;
 K_LEFT : L E F T;
 K_LIKE : L I K E;
 K_MATCH : M A T C H;
-K_NATURAL : N A T U R A L;
 K_NO : N O;
 K_NOT : N O T;
 K_NOTNULL : N O T N U L L;
@@ -376,7 +371,7 @@ IDENTIFIER
  : '"' (~'"' | '""')* '"'
  | '`' (~'`' | '``')* '`'
  | '[' ~']'* ']'
- | [a-zA-Z_] [a-zA-Z_0-9]* // TODO check: needs more chars in set
+ | [a-zA-Z_] [a-zA-Z_0-9]*
  ;
 
 NUMERIC_LITERAL

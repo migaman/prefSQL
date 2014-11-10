@@ -199,10 +199,9 @@ namespace prefSQL.SQLParser
                 }
 
                 //Check if SQL contains TOP Keywords
-                if(strPreSQL.Contains("TOP"))
+                if(model.IncludesTOP == true)
                 {
                     //Remove Top Keyword
-                    //TODO: Do this in SQLVisitor --> this one might not always work
                     int iPosTop = strPreSQL.IndexOf("TOP");
                     int iPosTopEnd = strPreSQL.Substring(iPosTop+3).TrimStart().IndexOf(" ");
                     String strSQLAfterTOP = strPreSQL.Substring(iPosTop + 3).TrimStart();

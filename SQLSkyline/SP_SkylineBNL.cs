@@ -13,8 +13,6 @@ using System.Collections;
 
 public partial class StoredProcedures
 {
-
-    private const bool bSQLCLR = true;
     private const string connectionString = "context connection=true";
     private const int MaxSize = 4000;
 
@@ -63,38 +61,15 @@ public partial class StoredProcedures
                         string[] strResult = (string[])resultStringCollection[i];
 
                         //Dominanz
-                        
-                        //compare(sqlReader, operators, result, strResult, ref equalThan, ref greaterThan, false);
-                        int comparison = compare(sqlReader, operators, result, strResult, false);
-                        if (comparison == 1)
+                        if (compare(sqlReader, operators, result, strResult) == true)
                         {
                             //New point is dominated. No further testing necessary
                             bDominated = true;
                             break;
                         }
 
-                        /*if (equalThan == true && greaterThan == true)
-                        {
-                            //New point is dominated. No further testing necessary
-                            bDominated = true;
-                            break;
-                        }*/
-
-
-                        //It is not possible that the new point dominates the one in the window --> REason is ORDER BY
                         //Now, check if the new point dominates the one in the window
-                        /*equalThan = false;
-                        greaterThan = false;
-                        compare(sqlReader, operators, result, strResult, ref equalThan, ref greaterThan, true);
-
-                        if (equalThan == true && greaterThan == true)
-                        {
-                            //The new record dominates the one in the windows. Remove point from window and test further
-                            resultCollection.RemoveAt(i);
-                            idCollection.RemoveAt(i);
-                        }*/
-
-
+                        //It is not possible that the new point dominates the one in the window --> Raason data is ORDERED
                     }
                     if (bDominated == false)
                     {
@@ -149,11 +124,7 @@ public partial class StoredProcedures
             sqlReader = sqlCommand.ExecuteReader();
 
 
-            if (bSQLCLR == true)
-            {
-                SqlContext.Pipe.Send(sqlReader);
-            }
-
+            SqlContext.Pipe.Send(sqlReader);
 
 
         }
@@ -226,9 +197,9 @@ public partial class StoredProcedures
     }
 
 
-    private static int compare(SqlDataReader sqlReader, String[] operators, long[] result, string[] stringResult, Boolean bSecondMethod)
+    private static bool compare(SqlDataReader sqlReader, String[] operators, long[] result, string[] stringResult)
     {
-        int returnValue = 0;
+        //bool equalTo = false;
         bool greaterThan = false;
         
         for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
@@ -249,11 +220,11 @@ public partial class StoredProcedures
                     value = sqlReader.GetDateTime(iCol).Ticks; // sqlReader.GetDateTime(iCol).Year * 10000 + sqlReader.GetDateTime(iCol).Month * 100 + sqlReader.GetDateTime(iCol).Day;
                 }
 
-                int comparison = compareValues(op, value, result[iCol], bSecondMethod);
+                int comparison = compareValue(op, value, result[iCol]);
                 
                 if (comparison >= 1)
                 {
-                    returnValue = 1;
+                    //equalTo = true;
                     if (comparison == 2)
                     {
                         //at least one must be greater than
@@ -270,7 +241,8 @@ public partial class StoredProcedures
                             //If it is not the same String value, the values are incomparable!!
                             if (strValue != stringResult[iCol])
                             {
-                                return 0;
+                                //Value is incomparable --> return false
+                                return false;
                             }
 
 
@@ -279,23 +251,31 @@ public partial class StoredProcedures
                 }
                 else
                 {
-                    return 0;
+                    //Value is smaller --> return false
+                    return false;
                 }
             }
         }
 
         //all equal and at least one must be greater than
-        if (returnValue == 1 && greaterThan == true)
-            return 1;
+        //if (equalTo == true && greaterThan == true)
+        if (greaterThan == true)
+            return true;
         else
-            return 0;
+            return false;
 
     }
 
-    private static int compareValues(String op, long value1, long value2, bool backwards)
+    /*
+         * 0 = false
+         * 1 = equal
+         * 2 = greater than
+         * */
+    private static int compareValue(String op, long value1, long value2)
     {
+
         //Switch numbers on certain case
-        if (op.Equals("HIGH") && backwards == false || backwards == true && op.Equals("LOW"))
+        if (op.Equals("HIGH"))
         {
             long tmpValue = value1;
             value1 = value2;
