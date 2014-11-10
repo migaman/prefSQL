@@ -182,10 +182,20 @@ namespace prefSQL.SQLParser
                     //Replace tablename 
                     strPreSQL = strPreSQL.Replace(strTable + ".", strTable + "_INNER.");
                     
-                    //Add ALIAS to tablename
-                    string pattern = @"\b" + strTable + @"\b";
-                    string replace = strTable + " " + strTable +  "_INNER";
-                    strPreSQL = Regex.Replace(strPreSQL, pattern, replace, RegexOptions.IgnoreCase);
+                    //Add ALIAS to tablename (Only if not already an ALIAS was set)
+                    if (model.TableAliasName.Equals(""))
+                    {
+                        string pattern = @"\b" + strTable + @"\b";
+                        string replace = strTable + " " + strTable + "_INNER";
+                        strPreSQL = Regex.Replace(strPreSQL, pattern, replace, RegexOptions.IgnoreCase);
+                    }
+                    else
+                    {
+                        //Replace ALIAS
+                        string pattern = @"\b" + strTable + @"\b";
+                        string replace = strTable + "_INNER";
+                        strPreSQL = Regex.Replace(strPreSQL, pattern, replace, RegexOptions.IgnoreCase);
+                    }
                 }
 
                 //Check if SQL contains TOP Keywords

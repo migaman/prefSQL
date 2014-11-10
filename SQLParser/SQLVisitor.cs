@@ -14,6 +14,23 @@ namespace prefSQL.SQLParser
     
     class SQLVisitor : SQLBaseVisitor<PrefSQLModel>
     {
+
+        public string alias = "";
+
+
+        public override PrefSQLModel VisitTable_alias(SQLParser.Table_aliasContext context)
+        {
+            String strTableAlias = context.GetChild(0).GetText();
+
+            //PrefSQLModel pref = new PrefSQLModel();
+            //pref.TableAliasName = strTableAlias;
+
+            alias = strTableAlias;
+
+
+            return base.VisitTable_alias(context);
+        }
+
         public const string InnerTableSuffix = "_INNER"; //Table suffix for the inner query
 
         public override PrefSQLModel VisitTop(SQLParser.TopContext context)
@@ -169,6 +186,7 @@ namespace prefSQL.SQLParser
             pref.OrderBy.AddRange(right.OrderBy);
             pref.Tables.UnionWith(left.Tables);
             pref.Tables.UnionWith(right.Tables);
+            pref.TableAliasName = alias;
             return pref;
 
         }

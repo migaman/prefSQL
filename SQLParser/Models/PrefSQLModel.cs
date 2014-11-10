@@ -9,6 +9,13 @@ namespace prefSQL.SQLParser.Models
     class PrefSQLModel
     {
         private String _tableName = "";
+        private String _tableAliasName = "";
+
+        public String TableAliasName
+        {
+            get { return _tableAliasName; }
+            set { _tableAliasName = value; }
+        }
         private List<AttributeModel> _skyline = new List<AttributeModel>();
         private List<String> _orderBy = new List<String>();
         private HashSet<String> _tables = new HashSet<string>();

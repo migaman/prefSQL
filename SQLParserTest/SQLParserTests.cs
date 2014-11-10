@@ -201,7 +201,7 @@ namespace prefSQL.SQLParserTest
         {
             String strPrefSQL = "SELECT * FROM cars t1 PREFERENCE LOW t1.price AND LOW t1.mileage";
 
-            String expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage) )  ORDER BY price ASC, mileage ASC";
+            String expected = "SELECT * FROM cars t1 WHERE NOT EXISTS(SELECT * FROM cars t1_INNER WHERE t1_INNER.price <= t1.price AND t1_INNER.mileage <= t1.mileage AND ( t1_INNER.price < t1.price OR t1_INNER.mileage < t1.mileage) )  ORDER BY price ASC, mileage ASC";
             SQLCommon common = new SQLCommon();
             String actual = common.parsePreferenceSQL(strPrefSQL);
 
