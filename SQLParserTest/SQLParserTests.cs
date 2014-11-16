@@ -1,12 +1,77 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using prefSQL.SQLParser;
+using System.Data.SqlClient;
 
 namespace prefSQL.SQLParserTest
 {
     [TestClass]
     public class SQLParserTests
     {
+
+
+        [TestMethod]
+        public void TestAmountsOfTupelsSkyline()
+        {
+            string strPrefSQL = "SELECT * FROM cars PREFERENCE LOW cars.price AND LOW cars.mileage AND HIGH cars.horsepower";
+
+            SQLCommon common = new SQLCommon();
+            common.SkylineType = SQLCommon.Algorithm.NativeSQL;
+            string sqlNative = common.parsePreferenceSQL(strPrefSQL);
+            common.SkylineType = SQLCommon.Algorithm.BNL;
+            string sqlBNL = common.parsePreferenceSQL(strPrefSQL);
+
+            int amountOfTupelsNative = 0;
+            int amountOfTupelsBNL = 0;
+            string strConnection = "Data Source=localhost;Initial Catalog=eCommerce;User ID=sa;Password=sql23";
+            
+            SqlConnection cnnSQL = new SqlConnection(strConnection);
+            try
+            {
+                cnnSQL.Open();
+
+                //Native
+                SqlCommand sqlCommand = new SqlCommand(sqlNative, cnnSQL);
+                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
+
+                if (sqlReader.HasRows)
+                {
+                    while (sqlReader.Read())
+                    {
+                        amountOfTupelsNative++;
+                    }
+                }
+                sqlReader.Close();
+
+                //BNL
+                sqlCommand = new SqlCommand(sqlBNL, cnnSQL);
+                sqlReader = sqlCommand.ExecuteReader();
+
+                if (sqlReader.HasRows)
+                {
+                    while (sqlReader.Read())
+                    {
+                        amountOfTupelsBNL++;
+                    }
+                }
+
+
+
+
+                cnnSQL.Close();
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail("Connection failed:" + ex.Message) ;
+            }
+
+
+            // assert
+            Assert.AreEqual(amountOfTupelsNative, amountOfTupelsBNL, 0, "Amount of tupels does not match");
+
+        }
+
+
 
         [TestMethod]
         public void TestOrderingRankingBestOf()
