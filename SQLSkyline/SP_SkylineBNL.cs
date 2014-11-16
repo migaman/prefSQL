@@ -13,19 +13,19 @@ using System.Collections;
 
 public partial class StoredProcedures
 {
-    private const string connectionString = "context connection=true";
+    private const string connectionstring = "context connection=true";
     private const int MaxSize = 4000;
 
     [Microsoft.SqlServer.Server.SqlProcedure]
-    public static void SP_SkylineBNL(SqlString strQuery, SqlString strOperators, SqlString strQueryNative, String strTable)
+    public static void SP_SkylineBNL(SqlString strQuery, SqlString strOperators, SqlString strQueryNative, string strTable)
     {
         ArrayList idCollection = new ArrayList();
         ArrayList resultCollection = new ArrayList();
-        ArrayList resultStringCollection = new ArrayList();
-        String[] operators = strOperators.ToString().Split(';');
+        ArrayList resultstringCollection = new ArrayList();
+        string[] operators = strOperators.ToString().Split(';');
 
 
-        SqlConnection connection = new SqlConnection(connectionString);
+        SqlConnection connection = new SqlConnection(connectionstring);
         try
         {
             connection.Open();
@@ -48,17 +48,17 @@ public partial class StoredProcedures
                 //Check if window list is empty
                 if (resultCollection.Count == 0)
                 {
-                    addToWindow(sqlReader, operators, ref resultCollection, ref idCollection, ref resultStringCollection);
+                    addToWindow(sqlReader, operators, ref resultCollection, ref idCollection, ref resultstringCollection);
                 }
                 else
                 {
-                    Boolean bDominated = false;
+                    bool bDominated = false;
 
                     //check if record is dominated (compare against the records in the window)
                     for (int i = resultCollection.Count - 1; i >= 0; i--)
                     {
                         long[] result = (long[])resultCollection[i];
-                        string[] strResult = (string[])resultStringCollection[i];
+                        string[] strResult = (string[])resultstringCollection[i];
 
                         //Dominanz
                         if (compare(sqlReader, operators, result, strResult) == true)
@@ -73,7 +73,7 @@ public partial class StoredProcedures
                     }
                     if (bDominated == false)
                     {
-                        addToWindow(sqlReader, operators, ref resultCollection, ref idCollection, ref resultStringCollection);
+                        addToWindow(sqlReader, operators, ref resultCollection, ref idCollection, ref resultstringCollection);
                     }
 
                 }
@@ -88,8 +88,8 @@ public partial class StoredProcedures
             string cmdText = strQueryNative.ToString() + " WHERE ({0})";
 
             ArrayList paramNames = new ArrayList();
-            String strIN = "";
-            String inClause = "";
+            string strIN = "";
+            string inClause = "";
             int amountOfSplits = 0;
             for (int i = 0; i < idCollection.Count; i++)
             {
@@ -130,7 +130,7 @@ public partial class StoredProcedures
         {
             //Pack Errormessage in a SQL and return the result
 
-            String strError = "SELECT 'Fehler in SP_SkylineBNL: ";
+            string strError = "SELECT 'Fehler in SP_SkylineBNL: ";
             strError += ex.Message.Replace("'", "''");
             strError += "'";
 
@@ -150,12 +150,12 @@ public partial class StoredProcedures
     }
 
 
-    private static void addToWindow(SqlDataReader sqlReader, String[] operators, ref ArrayList resultCollection, ref ArrayList idCollection, ref ArrayList resultStringCollection)
+    private static void addToWindow(SqlDataReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList idCollection, ref ArrayList resultstringCollection)
     {
         //Liste ist leer --> Das heisst erster Eintrag ins Window werfen
         //Erste Spalte ist die ID
         long[] record = new long[sqlReader.FieldCount];
-        string[] recordString = new String[sqlReader.FieldCount];
+        string[] recordstring = new string[sqlReader.FieldCount];
         for (int i = 0; i <= record.GetUpperBound(0); i++)
         {
             //LOW und HIGH Spalte in record abfüllen
@@ -178,7 +178,7 @@ public partial class StoredProcedures
                     type = sqlReader.GetFieldType(i + 1);
                     if (type == typeof(string))
                     {
-                        recordString[i] = sqlReader.GetString(i + 1);
+                        recordstring[i] = sqlReader.GetString(i + 1);
                     }
 
                 }
@@ -191,18 +191,18 @@ public partial class StoredProcedures
         }
         resultCollection.Add(record);
         idCollection.Add(sqlReader.GetInt32(0));
-        resultStringCollection.Add(recordString);
+        resultstringCollection.Add(recordstring);
     }
 
 
-    private static bool compare(SqlDataReader sqlReader, String[] operators, long[] result, string[] stringResult)
+    private static bool compare(SqlDataReader sqlReader, string[] operators, long[] result, string[] stringResult)
     {
         //bool equalTo = false;
         bool greaterThan = false;
         
         for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
         {
-            String op = operators[iCol];
+            string op = operators[iCol];
             //Compare only LOW and HIGH attributes
             if (op.Equals("LOW") || op.Equals("HIGH"))
             {
@@ -234,9 +234,9 @@ public partial class StoredProcedures
                         //Check if the value must be text compared
                         if (iCol + 1 <= result.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
                         {
-                            //String value is always the next field
-                            String strValue = sqlReader.GetString(iCol + 1);
-                            //If it is not the same String value, the values are incomparable!!
+                            //string value is always the next field
+                            string strValue = sqlReader.GetString(iCol + 1);
+                            //If it is not the same string value, the values are incomparable!!
                             if (strValue != stringResult[iCol])
                             {
                                 //Value is incomparable --> return false
@@ -269,7 +269,7 @@ public partial class StoredProcedures
          * 1 = equal
          * 2 = greater than
          * */
-    private static int compareValue(String op, long value1, long value2)
+    private static int compareValue(string op, long value1, long value2)
     {
 
         //Switch numbers on certain case

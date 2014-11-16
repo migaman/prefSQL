@@ -48,14 +48,14 @@ namespace prefSQL.SQLParser
             get { return _OrderType; }
             set { _OrderType = value; }
         }
-        
-        public String parsePreferenceSQL(String strInput) 
+
+        public string parsePreferenceSQL(string strInput) 
         {
             AntlrInputStream inputStream = new AntlrInputStream(strInput);
             SQLLexer sqlLexer = new SQLLexer(inputStream);
             CommonTokenStream commonTokenStream = new CommonTokenStream(sqlLexer);
             SQLParser parser = new SQLParser(commonTokenStream);
-            String strNewSQL = "";
+            string strNewSQL = "";
             SQLSort sqlSort = new SQLSort();
 
             try
@@ -84,29 +84,29 @@ namespace prefSQL.SQLParser
                     {
                         if (_SkylineType == Algorithm.NativeSQL)
                         {
-                            String strWHERE = buildWHEREClause(prefSQL, strNewSQL);
-                            String strOrderBy = sqlSort.buildORDERBYClause(prefSQL, _OrderType);
+                            string strWHERE = buildWHEREClause(prefSQL, strNewSQL);
+                            string strOrderBy = sqlSort.buildORDERBYClause(prefSQL, _OrderType);
                             strNewSQL += strWHERE;
                             strNewSQL += strOrderBy;
                         }
                         else if (_SkylineType == Algorithm.BNL)
                         {
-                            String strOperators = "";
-                            String strPreferences = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
-                            String strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
-                            String strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
-                            String strFirstSQL = "SELECT cars.id " + strPreferences + " " + strSQLAfterFrom;
-                            String strOrderBy = sqlSort.buildORDERBYClause(prefSQL, _OrderType);
+                            string strOperators = "";
+                            string strPreferences = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
+                            string strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
+                            string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
+                            string strFirstSQL = "SELECT cars.id " + strPreferences + " " + strSQLAfterFrom;
+                            string strOrderBy = sqlSort.buildORDERBYClause(prefSQL, _OrderType);
                             strFirstSQL += strOrderBy.Replace("'", "''");
                             strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', '" + strNewSQL + "', 'cars'";
                         }
                     }
                     else if (prefSQL.HasPrioritize == true)
                     {
-                        String strWHERE = buildWHEREClause(prefSQL, strNewSQL);
-                        String strOrderBy = sqlSort.buildORDERBYClause(prefSQL, _OrderType);
+                        string strWHERE = buildWHEREClause(prefSQL, strNewSQL);
+                        string strOrderBy = sqlSort.buildORDERBYClause(prefSQL, _OrderType);
 
-                        String strSelectRank = buildSELECTRank(prefSQL, strNewSQL);
+                        string strSelectRank = buildSELECTRank(prefSQL, strNewSQL);
                         strNewSQL = "SELECT * FROM (" + strSelectRank;
                         strNewSQL += ") RankedResult ";
 
@@ -115,7 +115,7 @@ namespace prefSQL.SQLParser
                     }
                     else
                     {
-                        String strOrderBy = sqlSort.buildORDERBYClause(prefSQL, _OrderType);
+                        string strOrderBy = sqlSort.buildORDERBYClause(prefSQL, _OrderType);
                         strNewSQL += strOrderBy;
                     }
 
@@ -139,7 +139,7 @@ namespace prefSQL.SQLParser
 
 
         //Create the WHERE-Clause from the preferene model
-        private String buildWHEREClause(PrefSQLModel model, String strPreSQL)
+        private string buildWHEREClause(PrefSQLModel model, string strPreSQL)
         {
             string strSQL = "";
             bool isWHEREPresent = false;
@@ -176,7 +176,7 @@ namespace prefSQL.SQLParser
         }
 
 
-        private string buildSELECTRank(PrefSQLModel model, String strPreSQL)
+        private string buildSELECTRank(PrefSQLModel model, string strPreSQL)
         {
             string strSQL = "";
             int posOfFROM = 0;
@@ -215,7 +215,7 @@ namespace prefSQL.SQLParser
             return strSQL;
         }
 
-        private String getSkylineClause(PrefSQLModel model, String strPreSQL)
+        private string getSkylineClause(PrefSQLModel model, string strPreSQL)
         {
             string strWhereEqual = "";
             string strWhereBetter = " AND ( ";
@@ -237,7 +237,7 @@ namespace prefSQL.SQLParser
             //Build the where clause with each column in the skyline
             for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
-                Boolean needsTextORClause = false;
+                bool needsTextORClause = false;
 
                 //Competition
                 needsTextORClause = !model.Skyline[iChild].ColumnName.Equals("");
@@ -276,7 +276,7 @@ namespace prefSQL.SQLParser
             strWhereBetter += ") ";
 
             //Format strPreSQL
-            foreach (String strTable in model.Tables)
+            foreach (string strTable in model.Tables)
             {
                 //Replace tablename 
                 strPreSQL = strPreSQL.Replace(strTable + ".", strTable + "_INNER.");
@@ -303,7 +303,7 @@ namespace prefSQL.SQLParser
                 //Remove Top Keyword
                 int iPosTop = strPreSQL.IndexOf("TOP");
                 int iPosTopEnd = strPreSQL.Substring(iPosTop + 3).TrimStart().IndexOf(" ");
-                String strSQLAfterTOP = strPreSQL.Substring(iPosTop + 3).TrimStart();
+                string strSQLAfterTOP = strPreSQL.Substring(iPosTop + 3).TrimStart();
                 strPreSQL = strPreSQL.Substring(0, iPosTop) + strSQLAfterTOP.Substring(iPosTopEnd + 1);
             }
 
@@ -313,9 +313,9 @@ namespace prefSQL.SQLParser
         }
 
 
-        private String buildPreferencesBNL(PrefSQLModel model, String strPreSQL, ref String strOperators)
+        private string buildPreferencesBNL(PrefSQLModel model, string strPreSQL, ref string strOperators)
         {
-            String strSQL = "";
+            string strSQL = "";
 
             //Build Skyline only if more than one attribute
             if (model.Skyline.Count > 1)
@@ -323,7 +323,7 @@ namespace prefSQL.SQLParser
                 //Build the where clause with each column in the skyline
                 for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
                 {
-                    String op = "";
+                    string op = "";
                     if (model.Skyline[iChild].Op.Equals("<"))
                         op = "LOW";
                     else

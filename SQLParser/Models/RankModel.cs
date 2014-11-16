@@ -19,7 +19,6 @@ namespace prefSQL.SQLParser.Models
         public string ColumnName { get; set; }
         public string TableName { get; set; }
         public string Expression { get; set; }
-
         public string RankColumn { get; set; }
 
     }

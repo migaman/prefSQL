@@ -21,19 +21,19 @@ namespace Utility
     {
         //Only this parameters are different to the SQL CLR function
         private const bool bSQLCLR = false;
-        private const string connectionString = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
+        private const string connectionstring = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
         private const int MaxSize = 4000;
 
         [Microsoft.SqlServer.Server.SqlProcedure]
-        public static void SP_SkylineBNL(SqlString strQuery, SqlString strOperators, SqlString strQueryNative, String strTable)
+        public static void SP_SkylineBNL(SqlString strQuery, SqlString strOperators, SqlString strQueryNative, string strTable)
         {
             ArrayList idCollection = new ArrayList();
             ArrayList resultCollection = new ArrayList();
-            ArrayList resultStringCollection = new ArrayList();
-            String[] operators = strOperators.ToString().Split(';');
+            ArrayList resultstringCollection = new ArrayList();
+            string[] operators = strOperators.ToString().Split(';');
 
 
-            SqlConnection connection = new SqlConnection(connectionString);
+            SqlConnection connection = new SqlConnection(connectionstring);
             try
             {
                 connection.Open();
@@ -56,17 +56,17 @@ namespace Utility
                     //Check if window list is empty
                     if (resultCollection.Count == 0)
                     {
-                        addToWindow(sqlReader, operators, ref resultCollection, ref idCollection, ref resultStringCollection);
+                        addToWindow(sqlReader, operators, ref resultCollection, ref idCollection, ref resultstringCollection);
                     }
                     else
                     {
-                        Boolean bDominated = false;
+                        bool bDominated = false;
 
                         //check if record is dominated (compare against the records in the window)
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
                         {
                             int[] result = (int[])resultCollection[i];
-                            string[] strResult = (string[])resultStringCollection[i];
+                            string[] strResult = (string[])resultstringCollection[i];
 
                             //Dominanz
                             if (compare(sqlReader, operators, result, strResult) == true)
@@ -84,7 +84,7 @@ namespace Utility
                         }
                         if (bDominated == false)
                         {
-                            addToWindow(sqlReader, operators, ref resultCollection, ref idCollection, ref resultStringCollection);
+                            addToWindow(sqlReader, operators, ref resultCollection, ref idCollection, ref resultstringCollection);
 
 
                         }
@@ -104,8 +104,8 @@ namespace Utility
                 string cmdText = strQueryNative.ToString() + " WHERE ({0})";
 
                 ArrayList paramNames = new ArrayList();
-                String strIN = "";
-                String inClause = "";
+                string strIN = "";
+                string inClause = "";
                 int amountOfSplits = 0;
                 for (int i = 0; i < idCollection.Count; i++)
                 {
@@ -147,7 +147,7 @@ namespace Utility
             {
                 //Pack Errormessage in a SQL and return the result
 
-                String strError = "SELECT 'Fehler in SP_SkylineBNL: ";
+                string strError = "SELECT 'Fehler in SP_SkylineBNL: ";
                 strError += ex.Message.Replace("'", "''");
                 strError += "'";
 
@@ -166,14 +166,14 @@ namespace Utility
         }
 
 
-        private static void addToWindow(SqlDataReader sqlReader, String[] operators, ref ArrayList resultCollection, ref ArrayList idCollection, ref ArrayList resultStringCollection)
+        private static void addToWindow(SqlDataReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList idCollection, ref ArrayList resultstringCollection)
         {
 
 
             //Liste ist leer --> Das heisst erster Eintrag ins Window werfen
             //Erste Spalte ist die ID
             int[] record = new int[sqlReader.FieldCount];
-            string[] recordString = new String[sqlReader.FieldCount];
+            string[] recordstring = new string[sqlReader.FieldCount];
             for (int i = 0; i <= record.GetUpperBound(0); i++)
             {
                 //LOW und HIGH Spalte in record abfüllen
@@ -196,7 +196,7 @@ namespace Utility
                         type = sqlReader.GetFieldType(i+1);
                         if (type == typeof(string))
                         {
-                            recordString[i] = sqlReader.GetString(i + 1);
+                            recordstring[i] = sqlReader.GetString(i + 1);
                         }
 
                     }
@@ -209,7 +209,7 @@ namespace Utility
             }
             resultCollection.Add(record);
             idCollection.Add(sqlReader.GetInt32(0));
-            resultStringCollection.Add(recordString);
+            resultstringCollection.Add(recordstring);
         }
 
 
@@ -217,11 +217,11 @@ namespace Utility
         {
             bool greaterThan = false;
 
-            //Boolean equalThan = false;
-            //Boolean greaterThan = false;
+            //bool equalThan = false;
+            //bool greaterThan = false;
             for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
             {
-                String op = operators[iCol];
+                string op = operators[iCol];
                 //Compare only LOW and HIGH attributes
                 if (op.Equals("LOW") || op.Equals("HIGH"))
                 {
@@ -252,9 +252,9 @@ namespace Utility
                             //Check if the value must be text compared
                             if(iCol+1 <= result.GetUpperBound(0) && operators[iCol+1].Equals("INCOMPARABLE"))
                             {
-                                //String value is always the next field
-                                String strValue = sqlReader.GetString(iCol + 1);
-                                //If it is not the same String value, the values are incomparable!!
+                                //string value is always the next field
+                                string strValue = sqlReader.GetString(iCol + 1);
+                                //If it is not the same string value, the values are incomparable!!
                                 if (!strValue.Equals(stringResult[iCol]))
                                 {
                                     //Value is incomparable --> return false
@@ -291,14 +291,14 @@ namespace Utility
 
 
         [Microsoft.SqlServer.Server.SqlProcedure]
-        public static void SP_SkylineBNL_Level(SqlString strQuery, SqlString strOperators, SqlString strQueryNative, String strTable)
+        public static void SP_SkylineBNL_Level(SqlString strQuery, SqlString strOperators, SqlString strQueryNative, string strTable)
         {
             ArrayList idCollection = new ArrayList();
             ArrayList resultCollection = new ArrayList();
-            String[] operators = strOperators.ToString().Split(';');
+            string[] operators = strOperators.ToString().Split(';');
             
 
-            SqlConnection connection = new SqlConnection(connectionString);
+            SqlConnection connection = new SqlConnection(connectionstring);
             try
             {
                 //Some checks
@@ -318,7 +318,7 @@ namespace Utility
 
                 sqlReader = sqlCommand.ExecuteReader();
 
-                int iRow = 0;
+                //int iRow = 0;
                 //Read all records only once. (SqlDataReader works forward only!!)
                 while (sqlReader.Read())
                 {
@@ -331,7 +331,7 @@ namespace Utility
                     }
                     else
                     {
-                        Boolean bDominated = false;
+                        bool bDominated = false;
 
                         //check if record is dominated (compare against the records in the window)
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
@@ -371,8 +371,8 @@ namespace Utility
                 string cmdText = strQueryNative.ToString() + " WHERE ({0})";
 
                 ArrayList paramNames = new ArrayList();
-                String strIN = "";
-                String inClause = "";
+                string strIN = "";
+                string inClause = "";
                 int amountOfSplits = 0;
                 for (int i = 0; i < idCollection.Count; i++)
                 {
@@ -411,7 +411,7 @@ namespace Utility
             {
                 //Pack Errormessage in a SQL and return the result
 
-                String strError = "SELECT 'Fehler in SP_SkylineBNL: ";
+                string strError = "SELECT 'Fehler in SP_SkylineBNL: ";
                 strError += ex.Message.Replace("'", "''");
                 strError += "'";
 
@@ -432,12 +432,12 @@ namespace Utility
         }
 
 
-        private static void addToWindow_Level(SqlDataReader sqlReader, String[] operators, ref ArrayList resultCollection, ref ArrayList idCollection)
+        private static void addToWindow_Level(SqlDataReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList idCollection)
         {
             //Liste ist leer --> Das heisst erster Eintrag ins Window werfen
             //Erste Spalte ist die ID
             int[] record = new int[sqlReader.FieldCount];
-            string[] recordString = new String[sqlReader.FieldCount];
+            string[] recordstring = new string[sqlReader.FieldCount];
             for (int i = 0; i <= record.GetUpperBound(0); i++)
             {
                 //LOW und HIGH Spalte in record abfüllen
@@ -464,13 +464,13 @@ namespace Utility
 
 
 
-        private static bool compare_Level(SqlDataReader sqlReader, String[] operators, int[] result)
+        private static bool compare_Level(SqlDataReader sqlReader, string[] operators, int[] result)
         {
             bool greaterThan = false;
             
             for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
             {
-                String op = operators[iCol];
+                string op = operators[iCol];
                 //Compare only LOW and HIGH attributes
                 if (op.Equals("LOW") || op.Equals("HIGH"))
                 {
@@ -523,7 +523,7 @@ namespace Utility
          * 1 = equal
          * 2 = greater than
          * */
-        private static int compareValue(String op, int value1, int value2)
+        private static int compareValue(string op, int value1, int value2)
         {
 
             //Switch numbers on certain case

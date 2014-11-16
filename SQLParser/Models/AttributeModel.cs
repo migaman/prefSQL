@@ -41,7 +41,7 @@ namespace prefSQL.SQLParser.Models
 
         public bool Comparable { get; set; }
 
-        public String IncomparableAttribute { get; set; }
+        public string IncomparableAttribute { get; set; }
 
 
 

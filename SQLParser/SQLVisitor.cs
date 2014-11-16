@@ -28,7 +28,7 @@ namespace prefSQL.SQLParser
 
         public override PrefSQLModel VisitTable_alias(SQLParser.Table_aliasContext context)
         {
-            String strTableAlias = context.GetChild(0).GetText();
+            string strTableAlias = context.GetChild(0).GetText();
             tableAlias = strTableAlias;
 
             return base.VisitTable_alias(context);
@@ -40,14 +40,14 @@ namespace prefSQL.SQLParser
 
         public override PrefSQLModel VisitPreferenceLOWHIGH(SQLParser.PreferenceLOWHIGHContext context)
         {
-            String strSQL = "";
+            string strSQL = "";
             PrefSQLModel pref = new PrefSQLModel();
-            String strColumn = "";
-            String strFullColumnName = "";
-            String strTable = "";
-            String strOperator = "";
-            String strRankExpression = "";
-            String strRankColumn = "";
+            string strColumn = "";
+            string strFullColumnName = "";
+            string strTable = "";
+            string strOperator = "";
+            string strRankExpression = "";
+            string strRankColumn = "";
 
             //With only 2 expressions it is a numeric LOW preference 
             if (context.ChildCount == 2)
@@ -85,7 +85,7 @@ namespace prefSQL.SQLParser
             {
 
                 //Build CASE ORDER with arguments
-                String strExpr = context.expr().GetText();
+                string strExpr = context.expr().GetText();
                 strColumn = getColumn(context.GetChild(1));
                 strTable = getTable(context.GetChild(1));
                 string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split signs are == and >>
@@ -99,7 +99,7 @@ namespace prefSQL.SQLParser
                 string strSQLIncomparableAttribute = "";
                 string strIncomporableAttribute = "";
                 string strIncomporableAttributeELSE = "";
-                Boolean bComparable = true;
+                bool bComparable = true;
 
                 //Define sort order value for each attribute
                 int iWeight = 0;
@@ -230,12 +230,12 @@ namespace prefSQL.SQLParser
 
         public override PrefSQLModel VisitPreferenceAROUND(SQLParser.PreferenceAROUNDContext context)
         {
-            String strSQL = "";
+            string strSQL = "";
             PrefSQLModel pref = new PrefSQLModel();
-            String strColumn = "";
-            String strTable = "";
-            String strOperator = "";
-            String strInnerColumnExpression = "";
+            string strColumn = "";
+            string strTable = "";
+            string strOperator = "";
+            string strInnerColumnExpression = "";
 
             //Query Keywords AROUND, FAVOUR and DISFAVOUR, after that create an ORDER BY of it
 
@@ -303,7 +303,7 @@ namespace prefSQL.SQLParser
 
 
 
-        private String getColumn(IParseTree tree)
+        private string getColumn(IParseTree tree)
         {
             if (tree.ChildCount == 1)
             {
@@ -318,7 +318,7 @@ namespace prefSQL.SQLParser
         }
 
 
-        private String getTable(IParseTree tree)
+        private string getTable(IParseTree tree)
         {
             if (tree.ChildCount == 1)
             {

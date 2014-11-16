@@ -11,9 +11,9 @@ namespace prefSQL.SQLParser
     {
 
         //Create the ORDERBY-Clause from the preferene model
-        public String buildORDERBYClause(PrefSQLModel model, SQLCommon.OrderingType type)
+        public string buildORDERBYClause(PrefSQLModel model, SQLCommon.OrderingType type)
         {
-            String strSQL = "";
+            string strSQL = "";
             switch (type)
             {
                 case SQLCommon.OrderingType.AttributePosition:
@@ -47,9 +47,9 @@ namespace prefSQL.SQLParser
          *  the price has the higher priority
          * 
          * */
-        private String buildORDERAttributePosition(PrefSQLModel model)
+        private string buildORDERAttributePosition(PrefSQLModel model)
         {
-            String strSQL = "";
+            string strSQL = "";
             for (int iChild = 0; iChild < model.OrderBy.Count; iChild++)
             {
                 //First record doesn't need a comma to separate
@@ -68,9 +68,9 @@ namespace prefSQL.SQLParser
          *  For example a tuple has the best, 5th and 7th rank in three attributes. This leads to a ranking of 13.
          * 
          * */
-        private String buildORDERRankingSum(PrefSQLModel model)
+        private string buildORDERRankingSum(PrefSQLModel model)
         {
-            String strSQL = "";
+            string strSQL = "";
 
 
             for (int iChild = 0; iChild < model.Rank.Count; iChild++)
@@ -93,10 +93,10 @@ namespace prefSQL.SQLParser
          *  For example a tuple has the best, 5th and 7th rank in three attributes. This leads to a ranking of 1.
          * 
          * */
-        private String buildORDERRankingBestOf(PrefSQLModel model)
+        private string buildORDERRankingBestOf(PrefSQLModel model)
         {
-            String strSQL = "CASE ";
-            String strRanking = "";
+            string strSQL = "CASE ";
+            string strRanking = "";
 
             for (int iChild = 0; iChild < model.Rank.Count; iChild++)
             {
@@ -132,9 +132,9 @@ namespace prefSQL.SQLParser
          *  For example a tuple has the best, 5th and 7th rank in three attributes. This leads to a ranking of 1.
          * 
          * */
-        private String buildORDERRandom(PrefSQLModel model)
+        private string buildORDERRandom(PrefSQLModel model)
         {
-            String strSQL = "";
+            string strSQL = "";
             
             //TODO: build a truly random sort function
 

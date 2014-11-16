@@ -8,14 +8,14 @@ namespace prefSQL.SQLParser.Models
 {
     class PrefSQLModel
     {
-        private String _tableName = "";
+        private string _tableName = "";
         private bool _includesTOP = false;
-        private String _tableAliasName = "";
+        private string _tableAliasName = "";
         private List<AttributeModel> _skyline = new List<AttributeModel>();
         private List<RankModel> _rank = new List<RankModel>();
-        private List<String> _orderBy = new List<String>();
-        private HashSet<String> _tables = new HashSet<string>();
-        private String _sql = "";
+        private List<string> _orderBy = new List<string>();
+        private HashSet<string> _tables = new HashSet<string>();
+        private string _sql = "";
         private bool _hasSkyline = false;
         private bool _hasPrioritize = false;
 
@@ -47,29 +47,29 @@ namespace prefSQL.SQLParser.Models
             get { return _includesTOP; }
             set { _includesTOP = value; }
         }
-        
 
-        public String TableAliasName
+
+        public string TableAliasName
         {
             get { return _tableAliasName; }
             set { _tableAliasName = value; }
         }
-        
 
-        public String Sql
+
+        public string Sql
         {
             get { return _sql; }
             set { _sql = value; }
         }
 
-        public HashSet<String> Tables
+        public HashSet<string> Tables
         {
             get { return _tables; }
             set { _tables = value; }
         }
-        private HashSet<String> _innerTableAlias = new HashSet<string>();
+        private HashSet<string> _innerTableAlias = new HashSet<string>();
 
-        public String TableName
+        public string TableName
         {
             get { return _tableName; }
             set { _tableName = value; }
@@ -82,14 +82,14 @@ namespace prefSQL.SQLParser.Models
         }
 
 
-        public List<String> OrderBy
+        public List<string> OrderBy
         {
             set { _orderBy = value; }
             get { return _orderBy; }
         }
 
-        
-        public HashSet<String> InnerTableAlias
+
+        public HashSet<string> InnerTableAlias
         {
             set { _innerTableAlias = value; }
             get { return _innerTableAlias; }
