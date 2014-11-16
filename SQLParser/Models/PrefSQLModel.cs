@@ -10,23 +10,34 @@ namespace prefSQL.SQLParser.Models
     {
         private String _tableName = "";
         private bool _includesTOP = false;
+        private String _tableAliasName = "";
+        private List<AttributeModel> _skyline = new List<AttributeModel>();
+        private List<RankModel> _rank = new List<RankModel>();
+
+        internal List<RankModel> Rank
+        {
+            get { return _rank; }
+            set { _rank = value; }
+        }
+        private List<String> _orderBy = new List<String>();
+        private HashSet<String> _tables = new HashSet<string>();
+        private String _sql = "";
+
+
 
         public bool IncludesTOP
         {
             get { return _includesTOP; }
             set { _includesTOP = value; }
         }
-        private String _tableAliasName = "";
+        
 
         public String TableAliasName
         {
             get { return _tableAliasName; }
             set { _tableAliasName = value; }
         }
-        private List<AttributeModel> _skyline = new List<AttributeModel>();
-        private List<String> _orderBy = new List<String>();
-        private HashSet<String> _tables = new HashSet<string>();
-        private String _sql = "";
+        
 
         public String Sql
         {

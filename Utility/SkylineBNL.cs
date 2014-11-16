@@ -60,13 +60,12 @@ namespace Utility
                     }
                     else
                     {
-                        Debug.Print(resultCollection.Count.ToString());
                         Boolean bDominated = false;
 
                         //check if record is dominated (compare against the records in the window)
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
                         {
-                            long[] result = (long[])resultCollection[i];
+                            int[] result = (int[])resultCollection[i];
                             string[] strResult = (string[])resultStringCollection[i];
 
                             //Dominanz
@@ -173,7 +172,7 @@ namespace Utility
 
             //Liste ist leer --> Das heisst erster Eintrag ins Window werfen
             //Erste Spalte ist die ID
-            long[] record = new long[sqlReader.FieldCount];
+            int[] record = new int[sqlReader.FieldCount];
             string[] recordString = new String[sqlReader.FieldCount];
             for (int i = 0; i <= record.GetUpperBound(0); i++)
             {
@@ -214,7 +213,7 @@ namespace Utility
         }
 
 
-        private static bool compare(SqlDataReader sqlReader, string[] operators, long[] result, string[] stringResult) 
+        private static bool compare(SqlDataReader sqlReader, string[] operators, int[] result, string[] stringResult) 
         {
             bool greaterThan = false;
 
@@ -227,7 +226,7 @@ namespace Utility
                 if (op.Equals("LOW") || op.Equals("HIGH"))
                 {
                     //Convert value if it is a date
-                    long value = 0;
+                    int value = 0;
                     Type type = sqlReader.GetFieldType(iCol);
                     if (type == typeof(int))
                     {
@@ -297,32 +296,38 @@ namespace Utility
             ArrayList idCollection = new ArrayList();
             ArrayList resultCollection = new ArrayList();
             String[] operators = strOperators.ToString().Split(';');
-
+            
 
             SqlConnection connection = new SqlConnection(connectionString);
             try
             {
-                connection.Open();
-
-
                 //Some checks
                 if (strQuery.ToString().Length == MaxSize)
                 {
                     throw new Exception("Query is too long. Maximum size is " + MaxSize);
                 }
 
-
+                connection.Open();
                 SqlCommand sqlCommand = new SqlCommand(strQuery.ToString(), connection);
                 SqlDataReader sqlReader = sqlCommand.ExecuteReader();
+                DataTable dt = new DataTable();
 
+                
+
+                dt.Load(sqlReader);
+
+                sqlReader = sqlCommand.ExecuteReader();
+
+                int iRow = 0;
                 //Read all records only once. (SqlDataReader works forward only!!)
                 while (sqlReader.Read())
                 {
+                    
 
                     //Check if window list is empty
                     if (resultCollection.Count == 0)
                     {
-                        addToWindow(sqlReader, operators, ref resultCollection, ref idCollection);
+                    addToWindow_Level(sqlReader, operators, ref resultCollection, ref idCollection);
                     }
                     else
                     {
@@ -331,10 +336,10 @@ namespace Utility
                         //check if record is dominated (compare against the records in the window)
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
                         {
-                            long[] result = (long[])resultCollection[i];
+                            int[] result = (int[])resultCollection[i];
 
                             //Dominanz
-                            if (compareLevel(sqlReader, operators, result) == true)
+                            if (compare_Level(sqlReader, operators, result) == true)
                             {
                                 //New point is dominated. No further testing necessary
                                 bDominated = true;
@@ -348,7 +353,7 @@ namespace Utility
                         }
                         if (bDominated == false)
                         {
-                            addToWindow(sqlReader, operators, ref resultCollection, ref idCollection);
+                            addToWindow_Level(sqlReader, operators, ref resultCollection, ref idCollection);
                         }
 
                     }
@@ -410,6 +415,7 @@ namespace Utility
                 strError += ex.Message.Replace("'", "''");
                 strError += "'";
 
+                
                 SqlCommand sqlCommand = new SqlCommand(strError, connection);
                 SqlDataReader sqlReader = sqlCommand.ExecuteReader();
 
@@ -426,11 +432,11 @@ namespace Utility
         }
 
 
-        private static void addToWindow(SqlDataReader sqlReader, String[] operators, ref ArrayList resultCollection, ref ArrayList idCollection)
+        private static void addToWindow_Level(SqlDataReader sqlReader, String[] operators, ref ArrayList resultCollection, ref ArrayList idCollection)
         {
             //Liste ist leer --> Das heisst erster Eintrag ins Window werfen
             //Erste Spalte ist die ID
-            long[] record = new long[sqlReader.FieldCount];
+            int[] record = new int[sqlReader.FieldCount];
             string[] recordString = new String[sqlReader.FieldCount];
             for (int i = 0; i <= record.GetUpperBound(0); i++)
             {
@@ -444,7 +450,8 @@ namespace Utility
                     }
                     else if (type == typeof(DateTime))
                     {
-                        record[i] = sqlReader.GetDateTime(i).Ticks; // .GetDateTime(i).Year * 10000 + sqlReader.GetDateTime(i).Month * 100 + sqlReader.GetDateTime(i).Day;
+                        //record[i] = sqlReader.GetDateTime(i).Ticks; 
+                        record[i] = sqlReader.GetDateTime(i).Year * 10000 + sqlReader.GetDateTime(i).Month * 100 + sqlReader.GetDateTime(i).Day;
                     }
 
 
@@ -457,7 +464,7 @@ namespace Utility
 
 
 
-        private static bool compareLevel(SqlDataReader sqlReader, String[] operators, long[] result)
+        private static bool compare_Level(SqlDataReader sqlReader, String[] operators, int[] result)
         {
             bool greaterThan = false;
             
@@ -468,7 +475,7 @@ namespace Utility
                 if (op.Equals("LOW") || op.Equals("HIGH"))
                 {
                     //Convert value if it is a date
-                    long value = 0;
+                    int value = 0;
                     Type type = sqlReader.GetFieldType(iCol);
                     if (type == typeof(int))
                     {
@@ -476,7 +483,8 @@ namespace Utility
                     }
                     else if (type == typeof(DateTime))
                     {
-                        value = sqlReader.GetDateTime(iCol).Ticks; // sqlReader.GetDateTime(iCol).Year * 10000 + sqlReader.GetDateTime(iCol).Month * 100 + sqlReader.GetDateTime(iCol).Day;
+                        //value = sqlReader.GetDateTime(iCol).Ticks;
+                        value = sqlReader.GetDateTime(iCol).Year * 10000 + sqlReader.GetDateTime(iCol).Month * 100 + sqlReader.GetDateTime(iCol).Day;
                     }
 
                     int comparison = compareValue(op, value, result[iCol]);
@@ -515,13 +523,13 @@ namespace Utility
          * 1 = equal
          * 2 = greater than
          * */
-        private static int compareValue(String op, long value1, long value2)
+        private static int compareValue(String op, int value1, int value2)
         {
 
             //Switch numbers on certain case
             if(op.Equals("HIGH"))
             {
-                long tmpValue = value1;
+                int tmpValue = value1;
                 value1 = value2;
                 value2 = tmpValue;
             }

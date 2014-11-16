@@ -88,6 +88,7 @@ expr
  | expr ( '=' | '==' | '!=' | '<>' | K_IS | K_IS K_NOT | K_IN | K_LIKE | K_MATCH ) expr					#opequal
  | '{' exprOwnPreference '}'														#exprOwnPreferenceOp																	
  | expr K_AND expr																	#exprand
+ | expr K_PRIORITIZE expr															#exprPrioritize
  | expr K_OR expr																	#expror
  | function_name '(' ( K_DISTINCT? expr ( ',' expr )* | '*' )? ')'					#function
  | '(' expr ')'																		#exprInBracket
@@ -244,6 +245,7 @@ keyword
  | K_OTHERSEQUAL
  | K_PREFERENCE
  | K_WEIGHTED
+ | K_PRIORITIZE
  ;
 
 
@@ -360,6 +362,7 @@ K_OTHERS : O T H E R S;
 K_OTHERSEQUAL : O T H E R S E Q U A L;
 K_PREFERENCE : P R E F E R E N C E;
 K_WEIGHTED : W E I G H T E D;
+K_PRIORITIZE  : P R I O R I T I Z E;
 
 
 

@@ -74,8 +74,6 @@ public partial class StoredProcedures
                     if (bDominated == false)
                     {
                         addToWindow(sqlReader, operators, ref resultCollection, ref idCollection, ref resultStringCollection);
-
-
                     }
 
                 }

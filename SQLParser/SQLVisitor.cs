@@ -23,7 +23,8 @@ namespace prefSQL.SQLParser
         {
             includesTOP = true;
             return base.VisitTop_keyword(context);
-        }
+        }
+
 
         public override PrefSQLModel VisitTable_alias(SQLParser.Table_aliasContext context)
         {
@@ -42,8 +43,10 @@ namespace prefSQL.SQLParser
             String strSQL = "";
             PrefSQLModel pref = new PrefSQLModel();
             String strColumn = "";
+            String strFullColumnName = "";
             String strTable = "";
             String strOperator = "";
+            String strRankExpression = "";
 
             //With only 2 expressions it is a numeric LOW preference 
             if (context.ChildCount == 2)
@@ -51,23 +54,26 @@ namespace prefSQL.SQLParser
                 //Separate Column and Table
                 strColumn = getColumn(context.GetChild(1));
                 strTable = getTable(context.GetChild(1));
-
+                strFullColumnName = strTable + "." + strColumn;
                 //Keyword LOW or HIGH, build ORDER BY
                 if (context.op.Type == SQLParser.K_LOW)
                 {
                     strSQL = strColumn + " ASC";
                     strOperator = "<";
+                    strRankExpression = "RANK() over (ORDER BY " + strFullColumnName + " ASC) AS Rank" + strColumn;
                 }
                 else if (context.op.Type == SQLParser.K_HIGH)
                 {
                     strSQL = strColumn + " DESC";
                     strOperator = ">";
+                    strRankExpression = "RANK() over (ORDER BY " + strFullColumnName + " DESC) AS Rank" + strColumn;
 
                 }
 
 
                 //Add the preference to the list               
                 pref.Skyline.Add(new AttributeModel(strTable + "." + strColumn, strOperator, strTable, strTable + InnerTableSuffix, strTable + InnerTableSuffix + "." + strColumn, "", "", true, ""));
+                pref.Rank.Add(new RankModel(strRankExpression, strTable, strColumn));
                 pref.Tables.Add(strTable);
 
             }
@@ -151,15 +157,17 @@ namespace prefSQL.SQLParser
 
                     strSQL += " ASC";
                     strOperator = "<";
+
                 }
                 else if (context.op.Type == SQLParser.K_LOW)
                 {
                     strSQL += " DESC";
                     strOperator = ">";
-
                 }
+                strRankExpression = "RANK() over (ORDER BY " + strSQL + ") AS Rank" + strSingleColumn.Replace(".", "");
                 //Add the preference to the list               
                 pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute));
+                pref.Rank.Add(new RankModel(strRankExpression, strTable, strSingleColumn.Replace(".", "")));
                 pref.Tables.Add(strTable);
             }
 
@@ -170,7 +178,26 @@ namespace prefSQL.SQLParser
 
         }
 
+        public override PrefSQLModel VisitExprPrioritize(SQLParser.ExprPrioritizeContext context)
+        {
+            //And was used --> visit left and right node
+            PrefSQLModel left = Visit(context.expr(0));
+            PrefSQLModel right = Visit(context.expr(1));
 
+            //Add the columns to the preference model
+            PrefSQLModel pref = new PrefSQLModel();
+            pref.Rank.AddRange(left.Rank);
+            pref.Rank.AddRange(right.Rank);
+            pref.OrderBy.AddRange(left.OrderBy);
+            pref.OrderBy.AddRange(right.OrderBy);
+            pref.Tables.UnionWith(left.Tables);
+            pref.Tables.UnionWith(right.Tables);
+            pref.TableAliasName = tableAlias;
+            pref.IncludesTOP = includesTOP;
+            return pref;
+
+            //return base.VisitExprPrioritize(context);
+        }
         public override PrefSQLModel VisitExprand(SQLParser.ExprandContext context)
         {
             //And was used --> visit left and right node

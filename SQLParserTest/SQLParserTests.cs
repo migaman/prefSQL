@@ -8,6 +8,22 @@ namespace prefSQL.SQLParserTest
     public class SQLParserTests
     {
         [TestMethod]
+        public void TestPRIORITIZE2Dimensions()
+        {
+            String strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t1.horsepower FROM cars t1 PREFERENCE LOW t1.price PRIORITIZE LOW t1.mileage";
+
+            String expected = "SELECT * FROM (SELECT t1.id, t1.title, t1.price, t1.mileage, t1.horsepower, RANK() over (ORDER BY t1.price ASC) AS Rankprice, RANK() over (ORDER BY t1.mileage ASC) AS Rankmileage FROM cars t1) RankedResult  WHERE Rankprice = 1 OR Rankmileage = 1 ORDER BY price ASC, mileage ASC";
+            SQLCommon common = new SQLCommon();
+            String actual = common.parsePreferenceSQL(strPrefSQL);
+
+            // assert
+
+            Assert.AreEqual(expected, actual, true, "SQL not built correctly");
+        }
+
+
+
+        [TestMethod]
         public void TestSKYLINEFavourRot()
         {
             String strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID PREFERENCE LOW cars.price AND colors.name FAVOUR 'rot'";
