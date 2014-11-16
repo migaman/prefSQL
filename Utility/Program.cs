@@ -99,9 +99,9 @@ namespace Utility
                 //"PREFERENCE HIGH colors.name {'rot' == 'blau' >> OTHERS >> 'grau'} AND HIGH cars.registration";
                 //"PREFERENCE HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERS} AND LOW cars.price";
                 //"PREFERENCE HIGH colors.name {'rot' >> OTHERS} AND LOW cars.price";
-                //"PREFERENCE LOW t1.price AND LOW t1.mileage AND HIGH t1.horsepower ";
+                "PREFERENCE LOW t1.price AND LOW t1.mileage AND HIGH t1.horsepower ";
                 //"PREFERENCE LOW t1.price PRIORITIZE LOW t1.mileage";
-                "PREFERENCE LOW t1.price PRIORITIZE LOW t1.mileage PRIORITIZE HIGH colors.name {'rot' >> OTHERSEQUAL}";
+                //"PREFERENCE LOW t1.price PRIORITIZE LOW t1.mileage PRIORITIZE HIGH colors.name {'rot' >> OTHERSEQUAL}";
                 //"PREFERENCE cars.price AROUND 10000 ";
                 //"PREFERENCE HIGH colors.name {'rot' >> OTHERSEQUAL} AND cars.price AROUND 10000";
                 //"PREFERENCE cars.price AROUND 10000 AND HIGH colors.name {'rot' >> OTHERSEQUAL}";
@@ -122,8 +122,8 @@ namespace Utility
 
 
                 SQLCommon parser = new SQLCommon();
-                //parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
                 parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
+                parser.OrderType = SQLCommon.OrderingType.RankingBestOf;
 
                 String strSQL = parser.parsePreferenceSQL(strPrefSQL);
 

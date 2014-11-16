@@ -16,6 +16,10 @@ namespace prefSQL.SQLParser
 {
     public class SQLCommon
     {
+        private Algorithm _SkylineType = Algorithm.NativeSQL;
+        private OrderingType _OrderType = OrderingType.AttributePosition;
+
+
         public enum Algorithm
         {
             NativeSQL,
@@ -23,8 +27,15 @@ namespace prefSQL.SQLParser
             DQ,
         };
 
+        public enum OrderingType
+        {
+            AttributePosition,
+            RankingSummarize,
+            RankingBestOf,
+            Random,
+            AsIs //Without OrderBy-Clause as it comes from the database
+        }
 
-        private Algorithm _SkylineType = Algorithm.NativeSQL;
         
         public Algorithm SkylineType
         {
@@ -32,6 +43,11 @@ namespace prefSQL.SQLParser
             set { _SkylineType = value; }
         }
 
+        public OrderingType OrderType
+        {
+            get { return _OrderType; }
+            set { _OrderType = value; }
+        }
         
         public String parsePreferenceSQL(String strInput) 
         {
@@ -40,6 +56,7 @@ namespace prefSQL.SQLParser
             CommonTokenStream commonTokenStream = new CommonTokenStream(sqlLexer);
             SQLParser parser = new SQLParser(commonTokenStream);
             String strNewSQL = "";
+            SQLSort sqlSort = new SQLSort();
 
             try
             {
@@ -63,35 +80,45 @@ namespace prefSQL.SQLParser
                 {
                     strNewSQL = strInput.Substring(0, strInput.IndexOf("PREFERENCE") - 1);
 
-                    if (_SkylineType == Algorithm.NativeSQL)
+                    if(prefSQL.HasSkyline == true)
+                    {
+                        if (_SkylineType == Algorithm.NativeSQL)
+                        {
+                            String strWHERE = buildWHEREClause(prefSQL, strNewSQL);
+                            String strOrderBy = sqlSort.buildORDERBYClause(prefSQL, _OrderType);
+                            strNewSQL += strWHERE;
+                            strNewSQL += strOrderBy;
+                        }
+                        else if (_SkylineType == Algorithm.BNL)
+                        {
+                            String strOperators = "";
+                            String strPreferences = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
+                            String strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
+                            String strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
+                            String strFirstSQL = "SELECT cars.id " + strPreferences + " " + strSQLAfterFrom;
+                            String strOrderBy = sqlSort.buildORDERBYClause(prefSQL, _OrderType);
+                            strFirstSQL += strOrderBy.Replace("'", "''");
+                            strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', '" + strNewSQL + "', 'cars'";
+                        }
+                    }
+                    else if (prefSQL.HasPrioritize == true)
                     {
                         String strWHERE = buildWHEREClause(prefSQL, strNewSQL);
-                        String strOrderBy = buildORDERBYClause(prefSQL);
+                        String strOrderBy = sqlSort.buildORDERBYClause(prefSQL, _OrderType);
 
-
-                        if(prefSQL.Rank.Count > 1)
-                        {
-                            String strSelectRank = buildSELECTRank(prefSQL, strNewSQL);
-                            strNewSQL = "SELECT * FROM (" + strSelectRank;
-                            strNewSQL += ") RankedResult ";
-                        }
+                        String strSelectRank = buildSELECTRank(prefSQL, strNewSQL);
+                        strNewSQL = "SELECT * FROM (" + strSelectRank;
+                        strNewSQL += ") RankedResult ";
 
                         strNewSQL += strWHERE;
                         strNewSQL += strOrderBy;
-                        Debug.WriteLine("Result: " + strWHERE);
                     }
-                    else if (_SkylineType == Algorithm.BNL)
+                    else
                     {
-                        String strOperators = "";
-                        String strPreferences = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
-                        String strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
-                        String strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
-                        //String strFirstSQL = strSQLBeforeFrom + strPreferences + " " + strSQLAfterFrom;
-                        String strFirstSQL = "SELECT cars.id " + strPreferences + " " + strSQLAfterFrom;
-                        String strOrderBy = buildORDERBYClause(prefSQL);
-                        strFirstSQL += strOrderBy.Replace("'", "''");
-                        strNewSQL = "EXEC dbo.SP_SkylineBNL '"  + strFirstSQL + "', '" + strOperators + "', '" + strNewSQL + "', 'cars'";
+                        String strOrderBy = sqlSort.buildORDERBYClause(prefSQL, _OrderType);
+                        strNewSQL += strOrderBy;
                     }
+
                 }
                 else
                 {
@@ -157,7 +184,7 @@ namespace prefSQL.SQLParser
             //Build the where clause with each column in the skyline
             for (int iChild = 0; iChild < model.Rank.Count; iChild++)
             {
-                strSQL += ", " + model.Rank[iChild].expression;
+                strSQL += ", " + model.Rank[iChild].RankColumn;
             }
 
             posOfFROM = strPreSQL.IndexOf("FROM");
@@ -327,58 +354,13 @@ namespace prefSQL.SQLParser
         }
 
 
-
-        //Create the ORDERBY-Clause from the preferene model
-        private String buildORDERBYClauseDiversity(PrefSQLModel model)
-        {
-            String strSQL = "CASE ";
-            String strRankClause = "RANK() over (ORDER BY ";
-            
-
-            for (int iChild = 0; iChild < model.OrderBy.Count; iChild++)
-            {
-
-                //First record has a slightly different syntax
-                if (iChild < model.OrderBy.Count-1)
-                {
-                    strSQL += "WHEN " + strRankClause + model.OrderBy[iChild].ToString() + ") <= " + strRankClause +  model.OrderBy[iChild+1].ToString() + ") THEN " + strRankClause + model.OrderBy[iChild].ToString() + ")";
-                }
-                else
-                {
-                    //Last Clause
-                    strSQL += " ELSE " + strRankClause + model.OrderBy[iChild].ToString() + ")";
-                }
-                //strSQL += model.OrderBy[iChild].ToString();
-            }
-
-            strSQL = " ORDER BY " + strSQL + " END";
-            return strSQL;
-        }
+       
 
 
-        //Create the ORDERBY-Clause from the preferene model
-        private String buildORDERBYClause(PrefSQLModel model)
-        {
-            String strSQL = "";
-            
-            Boolean bFirst = true;
 
-            for (int iChild = 0; iChild < model.OrderBy.Count; iChild++)
-            {
 
-                //First record has a slightly different syntax
-                if (bFirst == false)
-                {
-                    strSQL += ", ";
-                }
-                strSQL += model.OrderBy[iChild].ToString();
-                bFirst = false;
-            }
 
-            strSQL = " ORDER BY " + strSQL;
-            return strSQL;
-        }
-
+       
 
     }
 

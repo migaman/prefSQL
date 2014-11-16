@@ -47,6 +47,7 @@ namespace prefSQL.SQLParser
             String strTable = "";
             String strOperator = "";
             String strRankExpression = "";
+            String strRankColumn = "";
 
             //With only 2 expressions it is a numeric LOW preference 
             if (context.ChildCount == 2)
@@ -61,19 +62,21 @@ namespace prefSQL.SQLParser
                     strSQL = strColumn + " ASC";
                     strOperator = "<";
                     strRankExpression = "RANK() over (ORDER BY " + strFullColumnName + " ASC) AS Rank" + strColumn;
+                    strRankColumn = "RANK() over (ORDER BY " + strFullColumnName + " ASC)";
                 }
                 else if (context.op.Type == SQLParser.K_HIGH)
                 {
                     strSQL = strColumn + " DESC";
                     strOperator = ">";
                     strRankExpression = "RANK() over (ORDER BY " + strFullColumnName + " DESC) AS Rank" + strColumn;
+                    strRankColumn = "RANK() over (ORDER BY " + strFullColumnName + " DESC)";
 
                 }
 
 
                 //Add the preference to the list               
                 pref.Skyline.Add(new AttributeModel(strTable + "." + strColumn, strOperator, strTable, strTable + InnerTableSuffix, strTable + InnerTableSuffix + "." + strColumn, "", "", true, ""));
-                pref.Rank.Add(new RankModel(strRankExpression, strTable, strColumn));
+                pref.Rank.Add(new RankModel(strRankExpression, strTable, strColumn, strRankColumn));
                 pref.Tables.Add(strTable);
 
             }
@@ -165,9 +168,10 @@ namespace prefSQL.SQLParser
                     strOperator = ">";
                 }
                 strRankExpression = "RANK() over (ORDER BY " + strSQL + ") AS Rank" + strSingleColumn.Replace(".", "");
+                strRankExpression = "RANK() over (ORDER BY " + strSQL + ")";
                 //Add the preference to the list               
                 pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute));
-                pref.Rank.Add(new RankModel(strRankExpression, strTable, strSingleColumn.Replace(".", "")));
+                pref.Rank.Add(new RankModel(strRankExpression, strTable, strSingleColumn.Replace(".", ""), strRankColumn));
                 pref.Tables.Add(strTable);
             }
 
@@ -194,6 +198,7 @@ namespace prefSQL.SQLParser
             pref.Tables.UnionWith(right.Tables);
             pref.TableAliasName = tableAlias;
             pref.IncludesTOP = includesTOP;
+            pref.HasPrioritize = true;
             return pref;
 
             //return base.VisitExprPrioritize(context);
@@ -208,12 +213,15 @@ namespace prefSQL.SQLParser
             PrefSQLModel pref = new PrefSQLModel();
             pref.Skyline.AddRange(left.Skyline);
             pref.Skyline.AddRange(right.Skyline);
+            pref.Rank.AddRange(left.Rank);
+            pref.Rank.AddRange(right.Rank);
             pref.OrderBy.AddRange(left.OrderBy);
             pref.OrderBy.AddRange(right.OrderBy);
             pref.Tables.UnionWith(left.Tables);
             pref.Tables.UnionWith(right.Tables);
             pref.TableAliasName = tableAlias;
             pref.IncludesTOP = includesTOP;
+            pref.HasSkyline = true;
             return pref;
 
         }

@@ -7,6 +7,45 @@ namespace prefSQL.SQLParserTest
     [TestClass]
     public class SQLParserTests
     {
+
+        [TestMethod]
+        public void TestOrderingRankingBestOf()
+        {
+            String strPrefSQL = "SELECT * FROM cars PREFERENCE LOW cars.price AND LOW cars.mileage AND HIGH cars.horsepower";
+
+            String expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) )  ORDER BY CASE WHEN RANK() over (ORDER BY cars.price ASC) <=RANK() over (ORDER BY cars.mileage ASC) AND RANK() over (ORDER BY cars.price ASC) <=RANK() over (ORDER BY cars.horsepower DESC) THEN RANK() over (ORDER BY cars.price ASC) WHEN RANK() over (ORDER BY cars.mileage ASC) <=RANK() over (ORDER BY cars.horsepower DESC) THEN RANK() over (ORDER BY cars.mileage ASC)  ELSE RANK() over (ORDER BY cars.horsepower DESC) END";
+            SQLCommon common = new SQLCommon();
+            common.OrderType = SQLCommon.OrderingType.RankingBestOf;
+            String actual = common.parsePreferenceSQL(strPrefSQL);
+
+            // assert
+
+            Assert.AreEqual(expected, actual, true, "SQL not built correctly");
+
+
+
+        }
+
+
+        [TestMethod]
+        public void TestOrderingRankingSum()
+        {
+            String strPrefSQL = "SELECT * FROM cars PREFERENCE LOW cars.price AND LOW cars.mileage AND HIGH cars.horsepower";
+
+            String expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) )  ORDER BY RANK() over (ORDER BY cars.price ASC) + RANK() over (ORDER BY cars.mileage ASC) + RANK() over (ORDER BY cars.horsepower DESC)";
+            SQLCommon common = new SQLCommon();
+            common.OrderType = SQLCommon.OrderingType.RankingSummarize;
+            String actual = common.parsePreferenceSQL(strPrefSQL);
+
+            // assert
+
+            Assert.AreEqual(expected, actual, true, "SQL not built correctly");
+
+
+
+        }
+
+
         [TestMethod]
         public void TestPRIORITIZE2Dimensions()
         {

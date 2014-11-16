@@ -13,15 +13,32 @@ namespace prefSQL.SQLParser.Models
         private String _tableAliasName = "";
         private List<AttributeModel> _skyline = new List<AttributeModel>();
         private List<RankModel> _rank = new List<RankModel>();
+        private List<String> _orderBy = new List<String>();
+        private HashSet<String> _tables = new HashSet<string>();
+        private String _sql = "";
+        private bool _hasSkyline = false;
+        private bool _hasPrioritize = false;
+
+        public bool HasPrioritize
+        {
+            get { return _hasPrioritize; }
+            set { _hasPrioritize = value; }
+        }
+
+
+        public bool HasSkyline
+        {
+            get { return _hasSkyline; }
+            set { _hasSkyline = value; }
+        }
+        
 
         internal List<RankModel> Rank
         {
             get { return _rank; }
             set { _rank = value; }
         }
-        private List<String> _orderBy = new List<String>();
-        private HashSet<String> _tables = new HashSet<string>();
-        private String _sql = "";
+
 
 
 
