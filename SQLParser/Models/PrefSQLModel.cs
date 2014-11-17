@@ -10,11 +10,10 @@ namespace prefSQL.SQLParser.Models
     {
         private string _tableName = "";
         private bool _includesTOP = false;
-        private string _tableAliasName = "";
         private List<AttributeModel> _skyline = new List<AttributeModel>();
         private List<RankModel> _rank = new List<RankModel>();
         private List<string> _orderBy = new List<string>();
-        private HashSet<string> _tables = new HashSet<string>();
+        private Dictionary<string, string> _tables = new Dictionary<string, string>();
         private string _sql = "";
         private bool _hasSkyline = false;
         private bool _hasPrioritize = false;
@@ -49,20 +48,13 @@ namespace prefSQL.SQLParser.Models
         }
 
 
-        public string TableAliasName
-        {
-            get { return _tableAliasName; }
-            set { _tableAliasName = value; }
-        }
-
-
         public string Sql
         {
             get { return _sql; }
             set { _sql = value; }
         }
 
-        public HashSet<string> Tables
+        public Dictionary<string, string> Tables
         {
             get { return _tables; }
             set { _tables = value; }

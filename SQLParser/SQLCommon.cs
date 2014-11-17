@@ -14,8 +14,14 @@ namespace prefSQL.SQLParser
     public class SQLCommon
     {
         private Algorithm _SkylineType = Algorithm.NativeSQL;
-        private OrderingType _OrderType = OrderingType.AttributePosition;
+        private Ordering _OrderType = Ordering.AttributePosition;
+        private bool _ShowSkylineAttributes = false;
 
+        public bool ShowSkylineAttributes
+        {
+            get { return _ShowSkylineAttributes; }
+            set { _ShowSkylineAttributes = value; }
+        }
 
         public enum Algorithm
         {
@@ -24,7 +30,7 @@ namespace prefSQL.SQLParser
             DQ,
         };
 
-        public enum OrderingType
+        public enum Ordering
         {
             AttributePosition,
             RankingSummarize,
@@ -40,7 +46,7 @@ namespace prefSQL.SQLParser
             set { _SkylineType = value; }
         }
 
-        public OrderingType OrderType
+        public Ordering OrderType
         {
             get { return _OrderType; }
             set { _OrderType = value; }
@@ -82,6 +88,14 @@ namespace prefSQL.SQLParser
                     {
                         if (_SkylineType == Algorithm.NativeSQL)
                         {
+                            if(_ShowSkylineAttributes == true)
+                            {
+                                string strPreferences = getPreferenceAttributes(prefSQL, strNewSQL);
+                                string strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
+                                string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
+                                strNewSQL = strSQLBeforeFrom + strPreferences + " " + strSQLAfterFrom;
+                            }
+
                             string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strNewSQL);
                             string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
                             strNewSQL += strWHERE;
@@ -94,9 +108,12 @@ namespace prefSQL.SQLParser
                             string strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
                             string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
                             string strTable = "";
-                            foreach (String table in prefSQL.Tables)
+                            foreach (KeyValuePair<string, string> table in prefSQL.Tables)
                             {
-                                strTable = table;
+                                if(table.Value.Equals(""))
+                                    strTable = table.Key;
+                                else
+                                    strTable = table.Value;
                                 break;
                             }
 
@@ -163,6 +180,33 @@ namespace prefSQL.SQLParser
             return strSQL;
         }
 
+
+
+        private string getPreferenceAttributes(PrefSQLModel model, string strPreSQL)
+        {
+            string strSQL = "";
+
+            //Build Skyline only if more than one attribute
+            if (model.Skyline.Count > 1)
+            {
+                //Build the where clause with each column in the skyline
+                for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
+                {
+                    strSQL += ", " + model.Skyline[iChild].ColumnExpression + " AS SkylineAttribute" + iChild ;
+                    
+
+                    //Incomparable field --> Add string field
+                    if (model.Skyline[iChild].Comparable == false)
+                    {
+                        strSQL += ", " + model.Skyline[iChild].IncomparableAttribute;
+                    }
+
+
+                }
+            }
+
+            return strSQL;
+        }
 
 
         private string buildPreferencesBNL(PrefSQLModel model, string strPreSQL, ref string strOperators)

@@ -18,11 +18,15 @@ namespace Utility
             p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.BNL);
             */
 
-
             
+            DominanceGraph graph = new DominanceGraph();
+            graph.run();
+            
+
+            /*
             Program prg = new Program();
             prg.Run();
-            
+            */
 
             //Test SkylineBNL Algorithm
             /*string str1 = "SELECT cars.id , CASE WHEN colors.name = 'schwarz' THEN 0 ELSE 100 END, colors.name, cars.price FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID ORDER BY CASE WHEN colors.name = 'schwarz' THEN 0 ELSE 100 END ASC, price ASC";
@@ -81,21 +85,21 @@ namespace Utility
 
                 //string strPrefSQL = "SELECT cars.id, cars.title, colors.name, fuels.name FROM cars " +
                 //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name, mileage FROM cars " +
-                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t1.horsepower FROM cars t1 " +
+                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t2.name FROM cars t1 " +
                     //string strPrefSQL = "SELECT cars.id, cars.Price, cars.mileage FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage, cars.horsepower, cars.enginesize, cars.registration, cars.consumption, cars.doors, colors.name, fuels.name FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, colors.name AS colourname, fuels.name AS fuelname, cars.price FROM cars " +
                     //string strPrefSQL = "SELECT id FROM cars " +
-                    "LEFT OUTER JOIN colors ON t1.color_id = colors.ID " +
+                    "LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID " +
                     //"LEFT OUTER JOIN bodies ON cars.body_id = bodies.ID " +
                     //"LEFT OUTER JOIN fuels ON cars.fuel_id = fuels.ID " +
-                    //"WHERE cars.horsepower > 10 AND cars.price < 10000 " +
+                //"WHERE t1.id NOT IN (54521, 25612, 46268, 668, 47392, 1012, 22350, 55205, 51017) " +
                 //"PREFERENCE LOW cars.price AND colors.name FAVOUR 'rot'";
-                //"PREFERENCE HIGH colors.name {'schwarz' >> OTHERS} AND LOW cars.price";
+                "PREFERENCE HIGH t2.name {'schwarz' >> OTHERS} AND LOW t1.price";
                 //"PREFERENCE HIGH colors.name {'rot' == 'blau' >> OTHERS >> 'grau'} AND HIGH cars.registration";
                 //"PREFERENCE HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERS} AND LOW cars.price";
                 //"PREFERENCE HIGH colors.name {'rot' >> OTHERS} AND LOW cars.price";
-                "PREFERENCE LOW t1.price AND LOW t1.mileage AND HIGH t1.horsepower ";
+                //"PREFERENCE LOW t1.price AND LOW t1.mileage ";
                 //"PREFERENCE LOW t1.price PRIORITIZE LOW t1.mileage";
                 //"PREFERENCE LOW t1.price PRIORITIZE LOW t1.mileage PRIORITIZE HIGH colors.name {'rot' >> OTHERSEQUAL}";
                 //"PREFERENCE cars.price AROUND 10000 ";
@@ -118,8 +122,9 @@ namespace Utility
 
 
                 SQLCommon parser = new SQLCommon();
-                parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
-                parser.OrderType = SQLCommon.OrderingType.RankingBestOf;
+                parser.SkylineType = SQLCommon.Algorithm.BNL;
+                parser.OrderType = SQLCommon.Ordering.RankingBestOf;
+                parser.ShowSkylineAttributes = true;
 
                 string strSQL = parser.parsePreferenceSQL(strPrefSQL);
 

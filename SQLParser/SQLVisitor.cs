@@ -13,25 +13,28 @@ namespace prefSQL.SQLParser
     
     class SQLVisitor : SQLBaseVisitor<PrefSQLModel>
     {
-
-        private string tableAlias = "";
+        private Dictionary<string, string> tables = new Dictionary<string, string>();
         private bool includesTOP = false;
         private const string InnerTableSuffix = "_INNER"; //Table suffix for the inner query
         private const string RankingFunction = "ROW_NUMBER()";
+
+        public override PrefSQLModel VisitTable_or_subquery(SQLParser.Table_or_subqueryContext context)
+        {
+            string strTable = context.GetChild(0).GetText();
+            string strTableAlias = "";
+            if (context.ChildCount == 2)
+            {
+                strTableAlias = context.GetChild(1).GetText();
+            }
+            tables.Add(strTable, strTableAlias);
+
+            return base.VisitTable_or_subquery(context);
+        }
 
         public override PrefSQLModel VisitTop_keyword(SQLParser.Top_keywordContext context)
         {
             includesTOP = true;
             return base.VisitTop_keyword(context);
-        }
-
-
-        public override PrefSQLModel VisitTable_alias(SQLParser.Table_aliasContext context)
-        {
-            string strTableAlias = context.GetChild(0).GetText();
-            tableAlias = strTableAlias;
-
-            return base.VisitTable_alias(context);
         }
 
 
@@ -74,7 +77,6 @@ namespace prefSQL.SQLParser
                 //Add the preference to the list               
                 pref.Skyline.Add(new AttributeModel(strTable + "." + strColumn, strOperator, strTable, strTable + InnerTableSuffix, strTable + InnerTableSuffix + "." + strColumn, "", "", true, ""));
                 pref.Rank.Add(new RankModel(strRankExpression, strTable, strColumn, strRankColumn));
-                pref.Tables.Add(strTable);
 
             }
             //Otherwise it is a text LOW/HIGH preference --> Text text must be converted in a given sortorder
@@ -169,7 +171,6 @@ namespace prefSQL.SQLParser
                 //Add the preference to the list               
                 pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute));
                 pref.Rank.Add(new RankModel(strRankExpression, strTable, strSingleColumn.Replace(".", ""), strRankColumn));
-                pref.Tables.Add(strTable);
             }
 
 
@@ -191,9 +192,7 @@ namespace prefSQL.SQLParser
             pref.Rank.AddRange(right.Rank);
             pref.OrderBy.AddRange(left.OrderBy);
             pref.OrderBy.AddRange(right.OrderBy);
-            pref.Tables.UnionWith(left.Tables);
-            pref.Tables.UnionWith(right.Tables);
-            pref.TableAliasName = tableAlias;
+            pref.Tables = tables;
             pref.IncludesTOP = includesTOP;
             pref.HasPrioritize = true;
             return pref;
@@ -214,9 +213,7 @@ namespace prefSQL.SQLParser
             pref.Rank.AddRange(right.Rank);
             pref.OrderBy.AddRange(left.OrderBy);
             pref.OrderBy.AddRange(right.OrderBy);
-            pref.Tables.UnionWith(left.Tables);
-            pref.Tables.UnionWith(right.Tables);
-            pref.TableAliasName = tableAlias;
+            pref.Tables = tables;
             pref.IncludesTOP = includesTOP;
             pref.HasSkyline = true;
             return pref;
@@ -291,8 +288,6 @@ namespace prefSQL.SQLParser
 
 
             //Add the preference to the list               
-            
-            pref.Tables.Add(strTable);
             pref.OrderBy.Add(strSQL);
             return pref;
         }

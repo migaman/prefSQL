@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using prefSQL.SQLParser;
-using System.Data.SqlClient;
+
 
 namespace prefSQL.SQLParserTest
 {
@@ -16,7 +16,7 @@ namespace prefSQL.SQLParserTest
 
             string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) )  ORDER BY price ASC, mileage ASC, horsepower DESC";
             SQLCommon common = new SQLCommon();
-            common.OrderType = SQLCommon.OrderingType.AttributePosition;
+            common.OrderType = SQLCommon.Ordering.AttributePosition;
             string actual = common.parsePreferenceSQL(strPrefSQL);
 
             // assert
@@ -31,7 +31,7 @@ namespace prefSQL.SQLParserTest
 
             string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) ) ";
             SQLCommon common = new SQLCommon();
-            common.OrderType = SQLCommon.OrderingType.AsIs;
+            common.OrderType = SQLCommon.Ordering.AsIs;
             string actual = common.parsePreferenceSQL(strPrefSQL);
 
             // assert
@@ -47,7 +47,7 @@ namespace prefSQL.SQLParserTest
 
             string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) )  ORDER BY NEWID()";
             SQLCommon common = new SQLCommon();
-            common.OrderType = SQLCommon.OrderingType.Random;
+            common.OrderType = SQLCommon.Ordering.Random;
             string actual = common.parsePreferenceSQL(strPrefSQL);
 
             // assert
@@ -64,7 +64,7 @@ namespace prefSQL.SQLParserTest
 
             string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) )  ORDER BY CASE WHEN ROW_NUMBER() over (ORDER BY cars.price ASC) <=ROW_NUMBER() over (ORDER BY cars.mileage ASC) AND ROW_NUMBER() over (ORDER BY cars.price ASC) <=ROW_NUMBER() over (ORDER BY cars.horsepower DESC) THEN ROW_NUMBER() over (ORDER BY cars.price ASC) WHEN ROW_NUMBER() over (ORDER BY cars.mileage ASC) <=ROW_NUMBER() over (ORDER BY cars.horsepower DESC) THEN ROW_NUMBER() over (ORDER BY cars.mileage ASC)  ELSE ROW_NUMBER() over (ORDER BY cars.horsepower DESC) END";
             SQLCommon common = new SQLCommon();
-            common.OrderType = SQLCommon.OrderingType.RankingBestOf;
+            common.OrderType = SQLCommon.Ordering.RankingBestOf;
             string actual = common.parsePreferenceSQL(strPrefSQL);
 
             // assert
@@ -83,7 +83,7 @@ namespace prefSQL.SQLParserTest
 
             string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) )  ORDER BY ROW_NUMBER() over (ORDER BY cars.price ASC) + ROW_NUMBER() over (ORDER BY cars.mileage ASC) + ROW_NUMBER() over (ORDER BY cars.horsepower DESC)";
             SQLCommon common = new SQLCommon();
-            common.OrderType = SQLCommon.OrderingType.RankingSummarize;
+            common.OrderType = SQLCommon.Ordering.RankingSummarize;
             string actual = common.parsePreferenceSQL(strPrefSQL);
 
             // assert

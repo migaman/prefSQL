@@ -139,23 +139,24 @@ namespace prefSQL.SQLParser
             strWhereBetter += ") ";
 
             //Format strPreSQL
-            foreach (string strTable in model.Tables)
+            foreach (KeyValuePair<string, string> table in model.Tables)
             {
-                //Replace tablename 
-                strPreSQL = strPreSQL.Replace(strTable + ".", strTable + "_INNER.");
-
                 //Add ALIAS to tablename (Only if not already an ALIAS was set)
-                if (model.TableAliasName.Equals(""))
+                if (table.Value.Equals(""))
                 {
-                    string pattern = @"\b" + strTable + @"\b";
-                    string replace = strTable + " " + strTable + "_INNER";
+                    //Replace tablename (for fields)
+                    strPreSQL = strPreSQL.Replace(table.Key + ".", table.Key + "_INNER.");
+                    string pattern = @"\b" + table.Key + @"\b";
+                    string replace = table.Key + " " + table.Key + "_INNER";
                     strPreSQL = Regex.Replace(strPreSQL, pattern, replace, RegexOptions.IgnoreCase);
                 }
                 else
                 {
+                    //Replace tablename (for fields)
+                    strPreSQL = strPreSQL.Replace(table.Value + ".", table.Value + "_INNER.");
                     //Replace ALIAS
-                    string pattern = @"\b" + strTable + @"\b";
-                    string replace = strTable + "_INNER";
+                    string pattern = @"\b" + table.Value + @"\b";
+                    string replace = table.Value + "_INNER";
                     strPreSQL = Regex.Replace(strPreSQL, pattern, replace, RegexOptions.IgnoreCase);
                 }
             }

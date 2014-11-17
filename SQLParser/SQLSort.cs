@@ -11,24 +11,24 @@ namespace prefSQL.SQLParser
     {
 
         //Create the ORDERBY-Clause from the preferene model
-        public string getSortClause(PrefSQLModel model, SQLCommon.OrderingType type)
+        public string getSortClause(PrefSQLModel model, SQLCommon.Ordering type)
         {
             string strSQL = "";
             switch (type)
             {
-                case SQLCommon.OrderingType.AttributePosition:
+                case SQLCommon.Ordering.AttributePosition:
                     strSQL = getSortAttributePositionClause(model);
                     break;
-                case SQLCommon.OrderingType.RankingSummarize:
+                case SQLCommon.Ordering.RankingSummarize:
                     strSQL = getSortRankingSumClause(model);
                     break;
-                case SQLCommon.OrderingType.RankingBestOf:
+                case SQLCommon.Ordering.RankingBestOf:
                     strSQL = getSortRankingBestOfClause(model);
                     break;
-                case SQLCommon.OrderingType.AsIs:
+                case SQLCommon.Ordering.AsIs:
                     strSQL = ""; //Return no ORDER BY Clause
                     break;
-                case SQLCommon.OrderingType.Random:
+                case SQLCommon.Ordering.Random:
                     strSQL = getSortRandomClause(model);
                     break;
             }

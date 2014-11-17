@@ -98,7 +98,11 @@ namespace Utility
                 //OTHER Idea: Store current collection in temporary table and return the result of the table
 
                 //SQLDataReader wokrs only forward. There read new with parameters
-                string cmdText = strQueryNative.ToString() + " WHERE ({0})";
+                string cmdText = "";
+                if(strQueryNative.ToString().IndexOf("WHERE") > 0)
+                    cmdText = strQueryNative.ToString() + " AND ({0})";
+                else
+                    cmdText = strQueryNative.ToString() + " WHERE ({0})";
 
                 ArrayList paramNames = new ArrayList();
                 string strIN = "";
@@ -127,8 +131,17 @@ namespace Utility
 
                 }
                 //Remove first comman
-                inClause = inClause.Substring(1);
-                strIN = string.Format(strIN, inClause);
+                if(inClause.Length > 0)
+                {
+                    inClause = inClause.Substring(1);
+                    strIN = string.Format(strIN, inClause);
+                }
+                else
+                {
+                    strIN = "0 = 1";
+                }
+                
+                
 
 
                 sqlCommand = new SqlCommand(string.Format(cmdText, strIN), connection);

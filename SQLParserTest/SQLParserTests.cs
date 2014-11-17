@@ -8,6 +8,27 @@ namespace prefSQL.SQLParserTest
     [TestClass]
     public class SQLParserTests
     {
+        private const string strConnection = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
+
+
+        [TestMethod]
+        public void TestShowSkylineAttributes()
+        {
+            string strPrefSQL = "SELECT * FROM cars PREFERENCE LOW cars.price AND LOW cars.mileage";
+
+            string expected = "SELECT * , cars.price AS SkylineAttribute0, cars.mileage AS SkylineAttribute1 FROM cars WHERE NOT EXISTS(SELECT * , cars_INNER.price AS SkylineAttribute0, cars_INNER.mileage AS SkylineAttribute1 FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage) )  ORDER BY price ASC, mileage ASC";
+            SQLCommon common = new SQLCommon();
+            common.ShowSkylineAttributes = true;
+            string actual = common.parsePreferenceSQL(strPrefSQL);
+
+            // assert
+
+            Assert.AreEqual(expected, actual, true, "SQL not built correctly");
+
+
+
+        }
+
 
         [TestMethod]
         public void TestAmountsOfTupelsSkyline12()
@@ -23,7 +44,6 @@ namespace prefSQL.SQLParserTest
 
             int amountOfTupelsNative = 0;
             int amountOfTupelsBNL = 0;
-            string strConnection = "Data Source=localhost;Initial Catalog=eCommerce;User ID=sa;Password=sql23";
 
             SqlConnection cnnSQL = new SqlConnection(strConnection);
             try
@@ -84,7 +104,7 @@ namespace prefSQL.SQLParserTest
 
             int amountOfTupelsNative = 0;
             int amountOfTupelsBNL = 0;
-            string strConnection = "Data Source=localhost;Initial Catalog=eCommerce;User ID=sa;Password=sql23";
+            
             
             SqlConnection cnnSQL = new SqlConnection(strConnection);
             try
