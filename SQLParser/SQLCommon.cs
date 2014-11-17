@@ -3,13 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using Antlr4.Runtime.Tree.Pattern;
-
 using prefSQL.SQLParser.Models;
-using System.Text.RegularExpressions;
 using System.Diagnostics;
 
 namespace prefSQL.SQLParser
@@ -57,6 +54,7 @@ namespace prefSQL.SQLParser
             SQLParser parser = new SQLParser(commonTokenStream);
             string strNewSQL = "";
             SQLSort sqlSort = new SQLSort();
+            SQLCriterion sqlCriterion = new SQLCriterion();
 
             try
             {
@@ -84,8 +82,8 @@ namespace prefSQL.SQLParser
                     {
                         if (_SkylineType == Algorithm.NativeSQL)
                         {
-                            string strWHERE = buildWHEREClause(prefSQL, strNewSQL);
-                            string strOrderBy = sqlSort.buildORDERBYClause(prefSQL, _OrderType);
+                            string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strNewSQL);
+                            string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
                             strNewSQL += strWHERE;
                             strNewSQL += strOrderBy;
                         }
@@ -95,16 +93,24 @@ namespace prefSQL.SQLParser
                             string strPreferences = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
                             string strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
                             string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
-                            string strFirstSQL = "SELECT cars.id " + strPreferences + " " + strSQLAfterFrom;
-                            string strOrderBy = sqlSort.buildORDERBYClause(prefSQL, _OrderType);
+                            string strTable = "";
+                            foreach (String table in prefSQL.Tables)
+                            {
+                                strTable = table;
+                                break;
+                            }
+
+                            //TODO: replace id
+                            string strFirstSQL = "SELECT " + strTable + ".id " + strPreferences + " " + strSQLAfterFrom;
+                            string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
                             strFirstSQL += strOrderBy.Replace("'", "''");
-                            strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', '" + strNewSQL + "', 'cars'";
+                            strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', '" + strNewSQL + "', '" + strTable + "'";
                         }
                     }
                     else if (prefSQL.HasPrioritize == true)
                     {
-                        string strWHERE = buildWHEREClause(prefSQL, strNewSQL);
-                        string strOrderBy = sqlSort.buildORDERBYClause(prefSQL, _OrderType);
+                        string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strNewSQL);
+                        string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
 
                         string strSelectRank = buildSELECTRank(prefSQL, strNewSQL);
                         strNewSQL = "SELECT * FROM (" + strSelectRank;
@@ -115,7 +121,7 @@ namespace prefSQL.SQLParser
                     }
                     else
                     {
-                        string strOrderBy = sqlSort.buildORDERBYClause(prefSQL, _OrderType);
+                        string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
                         strNewSQL += strOrderBy;
                     }
 
@@ -138,42 +144,6 @@ namespace prefSQL.SQLParser
         }
 
 
-        //Create the WHERE-Clause from the preferene model
-        private string buildWHEREClause(PrefSQLModel model, string strPreSQL)
-        {
-            string strSQL = "";
-            bool isWHEREPresent = false;
-
-            //Build Skyline only if more than one attribute
-            if (model.Skyline.Count > 1)
-            {
-                strSQL = getSkylineClause(model, strPreSQL);
-            }
-            else if(model.Rank.Count > 1)
-            {
-                strSQL = getRankClause(model);
-
-            }
-
-            //Check if a WHERE-Clause was built
-            if (strSQL.Length > 0)
-            {
-                //Only add WHERE if there is not already a where clause
-                isWHEREPresent = strPreSQL.IndexOf("WHERE") > 0;
-                if (isWHEREPresent == true)
-                {
-                    strSQL = " AND " + strSQL;
-                }
-                else
-                {
-                    strSQL = " WHERE " + strSQL;
-                }
-
-            }
-
-
-            return strSQL;
-        }
 
 
         private string buildSELECTRank(PrefSQLModel model, string strPreSQL)
@@ -193,124 +163,6 @@ namespace prefSQL.SQLParser
             return strSQL;
         }
 
-        /**
-         * Build the WHERE Clause for a PRIORITIZE Preference SQL statement
-         * 
-         * */
-        private string getRankClause(PrefSQLModel model)
-        {
-            string strSQL = "";
-
-            //Build the where clause with each column in the skyline
-            for (int iChild = 0; iChild < model.Rank.Count; iChild++)
-            {
-                //First child doesn't need an OR
-                if (iChild > 0)
-                {
-                    strSQL += " OR ";
-                }
-                strSQL += "Rank" + model.Rank[iChild].ColumnName + " = 1";
-            }
-
-            return strSQL;
-        }
-
-        private string getSkylineClause(PrefSQLModel model, string strPreSQL)
-        {
-            string strWhereEqual = "";
-            string strWhereBetter = " AND ( ";
-            string strSQL = "";
-            bool isWHEREPresent = false;
-
-            //Only add WHERE if there is not already a where clause
-            isWHEREPresent = strPreSQL.IndexOf("WHERE") > 0;
-            if (isWHEREPresent == true)
-            {
-                strWhereEqual = " AND ";
-            }
-            else
-            {
-                strWhereEqual = "WHERE ";
-            }
-
-                        
-            //Build the where clause with each column in the skyline
-            for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
-            {
-                bool needsTextORClause = false;
-
-                //Competition
-                needsTextORClause = !model.Skyline[iChild].ColumnName.Equals("");
-
-                //First child doesn't need an OR/AND
-                if (iChild > 0)
-                {
-                    strWhereEqual += " AND ";
-                    strWhereBetter += " OR ";
-                }
-
-                //Falls Text-Spalte ein zusätzliches OR einbauen für den Vergleich Farbe = Farbe
-                if (needsTextORClause == true)
-                {
-                    strWhereEqual += "(";
-                }
-
-                strWhereEqual += "{INNERcolumn} " + model.Skyline[iChild].Op + "= {column}";
-                strWhereBetter += "{INNERcolumn} " + model.Skyline[iChild].Op + " {column}";
-
-                strWhereEqual = strWhereEqual.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumnExpression);
-                strWhereBetter = strWhereBetter.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumnExpression);
-                strWhereEqual = strWhereEqual.Replace("{column}", model.Skyline[iChild].ColumnExpression);
-                strWhereBetter = strWhereBetter.Replace("{column}", model.Skyline[iChild].ColumnExpression);
-
-                //Falls Text-Spalte ein zusätzliches OR einbauen für den Vergleich Farbe = Farbe
-                if (needsTextORClause == true)
-                {
-                    strWhereEqual += " OR " + model.Skyline[iChild].InnerColumnName + " = " + model.Skyline[iChild].ColumnName;
-                    strWhereEqual += ")";
-                }
-                
-
-            }
-            //closing bracket for 2nd condition
-            strWhereBetter += ") ";
-
-            //Format strPreSQL
-            foreach (string strTable in model.Tables)
-            {
-                //Replace tablename 
-                strPreSQL = strPreSQL.Replace(strTable + ".", strTable + "_INNER.");
-
-                //Add ALIAS to tablename (Only if not already an ALIAS was set)
-                if (model.TableAliasName.Equals(""))
-                {
-                    string pattern = @"\b" + strTable + @"\b";
-                    string replace = strTable + " " + strTable + "_INNER";
-                    strPreSQL = Regex.Replace(strPreSQL, pattern, replace, RegexOptions.IgnoreCase);
-                }
-                else
-                {
-                    //Replace ALIAS
-                    string pattern = @"\b" + strTable + @"\b";
-                    string replace = strTable + "_INNER";
-                    strPreSQL = Regex.Replace(strPreSQL, pattern, replace, RegexOptions.IgnoreCase);
-                }
-            }
-
-            //Check if SQL contains TOP Keywords
-            if (model.IncludesTOP == true)
-            {
-                //Remove Top Keyword
-                int iPosTop = strPreSQL.IndexOf("TOP");
-                int iPosTopEnd = strPreSQL.Substring(iPosTop + 3).TrimStart().IndexOf(" ");
-                string strSQLAfterTOP = strPreSQL.Substring(iPosTop + 3).TrimStart();
-                strPreSQL = strPreSQL.Substring(0, iPosTop) + strSQLAfterTOP.Substring(iPosTopEnd + 1);
-            }
-
-            
-            strSQL += "NOT EXISTS(" + strPreSQL + " " + strWhereEqual + strWhereBetter + ") ";
-            return strSQL;
-        }
 
 
         private string buildPreferencesBNL(PrefSQLModel model, string strPreSQL, ref string strOperators)

@@ -94,9 +94,6 @@ namespace Utility
 
                 sqlReader.Close();
 
-                //TODO: Debug is forbidden in SQL CRL
-                Debug.WriteLine("Total in Skyline: " + idCollection.Count);
-
 
                 //OTHER Idea: Store current collection in temporary table and return the result of the table
 
@@ -360,9 +357,6 @@ namespace Utility
                 }
 
                 sqlReader.Close();
-
-                //TODO: Debug is forbidden in SQL CRL
-                Debug.WriteLine("Total in Skyline: " + idCollection.Count);
 
 
                 //OTHER Idea: Store current collection in temporary table and return the result of the table

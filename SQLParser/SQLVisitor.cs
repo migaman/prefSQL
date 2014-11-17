@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Threading.Tasks;
-
 using Antlr4.Runtime.Tree;
 using prefSQL.SQLParser.Models;
 
@@ -33,9 +32,6 @@ namespace prefSQL.SQLParser
 
             return base.VisitTable_alias(context);
         }
-
-        
-
 
 
         public override PrefSQLModel VisitPreferenceLOWHIGH(SQLParser.PreferenceLOWHIGHContext context)

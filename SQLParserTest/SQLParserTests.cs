@@ -9,9 +9,70 @@ namespace prefSQL.SQLParserTest
     public class SQLParserTests
     {
 
+        [TestMethod]
+        public void TestAmountsOfTupelsSkyline12()
+        {
+
+            string strPrefSQL = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.registration,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID PREFERENCE LOW cars_small.price AND LOW cars_small.mileage AND HIGH cars_small.horsepower AND HIGH cars_small.enginesize AND HIGH cars_small.registration AND LOW cars_small.consumption AND HIGH cars_small.doors AND HIGH colors.name {'rot' == 'blau' >> OTHERSEQUAL >> 'grau'} AND HIGH fuels.name {'Benzin' >> OTHERSEQUAL >> 'Diesel'} AND HIGH bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERSEQUAL >> 'Pick-Up'} AND HIGH cars_small.title {'MERCEDES-BENZ SL 600' >> OTHERSEQUAL} AND HIGH makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERSEQUAL >> 'FERRARI'} AND HIGH conditions.name {'Neu' >> OTHERSEQUAL}";
+
+            SQLCommon common = new SQLCommon();
+            common.SkylineType = SQLCommon.Algorithm.NativeSQL;
+            string sqlNative = common.parsePreferenceSQL(strPrefSQL);
+            common.SkylineType = SQLCommon.Algorithm.BNL;
+            string sqlBNL = common.parsePreferenceSQL(strPrefSQL);
+
+            int amountOfTupelsNative = 0;
+            int amountOfTupelsBNL = 0;
+            string strConnection = "Data Source=localhost;Initial Catalog=eCommerce;User ID=sa;Password=sql23";
+
+            SqlConnection cnnSQL = new SqlConnection(strConnection);
+            try
+            {
+                cnnSQL.Open();
+
+                //Native
+                SqlCommand sqlCommand = new SqlCommand(sqlNative, cnnSQL);
+                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
+
+                if (sqlReader.HasRows)
+                {
+                    while (sqlReader.Read())
+                    {
+                        amountOfTupelsNative++;
+                    }
+                }
+                sqlReader.Close();
+
+                //BNL
+                sqlCommand = new SqlCommand(sqlBNL, cnnSQL);
+                sqlReader = sqlCommand.ExecuteReader();
+
+                if (sqlReader.HasRows)
+                {
+                    while (sqlReader.Read())
+                    {
+                        amountOfTupelsBNL++;
+                    }
+                }
+
+
+
+
+                cnnSQL.Close();
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail("Connection failed:" + ex.Message);
+            }
+
+
+            // assert
+            Assert.AreEqual(amountOfTupelsNative, amountOfTupelsBNL, 0, "Amount of tupels does not match");
+        }
+
 
         [TestMethod]
-        public void TestAmountsOfTupelsSkyline()
+        public void TestAmountsOfTupelsSkyline3()
         {
             string strPrefSQL = "SELECT * FROM cars PREFERENCE LOW cars.price AND LOW cars.mileage AND HIGH cars.horsepower";
 
@@ -73,42 +134,7 @@ namespace prefSQL.SQLParserTest
 
 
 
-        [TestMethod]
-        public void TestOrderingRankingBestOf()
-        {
-            string strPrefSQL = "SELECT * FROM cars PREFERENCE LOW cars.price AND LOW cars.mileage AND HIGH cars.horsepower";
-
-            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) )  ORDER BY CASE WHEN RANK() over (ORDER BY cars.price ASC) <=RANK() over (ORDER BY cars.mileage ASC) AND RANK() over (ORDER BY cars.price ASC) <=RANK() over (ORDER BY cars.horsepower DESC) THEN RANK() over (ORDER BY cars.price ASC) WHEN RANK() over (ORDER BY cars.mileage ASC) <=RANK() over (ORDER BY cars.horsepower DESC) THEN RANK() over (ORDER BY cars.mileage ASC)  ELSE RANK() over (ORDER BY cars.horsepower DESC) END";
-            SQLCommon common = new SQLCommon();
-            common.OrderType = SQLCommon.OrderingType.RankingBestOf;
-            string actual = common.parsePreferenceSQL(strPrefSQL);
-
-            // assert
-
-            Assert.AreEqual(expected, actual, true, "SQL not built correctly");
-
-
-
-        }
-
-
-        [TestMethod]
-        public void TestOrderingRankingSum()
-        {
-            string strPrefSQL = "SELECT * FROM cars PREFERENCE LOW cars.price AND LOW cars.mileage AND HIGH cars.horsepower";
-
-            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) )  ORDER BY RANK() over (ORDER BY cars.price ASC) + RANK() over (ORDER BY cars.mileage ASC) + RANK() over (ORDER BY cars.horsepower DESC)";
-            SQLCommon common = new SQLCommon();
-            common.OrderType = SQLCommon.OrderingType.RankingSummarize;
-            string actual = common.parsePreferenceSQL(strPrefSQL);
-
-            // assert
-
-            Assert.AreEqual(expected, actual, true, "SQL not built correctly");
-
-
-
-        }
+       
 
 
         [TestMethod]
