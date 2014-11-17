@@ -17,6 +17,7 @@ namespace prefSQL.SQLParser
         private string tableAlias = "";
         private bool includesTOP = false;
         private const string InnerTableSuffix = "_INNER"; //Table suffix for the inner query
+        private const string RankingFunction = "ROW_NUMBER()";
 
         public override PrefSQLModel VisitTop_keyword(SQLParser.Top_keywordContext context)
         {
@@ -57,15 +58,15 @@ namespace prefSQL.SQLParser
                 {
                     strSQL = strColumn + " ASC";
                     strOperator = "<";
-                    strRankExpression = "RANK() over (ORDER BY " + strFullColumnName + " ASC) AS Rank" + strColumn;
-                    strRankColumn = "RANK() over (ORDER BY " + strFullColumnName + " ASC)";
+                    strRankExpression = RankingFunction + " over (ORDER BY " + strFullColumnName + " ASC) AS Rank" + strColumn;
+                    strRankColumn = RankingFunction + " over (ORDER BY " + strFullColumnName + " ASC)";
                 }
                 else if (context.op.Type == SQLParser.K_HIGH)
                 {
                     strSQL = strColumn + " DESC";
                     strOperator = ">";
-                    strRankExpression = "RANK() over (ORDER BY " + strFullColumnName + " DESC) AS Rank" + strColumn;
-                    strRankColumn = "RANK() over (ORDER BY " + strFullColumnName + " DESC)";
+                    strRankExpression = RankingFunction + " over (ORDER BY " + strFullColumnName + " DESC) AS Rank" + strColumn;
+                    strRankColumn = RankingFunction + " over (ORDER BY " + strFullColumnName + " DESC)";
 
                 }
 
@@ -163,8 +164,8 @@ namespace prefSQL.SQLParser
                     strSQL += " DESC";
                     strOperator = ">";
                 }
-                strRankExpression = "RANK() over (ORDER BY " + strSQL + ") AS Rank" + strSingleColumn.Replace(".", "");
-                strRankExpression = "RANK() over (ORDER BY " + strSQL + ")";
+                strRankExpression = RankingFunction + " over (ORDER BY " + strSQL + ") AS Rank" + strSingleColumn.Replace(".", "");
+                strRankColumn = RankingFunction + " over (ORDER BY " + strSQL + ")";
                 //Add the preference to the list               
                 pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute));
                 pref.Rank.Add(new RankModel(strRankExpression, strTable, strSingleColumn.Replace(".", ""), strRankColumn));

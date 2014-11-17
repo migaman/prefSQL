@@ -142,7 +142,7 @@ namespace prefSQL.SQLParserTest
         {
             string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t1.horsepower FROM cars t1 PREFERENCE LOW t1.price PRIORITIZE LOW t1.mileage";
 
-            string expected = "SELECT * FROM (SELECT t1.id, t1.title, t1.price, t1.mileage, t1.horsepower, RANK() over (ORDER BY t1.price ASC) AS Rankprice, RANK() over (ORDER BY t1.mileage ASC) AS Rankmileage FROM cars t1) RankedResult  WHERE Rankprice = 1 OR Rankmileage = 1 ORDER BY price ASC, mileage ASC";
+            string expected = "SELECT * FROM (SELECT t1.id, t1.title, t1.price, t1.mileage, t1.horsepower, ROW_NUMBER() over (ORDER BY t1.price ASC) AS Rankprice, ROW_NUMBER() over (ORDER BY t1.mileage ASC) AS Rankmileage FROM cars t1) RankedResult  WHERE Rankprice = 1 OR Rankmileage = 1 ORDER BY price ASC, mileage ASC";
             SQLCommon common = new SQLCommon();
             string actual = common.parsePreferenceSQL(strPrefSQL);
 

@@ -62,7 +62,7 @@ namespace prefSQL.SQLParserTest
         {
             string strPrefSQL = "SELECT * FROM cars PREFERENCE LOW cars.price AND LOW cars.mileage AND HIGH cars.horsepower";
 
-            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) )  ORDER BY CASE WHEN RANK() over (ORDER BY cars.price ASC) <=RANK() over (ORDER BY cars.mileage ASC) AND RANK() over (ORDER BY cars.price ASC) <=RANK() over (ORDER BY cars.horsepower DESC) THEN RANK() over (ORDER BY cars.price ASC) WHEN RANK() over (ORDER BY cars.mileage ASC) <=RANK() over (ORDER BY cars.horsepower DESC) THEN RANK() over (ORDER BY cars.mileage ASC)  ELSE RANK() over (ORDER BY cars.horsepower DESC) END";
+            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) )  ORDER BY CASE WHEN ROW_NUMBER() over (ORDER BY cars.price ASC) <=ROW_NUMBER() over (ORDER BY cars.mileage ASC) AND ROW_NUMBER() over (ORDER BY cars.price ASC) <=ROW_NUMBER() over (ORDER BY cars.horsepower DESC) THEN ROW_NUMBER() over (ORDER BY cars.price ASC) WHEN ROW_NUMBER() over (ORDER BY cars.mileage ASC) <=ROW_NUMBER() over (ORDER BY cars.horsepower DESC) THEN ROW_NUMBER() over (ORDER BY cars.mileage ASC)  ELSE ROW_NUMBER() over (ORDER BY cars.horsepower DESC) END";
             SQLCommon common = new SQLCommon();
             common.OrderType = SQLCommon.OrderingType.RankingBestOf;
             string actual = common.parsePreferenceSQL(strPrefSQL);
@@ -81,7 +81,7 @@ namespace prefSQL.SQLParserTest
         {
             string strPrefSQL = "SELECT * FROM cars PREFERENCE LOW cars.price AND LOW cars.mileage AND HIGH cars.horsepower";
 
-            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) )  ORDER BY RANK() over (ORDER BY cars.price ASC) + RANK() over (ORDER BY cars.mileage ASC) + RANK() over (ORDER BY cars.horsepower DESC)";
+            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) )  ORDER BY ROW_NUMBER() over (ORDER BY cars.price ASC) + ROW_NUMBER() over (ORDER BY cars.mileage ASC) + ROW_NUMBER() over (ORDER BY cars.horsepower DESC)";
             SQLCommon common = new SQLCommon();
             common.OrderType = SQLCommon.OrderingType.RankingSummarize;
             string actual = common.parsePreferenceSQL(strPrefSQL);
