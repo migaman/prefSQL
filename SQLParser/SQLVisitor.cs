@@ -193,7 +193,7 @@ namespace prefSQL.SQLParser
             pref.OrderBy.AddRange(left.OrderBy);
             pref.OrderBy.AddRange(right.OrderBy);
             pref.Tables = tables;
-            pref.IncludesTOP = includesTOP;
+            pref.HasTop = includesTOP;
             pref.HasPrioritize = true;
             return pref;
 
@@ -214,7 +214,7 @@ namespace prefSQL.SQLParser
             pref.OrderBy.AddRange(left.OrderBy);
             pref.OrderBy.AddRange(right.OrderBy);
             pref.Tables = tables;
-            pref.IncludesTOP = includesTOP;
+            pref.HasTop = includesTOP;
             pref.HasSkyline = true;
             return pref;
 

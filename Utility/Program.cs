@@ -18,15 +18,15 @@ namespace Utility
             p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.BNL);
             */
 
-            
+            /*
             DominanceGraph graph = new DominanceGraph();
             graph.run();
-            
+            */
 
-            /*
+            
             Program prg = new Program();
             prg.Run();
-            */
+            
 
             //Test SkylineBNL Algorithm
             /*string str1 = "SELECT cars.id , CASE WHEN colors.name = 'schwarz' THEN 0 ELSE 100 END, colors.name, cars.price FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID ORDER BY CASE WHEN colors.name = 'schwarz' THEN 0 ELSE 100 END ASC, price ASC";

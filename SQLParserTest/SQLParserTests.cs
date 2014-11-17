@@ -10,6 +10,29 @@ namespace prefSQL.SQLParserTest
     {
         private const string strConnection = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
 
+        [TestMethod]
+        public void TestSyntaxError()
+        {
+            string strPrefSQL = "SELECT * FROM cars PREFERENCE cars.price LOW";
+
+            SQLCommon common = new SQLCommon();
+            try
+            {
+                string actual = common.parsePreferenceSQL(strPrefSQL);
+                Assert.Fail("Preference SQL Query should throw an Error");
+            }
+            catch(Exception e)
+            {
+                Assert.IsTrue(true);
+            }
+            
+
+            
+
+            
+
+            
+        }
 
         [TestMethod]
         public void TestShowSkylineAttributes()

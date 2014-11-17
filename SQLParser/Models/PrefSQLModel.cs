@@ -8,15 +8,13 @@ namespace prefSQL.SQLParser.Models
 {
     class PrefSQLModel
     {
-        private string _tableName = "";
-        private bool _includesTOP = false;
-        private List<AttributeModel> _skyline = new List<AttributeModel>();
-        private List<RankModel> _rank = new List<RankModel>();
-        private List<string> _orderBy = new List<string>();
-        private Dictionary<string, string> _tables = new Dictionary<string, string>();
-        private string _sql = "";
-        private bool _hasSkyline = false;
-        private bool _hasPrioritize = false;
+        private bool _hasTOP = false;                                                   //if the query has the TOP Keyword
+        private List<AttributeModel> _skyline = new List<AttributeModel>();             //skyline attributes
+        private List<RankModel> _rank = new List<RankModel>();                          //rank attributes
+        private List<string> _orderBy = new List<string>();                             //orderby attributes
+        private Dictionary<string, string> _tables = new Dictionary<string, string>();  //the tablename and its alias
+        private bool _hasSkyline = false;                                               //if the query needs a skyline clause
+        private bool _hasPrioritize = false;                                            //if the query needs a prioritize clause
 
         public bool HasPrioritize
         {
@@ -24,47 +22,29 @@ namespace prefSQL.SQLParser.Models
             set { _hasPrioritize = value; }
         }
 
-
         public bool HasSkyline
         {
             get { return _hasSkyline; }
             set { _hasSkyline = value; }
         }
         
-
         internal List<RankModel> Rank
         {
             get { return _rank; }
             set { _rank = value; }
         }
 
-
-
-
-        public bool IncludesTOP
+        public bool HasTop
         {
-            get { return _includesTOP; }
-            set { _includesTOP = value; }
+            get { return _hasTOP; }
+            set { _hasTOP = value; }
         }
 
-
-        public string Sql
-        {
-            get { return _sql; }
-            set { _sql = value; }
-        }
 
         public Dictionary<string, string> Tables
         {
             get { return _tables; }
             set { _tables = value; }
-        }
-        private HashSet<string> _innerTableAlias = new HashSet<string>();
-
-        public string TableName
-        {
-            get { return _tableName; }
-            set { _tableName = value; }
         }
 
         public List<AttributeModel> Skyline
@@ -73,24 +53,11 @@ namespace prefSQL.SQLParser.Models
             get { return _skyline; }
         }
 
-
         public List<string> OrderBy
         {
             set { _orderBy = value; }
             get { return _orderBy; }
         }
-
-
-        public HashSet<string> InnerTableAlias
-        {
-            set { _innerTableAlias = value; }
-            get { return _innerTableAlias; }
-        }
-        
-
-
-
-
 
     }
 }
