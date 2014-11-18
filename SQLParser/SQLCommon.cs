@@ -182,6 +182,13 @@ namespace prefSQL.SQLParser
 
 
 
+        /**
+         *  This method is used for Pareto Dominance Grahps
+         *  It add the Skyline Attributes to the SELECT List
+         *  For the reason that comparing the values is easier, smaller values are always better than higher
+         *  Therefore HIGH preferences are multiplied with -1 
+         * 
+         * */
         private string getPreferenceAttributes(PrefSQLModel model, string strPreSQL)
         {
             string strSQL = "";
@@ -192,16 +199,17 @@ namespace prefSQL.SQLParser
                 //Build the where clause with each column in the skyline
                 for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
                 {
-                    strSQL += ", " + model.Skyline[iChild].ColumnExpression + " AS SkylineAttribute" + iChild ;
-                    
-
-                    //Incomparable field --> Add string field
-                    if (model.Skyline[iChild].Comparable == false)
+                    //
+                    if (model.Skyline[iChild].Op.Equals("<"))
                     {
-                        strSQL += ", " + model.Skyline[iChild].IncomparableAttribute;
+                        strSQL += ", " + model.Skyline[iChild].ColumnExpression + " AS SkylineAttribute" + iChild;
                     }
-
-
+                    else
+                    {
+                        //Multiply HIGH preferences with -1 --> small values are always better than high 
+                        strSQL += ", " + model.Skyline[iChild].ColumnExpression + "*-1 AS SkylineAttribute" + iChild;
+                    }
+                       
                 }
             }
 

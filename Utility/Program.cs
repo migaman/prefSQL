@@ -95,7 +95,7 @@ namespace Utility
                     //"LEFT OUTER JOIN fuels ON cars.fuel_id = fuels.ID " +
                 //"WHERE t1.id NOT IN (54521, 25612, 46268, 668, 47392, 1012, 22350, 55205, 51017) " +
                 //"PREFERENCE LOW cars.price AND colors.name FAVOUR 'rot'";
-                "PREFERENCE HIGH t2.name {'schwarz' >> OTHERS} AND LOW t1.price";
+                "PREFERENCE HIGH t2.name {'schwarz' >> OTHERS} AND LOW t1.price AND HIGH t1.horsepower";
                 //"PREFERENCE HIGH colors.name {'rot' == 'blau' >> OTHERS >> 'grau'} AND HIGH cars.registration";
                 //"PREFERENCE HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERS} AND LOW cars.price";
                 //"PREFERENCE HIGH colors.name {'rot' >> OTHERS} AND LOW cars.price";
@@ -122,7 +122,7 @@ namespace Utility
 
 
                 SQLCommon parser = new SQLCommon();
-                parser.SkylineType = SQLCommon.Algorithm.BNL;
+                parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
                 parser.OrderType = SQLCommon.Ordering.RankingBestOf;
                 parser.ShowSkylineAttributes = true;
 
