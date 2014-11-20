@@ -1,62 +1,68 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
 using System.Collections;
-using System.Diagnostics;
+using System.Collections.Generic;
 
+//Hinweis: Wenn mit startswith statt equals gearbeitet wird führt dies zu massiven performance problemen, z.B. large dataset 30 statt 3 Sekunden mit 13 Dimensionen!!
+//WICHTIG: Vergleiche immer mit equals und nie mit z.B. startsWith oder Contains oder so.... --> Enorme Performance Unterschiede
 namespace Utility
 {
-    //Hinweis: Wenn mit startswith statt equals gearbeitet wird führt dies zu massiven performance problemen, z.B. large dataset 30 statt 3 Sekunden mit 13 Dimensionen!!
-    //WICHTIG: Vergleiche immer mit equals und nie mit z.B. startsWith oder Contains oder so.... --> Enorme Performance Unterschiede
-
-    //same as the SP SkyineBNL --> for testing the performance and debugging
     class SkylineBNL
     {
-        //Only this parameters are different to the SQL CLR function
-        private const bool bSQLCLR = false;
+        //Only this parameters are different beteen SQL CLR function and Utility class
         private const string connectionstring = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
         private const int MaxSize = 4000;
+        private const string TempTable = "##MySkylineTable";
+        private const int MaxVarcharSize = 100;
 
+        
         [Microsoft.SqlServer.Server.SqlProcedure]
-        public static void SP_SkylineBNL(SqlString strQuery, SqlString strOperators, SqlString strQueryNative, string strTable)
+        public static void SP_SkylineBNL(SqlString strDimensions, SqlString strOperators, SqlString strQuery)
         {
-            ArrayList idCollection = new ArrayList();
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
 
-
             SqlConnection connection = new SqlConnection(connectionstring);
             try
             {
-                connection.Open();
-
-
                 //Some checks
-                if (strQuery.ToString().Length == MaxSize)
+                if (strDimensions.ToString().Length == MaxSize)
                 {
                     throw new Exception("Query is too long. Maximum size is " + MaxSize);
                 }
 
 
-                SqlCommand sqlCommand = new SqlCommand(strQuery.ToString(), connection);
+                connection.Open();
+
+
+                SqlDataAdapter dap = new SqlDataAdapter(strQuery.ToString(), connection);
+                DataTable dt = new DataTable(TempTable);
+                dap.Fill(dt);
+                string sqlsc = createTABLEStructure(dt);
+                SqlCommand sqlCommand = new SqlCommand(sqlsc, connection);
+                sqlCommand.ExecuteNonQuery();
+
+                //Clones the structure of the DataTable, including all DataTable schemas and constraints.
+                DataTable dtInsert = dt.Clone();
+
+
+                sqlCommand = new SqlCommand(strDimensions.ToString(), connection);
                 SqlDataReader sqlReader = sqlCommand.ExecuteReader();
 
+            
+                int iIndex = 0;
                 //Read all records only once. (SqlDataReader works forward only!!)
                 while (sqlReader.Read())
                 {
-
                     //Check if window list is empty
                     if (resultCollection.Count == 0)
                     {
-                        addToWindow(sqlReader, operators, ref resultCollection, ref idCollection, ref resultstringCollection);
+                        dtInsert.ImportRow(dt.Rows[iIndex]);                        
+                        addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection);
                     }
                     else
                     {
@@ -65,7 +71,7 @@ namespace Utility
                         //check if record is dominated (compare against the records in the window)
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
                         {
-                            int[] result = (int[])resultCollection[i];
+                            long[] result = (long[])resultCollection[i];
                             string[] strResult = (string[])resultstringCollection[i];
 
                             //Dominanz
@@ -78,93 +84,54 @@ namespace Utility
 
 
                             //Now, check if the new point dominates the one in the window
-                            //It is not possible that the new point dominates the one in the window --> Raason data is ORDERED
-
-
+                            //--> It is not possible that the new point dominates the one in the window --> Raason data is ORDERED
                         }
                         if (bDominated == false)
                         {
-                            addToWindow(sqlReader, operators, ref resultCollection, ref idCollection, ref resultstringCollection);
+                            dtInsert.ImportRow(dt.Rows[iIndex]);
+                            addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection);
 
 
                         }
 
                     }
+                    iIndex++;
                 }
 
                 sqlReader.Close();
 
 
-                //OTHER Idea: Store current collection in temporary table and return the result of the table
+                //Bulk load into sql server
+                dtInsert.AcceptChanges();
 
-                //SQLDataReader wokrs only forward. There read new with parameters
-                string cmdText = "";
-                if(strQueryNative.ToString().IndexOf("WHERE") > 0)
-                    cmdText = strQueryNative.ToString() + " AND ({0})";
-                else
-                    cmdText = strQueryNative.ToString() + " WHERE ({0})";
 
-                ArrayList paramNames = new ArrayList();
-                string strIN = "";
-                string inClause = "";
-                int amountOfSplits = 0;
-                for (int i = 0; i < idCollection.Count; i++)
+                System.Diagnostics.Debug.WriteLine(dtInsert.Rows.Count);
+                using (SqlBulkCopy bulkCopy = new SqlBulkCopy(connection))
                 {
-                    if (i % 2000 == 0)
-                    {
-                        if (amountOfSplits > 0)
-                        {
-                            //Add OR after IN
-                            strIN += " OR ";
-                            //Remove first comma
-                            inClause = inClause.Substring(1);
-                            strIN = string.Format(strIN, inClause);
-                            inClause = "";
-                        }
-                        strIN += strTable + ".id IN ({0})";
-
-
-                        amountOfSplits++;
-                    }
-
-                    inClause += ", " + idCollection[i];
-
+                    bulkCopy.DestinationTableName = TempTable;
+                    bulkCopy.WriteToServer(dtInsert);
                 }
-                //Remove first comman
-                if(inClause.Length > 0)
-                {
-                    inClause = inClause.Substring(1);
-                    strIN = string.Format(strIN, inClause);
-                }
-                else
-                {
-                    strIN = "0 = 1";
-                }
-                
-                
 
 
-                sqlCommand = new SqlCommand(string.Format(cmdText, strIN), connection);
+                string strSQL = "SELECT * FROM " + TempTable;
+
+                sqlCommand = new SqlCommand(strSQL, connection);
                 sqlReader = sqlCommand.ExecuteReader();
-
-
-
                 
 
+                //SqlDataReader reader = dtInsert.CreateDataReader();
+
+                //SqlContext.Pipe.Send(sqlReader);
 
             }
             catch (Exception ex)
             {
                 //Pack Errormessage in a SQL and return the result
-
                 string strError = "SELECT 'Fehler in SP_SkylineBNL: ";
                 strError += ex.Message.Replace("'", "''");
                 strError += "'";
 
-                SqlCommand sqlCommand = new SqlCommand(strError, connection);
-                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
-
-
+                //SqlContext.Pipe.Send(strError);
 
             }
             finally
@@ -176,18 +143,16 @@ namespace Utility
         }
 
 
-        private static void addToWindow(SqlDataReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList idCollection, ref ArrayList resultstringCollection)
+        private static void addToWindow(SqlDataReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection)
         {
 
-
-            //Liste ist leer --> Das heisst erster Eintrag ins Window werfen
             //Erste Spalte ist die ID
-            int[] record = new int[sqlReader.FieldCount];
+            long[] record = new long[sqlReader.FieldCount];
             string[] recordstring = new string[sqlReader.FieldCount];
             for (int i = 0; i <= record.GetUpperBound(0); i++)
             {
                 //LOW und HIGH Spalte in record abfüllen
-                if (operators[i].Equals("LOW") || operators[i].Equals("HIGH"))
+                if (operators[i].Equals("LOW"))
                 {
                     Type type = sqlReader.GetFieldType(i);
                     if (type == typeof(int))
@@ -196,6 +161,7 @@ namespace Utility
                     }
                     else if (type == typeof(DateTime))
                     {
+                        //record[i] = sqlReader.GetDateTime(i).Ticks; 
                         record[i] = sqlReader.GetDateTime(i).Year * 10000 + sqlReader.GetDateTime(i).Month * 100 + sqlReader.GetDateTime(i).Day;
                     }
 
@@ -218,25 +184,22 @@ namespace Utility
                
             }
             resultCollection.Add(record);
-            idCollection.Add(sqlReader.GetInt32(0));
             resultstringCollection.Add(recordstring);
         }
 
 
-        private static bool compare(SqlDataReader sqlReader, string[] operators, int[] result, string[] stringResult) 
+        private static bool compare(SqlDataReader sqlReader, string[] operators, long[] result, string[] stringResult) 
         {
             bool greaterThan = false;
 
-            //bool equalThan = false;
-            //bool greaterThan = false;
             for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
             {
                 string op = operators[iCol];
-                //Compare only LOW and HIGH attributes
-                if (op.Equals("LOW") || op.Equals("HIGH"))
+                //Compare only LOW attributes
+                if (op.Equals("LOW"))
                 {
                     //Convert value if it is a date
-                    int value = 0;
+                    long value = 0;
                     Type type = sqlReader.GetFieldType(iCol);
                     if (type == typeof(int))
                     {
@@ -244,10 +207,11 @@ namespace Utility
                     }
                     else if (type == typeof(DateTime))
                     {
+                        //value = sqlReader.GetDateTime(iCol).Ticks;
                         value = sqlReader.GetDateTime(iCol).Year * 10000 + sqlReader.GetDateTime(iCol).Month * 100 + sqlReader.GetDateTime(iCol).Day;
                     }
 
-                    int comparison = compareValue(op, value, result[iCol]);
+                    int comparison = compareValue(value, result[iCol]);
 
                     if (comparison >= 1)
                     {
@@ -265,6 +229,7 @@ namespace Utility
                                 //string value is always the next field
                                 string strValue = sqlReader.GetString(iCol + 1);
                                 //If it is not the same string value, the values are incomparable!!
+                                //If two values are comparable the strings will be empty!
                                 if (!strValue.Equals(stringResult[iCol]))
                                 {
                                     //Value is incomparable --> return false
@@ -297,251 +262,16 @@ namespace Utility
 
         }
         
-
-
-
-        [Microsoft.SqlServer.Server.SqlProcedure]
-        public static void SP_SkylineBNL_Level(SqlString strQuery, SqlString strOperators, SqlString strQueryNative, string strTable)
-        {
-            ArrayList idCollection = new ArrayList();
-            ArrayList resultCollection = new ArrayList();
-            string[] operators = strOperators.ToString().Split(';');
-            
-
-            SqlConnection connection = new SqlConnection(connectionstring);
-            try
-            {
-                //Some checks
-                if (strQuery.ToString().Length == MaxSize)
-                {
-                    throw new Exception("Query is too long. Maximum size is " + MaxSize);
-                }
-
-                connection.Open();
-                SqlCommand sqlCommand = new SqlCommand(strQuery.ToString(), connection);
-                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
-                DataTable dt = new DataTable();
-
-                
-
-                dt.Load(sqlReader);
-
-                sqlReader = sqlCommand.ExecuteReader();
-
-                //int iRow = 0;
-                //Read all records only once. (SqlDataReader works forward only!!)
-                while (sqlReader.Read())
-                {
-                    
-
-                    //Check if window list is empty
-                    if (resultCollection.Count == 0)
-                    {
-                    addToWindow_Level(sqlReader, operators, ref resultCollection, ref idCollection);
-                    }
-                    else
-                    {
-                        bool bDominated = false;
-
-                        //check if record is dominated (compare against the records in the window)
-                        for (int i = resultCollection.Count - 1; i >= 0; i--)
-                        {
-                            int[] result = (int[])resultCollection[i];
-
-                            //Dominanz
-                            if (compare_Level(sqlReader, operators, result) == true)
-                            {
-                                //New point is dominated. No further testing necessary
-                                bDominated = true;
-                                break;
-
-                            }
-
-                            //Now, check if the new point dominates the one in the window
-                            //It is not possible that the new point dominates the one in the window --> Raason data is ORDERED
-
-                        }
-                        if (bDominated == false)
-                        {
-                            addToWindow_Level(sqlReader, operators, ref resultCollection, ref idCollection);
-                        }
-
-                    }
-                }
-
-                sqlReader.Close();
-
-
-                //OTHER Idea: Store current collection in temporary table and return the result of the table
-
-                //SQLDataReader wokrs only forward. There read new with parameters
-                string cmdText = strQueryNative.ToString() + " WHERE ({0})";
-
-                ArrayList paramNames = new ArrayList();
-                string strIN = "";
-                string inClause = "";
-                int amountOfSplits = 0;
-                for (int i = 0; i < idCollection.Count; i++)
-                {
-                    if (i % 2000 == 0)
-                    {
-                        if (amountOfSplits > 0)
-                        {
-                            //Add OR after IN
-                            strIN += " OR ";
-                            //Remove first comma
-                            inClause = inClause.Substring(1);
-                            strIN = string.Format(strIN, inClause);
-                            inClause = "";
-                        }
-                        strIN += strTable + ".id IN ({0})";
-
-
-                        amountOfSplits++;
-                    }
-
-                    inClause += ", " + idCollection[i];
-
-                }
-                //Remove first comman
-                inClause = inClause.Substring(1);
-                strIN = string.Format(strIN, inClause);
-
-
-                sqlCommand = new SqlCommand(string.Format(cmdText, strIN), connection);
-                sqlReader = sqlCommand.ExecuteReader();
-
-
-
-            }
-            catch (Exception ex)
-            {
-                //Pack Errormessage in a SQL and return the result
-
-                string strError = "SELECT 'Fehler in SP_SkylineBNL: ";
-                strError += ex.Message.Replace("'", "''");
-                strError += "'";
-
-                
-                SqlCommand sqlCommand = new SqlCommand(strError, connection);
-                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
-
-                SqlContext.Pipe.Send(sqlReader);
-
-
-            }
-            finally
-            {
-                if (connection != null)
-                    connection.Close();
-            }
-
-        }
-
-
-        private static void addToWindow_Level(SqlDataReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList idCollection)
-        {
-            //Liste ist leer --> Das heisst erster Eintrag ins Window werfen
-            //Erste Spalte ist die ID
-            int[] record = new int[sqlReader.FieldCount];
-            string[] recordstring = new string[sqlReader.FieldCount];
-            for (int i = 0; i <= record.GetUpperBound(0); i++)
-            {
-                //LOW und HIGH Spalte in record abfüllen
-                if (operators[i].Equals("LOW") || operators[i].Equals("HIGH"))
-                {
-                    Type type = sqlReader.GetFieldType(i);
-                    if (type == typeof(int))
-                    {
-                        record[i] = sqlReader.GetInt32(i);
-                    }
-                    else if (type == typeof(DateTime))
-                    {
-                        //record[i] = sqlReader.GetDateTime(i).Ticks; 
-                        record[i] = sqlReader.GetDateTime(i).Year * 10000 + sqlReader.GetDateTime(i).Month * 100 + sqlReader.GetDateTime(i).Day;
-                    }
-
-
-                }
-
-            }
-            resultCollection.Add(record);
-            idCollection.Add(sqlReader.GetInt32(0));
-        }
-
-
-
-        private static bool compare_Level(SqlDataReader sqlReader, string[] operators, int[] result)
-        {
-            bool greaterThan = false;
-            
-            for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
-            {
-                string op = operators[iCol];
-                //Compare only LOW and HIGH attributes
-                if (op.Equals("LOW") || op.Equals("HIGH"))
-                {
-                    //Convert value if it is a date
-                    int value = 0;
-                    Type type = sqlReader.GetFieldType(iCol);
-                    if (type == typeof(int))
-                    {
-                        value = sqlReader.GetInt32(iCol);
-                    }
-                    else if (type == typeof(DateTime))
-                    {
-                        //value = sqlReader.GetDateTime(iCol).Ticks;
-                        value = sqlReader.GetDateTime(iCol).Year * 10000 + sqlReader.GetDateTime(iCol).Month * 100 + sqlReader.GetDateTime(iCol).Day;
-                    }
-
-                    int comparison = compareValue(op, value, result[iCol]);
-                    
-                    if (comparison >= 1)
-                    {
-                        if (comparison == 2)
-                        {
-                            //at least one must be greater than
-                            greaterThan = true;
-                        }
-                  
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            //all equal and at least one must be greater than
-            if (greaterThan == true)
-                return true;
-            else
-                return false;
-
-
-        }
-
-
-
-
+        
 
         /*
          * 0 = false
          * 1 = equal
          * 2 = greater than
          * */
-        private static int compareValue(string op, int value1, int value2)
+        private static int compareValue(long value1, long value2)
         {
-
-            //Switch numbers on certain case
-            if(op.Equals("HIGH"))
-            {
-                int tmpValue = value1;
-                value1 = value2;
-                value2 = tmpValue;
-            }
-
-
+           
             if (value1 >= value2)
             {
                 if (value1 > value2)
@@ -558,7 +288,37 @@ namespace Utility
         }
 
 
+        private static string createTABLEStructure(DataTable table)
+        {
+            string sqlsc;
 
+            sqlsc = "CREATE TABLE " + TempTable + "(";
+            for (int i = 0; i < table.Columns.Count; i++)
+            {
+                sqlsc += "\n [" + table.Columns[i].ColumnName + "] ";
+                if (table.Columns[i].DataType.ToString().Contains("System.Int32"))
+                    sqlsc += " int ";
+                else if (table.Columns[i].DataType.ToString().Contains("System.DateTime"))
+                    sqlsc += " datetime ";
+                else if (table.Columns[i].DataType.ToString().Contains("System.String"))
+                    sqlsc += " nvarchar(" + MaxVarcharSize + ") ";
+                else
+                    sqlsc += " nvarchar(" + MaxVarcharSize + ") ";
+
+
+
+                /*if (table.Columns[i].AutoIncrement)
+                    sqlsc += " IDENTITY(" + table.Columns[i].AutoIncrementSeed.ToString() + "," + table.Columns[i].AutoIncrementStep.ToString() + ") ";
+                if (!table.Columns[i].AllowDBNull)
+                    sqlsc += " NOT NULL ";*/
+                sqlsc += ",";
+
+            }
+            sqlsc = sqlsc.Substring(0, sqlsc.Length - 1) + ")";
+
+            return sqlsc;
+
+        }
 
 
 

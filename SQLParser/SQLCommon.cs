@@ -11,6 +11,12 @@ using System.Diagnostics;
 
 namespace prefSQL.SQLParser
 {
+    /// <summary>
+    /// Entry point of the library for parsing a PREFERENCE SQL to an ANSI-SQL Statement
+    /// </summary>
+    /// <remarks>
+    /// You can choose the Skyline Type, Ordering Type and if the SELECT List should be extended with the Skyline Values
+    /// </remarks>
     public class SQLCommon
     {
         private Algorithm _SkylineType = Algorithm.NativeSQL;
@@ -52,6 +58,9 @@ namespace prefSQL.SQLParser
             set { _OrderType = value; }
         }
 
+        /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
+        /// <param name="strInput">Preference SQL Statement</param>
+        /// <returns>Return the ANSI SQL Statement</returns>
         public string parsePreferenceSQL(string strInput) 
         {
             AntlrInputStream inputStream = new AntlrInputStream(strInput);
@@ -117,11 +126,10 @@ namespace prefSQL.SQLParser
                                 break;
                             }
 
-                            //TODO: replace id
-                            string strFirstSQL = "SELECT " + strTable + ".id " + strPreferences + " " + strSQLAfterFrom;
+                            string strFirstSQL = "SELECT "  + strPreferences + " " + strSQLAfterFrom;
                             string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
                             strFirstSQL += strOrderBy.Replace("'", "''");
-                            strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', '" + strNewSQL + "', '" + strTable + "'";
+                            strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', '" + strNewSQL + "'";
                         }
                     }
                     else if (prefSQL.HasPrioritize == true)
@@ -160,20 +168,26 @@ namespace prefSQL.SQLParser
 
         }
 
+       
 
-
-
+        /// <summary>Adds ranking columns to a SELECT-Statement. Used for PRIORITIZE-Preference</summary>
+        /// <param name="model">model of parsed Preference SQL Statement</param>
+        /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
+        /// <returns>Return the extended SQL Statement</returns>
         private string buildSELECTRank(PrefSQLModel model, string strPreSQL)
         {
             string strSQL = "";
             int posOfFROM = 0;
 
-            //Build the where clause with each column in the skyline
+            //Add a RankColumn for each PRIORITIZE preference
             for (int iChild = 0; iChild < model.Rank.Count; iChild++)
             {
-                strSQL += ", " + model.Rank[iChild].RankColumn;
+                //Replace ROW_NUMBER with Rank, for the reason that multiple tuples can have the same value (i.e. mileage=0)
+                string strRank = model.Rank[iChild].RankColumn.Replace("ROW_NUMBER", "RANK");
+                strSQL += ", " + strRank;
             }
 
+            //Add the ranked column before the FROM keyword
             posOfFROM = strPreSQL.IndexOf("FROM");
             strSQL = strPreSQL.Substring(0, posOfFROM-1) + strSQL + strPreSQL.Substring(posOfFROM-1);
 
@@ -181,14 +195,14 @@ namespace prefSQL.SQLParser
         }
 
 
-
-        /**
-         *  This method is used for Pareto Dominance Grahps
-         *  It add the Skyline Attributes to the SELECT List
-         *  For the reason that comparing the values is easier, smaller values are always better than higher
-         *  Therefore HIGH preferences are multiplied with -1 
-         * 
-         * */
+        /// <summary>This method is used for Pareto Dominance Grahps. It adds the Skyline Attributes to the SELECT List.</summary>
+        /// <remarks>
+        /// For the reason that comparing the values is easier, smaller values are always better than higher.
+        /// Therefore HIGH preferences are multiplied with -1 
+        /// </remarks>
+        /// <param name="model">model of parsed Preference SQL Statement</param>
+        /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
+        /// <returns>Return the extended SQL Statement</returns>
         private string getPreferenceAttributes(PrefSQLModel model, string strPreSQL)
         {
             string strSQL = "";
@@ -217,9 +231,15 @@ namespace prefSQL.SQLParser
         }
 
 
+        /// <summary>TODO</summary>
+        /// <param name="model">model of parsed Preference SQL Statement</param>
+        /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
+        /// <param name="strOperators">Returns the operators</param>
+        /// <returns>TODO</returns>
         private string buildPreferencesBNL(PrefSQLModel model, string strPreSQL, ref string strOperators)
         {
             string strSQL = "";
+            strOperators = "";
 
             //Build Skyline only if more than one attribute
             if (model.Skyline.Count > 1)
@@ -229,46 +249,36 @@ namespace prefSQL.SQLParser
                 {
                     string op = "";
                     if (model.Skyline[iChild].Op.Equals("<"))
+                    {
                         op = "LOW";
+                        strSQL += ", " + model.Skyline[iChild].ColumnExpression.Replace("'", "''");
+                    }
                     else
-                        op = "HIGH";
-                    strOperators += ";" + op;
+                    {
+                        op = "LOW";
+                        //Trick: Convert HIGH attributes in negative values
+                        strSQL += ", " + model.Skyline[iChild].ColumnExpression.Replace("'", "''") + " * -1 ";
 
-                    if (model.Skyline[iChild].ColumnName.Equals(""))
-                    {
-                        strSQL += ", " + model.Skyline[iChild].ColumnExpression.Replace("'", "''");
                     }
-                    else
-                    {
-                        strSQL += ", " + model.Skyline[iChild].ColumnExpression.Replace("'", "''");
-                    }
+                    strOperators += op + ";";
+                    
+                    
 
                     //Incomparable field --> Add string field
                     if (model.Skyline[iChild].Comparable == false)
                     {
                         strSQL += ", " + model.Skyline[iChild].IncomparableAttribute.Replace("'", "''");
-                        strOperators += ";INCOMPARABLE";
+                        strOperators += "INCOMPARABLE" + ";";
                     }
 
 
                 }
             }
-            
+
+            strOperators = strOperators.TrimEnd(';');
+            strSQL = strSQL.TrimStart(',');
             return strSQL;
         }
-
-
-       
-
-
-
-
-
-       
-
     }
-
-
-
 }
 

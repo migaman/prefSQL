@@ -196,8 +196,6 @@ namespace prefSQL.SQLParser
             pref.HasTop = includesTOP;
             pref.HasPrioritize = true;
             return pref;
-
-            //return base.VisitExprPrioritize(context);
         }
         public override PrefSQLModel VisitExprand(SQLParser.ExprandContext context)
         {
