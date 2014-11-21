@@ -43,6 +43,8 @@ namespace prefSQL.SQLParser
             string strSQL = "";
             PrefSQLModel pref = new PrefSQLModel();
             string strColumn = "";
+            string strColumnExpression = "";
+            string strInnerColumnExpression = "";
             string strFullColumnName = "";
             string strTable = "";
             string strOperator = "";
@@ -63,6 +65,8 @@ namespace prefSQL.SQLParser
                     strOperator = "<";
                     strRankExpression = RankingFunction + " over (ORDER BY " + strFullColumnName + " ASC) AS Rank" + strColumn;
                     strRankColumn = RankingFunction + " over (ORDER BY " + strFullColumnName + " ASC)";
+                    strColumnExpression = strTable + "." + strColumn;
+                    strInnerColumnExpression = strTable + InnerTableSuffix + "." + strColumn;
                 }
                 else if (context.op.Type == SQLParser.K_HIGH)
                 {
@@ -70,12 +74,32 @@ namespace prefSQL.SQLParser
                     strOperator = ">";
                     strRankExpression = RankingFunction + " over (ORDER BY " + strFullColumnName + " DESC) AS Rank" + strColumn;
                     strRankColumn = RankingFunction + " over (ORDER BY " + strFullColumnName + " DESC)";
-
+                    strColumnExpression = strTable + "." + strColumn;
+                    strInnerColumnExpression = strTable + InnerTableSuffix + "." + strColumn;
+                }
+                else if (context.op.Type == SQLParser.K_LOWDATE)
+                {
+                    strSQL = strColumn + " ASC";
+                    strOperator = ">";
+                    strRankExpression = RankingFunction + " over (ORDER BY " + strFullColumnName + " DESC) AS Rank" + strColumn;
+                    strRankColumn = RankingFunction + " over (ORDER BY " + strFullColumnName + " DESC)";
+                    strColumnExpression = strTable + "." + strColumn;
+                    strColumnExpression = "DATEDIFF(minute, '1900-01-01', " + strTable + "." + strColumn + ")";
+                    strInnerColumnExpression = "DATEDIFF(minute, '1900-01-01', " + strTable + InnerTableSuffix + "." + strColumn + ")"; 
+                }
+                else if (context.op.Type == SQLParser.K_HIGHDATE)
+                {
+                    strSQL = strColumn + " DESC";
+                    strOperator = ">";
+                    strRankExpression = RankingFunction + " over (ORDER BY " + strFullColumnName + " DESC) AS Rank" + strColumn;
+                    strRankColumn = RankingFunction + " over (ORDER BY " + strFullColumnName + " DESC)";
+                    strColumnExpression = "DATEDIFF(minute, '1900-01-01', " + strTable + "." + strColumn + ")";
+                    strInnerColumnExpression = "DATEDIFF(minute, '1900-01-01', " + strTable + InnerTableSuffix + "." + strColumn + ")"; 
                 }
 
 
                 //Add the preference to the list               
-                pref.Skyline.Add(new AttributeModel(strTable + "." + strColumn, strOperator, strTable, strTable + InnerTableSuffix, strTable + InnerTableSuffix + "." + strColumn, "", "", true, ""));
+                pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", "", true, ""));
                 pref.Rank.Add(new RankModel(strRankExpression, strTable, strColumn, strRankColumn));
 
             }

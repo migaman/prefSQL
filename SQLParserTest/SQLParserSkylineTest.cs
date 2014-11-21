@@ -24,6 +24,46 @@ namespace prefSQL.SQLParserTest
         }
 
 
+
+        [TestMethod]
+        public void TestSKYLINEBNLDateField()
+        {
+
+            string strPrefSQL = "SELECT cars_small.price,cars_small.mileage,cars_small.registration FROM cars_small PREFERENCE LOW cars_small.price AND LOW cars_small.mileage AND HIGHDATE cars_small.registration";
+
+            SQLCommon common = new SQLCommon();
+            common.SkylineType = SQLCommon.Algorithm.BNL;
+            string sqlBNL = common.parsePreferenceSQL(strPrefSQL);
+
+            int amountOfTupelsBNL = 0;
+
+            SqlConnection cnnSQL = new SqlConnection(strConnection);
+            try
+            {
+                cnnSQL.Open();
+
+                 //BNL
+                SqlCommand sqlCommand = new SqlCommand(sqlBNL, cnnSQL);
+                SqlDataReader  sqlReader = sqlCommand.ExecuteReader();
+
+                if (sqlReader.HasRows)
+                {
+                    while (sqlReader.Read())
+                    {
+                        amountOfTupelsBNL++;
+                    }
+                }
+                cnnSQL.Close();
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail("Connection failed:" + ex.Message);
+            }
+
+            Assert.AreEqual(24, amountOfTupelsBNL, 0, "Amount of tupels does not match");
+        }
+
+
         [TestMethod]
         public void TestSKYLINEAmountsOfTupels11Equal()
         {
@@ -413,9 +453,9 @@ namespace prefSQL.SQLParserTest
         [TestMethod]
         public void TestSKYLINE6Dimensions()
         {
-            string strPrefSQL = "SELECT * FROM cars PREFERENCE LOW cars.price AND LOW cars.mileage AND HIGH cars.horsepower AND HIGH cars.enginesize AND HIGH cars.registration AND LOW cars.consumption";
+            string strPrefSQL = "SELECT * FROM cars PREFERENCE LOW cars.price AND LOW cars.mileage AND HIGH cars.horsepower AND HIGH cars.enginesize AND HIGHDATE cars.registration AND LOW cars.consumption";
 
-            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND cars_INNER.enginesize >= cars.enginesize AND cars_INNER.Registration >= cars.Registration AND cars_INNER.Consumption <= cars.Consumption AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower OR cars_INNER.EngineSize > cars.EngineSize OR cars_INNER.Registration > cars.Registration OR cars_INNER.Consumption < cars.Consumption) )  ORDER BY price ASC, mileage ASC, horsepower DESC, enginesize DESC, registration DESC, consumption ASC";
+            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND cars_INNER.enginesize >= cars.enginesize AND DATEDIFF(minute, '1900-01-01', cars_INNER.registration) >= DATEDIFF(minute, '1900-01-01', cars.registration) AND cars_INNER.consumption <= cars.consumption AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower OR cars_INNER.enginesize > cars.enginesize OR DATEDIFF(minute, '1900-01-01', cars_INNER.registration) > DATEDIFF(minute, '1900-01-01', cars.registration) OR cars_INNER.consumption < cars.consumption) )  ORDER BY price ASC, mileage ASC, horsepower DESC, enginesize DESC, registration DESC, consumption ASC";
             SQLCommon common = new SQLCommon();
             string actual = common.parsePreferenceSQL(strPrefSQL);
 

@@ -13,10 +13,10 @@ namespace Utility
         static void Main(string[] args)
         {
 
-            /*
+            
             Performance p = new Performance();
             p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.BNL);
-            */
+            
 
             /*
             DominanceGraph graph = new DominanceGraph();
@@ -62,6 +62,7 @@ namespace Utility
             string str4 = "cars_large";
             */
 
+            /*
             string str1 = "SELECT cars_large.price, cars_large.mileage, cars_large.horsepower*-1, cars_large.consumption, CASE WHEN colors.name = 'rot' THEN 0 WHEN colors.name = 'blau' THEN 0 WHEN colors.name = 'grau' THEN 200 ELSE 100 END FROM cars_large LEFT OUTER JOIN colors ON cars_large.color_id = colors.ID ORDER BY price ASC, mileage ASC, horsepower DESC, consumption ASC, CASE WHEN colors.name = 'rot' THEN 0 WHEN colors.name = 'blau' THEN 0 WHEN colors.name = 'grau' THEN 200 ELSE 100 END ASC";
             string str2 = "LOW;LOW;LOW;LOW;LOW";
             string str3 = "SELECT cars_large.price,cars_large.mileage,cars_large.horsepower,cars_large.consumption,colors.name FROM cars_large LEFT OUTER JOIN colors ON cars_large.color_id = colors.ID";
@@ -80,6 +81,8 @@ namespace Utility
             sw.Stop();
             
             Console.WriteLine("Elapsed={0}", sw.Elapsed);
+             *
+             */
         }
 
 

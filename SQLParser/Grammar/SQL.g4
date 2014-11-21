@@ -106,7 +106,7 @@ expr
  | ( ( K_NOT )? K_EXISTS )? '(' select_stmt ')'										#notExists
  | K_CASE expr? ( K_WHEN expr K_THEN expr )+ ( K_ELSE expr )? K_END									#case
  //Don't use expression. The word after Low or High must be a column name!!
- | op=(K_LOW | K_HIGH) column_term ('{' expr '}')?													#preferenceLOWHIGH
+ | op=(K_LOW | K_HIGH | K_LOWDATE | K_HIGHDATE) column_term ('{' expr '}')?													#preferenceLOWHIGH
  | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term)		#preferenceAROUND
  							
  //| K_WEIGHTED expr													#prefWeighted
@@ -241,6 +241,8 @@ keyword
  | K_FAVOUR
  | K_HIGH
  | K_LOW
+ | K_HIGHDATE
+ | K_LOWDATE
  | K_OTHERS
  | K_OTHERSEQUAL
  | K_PREFERENCE
@@ -358,6 +360,8 @@ K_DISFAVOUR : D I S F A V O U R;
 K_FAVOUR : F A V O U R;
 K_HIGH : H I G H;
 K_LOW : L O W;
+K_HIGHDATE: H I G H D A T E;
+K_LOWDATE : L O W D A T E;
 K_OTHERS : O T H E R S;
 K_OTHERSEQUAL : O T H E R S E Q U A L;
 K_PREFERENCE : P R E F E R E N C E;

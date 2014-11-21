@@ -15,10 +15,13 @@ namespace Utility
         {
             //Add more columns
             string[] columns = { "cars.price", "cars.mileage", "cars.horsepower", "cars.enginesize", "cars.registration", "cars.consumption", "cars.doors", "colors.name", "fuels.name", "bodies.name", "cars.title", "makes.name", "conditions.name" };
+            
             //Use the correct line, depending on how incomparable items should be compared
-            //string[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGH cars.registration", "LOW cars.consumption", "HIGH cars.doors", "HIGH colors.name {'rot' == 'blau' >> OTHERS >> 'grau'}", "HIGH fuels.name {'Benzin' >> OTHERS >> 'Diesel'}", "HIGH bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS >> 'Pick-Up'}", "HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERS}", "HIGH makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS >> 'FERRARI'}", "HIGH conditions.name {'Neu' >> OTHERS}" };
-            string[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGH cars.registration", "LOW cars.consumption", "HIGH cars.doors", "HIGH colors.name {'rot' == 'blau' >> OTHERSEQUAL >> 'grau'}", "HIGH fuels.name {'Benzin' >> OTHERSEQUAL >> 'Diesel'}", "HIGH bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERSEQUAL >> 'Pick-Up'}", "HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERSEQUAL}", "HIGH makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERSEQUAL >> 'FERRARI'}", "HIGH conditions.name {'Neu' >> OTHERSEQUAL}" };
+            //string[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGHDATE cars.registration", "LOW cars.consumption", "HIGH cars.doors", "HIGH colors.name {'rot' == 'blau' >> OTHERS >> 'grau'}", "HIGH fuels.name {'Benzin' >> OTHERS >> 'Diesel'}", "HIGH bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS >> 'Pick-Up'}", "HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERS}", "HIGH makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS >> 'FERRARI'}", "HIGH conditions.name {'Neu' >> OTHERS}" };
+            string[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGHDATE cars.registration", "LOW cars.consumption", "HIGH cars.doors", "HIGH colors.name {'rot' == 'blau' >> OTHERSEQUAL >> 'grau'}", "HIGH fuels.name {'Benzin' >> OTHERSEQUAL >> 'Diesel'}", "HIGH bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERSEQUAL >> 'Pick-Up'}", "HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERSEQUAL}", "HIGH makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERSEQUAL >> 'FERRARI'}", "HIGH conditions.name {'Neu' >> OTHERSEQUAL}" };
+            
             string[] sizes = { "small", "medium", "large", "superlarge" };
+            
             
 
             StringBuilder sb = new StringBuilder();
@@ -101,11 +104,11 @@ namespace Utility
             string strFileName = "";
             if(algorithmType == SQLCommon.Algorithm.NativeSQL) 
             {
-                strFileName = "E:\\Doc\\Studies\\PRJ_Thesis\\10 Arcmedia Profiles\\Performance_Native_Auto.sql";
+                strFileName = "E:\\Doc\\Studies\\PRJ_Thesis\\15 Performance\\Performance_Native_Auto.sql";
             }
             else
             {
-                strFileName = "E:\\Doc\\Studies\\PRJ_Thesis\\10 Arcmedia Profiles\\Performance_BNL_Auto.sql";
+                strFileName = "E:\\Doc\\Studies\\PRJ_Thesis\\15 Performance\\Performance_BNL_Auto.sql";
             }
             StreamWriter outfile = new StreamWriter(strFileName);
             outfile.Write(sb.ToString());
