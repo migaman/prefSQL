@@ -113,23 +113,15 @@ namespace prefSQL.SQLParser
                         else if (_SkylineType == Algorithm.BNL)
                         {
                             string strOperators = "";
-                            string strPreferences = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
-                            string strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
+                            string strAttributesSkyline = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
+                            //Without SELECT 
+                            string strAttributesOutput = ", " + strNewSQL.Substring(7, strNewSQL.IndexOf("FROM")-7);
                             string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
-                            string strTable = "";
-                            foreach (KeyValuePair<string, string> table in prefSQL.Tables)
-                            {
-                                if(table.Value.Equals(""))
-                                    strTable = table.Key;
-                                else
-                                    strTable = table.Value;
-                                break;
-                            }
 
-                            string strFirstSQL = "SELECT "  + strPreferences + " " + strSQLAfterFrom;
+                            string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
                             string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
                             strFirstSQL += strOrderBy.Replace("'", "''");
-                            strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', '" + strNewSQL + "'";
+                            strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "'";
                         }
                     }
                     else if (prefSQL.HasPrioritize == true)
@@ -251,13 +243,13 @@ namespace prefSQL.SQLParser
                     if (model.Skyline[iChild].Op.Equals("<"))
                     {
                         op = "LOW";
-                        strSQL += ", " + model.Skyline[iChild].ColumnExpression.Replace("'", "''");
+                        strSQL += ", " + model.Skyline[iChild].ColumnExpression.Replace("'", "''") +" AS SkylineAttribute" + iChild;
                     }
                     else
                     {
                         op = "LOW";
                         //Trick: Convert HIGH attributes in negative values
-                        strSQL += ", " + model.Skyline[iChild].ColumnExpression.Replace("'", "''") + " * -1 ";
+                        strSQL += ", " + model.Skyline[iChild].ColumnExpression.Replace("'", "''") + "*-1 AS SkylineAttribute" + iChild;
 
                     }
                     strOperators += op + ";";

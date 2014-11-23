@@ -15,10 +15,10 @@ public partial class StoredProcedures
     private const string connectionstring = "context connection=true";
     private const int MaxSize = 4000;
     //private const string TempTable = "##MySkylineTable";
-    private const int MaxVarcharSize = 100; 
+    //private const int MaxVarcharSize = 100; 
 
     [Microsoft.SqlServer.Server.SqlProcedure]
-    public static void SP_SkylineBNL(SqlString strDimensions, SqlString strOperators, SqlString strQuery)
+    public static void SP_SkylineBNL(SqlString strQuery, SqlString strOperators)
     {
         ArrayList resultCollection = new ArrayList();
         ArrayList resultstringCollection = new ArrayList();
@@ -28,34 +28,39 @@ public partial class StoredProcedures
         try
         {
             //Some checks
-            if (strDimensions.ToString().Length == MaxSize)
+            if (strQuery.ToString().Length == MaxSize)
             {
                 throw new Exception("Query is too long. Maximum size is " + MaxSize);
             }
             connection.Open();
 
             SqlDataAdapter dap = new SqlDataAdapter(strQuery.ToString(), connection);
-            //DataTable dt = new DataTable(TempTable);
             DataTable dt = new DataTable();
             dap.Fill(dt);
 
 
             // Build our record schema 
             List<SqlMetaData> OutputColumns = new List<SqlMetaData>(dt.Columns.Count);
+            int iCol = 0;
             foreach (DataColumn col in dt.Columns)
             {
-                SqlMetaData OutputColumn;
-                if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(DateTime)))
+                //Only the real columns (skyline columns are not output fields)
+                if (iCol > operators.GetUpperBound(0))
                 {
-                    OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType));
-                }
-                else
-                {
-                    OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
-                }
+                    SqlMetaData OutputColumn;
+                    if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(DateTime)))
+                    {
+                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType));
+                    }
+                    else
+                    {
+                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
+                    }
 
-                //SqlMetaData OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength); 
-                OutputColumns.Add(OutputColumn);
+                    //SqlMetaData OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength); 
+                    OutputColumns.Add(OutputColumn);
+                }
+                iCol++;
             }
             SqlDataRecord record = new SqlDataRecord(OutputColumns.ToArray());
             SqlContext.Pipe.SendResultsStart(record); 
@@ -68,11 +73,11 @@ public partial class StoredProcedures
             //Clones the structure of the DataTable, including all DataTable schemas and constraints.
             //DataTable dtInsert = dt.Clone();
 
-            SqlCommand sqlCommand = new SqlCommand(strDimensions.ToString(), connection);
-            SqlDataReader sqlReader = sqlCommand.ExecuteReader();
+
+            DataTableReader sqlReader = dt.CreateDataReader();
 
 
-            int iIndex = 0;
+            //int iIndex = 0;
             //Read all records only once. (SqlDataReader works forward only!!)
             while (sqlReader.Read())
             {
@@ -80,19 +85,9 @@ public partial class StoredProcedures
                 if (resultCollection.Count == 0)
                 {
                     // Build our SqlDataRecord and start the results 
-                    
-
-
                     //dtInsert.ImportRow(dt.Rows[iIndex]);
                     //record.SetInt32(0, 10);
-
-                    for (int col = 0; col < dt.Columns.Count; col++)
-                    {
-                        record.SetValue(col, dt.Rows[iIndex].ItemArray[col]);
-                    }
-                    SqlContext.Pipe.SendResultsRow(record); 
-
-                    addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection);
+                    addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record);
                 }
                 else
                 {
@@ -118,20 +113,13 @@ public partial class StoredProcedures
                     }
                     if (bDominated == false)
                     {
-                        for (int col = 0; col < dt.Columns.Count; col++)
-                        {
-                            record.SetValue(col, dt.Rows[iIndex].ItemArray[col]);
-                        }
-                        SqlContext.Pipe.SendResultsRow(record); 
-
                         //dtInsert.ImportRow(dt.Rows[iIndex]);
-                        addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection);
+                        addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record);
 
 
                     }
 
                 }
-                iIndex++;
             }
 
             sqlReader.Close();
@@ -196,48 +184,48 @@ public partial class StoredProcedures
     }
 
 
-    private static void addToWindow(SqlDataReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection)
+    private static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlDataRecord record)
     {
 
         //Erste Spalte ist die ID
-        long[] record = new long[sqlReader.FieldCount];
-        string[] recordstring = new string[sqlReader.FieldCount];
-        for (int i = 0; i <= record.GetUpperBound(0); i++)
+        long[] recordInt = new long[operators.GetUpperBound(0) + 1];
+        string[] recordstring = new string[operators.GetUpperBound(0) + 1];
+
+
+        for (int iCol = 0; iCol < sqlReader.FieldCount; iCol++)
         {
-            //LOW und HIGH Spalte in record abfüllen
-            if (operators[i].Equals("LOW"))
+            //Only the real columns (skyline columns are not output fields)
+            if (iCol <= operators.GetUpperBound(0))
             {
-                Type type = sqlReader.GetFieldType(i);
-                if (type == typeof(int))
+                //LOW und HIGH Spalte in record abfüllen
+                if (operators[iCol].Equals("LOW"))
                 {
-                    record[i] = sqlReader.GetInt32(i);
-                }
-                else if (type == typeof(DateTime))
-                {
-                    //record[i] = sqlReader.GetDateTime(i).Ticks; 
-                    record[i] = sqlReader.GetDateTime(i).Year * 10000 + sqlReader.GetDateTime(i).Month * 100 + sqlReader.GetDateTime(i).Day;
-                }
+                    recordInt[iCol] = sqlReader.GetInt32(iCol);
 
-                //Check if long value is incomparable
-                if (i + 1 <= record.GetUpperBound(0) && operators[i + 1].Equals("INCOMPARABLE"))
-                {
-                    //Incomparable field is always the next one
-                    type = sqlReader.GetFieldType(i + 1);
-                    if (type == typeof(string))
+                    //Check if long value is incomparable
+                    if (iCol + 1 <= recordInt.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
                     {
-                        recordstring[i] = sqlReader.GetString(i + 1);
+                        //Incomparable field is always the next one
+                        recordstring[iCol] = sqlReader.GetString(iCol + 1);
                     }
-
                 }
+
+            }
+            else
+            {
+                record.SetValue(iCol - (operators.GetUpperBound(0) + 1), sqlReader[iCol]);
             }
 
+
         }
-        resultCollection.Add(record);
+
+        SqlContext.Pipe.SendResultsRow(record);
+        resultCollection.Add(recordInt);
         resultstringCollection.Add(recordstring);
     }
 
 
-    private static bool compare(SqlDataReader sqlReader, string[] operators, long[] result, string[] stringResult)
+    private static bool compare(DataTableReader sqlReader, string[] operators, long[] result, string[] stringResult)
     {
         bool greaterThan = false;
 
@@ -247,19 +235,7 @@ public partial class StoredProcedures
             //Compare only LOW attributes
             if (op.Equals("LOW"))
             {
-                //Convert value if it is a date
-                long value = 0;
-                Type type = sqlReader.GetFieldType(iCol);
-                if (type == typeof(int))
-                {
-                    value = sqlReader.GetInt32(iCol);
-                }
-                else if (type == typeof(DateTime))
-                {
-                    //value = sqlReader.GetDateTime(iCol).Ticks;
-                    value = sqlReader.GetDateTime(iCol).Year * 10000 + sqlReader.GetDateTime(iCol).Month * 100 + sqlReader.GetDateTime(iCol).Day;
-                }
-
+                long value = sqlReader.GetInt32(iCol);
                 int comparison = compareValue(value, result[iCol]);
 
                 if (comparison >= 1)
