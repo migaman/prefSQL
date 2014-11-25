@@ -17,6 +17,11 @@ public partial class StoredProcedures
     //private const string TempTable = "##MySkylineTable";
     //private const int MaxVarcharSize = 100; 
 
+    /// <summary>
+    /// Calculate the skyline points from a dataset
+    /// </summary>
+    /// <param name="strQuery"></param>
+    /// <param name="strOperators"></param>
     [Microsoft.SqlServer.Server.SqlProcedure]
     public static void SP_SkylineBNL(SqlString strQuery, SqlString strOperators)
     {
@@ -40,29 +45,9 @@ public partial class StoredProcedures
 
 
             // Build our record schema 
-            List<SqlMetaData> OutputColumns = new List<SqlMetaData>(dt.Columns.Count);
-            int iCol = 0;
-            foreach (DataColumn col in dt.Columns)
-            {
-                //Only the real columns (skyline columns are not output fields)
-                if (iCol > operators.GetUpperBound(0))
-                {
-                    SqlMetaData OutputColumn;
-                    if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(DateTime)))
-                    {
-                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType));
-                    }
-                    else
-                    {
-                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
-                    }
+            List<SqlMetaData> outputColumns = buildRecordSchema(dt, operators);
 
-                    //SqlMetaData OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength); 
-                    OutputColumns.Add(OutputColumn);
-                }
-                iCol++;
-            }
-            SqlDataRecord record = new SqlDataRecord(OutputColumns.ToArray());
+            SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
             SqlContext.Pipe.SendResultsStart(record); 
 
             //dt.CreateDataReader();
@@ -309,6 +294,31 @@ public partial class StoredProcedures
             return 0;
         }
 
+    }
+
+    private static List<SqlMetaData> buildRecordSchema(DataTable dt, string[] operators)
+    {
+        List<SqlMetaData> outputColumns = new List<SqlMetaData>(dt.Columns.Count);
+        int iCol = 0;
+        foreach (DataColumn col in dt.Columns)
+        {
+            //Only the real columns (skyline columns are not output fields)
+            if (iCol > operators.GetUpperBound(0))
+            {
+                SqlMetaData OutputColumn;
+                if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(DateTime)))
+                {
+                    OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType));
+                }
+                else
+                {
+                    OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
+                }
+                outputColumns.Add(OutputColumn);
+            }
+            iCol++;
+        }
+        return outputColumns;
     }
 
     /*

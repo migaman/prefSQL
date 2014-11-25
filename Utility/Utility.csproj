@@ -37,6 +37,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -45,6 +47,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DominanceGraph.cs" />
+    <Compile Include="FrmSQLParser.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmSQLParser.Designer.cs">
+      <DependentUpon>FrmSQLParser.cs</DependentUpon>
+    </Compile>
     <Compile Include="Performance.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -59,6 +67,11 @@
       <Project>{125a1438-e65a-4f43-a9ec-23a7bc7e68d7}</Project>
       <Name>SQLParser</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="FrmSQLParser.resx">
+      <DependentUpon>FrmSQLParser.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

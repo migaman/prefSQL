@@ -15,7 +15,7 @@ namespace Utility
 
             
             Performance p = new Performance();
-            p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.BNL);
+            p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.NativeSQL, false);
             
 
             /*
@@ -28,6 +28,10 @@ namespace Utility
             prg.Run();
             */
 
+            /*
+            FrmSQLParser form = new FrmSQLParser();
+            form.Show();
+            */
             //Test SkylineBNL Algorithm
             /*string str1 = "SELECT cars.id , CASE WHEN colors.name = 'schwarz' THEN 0 ELSE 100 END, colors.name, cars.price FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID ORDER BY CASE WHEN colors.name = 'schwarz' THEN 0 ELSE 100 END ASC, price ASC";
             string str2 = ";LOW_INCOMPARABLE;INCOMPARABLE;LOW";
@@ -104,7 +108,7 @@ namespace Utility
 
                 //string strPrefSQL = "SELECT cars.id, cars.title, colors.name, fuels.name FROM cars " +
                 //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name, mileage FROM cars " +
-                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t2.name AS Farbe FROM cars t1 " +
+                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, name FROM cars t1 " +
                     //string strPrefSQL = "SELECT cars.id, cars.Price, cars.mileage FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage, cars.horsepower, cars.enginesize, cars.registration, cars.consumption, cars.doors, colors.name, fuels.name FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, colors.name AS colourname, fuels.name AS fuelname, cars.price FROM cars " +
@@ -117,10 +121,10 @@ namespace Utility
                 //"PREFERENCE HIGH t2.name {'schwarz' >> OTHERS} AND LOW t1.price AND HIGH t1.horsepower";
                 //"PREFERENCE HIGH colors.name {'rot' == 'blau' >> OTHERS >> 'grau'} AND HIGH cars.registration";
                 //"PREFERENCE HIGH t1.title {'MERCEDES-BENZ SL 600' >> OTHERS} AND LOW t1.price";
-                "PREFERENCE HIGH t2.name {'rot' >> OTHERS} AND LOW t1.price";
-                //"PREFERENCE LOW t1.price AND LOW t1.mileage ";
+                //"PREFERENCE HIGH t2.name {'rot' >> OTHERS} AND LOW t1.price";
+                "PREFERENCE LOW t1.price AND LOW t1.mileage ";
                 //"PREFERENCE LOW t1.price PRIORITIZE LOW t1.mileage";
-                //"PREFERENCE LOW t1.price PRIORITIZE LOW t1.mileage PRIORITIZE HIGH t2.name {'pink' >> OTHERSEQUAL}";
+                //"PREFERENCE LOW t1.price PRIORITIZE LOW t1.mileage PRIORITIZE HIGH t2.name {OTHERS >> 'pink'}";
                 //"PREFERENCE cars.price AROUND 10000 ";
                 //"PREFERENCE HIGH colors.name {'rot' >> OTHERSEQUAL} AND cars.price AROUND 10000";
                 //"PREFERENCE cars.price AROUND 10000 AND HIGH colors.name {'rot' >> OTHERSEQUAL}";
