@@ -24,10 +24,10 @@ namespace Utility
             }
             else
             {
-                preferences = new string[] { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGHDATE cars.registration", "LOW cars.consumption", "HIGH cars.doors", "HIGH colors.name {'rot' == 'blau' >> OTHERSEQUAL >> 'grau'}", "HIGH fuels.name {'Benzin' >> OTHERSEQUAL >> 'Diesel'}", "HIGH bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERSEQUAL >> 'Pick-Up'}", "HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERSEQUAL}", "HIGH makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERSEQUAL >> 'FERRARI'}", "HIGH conditions.name {'Neu' >> OTHERSEQUAL}" };
+                preferences = new string[] { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGHDATE cars.registration", "LOW cars.consumption", "HIGH cars.doors", "HIGH colors.name {'rot' == 'blau' >> OTHERS EQUAL >> 'grau'}", "HIGH fuels.name {'Benzin' >> OTHERS EQUAL >> 'Diesel'}", "HIGH bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS EQUAL >> 'Pick-Up'}", "HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERS EQUAL}", "HIGH makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI'}", "HIGH conditions.name {'Neu' >> OTHERS EQUAL}" };
             }
             //string[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGHDATE cars.registration", "LOW cars.consumption", "HIGH cars.doors", "HIGH colors.name {'rot' == 'blau' >> OTHERS >> 'grau'}", "HIGH fuels.name {'Benzin' >> OTHERS >> 'Diesel'}", "HIGH bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS >> 'Pick-Up'}", "HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERS}", "HIGH makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS >> 'FERRARI'}", "HIGH conditions.name {'Neu' >> OTHERS}" };
-            //string[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGHDATE cars.registration", "LOW cars.consumption", "HIGH cars.doors", "HIGH colors.name {'rot' == 'blau' >> OTHERSEQUAL >> 'grau'}", "HIGH fuels.name {'Benzin' >> OTHERSEQUAL >> 'Diesel'}", "HIGH bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERSEQUAL >> 'Pick-Up'}", "HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERSEQUAL}", "HIGH makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERSEQUAL >> 'FERRARI'}", "HIGH conditions.name {'Neu' >> OTHERSEQUAL}" };
+            //string[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGHDATE cars.registration", "LOW cars.consumption", "HIGH cars.doors", "HIGH colors.name {'rot' == 'blau' >> OTHERS EQUAL >> 'grau'}", "HIGH fuels.name {'Benzin' >> OTHERS EQUAL >> 'Diesel'}", "HIGH bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS EQUAL >> 'Pick-Up'}", "HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERS EQUAL}", "HIGH makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI'}", "HIGH conditions.name {'Neu' >> OTHERS EQUAL}" };
             
             string[] sizes = { "small", "medium", "large", "superlarge" };
             
@@ -72,7 +72,7 @@ namespace Utility
 
 
                 //ADD Preferences
-                strSQL += "PREFERENCE " + string.Join(" AND ", preferences);
+                strSQL += "SKYLINE OF " + string.Join(" AND ", preferences);
 
 
                 //Convert to real SQL

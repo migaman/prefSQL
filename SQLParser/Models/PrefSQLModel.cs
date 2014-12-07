@@ -11,7 +11,8 @@ namespace prefSQL.SQLParser.Models
         private bool _hasTOP = false;                                                   //if the query has the TOP Keyword
         private List<AttributeModel> _skyline = new List<AttributeModel>();             //skyline attributes
         private List<RankModel> _rank = new List<RankModel>();                          //rank attributes
-        private List<string> _orderBy = new List<string>();                             //orderby attributes
+        private List<string> _orderBySkyline = new List<string>();                             //orderby attributes
+        private Dictionary<string, string> _orderBy = new Dictionary<string, string>();  //the category order by and the calculated sql
         private Dictionary<string, string> _tables = new Dictionary<string, string>();  //the tablename and its alias
         private bool _hasSkyline = false;                                               //if the query needs a skyline clause
         private bool _hasPrioritize = false;                                            //if the query needs a prioritize clause
@@ -53,7 +54,13 @@ namespace prefSQL.SQLParser.Models
             get { return _skyline; }
         }
 
-        public List<string> OrderBy
+        public List<string> OrderBySkyline
+        {
+            set { _orderBySkyline = value; }
+            get { return _orderBySkyline; }
+        }
+
+        public Dictionary<string, string> OrderBy
         {
             set { _orderBy = value; }
             get { return _orderBy; }

@@ -20,7 +20,7 @@ namespace prefSQL.SQLParser
     public class SQLCommon
     {
         private Algorithm _SkylineType = Algorithm.NativeSQL;
-        private Ordering _OrderType = Ordering.AttributePosition;
+        //private Ordering _OrderType = Ordering.AttributePosition;
         private bool _ShowSkylineAttributes = false;
 
         public bool ShowSkylineAttributes
@@ -36,14 +36,14 @@ namespace prefSQL.SQLParser
             DQ,
         };
 
-        public enum Ordering
+        /*public enum Ordering
         {
             AttributePosition,
             RankingSummarize,
             RankingBestOf,
             Random,
             AsIs //Without OrderBy-Clause as it comes from the database
-        }
+        }*/
 
         
         public Algorithm SkylineType
@@ -52,11 +52,11 @@ namespace prefSQL.SQLParser
             set { _SkylineType = value; }
         }
 
-        public Ordering OrderType
+        /*public Ordering OrderType
         {
             get { return _OrderType; }
             set { _OrderType = value; }
-        }
+        }*/
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
         /// <param name="strInput">Preference SQL Statement</param>
@@ -84,14 +84,13 @@ namespace prefSQL.SQLParser
                 //Visit parsetree
                 SQLVisitor visitor = new SQLVisitor();
                 PrefSQLModel prefSQL = visitor.Visit(tree);
-
-
+                prefSQL = visitor.Model;
                 
 
                 //Check if parse was successful
-                if (prefSQL != null && strInput.IndexOf("PREFERENCE") > 0)
+                if (prefSQL != null && strInput.IndexOf("SKYLINE OF") > 0)
                 {
-                    strNewSQL = strInput.Substring(0, strInput.IndexOf("PREFERENCE") - 1);
+                    strNewSQL = strInput.Substring(0, strInput.IndexOf("SKYLINE OF") - 1);
 
                     if(prefSQL.HasSkyline == true)
                     {
@@ -106,7 +105,20 @@ namespace prefSQL.SQLParser
                             }
 
                             string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strNewSQL);
-                            string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
+                            //string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
+                            string strOrderBy = "";
+                            if (strInput.IndexOf("ORDER BY") > 0)
+                            {
+                                strOrderBy = strInput.Substring(strInput.IndexOf("ORDER BY"));
+
+                                foreach (KeyValuePair<string, string> orderBy in prefSQL.OrderBy)
+                                {
+                                    //String strOrderByNoSpaces = strOrderBy.Replace()
+                                    strOrderBy = strOrderBy.Replace(orderBy.Key, orderBy.Value);
+                                }
+                                //Replace category clauses
+                                
+                            }
                             strNewSQL += strWHERE;
                             strNewSQL += strOrderBy;
                         }
@@ -119,28 +131,29 @@ namespace prefSQL.SQLParser
                             string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
 
                             string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
-                            string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
+                            //Sortieren nach Attributen (damit algo funktioniert)
+                            string strOrderBy = sqlSort.getSortClause(prefSQL); // sqlSort.getSortClause(prefSQL, _OrderType);
                             strFirstSQL += strOrderBy.Replace("'", "''");
                             strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "'";
                         }
                     }
-                    else if (prefSQL.HasPrioritize == true)
+                    /*else if (prefSQL.HasPrioritize == true)
                     {
-                        string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strNewSQL);
+                        string strWHERE = ""; // sqlCriterion.getCriterionClause(prefSQL, strNewSQL);
                         string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
 
-                        string strSelectRank = buildSELECTRank(prefSQL, strNewSQL);
-                        strNewSQL = "SELECT * FROM (" + strSelectRank;
-                        strNewSQL += ") RankedResult ";
+                        //string strSelectRank = strNewSQL; // buildSELECTRank(prefSQL, strNewSQL);
+                        //strNewSQL = "SELECT * FROM (" + strSelectRank;
+                        //strNewSQL += ") RankedResult ";
 
                         strNewSQL += strWHERE;
                         strNewSQL += strOrderBy;
-                    }
-                    else
+                    }*/
+                    /*else
                     {
-                        string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
-                        strNewSQL += strOrderBy;
-                    }
+                        //string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
+                        //strNewSQL += strOrderBy;
+                    }*/
 
                 }
                 else

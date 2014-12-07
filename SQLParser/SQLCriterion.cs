@@ -18,15 +18,15 @@ namespace prefSQL.SQLParser
             bool isWHEREPresent = false;
 
             //Build Skyline only if more than one attribute
-            if (model.Skyline.Count > 1)
-            {
+            //if (model.Skyline.Count > 1)
+            //{
                 strSQL = getCriterionSkylineClause(model, strPreSQL);
-            }
-            else if (model.Rank.Count > 1)
+            //}
+            /*else if (model.Rank.Count > 1)
             {
                 strSQL = getCriterionRankClause(model);
 
-            }
+            }*/
 
             //Check if a WHERE-Clause was built
             if (strSQL.Length > 0)

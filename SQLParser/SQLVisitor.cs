@@ -17,6 +17,13 @@ namespace prefSQL.SQLParser
         private bool includesTOP = false;
         private const string InnerTableSuffix = "_INNER"; //Table suffix for the inner query
         private const string RankingFunction = "ROW_NUMBER()";
+        private PrefSQLModel model;
+
+        public PrefSQLModel Model
+        {
+            get { return model; }
+            set { model = value; }
+        }
 
         public override PrefSQLModel VisitTable_or_subquery(SQLParser.Table_or_subqueryContext context)
         {
@@ -37,6 +44,186 @@ namespace prefSQL.SQLParser
             return base.VisitTop_keyword(context);
         }
 
+        public override PrefSQLModel VisitOrderbyCategory(SQLParser.OrderbyCategoryContext context)
+        {
+            string strSQL = "";
+            string strColumn = "";
+            string strTable = "";
+
+            //Build CASE ORDER with arguments
+            string strExpr = context.exprSkyline().GetText();
+            strColumn = getColumn(context.GetChild(0));
+            strTable = getTable(context.GetChild(0));
+            string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split signs are == and >>
+            string strSQLOrderBy = "";
+            string strSQLELSE = "";
+            
+
+            //Define sort order value for each attribute
+            int iWeight = 0;
+            for (int i = 0; i < strTemp.GetLength(0); i++)
+            {
+                switch (strTemp[i])
+                {
+                    case ">>":
+                        iWeight += 100; //Gewicht erhöhen, da >> Operator
+                        break;
+                    case "==":
+                        break;  //Gewicht bleibt gleich da == Operator
+                    case "OTHERSINCOMPARABLE":
+                        ////Add one, so that equal-clause cannot be true with same level-values, but other names
+                        strSQLELSE = " ELSE " + (iWeight);
+                        //bComparable = false;
+                        break;
+                    case "OTHERSEQUAL":
+                        //Special word OTHERS EQUAL = all other attributes are defined with this order by value
+                        strSQLELSE = " ELSE " + iWeight;
+                        break;
+                    default:
+                        //Check if it contains multiple values
+                        if (strTemp[i].StartsWith("{"))
+                        {
+                            //Multiple values --> construct IN statement
+                            strTemp[i] = strTemp[i].Replace("{", "(").Replace("}", ")");
+                            strSQLOrderBy += " WHEN " + strTable + "." + strColumn + " IN " + strTemp[i] + " THEN " + iWeight.ToString();
+                        }
+                        else
+                        {
+                            //Single value --> construct = statement
+                            strSQLOrderBy += " WHEN " + strTable + "." + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
+                        }
+                        break;
+                }
+
+                //Always Sort ASCENDING
+                strSQL = "CASE" + strSQLOrderBy + strSQLELSE + " END ASC";
+            }
+
+
+            model.OrderBy.Add(context.GetText(), strSQL);
+            return model;
+
+            
+        }
+
+        public override PrefSQLModel VisitPreferenceCategory(SQLParser.PreferenceCategoryContext context)
+        {
+            string strSQL = "";
+            PrefSQLModel pref = new PrefSQLModel();
+            string strColumn = "";
+            string strTable = "";
+            string strOperator = "";
+            string strRankExpression = "";
+            string strRankColumn = "";
+
+            //With only 2 expressions it is a numeric LOW preference 
+            if (context.ChildCount == 2)
+            {
+                
+
+            }
+            //Otherwise it is a text LOW/HIGH preference --> Text text must be converted in a given sortorder
+            else
+            {
+
+                //Build CASE ORDER with arguments
+                string strExpr = context.exprSkyline().GetText();
+                strColumn = getColumn(context.GetChild(0));
+                strTable = getTable(context.GetChild(0));
+                string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split signs are == and >>
+                string strSQLOrderBy = "";
+                string strSQLELSE = "";
+                string strSQLInnerELSE = "";
+                string strSQLInnerOrderBy = "";
+                string strInnerColumn = "";
+                string strSingleColumn = strTable + "." + getColumn(context.GetChild(0));
+                string strInnerSingleColumn = strTable + InnerTableSuffix + "." + getColumn(context.GetChild(0));
+                string strSQLIncomparableAttribute = "";
+                string strIncomporableAttribute = "";
+                string strIncomporableAttributeELSE = "";
+                bool bComparable = true;
+
+                //Define sort order value for each attribute
+                int iWeight = 0;
+                for (int i = 0; i < strTemp.GetLength(0); i++)
+                {
+                    switch (strTemp[i])
+                    {
+                        case ">>":
+                            iWeight += 100; //Gewicht erhöhen, da >> Operator
+                            break;
+                        case "==":
+                            break;  //Gewicht bleibt gleich da == Operator
+                        case "OTHERSINCOMPARABLE":
+                            ////Add one, so that equal-clause cannot be true with same level-values, but other names
+                            strSQLELSE = " ELSE " + (iWeight);
+                            strSQLInnerELSE = " ELSE " + (iWeight + 1);
+                            strIncomporableAttributeELSE = "ELSE " + strTable + "." + strColumn; //Not comparable --> give string value of field
+                            bComparable = false;
+                            break;
+                        case "OTHERSEQUAL":
+                            //Special word OTHERS EQUAL = all other attributes are defined with this order by value
+                            strSQLELSE = " ELSE " + iWeight;
+                            strSQLInnerELSE = " ELSE " + iWeight;
+                            strIncomporableAttributeELSE = " ELSE ''"; //Comparable give empty column
+                            break;
+                        default:
+                            //Check if it contains multiple values
+                            if (strTemp[i].StartsWith("{"))
+                            {
+                                //Multiple values --> construct IN statement
+                                strTemp[i] = strTemp[i].Replace("{", "(").Replace("}", ")");
+                                strSQLOrderBy += " WHEN " + strTable + "." + strColumn + " IN " + strTemp[i] + " THEN " + iWeight.ToString();
+                                //This values are always incomparable (otherwise the = should be used)
+                                strSQLInnerOrderBy += " WHEN " + strTable + InnerTableSuffix + "." + strColumn + " IN " + strTemp[i] + " THEN " + (iWeight + 1);
+                                //Not comparable --> give string value of field
+                                strSQLIncomparableAttribute += " WHEN " + strTable + "." + strColumn + " IN " + strTemp[i] + " THEN " + strTable + "." + strColumn;
+                            }
+                            else
+                            {
+                                //Single value --> construct = statement
+                                strSQLOrderBy += " WHEN " + strTable + "." + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
+                                //This values are always comparable (otherwise the {x, y} should be used)
+                                strSQLInnerOrderBy += " WHEN " + strTable + InnerTableSuffix + "." + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
+                                strSQLIncomparableAttribute += " WHEN " + strTable + "." + strColumn + " = " + strTemp[i] + " THEN ''"; //comparable
+                            }
+                            break;
+                    }
+
+                }
+                strSQL = "CASE" + strSQLOrderBy + strSQLELSE + " END";
+                strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLInnerELSE + " END";
+                strIncomporableAttribute = "CASE" + strSQLIncomparableAttribute + strIncomporableAttributeELSE + " END";
+                strColumn = strSQL;
+
+                //Depending on LOW or HIGH do an ASCENDING or DESCENDING sort
+                /*if (context.op.Type == SQLParser.K_HIGH)
+                {
+                */
+                    strSQL += " ASC";
+                    strOperator = "<";
+
+                /*}
+                else if (context.op.Type == SQLParser.K_LOW)
+                {
+                    strSQL += " DESC";
+                    strOperator = ">";
+                }*/
+                strRankExpression = RankingFunction + " over (ORDER BY " + strSQL + ") AS Rank" + strSingleColumn.Replace(".", "");
+                strRankColumn = RankingFunction + " over (ORDER BY " + strSQL + ")";
+                //Add the preference to the list               
+                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute));
+                pref.Rank.Add(new RankModel(strRankExpression, strTable, strSingleColumn.Replace(".", ""), strRankColumn));
+            }
+
+
+
+            pref.OrderBySkyline.Add(strSQL);
+            pref.Tables = tables;
+            pref.HasSkyline = true;
+            model = pref;
+            return pref;
+        }
 
         public override PrefSQLModel VisitPreferenceLOWHIGH(SQLParser.PreferenceLOWHIGHContext context)
         {
@@ -55,8 +242,8 @@ namespace prefSQL.SQLParser
             if (context.ChildCount == 2)
             {
                 //Separate Column and Table
-                strColumn = getColumn(context.GetChild(1));
-                strTable = getTable(context.GetChild(1));
+                strColumn = getColumn(context.GetChild(0));
+                strTable = getTable(context.GetChild(0));
                 strFullColumnName = strTable + "." + strColumn;
                 //Keyword LOW or HIGH, build ORDER BY
                 if (context.op.Type == SQLParser.K_LOW)
@@ -103,108 +290,18 @@ namespace prefSQL.SQLParser
                 pref.Rank.Add(new RankModel(strRankExpression, strTable, strColumn, strRankColumn));
 
             }
-            //Otherwise it is a text LOW/HIGH preference --> Text text must be converted in a given sortorder
-            else
-            {
-
-                //Build CASE ORDER with arguments
-                string strExpr = context.expr().GetText();
-                strColumn = getColumn(context.GetChild(1));
-                strTable = getTable(context.GetChild(1));
-                string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split signs are == and >>
-                string strSQLOrderBy = "";
-                string strSQLELSE = "";
-                string strSQLInnerELSE = "";
-                string strSQLInnerOrderBy = "";
-                string strInnerColumn = "";
-                string strSingleColumn = strTable + "." + getColumn(context.GetChild(1));
-                string strInnerSingleColumn = strTable + InnerTableSuffix + "." + getColumn(context.GetChild(1));
-                string strSQLIncomparableAttribute = "";
-                string strIncomporableAttribute = "";
-                string strIncomporableAttributeELSE = "";
-                bool bComparable = true;
-
-                //Define sort order value for each attribute
-                int iWeight = 0;
-                for (int i = 0; i < strTemp.GetLength(0); i++)
-                {
-                    switch (strTemp[i])
-                    {
-                        case ">>":
-                            iWeight+=100; //Gewicht erhöhen, da >> Operator
-                            break;
-                        case "==":
-                            break;  //Gewicht bleibt gleich da == Operator
-                        case "OTHERS":
-                            ////Add one, so that equal-clause cannot be true with same level-values, but other names
-                            strSQLELSE = " ELSE " + (iWeight);
-                            strSQLInnerELSE = " ELSE " + (iWeight + 1);
-                            strIncomporableAttributeELSE = "ELSE " + strTable + "." + strColumn; //Not comparable --> give string value of field
-                            bComparable = false;
-                            break;
-                        case "OTHERSEQUAL":
-                            //Special word OTHERSEQUAL = all other attributes are defined with this order by value
-                            strSQLELSE = " ELSE " + iWeight;
-                            strSQLInnerELSE = " ELSE " + iWeight;
-                            strIncomporableAttributeELSE = " ELSE ''"; //Comparable give empty column
-                            break;
-                        default:
-                            //Check if it contains multiple values
-                            if (strTemp[i].StartsWith("{"))
-                            {
-                                //Multiple values --> construct IN statement
-                                strTemp[i] = strTemp[i].Replace("{", "(").Replace("}", ")");
-                                strSQLOrderBy += " WHEN " + strTable + "." + strColumn + " IN " + strTemp[i] + " THEN " + iWeight.ToString();
-                                //This values are always incomparable (otherwise the = should be used)
-                                strSQLInnerOrderBy += " WHEN " + strTable + InnerTableSuffix + "." + strColumn + " IN " + strTemp[i] + " THEN " + (iWeight + 1);
-                                //Not comparable --> give string value of field
-                                strSQLIncomparableAttribute += " WHEN " + strTable + "." + strColumn + " IN " + strTemp[i] + " THEN " + strTable + "." + strColumn;
-                            }
-                            else
-                            {
-                                //Single value --> construct = statement
-                                strSQLOrderBy += " WHEN " + strTable + "." + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
-                                //This values are always comparable (otherwise the {x, y} should be used)
-                                strSQLInnerOrderBy += " WHEN " + strTable + InnerTableSuffix + "." + strColumn + " = " + strTemp[i] + " THEN " + iWeight.ToString();
-                                strSQLIncomparableAttribute += " WHEN " + strTable + "." + strColumn + " = " + strTemp[i] + " THEN ''"; //comparable
-                            }
-                            break;
-                    }
-
-                }
-                strSQL = "CASE" + strSQLOrderBy + strSQLELSE + " END";
-                strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLInnerELSE + " END";
-                strIncomporableAttribute = "CASE" + strSQLIncomparableAttribute + strIncomporableAttributeELSE + " END";
-                strColumn = strSQL;
-
-                //Depending on LOW or HIGH do an ASCENDING or DESCENDING sort
-                if (context.op.Type == SQLParser.K_HIGH)
-                {
-
-                    strSQL += " ASC";
-                    strOperator = "<";
-
-                }
-                else if (context.op.Type == SQLParser.K_LOW)
-                {
-                    strSQL += " DESC";
-                    strOperator = ">";
-                }
-                strRankExpression = RankingFunction + " over (ORDER BY " + strSQL + ") AS Rank" + strSingleColumn.Replace(".", "");
-                strRankColumn = RankingFunction + " over (ORDER BY " + strSQL + ")";
-                //Add the preference to the list               
-                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute));
-                pref.Rank.Add(new RankModel(strRankExpression, strTable, strSingleColumn.Replace(".", ""), strRankColumn));
-            }
 
 
-            
-            pref.OrderBy.Add(strSQL);
+            pref.HasSkyline = true;
+            pref.Tables = tables;
+            pref.OrderBySkyline.Add(strSQL);
+            model = pref;
             return pref;
 
         }
 
-        public override PrefSQLModel VisitExprPrioritize(SQLParser.ExprPrioritizeContext context)
+
+        /*public override PrefSQLModel VisitExprPrioritize(SQLParser.ExprPrioritizeContext context)
         {
             //And was used --> visit left and right node
             PrefSQLModel left = Visit(context.expr(0));
@@ -220,12 +317,12 @@ namespace prefSQL.SQLParser
             pref.HasTop = includesTOP;
             pref.HasPrioritize = true;
             return pref;
-        }
+        }*/
         public override PrefSQLModel VisitExprand(SQLParser.ExprandContext context)
         {
             //And was used --> visit left and right node
-            PrefSQLModel left = Visit(context.expr(0));
-            PrefSQLModel right = Visit(context.expr(1));
+            PrefSQLModel left = Visit(context.exprSkyline(0));
+            PrefSQLModel right = Visit(context.exprSkyline(1));
             
             //Add the columns to the preference model
             PrefSQLModel pref = new PrefSQLModel();
@@ -233,11 +330,12 @@ namespace prefSQL.SQLParser
             pref.Skyline.AddRange(right.Skyline);
             pref.Rank.AddRange(left.Rank);
             pref.Rank.AddRange(right.Rank);
-            pref.OrderBy.AddRange(left.OrderBy);
-            pref.OrderBy.AddRange(right.OrderBy);
+            pref.OrderBySkyline.AddRange(left.OrderBySkyline);
+            pref.OrderBySkyline.AddRange(right.OrderBySkyline);
             pref.Tables = tables;
             pref.HasTop = includesTOP;
             pref.HasSkyline = true;
+            model = pref;
             return pref;
 
         }
@@ -310,7 +408,10 @@ namespace prefSQL.SQLParser
 
 
             //Add the preference to the list               
-            pref.OrderBy.Add(strSQL);
+            pref.OrderBySkyline.Add(strSQL);
+            pref.Tables = tables;
+            pref.HasSkyline = true;
+            model = pref;
             return pref;
         }
 
