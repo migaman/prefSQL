@@ -47,10 +47,9 @@ namespace Utility
 
                 strSQL = "SELECT " +
                     //"DENSE_RANK() OVER (ORDER BY CASE WHEN t2.Name = 'schwarz' THEN 1 ELSE 2 END) AS Skyline1, " +
-                    "DENSE_RANK() OVER (ORDER BY t1.mileage) AS Skyline1, " +
-                    "DENSE_RANK() OVER (ORDER BY t1.price) AS Skyline2 " +
-                    "FROM Cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID " +
-                    "WHERE t1.price < 2200";
+                    "DENSE_RANK() OVER (ORDER BY t1.price)-1 AS RankPrice, " +
+                    "DENSE_RANK() OVER (ORDER BY t1.mileage)-1 AS RankMileage " +
+                    "FROM Cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID ";
                 //strSQL = "SELECT DENSE_RANK() OVER (ORDER BY CASE WHEN t2.Name = 'schwarz' THEN 1 ELSE 2 END) AS Skyline1, DENSE_RANK() OVER (ORDER BY t1.price) AS Skyline2 FROM Cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID";
 
                 SqlDataAdapter dap = new SqlDataAdapter(strSQL.ToString(), connection);
@@ -73,20 +72,26 @@ namespace Utility
                 sqlReader.Close();
 
                 findBMO(amountOfPreferences);
+                
+                
                 //Now read next list
-                int iLoop = 0;
-                while(iLoop != -1) {
-                    int iNode = next[iLoop];
-                    if (iNode == -1)
-                        break;
-                    if(btg[iNode] != null) {
-                        foreach (long[] test in btg[iNode])
+                int iItem = 0;
+
+                //Unitl no more nodes are found
+                while (iItem != -1)
+                {
+                    //Add all records of this node
+                    if (btg[iItem] != null)
                     {
-                        resultCollection.Add(test);
+                        foreach (long[] test in btg[iItem])
+                        {
+                            resultCollection.Add(test);
+                        }
                     }
-                    }
-                    
-                    iLoop = iNode;
+
+                    //Goto the next node
+                    iItem = next[iItem];
+
                 }
                 System.Diagnostics.Debug.WriteLine(resultCollection.Count);
 
@@ -135,22 +140,34 @@ namespace Utility
                 }*/
                 //prev[id] = prev[id];
 
-                next[id] = -1;
-                prev[id] = -1;
+                //next[id] = -1;
+                //prev[id] = -1;
 
                 //remove tuples in node
                 btg[id] = null;
 
             }
-          
+
+            int i = 1;
+
             //remove followers
-            for(int i = 1; i <= index; i++) {
+            for(i = 0; i <= index; i++) {
+                int wei = weight[i];
                 // follow the edge for preference i (only if not already on last level)
-                if (id+i <= level.GetUpperBound(0) &&  level[id + i] == level[id] + 1)
+                if (id+wei <= level.GetUpperBound(0) &&  level[id + wei] == level[id] + 1)
+                //if(level[id+i] == level[id]+1)
                 {
-                    remove(id + i, i);
+                    remove(id + wei, i);
                 }
             }
+
+            //for i ← 1, 2, . . . , index do
+              // follow the edge for preference i
+              //if lvl[id + i] = lvl[id] + 1 then
+                //remove(id + i, i)
+               //end if
+            //end for
+
 
         }
 
@@ -260,7 +277,7 @@ namespace Utility
             try
             {
                 connection.Open();
-                String strQuery = "SELECT MAX(Level_Price), MAX(Level_Colour) FROM ( " +
+                String strQuery = "SELECT MAX(Level_Colour)-1, MAX(Level_Price)-1 FROM ( " +
 	                                    "SELECT " +
 		                                "      t1.id " +
 		                                "    , price " +
@@ -270,7 +287,6 @@ namespace Utility
                                         "    , DENSE_RANK() OVER (ORDER BY mileage) AS Level_Colour " +
 	                                    "FROM Cars_small t1 " +
 	                                    "LEFT OUTER JOIN Colors on t1.Color_Id = Colors.Id " +
-                                        "WHERE t1.price < 2200 " +
                                         ") " +
 	                                    "MyQuery";
                 SqlDataAdapter dap = new SqlDataAdapter(strQuery, connection);

@@ -55,7 +55,6 @@ namespace Utility
                 //"SKYLINE OF t1.price LOW, t1.mileage LOW, t1.consumption LOW, t1.enginesize HIGH, t1.registration HIGHDATE, t1.horsepower HIGH";
                 //"SKYLINE OF t1.price LOW, t1.mileage LOW, t1.enginesize HIGH,  t1.horsepower HIGH, t1.registration HIGHDATE, t1.consumption LOW";
                 //"SKYLINE OF t1.price LOW, t2.name ('schwarz' >> OTHERS EQUAL)"; //Results in 3 rows
-                "WHERE t1.price < 2200 " + 
                 "SKYLINE OF t1.price LOW, t1.mileage LOW"; //Results in 10 rows
                 //"SKYLINE OF t1.price LOW, t1.mileage LOW";
             SQLCommon parser = new SQLCommon();
