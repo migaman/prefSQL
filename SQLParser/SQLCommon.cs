@@ -20,7 +20,7 @@ namespace prefSQL.SQLParser
     public class SQLCommon
     {
         private Algorithm _SkylineType = Algorithm.NativeSQL;
-        //private Ordering _OrderType = Ordering.AttributePosition;
+        private Ordering _OrderType = Ordering.AttributePosition;
         private bool _ShowSkylineAttributes = false;
 
         public bool ShowSkylineAttributes
@@ -36,14 +36,14 @@ namespace prefSQL.SQLParser
             DQ,
         };
 
-        /*public enum Ordering
+        public enum Ordering
         {
             AttributePosition,
             RankingSummarize,
             RankingBestOf,
             Random,
             AsIs //Without OrderBy-Clause as it comes from the database
-        }*/
+        }
 
         
         public Algorithm SkylineType
@@ -52,11 +52,11 @@ namespace prefSQL.SQLParser
             set { _SkylineType = value; }
         }
 
-        /*public Ordering OrderType
+        public Ordering OrderType
         {
             get { return _OrderType; }
             set { _OrderType = value; }
-        }*/
+        }
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
         /// <param name="strInput">Preference SQL Statement</param>
@@ -132,7 +132,7 @@ namespace prefSQL.SQLParser
 
                             string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
                             //Sortieren nach Attributen (damit algo funktioniert)
-                            string strOrderBy = sqlSort.getSortClause(prefSQL); // sqlSort.getSortClause(prefSQL, _OrderType);
+                            string strOrderBy = sqlSort.getSortClause(prefSQL, SQLCommon.Ordering.AttributePosition); // sqlSort.getSortClause(prefSQL, _OrderType);
                             strFirstSQL += strOrderBy.Replace("'", "''");
                             strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "'";
                         }

@@ -24,9 +24,10 @@ namespace Utility
             */
 
             
+            /*
             Program prg = new Program();
             prg.Run();
-            
+            */
                         /*
             FrmSQLParser form = new FrmSQLParser();
             form.Show();
@@ -44,14 +45,19 @@ namespace Utility
             string str4 = "cars_large";
             */
             
-            /*
-            string str1 = "SELECT cars_large.price AS Skyline1, cars_large.mileage AS Skyline2, cars_large.price,cars_large.mileage,cars_large.horsepower,cars_large.consumption FROM cars_large LEFT OUTER JOIN colors ON cars_large.color_id = colors.ID " +
+            
+            /*string str1 = "SELECT cars_large.price AS Skyline1, cars_large.mileage AS Skyline2, cars_large.price,cars_large.mileage,cars_large.horsepower,cars_large.consumption FROM cars_large LEFT OUTER JOIN colors ON cars_large.color_id = colors.ID " +
                             "ORDER BY price ASC, mileage ASC";
             string str2 = "LOW;LOW";
             */
-            /*string strPrefSQL = "SELECT t1.id FROM cars t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID " +
-                //"SKYLINE OF LOW t1.price AND LOW t1.mileage AND LOW t1.consumption AND HIGH t1.enginesize AND HIGHDATE t1.registration AND HIGH t1.horsepower";
-                "SKYLINE OF LOW t1.price AND LOW t1.mileage";
+
+            string strPrefSQL = "SELECT t1.id FROM cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID " +
+                //"SKYLINE OF t1.price LOW, t1.mileage LOW, t1.consumption LOW, t1.enginesize HIGH, t1.registration HIGHDATE, t1.horsepower HIGH";
+                //"SKYLINE OF t1.price LOW, t1.mileage LOW, t1.enginesize HIGH,  t1.horsepower HIGH, t1.registration HIGHDATE, t1.consumption LOW";
+                //"SKYLINE OF t1.price LOW, t2.name ('schwarz' >> OTHERS EQUAL)"; //Results in 3 rows
+                "WHERE t1.price < 2200 " + 
+                "SKYLINE OF t1.price LOW, t1.mileage LOW"; //Results in 10 rows
+                //"SKYLINE OF t1.price LOW, t1.mileage LOW";
             SQLCommon parser = new SQLCommon();
             parser.SkylineType = SQLCommon.Algorithm.BNL;
             string strSQL = parser.parsePreferenceSQL(strPrefSQL);
@@ -67,8 +73,10 @@ namespace Utility
 
             try
             {
-                SkylineDQ.SP_SkylineDQ(str1, str2);
+                //SkylineDQ.SP_SkylineDQ(str1, str2);
                 //SkylineBNL.SP_SkylineBNL(str1, str2);
+                SkylineBNLLevel.SP_SkylineBNLLevel(str1, str2);
+                Hexagon.SP_SkylineHexagon(str1, str2);
             }
             catch(Exception e)
             {
@@ -80,7 +88,7 @@ namespace Utility
             sw.Stop();
             
             Console.WriteLine("Elapsed={0}", sw.Elapsed);
-            */
+            
         }
 
 

@@ -42,30 +42,9 @@ namespace Utility
 
 
                 // Build our record schema 
-                List<SqlMetaData> OutputColumns = new List<SqlMetaData>(dt.Columns.Count);
-                int iCol = 0;
-                foreach (DataColumn col in dt.Columns)
-                {
-                    //Only the real columns (skyline columns are not output fields)
-                    if (iCol > operators.GetUpperBound(0))
-                    {
-                        SqlMetaData OutputColumn;
-                        if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(DateTime)))
-                        {
-                            OutputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType));
-                        }
-                        else
-                        {
-                            OutputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
-                        }
+                List<SqlMetaData> outputColumns = buildRecordSchema(dt, operators);
 
-                        //SqlMetaData OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength); 
-                        OutputColumns.Add(OutputColumn);
-                    }
-                    iCol++;
-                    
-                }
-                SqlDataRecord record = new SqlDataRecord(OutputColumns.ToArray());
+                SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
                 //SqlContext.Pipe.SendResultsStart(record);
 
                 //dt.CreateDataReader();
@@ -78,6 +57,7 @@ namespace Utility
 
                 //SqlCommand sqlCommand = new SqlCommand(strDimensions.ToString(), connection);
                 DataTableReader sqlReader = dt.CreateDataReader();
+
                 
 
                 //int iIndex = 0;
@@ -133,6 +113,9 @@ namespace Utility
                 }
 
                 sqlReader.Close();
+
+
+                System.Diagnostics.Debug.WriteLine(resultCollection.Count);
 
                 //SqlContext.Pipe.SendResultsEnd();
 
@@ -323,6 +306,32 @@ namespace Utility
 
         }
 
+
+        private static List<SqlMetaData> buildRecordSchema(DataTable dt, string[] operators)
+        {
+            List<SqlMetaData> outputColumns = new List<SqlMetaData>(dt.Columns.Count);
+            int iCol = 0;
+            foreach (DataColumn col in dt.Columns)
+            {
+                //Only the real columns (skyline columns are not output fields)
+                if (iCol > operators.GetUpperBound(0))
+                {
+                    SqlMetaData OutputColumn;
+                    if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(DateTime)))
+                    {
+                        OutputColumn = new SqlMetaData(col.ColumnName, Utility.TypeConverter.ToSqlDbType(col.DataType));
+                    }
+                    else
+                    {
+                        OutputColumn = new SqlMetaData(col.ColumnName, Utility.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
+                    }
+                    outputColumns.Add(OutputColumn);
+                }
+                iCol++;
+            }
+            return outputColumns;
+        }
+
         /*
         private static string createTABLEStructure(DataTable table)
         {
@@ -363,4 +372,8 @@ namespace Utility
 
 
     }
+
+
+    
+
 }
