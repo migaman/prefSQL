@@ -45,14 +45,16 @@ namespace Utility
                 }
                 connection.Open();
 
-                //WICHTIG: Sortieren nach Anzahl an Levels
+                //WICHTIG: Sortieren gleich wie in construction
                 strSQL = "SELECT " +
+
+                    "DENSE_RANK() OVER (ORDER BY t1.mileage)-1 AS RankMileage, " +
+
                     "DENSE_RANK() OVER (ORDER BY CASE WHEN t2.Name = 'schwarz' THEN 1 ELSE 2 END)-1 AS RankColour, " +
-                    "DENSE_RANK() OVER (ORDER BY t1.price)-1 AS RankPrice, " +
-                    "DENSE_RANK() OVER (ORDER BY t1.mileage)-1 AS RankMileage " +
-                    
-                    "FROM Cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID " +
-                    "WHERE price < 2700 ";
+                    "DENSE_RANK() OVER (ORDER BY t1.price)-1 AS RankPrice " +
+
+
+                    "FROM Cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID ";
 
                 //strSQL = "SELECT DENSE_RANK() OVER (ORDER BY CASE WHEN t2.Name = 'schwarz' THEN 1 ELSE 2 END) AS Skyline1, DENSE_RANK() OVER (ORDER BY t1.price) AS Skyline2 FROM Cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID";
 
@@ -289,7 +291,6 @@ namespace Utility
 
 	                                    "FROM Cars_small t1 " +
 	                                    "LEFT OUTER JOIN Colors on t1.Color_Id = Colors.Id " +
-                                        "WHERE t1.price < 2500 " +
                                         ") " +
 	                                    "MyQuery";
                 SqlDataAdapter dap = new SqlDataAdapter(strQuery, connection);
@@ -311,7 +312,6 @@ namespace Utility
                 for (int i = amountOfPreferences - 2; i >= 0; i--)
                 {
                     weight[i] = weight[i + 1] * (maxPreferenceLevel[i+1] + 1);
-                    //weight[i-1] = weight[i] * (maxPreferenceLevel[i-1] + 1);
                 }
 
                 
