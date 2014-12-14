@@ -47,16 +47,10 @@ namespace Utility
 
                 //WICHTIG: Sortieren gleich wie in construction
                 strSQL = "SELECT " +
-
                     "DENSE_RANK() OVER (ORDER BY t1.mileage)-1 AS RankMileage, " +
-
                     "DENSE_RANK() OVER (ORDER BY CASE WHEN t2.Name = 'schwarz' THEN 1 ELSE 2 END)-1 AS RankColour, " +
                     "DENSE_RANK() OVER (ORDER BY t1.price)-1 AS RankPrice " +
-
-
                     "FROM Cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID ";
-
-                //strSQL = "SELECT DENSE_RANK() OVER (ORDER BY CASE WHEN t2.Name = 'schwarz' THEN 1 ELSE 2 END) AS Skyline1, DENSE_RANK() OVER (ORDER BY t1.price) AS Skyline2 FROM Cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID";
 
                 SqlDataAdapter dap = new SqlDataAdapter(strSQL.ToString(), connection);
                 DataTable dt = new DataTable();
@@ -282,15 +276,14 @@ namespace Utility
             {
                 connection.Open();
                 //Reihenfolge der Attribute spielt hier keine Rolle
-                String strQuery = "SELECT MAX(Level_Mileage)-1, MAX(Level_Colour)-1, MAX(Level_Price)-1 FROM ( " +
-	                                    "SELECT " +
-                                        "     DENSE_RANK() OVER (ORDER BY mileage) AS Level_Mileage " +
-		                                "    , DENSE_RANK() OVER (ORDER BY CASE WHEN Colors.Name = 'schwarz' THEN 1 ELSE 2 END) AS Level_Colour " +
-                                        "    ,  DENSE_RANK() OVER (ORDER BY price) AS Level_Price " +
-
-
-	                                    "FROM Cars_small t1 " +
-	                                    "LEFT OUTER JOIN Colors on t1.Color_Id = Colors.Id " +
+                String strQuery = "SELECT MAX(Level_Mileage)-1, MAX(Level_Colour)-1, MAX(Level_Price)-1 FROM " +
+                                        "( " +
+	                                        "SELECT " +
+                                            "      DENSE_RANK() OVER (ORDER BY mileage) AS Level_Mileage " +
+		                                    "    , DENSE_RANK() OVER (ORDER BY CASE WHEN Colors.Name = 'schwarz' THEN 1 ELSE 2 END) AS Level_Colour " +
+                                            "    , DENSE_RANK() OVER (ORDER BY price) AS Level_Price " +
+	                                        "FROM Cars_small t1 " +
+	                                        "LEFT OUTER JOIN Colors on t1.Color_Id = Colors.Id " +
                                         ") " +
 	                                    "MyQuery";
                 SqlDataAdapter dap = new SqlDataAdapter(strQuery, connection);

@@ -51,7 +51,7 @@ namespace Utility
             string str2 = "LOW;LOW";
             */
 
-            string strPrefSQL = "SELECT t1.id FROM cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID " +
+            string strPrefSQL = "SELECT t1.id FROM cars t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID " +
                 //"SKYLINE OF t1.price LOW, t1.mileage LOW, t1.consumption LOW, t1.enginesize HIGH, t1.registration HIGHDATE, t1.horsepower HIGH";
                 //"SKYLINE OF t1.price LOW, t1.mileage LOW, t1.enginesize HIGH,  t1.horsepower HIGH, t1.registration HIGHDATE, t1.consumption LOW";
                 //"SKYLINE OF t1.price LOW, t2.name ('schwarz' >> OTHERS EQUAL)"; //Results in 3 rows
