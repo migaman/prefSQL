@@ -45,11 +45,15 @@ namespace Utility
                 }
                 connection.Open();
 
+                //WICHTIG: Sortieren nach Anzahl an Levels
                 strSQL = "SELECT " +
-                    //"DENSE_RANK() OVER (ORDER BY CASE WHEN t2.Name = 'schwarz' THEN 1 ELSE 2 END) AS Skyline1, " +
+                    "DENSE_RANK() OVER (ORDER BY CASE WHEN t2.Name = 'schwarz' THEN 1 ELSE 2 END)-1 AS RankColour, " +
                     "DENSE_RANK() OVER (ORDER BY t1.price)-1 AS RankPrice, " +
                     "DENSE_RANK() OVER (ORDER BY t1.mileage)-1 AS RankMileage " +
-                    "FROM Cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID ";
+                    
+                    "FROM Cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID " +
+                    "WHERE price < 2700 ";
+
                 //strSQL = "SELECT DENSE_RANK() OVER (ORDER BY CASE WHEN t2.Name = 'schwarz' THEN 1 ELSE 2 END) AS Skyline1, DENSE_RANK() OVER (ORDER BY t1.price) AS Skyline2 FROM Cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID";
 
                 SqlDataAdapter dap = new SqlDataAdapter(strSQL.ToString(), connection);
@@ -67,7 +71,7 @@ namespace Utility
                 //Read all records only once. (SqlDataReader works forward only!!)
                 while (sqlReader.Read())
                 {
-                    add(sqlReader);
+                    add(sqlReader, amountOfPreferences);
                 }
                 sqlReader.Close();
 
@@ -152,12 +156,11 @@ namespace Utility
 
             //remove followers
             for(i = 0; i <= index; i++) {
-                int wei = weight[i];
                 // follow the edge for preference i (only if not already on last level)
-                if (id+wei <= level.GetUpperBound(0) &&  level[id + wei] == level[id] + 1)
+                if (id+weight[i] <= level.GetUpperBound(0) &&  level[id + weight[i]] == level[id] + 1)
                 //if(level[id+i] == level[id]+1)
                 {
-                    remove(id + wei, i);
+                    remove(id + weight[i], i);
                 }
             }
 
@@ -239,7 +242,7 @@ namespace Utility
            
 
         }
-        private static void add(DataTableReader sqlReader) //add tuple
+        private static void add(DataTableReader sqlReader, int amountOfPreferences) //add tuple
         {
             //create int array from sqlReader
             long[] tuple = new long[sqlReader.FieldCount];
@@ -253,8 +256,7 @@ namespace Utility
             //1: procedure add(tuple)
             // compute the node ID for the tuple
             long id = 0;
-            int m = 2;
-            for(int i = 0; i < m; i++)
+            for (int i = 0; i < amountOfPreferences; i++)
             {
                 //id = id + levelPi(tuple) * weight(i);
                 id = id + tuple[i] * weight[i];
@@ -277,16 +279,17 @@ namespace Utility
             try
             {
                 connection.Open();
-                String strQuery = "SELECT MAX(Level_Colour)-1, MAX(Level_Price)-1 FROM ( " +
+                //Reihenfolge der Attribute spielt hier keine Rolle
+                String strQuery = "SELECT MAX(Level_Mileage)-1, MAX(Level_Colour)-1, MAX(Level_Price)-1 FROM ( " +
 	                                    "SELECT " +
-		                                "      t1.id " +
-		                                "    , price " +
-		                                "    , DENSE_RANK() OVER (ORDER BY price) AS Level_Price " +
-		                                "    , Colors.Name AS Colour " +
-		                                //"    , DENSE_RANK() OVER (ORDER BY CASE WHEN Colors.Name = 'schwarz' THEN 1 ELSE 2 END) AS Level_Colour " +
-                                        "    , DENSE_RANK() OVER (ORDER BY mileage) AS Level_Colour " +
+                                        "     DENSE_RANK() OVER (ORDER BY mileage) AS Level_Mileage " +
+		                                "    , DENSE_RANK() OVER (ORDER BY CASE WHEN Colors.Name = 'schwarz' THEN 1 ELSE 2 END) AS Level_Colour " +
+                                        "    ,  DENSE_RANK() OVER (ORDER BY price) AS Level_Price " +
+
+
 	                                    "FROM Cars_small t1 " +
 	                                    "LEFT OUTER JOIN Colors on t1.Color_Id = Colors.Id " +
+                                        "WHERE t1.price < 2500 " +
                                         ") " +
 	                                    "MyQuery";
                 SqlDataAdapter dap = new SqlDataAdapter(strQuery, connection);
@@ -296,8 +299,10 @@ namespace Utility
 
 
                 int[] maxPreferenceLevel = new int[amountOfPreferences];
-                maxPreferenceLevel[0] = int.Parse(dt.Rows[0][0].ToString());
-                maxPreferenceLevel[1] = int.Parse(dt.Rows[0][1].ToString());
+                for (int i = 0; i < amountOfPreferences; i++)
+                {
+                    maxPreferenceLevel[i] = int.Parse(dt.Rows[0][i].ToString());
+                }
 
                 //calculate edge weights
                 weight = new int[amountOfPreferences];
@@ -305,12 +310,18 @@ namespace Utility
 
                 for (int i = amountOfPreferences - 2; i >= 0; i--)
                 {
-                    weight[i] = weight[i + 1] * (maxPreferenceLevel[i] + 1);
+                    weight[i] = weight[i + 1] * (maxPreferenceLevel[i+1] + 1);
+                    //weight[i-1] = weight[i] * (maxPreferenceLevel[i-1] + 1);
                 }
 
                 
                 // calculate the BTG size
-                int sizeNodes = (maxPreferenceLevel[0] + 1) * (maxPreferenceLevel[1] + 1);
+                int sizeNodes = 1;
+                for (int i = 0; i < amountOfPreferences; i++)
+                {
+                    sizeNodes *= (maxPreferenceLevel[i] + 1);
+                }
+                
 
                 //ArrayList listOfTuples 
                 btg = new ArrayList[sizeNodes];
@@ -318,7 +329,13 @@ namespace Utility
                 prev = new int[sizeNodes]; 
                 level = new int[sizeNodes];
 
-                int workSize = maxPreferenceLevel[0] + maxPreferenceLevel[1] + 1;
+                int workSize = 1;
+                for (int i = 0; i < amountOfPreferences; i++)
+                {
+                    workSize += maxPreferenceLevel[i];
+                }
+                
+                
                 // arrays needed for init computation
                 
                 // stores highest ID found for each level by now
