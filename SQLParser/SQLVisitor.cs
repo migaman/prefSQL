@@ -197,19 +197,10 @@ namespace prefSQL.SQLParser
                 strIncomporableAttribute = "CASE" + strSQLIncomparableAttribute + strIncomporableAttributeELSE + " END";
                 strColumn = strSQL;
 
-                //Depending on LOW or HIGH do an ASCENDING or DESCENDING sort
-                /*if (context.op.Type == SQLParser.K_HIGH)
-                {
-                */
-                    strSQL += " ASC";
-                    strOperator = "<";
+                //Categories are always sorted ASCENDING
+                strSQL += " ASC";
+                strOperator = "<";
 
-                /*}
-                else if (context.op.Type == SQLParser.K_LOW)
-                {
-                    strSQL += " DESC";
-                    strOperator = ">";
-                }*/
                 strRankExpression = RankingFunction + " over (ORDER BY " + strSQL + ") AS Rank" + strSingleColumn.Replace(".", "");
                 strRankColumn = RankingFunction + " over (ORDER BY " + strSQL + ")";
                 strRankHexagon = "DENSE_RANK()" + " over (ORDER BY " + strSQL + ")-1 AS Rank" + strSingleColumn.Replace(".", "");

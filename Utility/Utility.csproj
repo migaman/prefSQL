@@ -53,14 +53,9 @@
     <Compile Include="FrmSQLParser.Designer.cs">
       <DependentUpon>FrmSQLParser.cs</DependentUpon>
     </Compile>
-    <Compile Include="Hexagon.cs" />
     <Compile Include="Performance.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SkylineBNL.cs" />
-    <Compile Include="SkylineBNLLevel.cs" />
-    <Compile Include="SkylineDQ.cs" />
-    <Compile Include="TypeConverter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -70,10 +65,15 @@
       <Project>{125a1438-e65a-4f43-a9ec-23a7bc7e68d7}</Project>
       <Name>SQLParser</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SQLSkyline\SQLSkyline.sqlproj">
+      <Project>{c0006fb5-527b-4812-8e5c-9b2cba268b59}</Project>
+      <Name>SQLSkyline</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="FrmSQLParser.resx">
       <DependentUpon>FrmSQLParser.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

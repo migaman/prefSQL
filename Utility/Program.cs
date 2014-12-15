@@ -60,6 +60,7 @@ namespace Utility
                 //"SKYLINE OF t1.price LOW, t1.mileage LOW"; //Results in 16 rows
                 //"SKYLINE OF t1.price LOW, t1.mileage LOW";
             SQLCommon parser = new SQLCommon();
+            //parser.SkylineType = SQLCommon.Algorithm.BNL;
             parser.SkylineType = SQLCommon.Algorithm.Hexagon;
             string strSQL = parser.parsePreferenceSQL(strPrefSQL);
 
@@ -87,6 +88,8 @@ namespace Utility
             while (bEnd == false)
             {
                 iPosEnd = iPosEnd + strSQL.Substring(iPosEnd).IndexOf("'") + 1;
+                if (iPosEnd == strSQL.Length)
+                    break; //Kein 3.Parameter
                 if (!strSQL.Substring(iPosEnd, 1).Equals("'"))
                 {
                     bEnd = true;
@@ -102,7 +105,11 @@ namespace Utility
 
             string str1 = strSQL.Substring(iPosStart, iPosMiddle - iPosStart-4);
             string str2 = strSQL.Substring(iPosMiddle, iPosEnd - iPosMiddle-4);
-            string str3 = strSQL.Substring(iPosEnd).TrimEnd('\'');
+            string str3 = "";
+            if (iPosEnd < strSQL.Length)
+            {
+                str3 = strSQL.Substring(iPosEnd).TrimEnd('\'');
+            }
             str1 = str1.Replace("''", "'").Trim('\'');
             str2 = str2.Replace("''", "'").Trim('\'');
             str3 = str3.Replace("''", "'").Trim('\'');
@@ -113,10 +120,12 @@ namespace Utility
 
             try
             {
-                //SkylineDQ.SP_SkylineDQ(str1, str2);
-                //SkylineBNL.SP_SkylineBNL(str1, str2);
-                //SkylineBNLLevel.SP_SkylineBNLLevel(str1, str2);
-                Hexagon.SP_SkylineHexagon(str1, str2, str3);
+                System.Data.SqlTypes.SqlString strSQL1 = str1;
+                System.Data.SqlTypes.SqlString strSQL2 = str2;
+                System.Data.SqlTypes.SqlString strSQL3 = str3;
+                //prefSQL.SQLSkyline.SP_SkylineBNL.getSkylineBNL(str1, str2, true);
+                //prefSQL.SQLSkyline.SP_SkylineBNLLevel.getSkylineBNLLevel(str1, str2, true);
+                prefSQL.SQLSkyline.SP_SkylineHexagon.getSkylineHexagon(str1, str2, str3, true);
             }
             catch(Exception e)
             {

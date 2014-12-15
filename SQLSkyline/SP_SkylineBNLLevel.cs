@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
@@ -6,24 +6,22 @@ using Microsoft.SqlServer.Server;
 using System.Collections;
 using System.Collections.Generic;
 
-//Hinweis: Wenn mit startswith statt equals gearbeitet wird führt dies zu massiven performance problemen, z.B. large dataset 30 statt 3 Sekunden mit 13 Dimensionen!!
-//WICHTIG: Vergleiche immer mit equals und nie mit z.B. startsWith oder Contains oder so.... --> Enorme Performance Unterschiede
-namespace Utility
+
+
+namespace prefSQL.SQLSkyline
 {
-    class SkylineBNLLevel
+
+    public class SP_SkylineBNLLevel
     {
         //Only this parameters are different beteen SQL CLR function and Utility class
         private const string connectionstring = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
         private const int MaxSize = 4000;
-        private static DataTableReader sqlReader;
-        private static string[] operators;
-        private static ArrayList resultCollection;
 
-        [Microsoft.SqlServer.Server.SqlProcedure]
-        public static void SP_SkylineBNLLevel(SqlString strQuery, SqlString strOperators)
+
+        public static void getSkylineBNLLevel(SqlString strQuery, SqlString strOperators, SqlBoolean isDebug)
         {
-            resultCollection = new ArrayList();
-            operators = strOperators.ToString().Split(';');
+            ArrayList resultCollection = new ArrayList();
+            string[] operators = strOperators.ToString().Split(';');
 
 
             SqlConnection connection = new SqlConnection(connectionstring);
@@ -45,8 +43,8 @@ namespace Utility
                 List<SqlMetaData> outputColumns = buildRecordSchema(dt, operators);
 
                 SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
-          
-                sqlReader = dt.CreateDataReader();
+
+                DataTableReader sqlReader = dt.CreateDataReader();
 
 
 
@@ -57,7 +55,7 @@ namespace Utility
                     if (resultCollection.Count == 0)
                     {
                         // Build our SqlDataRecord and start the results 
-                        addToWindow(record);
+                        addToWindow(record, sqlReader, operators, ref resultCollection);
                     }
                     else
                     {
@@ -69,7 +67,7 @@ namespace Utility
                             int[] result = (int[])resultCollection[i];
 
                             //Dominanz
-                            if (compare(result) == true)
+                            if (compare(result, sqlReader) == true)
                             {
                                 //New point is dominated. No further testing necessary
                                 bDominated = true;
@@ -82,7 +80,7 @@ namespace Utility
                         }
                         if (bDominated == false)
                         {
-                            addToWindow(record);
+                            addToWindow(record, sqlReader, operators, ref resultCollection);
 
 
                         }
@@ -104,8 +102,16 @@ namespace Utility
                 strError += ex.Message.Replace("'", "''");
                 strError += "'";
 
-                //TODO: only for real Stored Procedure
-                SqlContext.Pipe.Send(strError);
+
+                if (isDebug == true)
+                {
+                    System.Diagnostics.Debug.WriteLine(strError);
+
+                }
+                else
+                {
+                    SqlContext.Pipe.Send(strError);
+                }
 
             }
             finally
@@ -117,7 +123,7 @@ namespace Utility
         }
 
 
-        private static void addToWindow(SqlDataRecord record)
+        private static void addToWindow(SqlDataRecord record, DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection)
         {
 
             //Erste Spalte ist die ID
@@ -127,7 +133,7 @@ namespace Utility
                 //Only the real columns (skyline columns are not output fields)
                 if (iCol <= operators.GetUpperBound(0))
                 {
-                    
+
                     recordInt[iCol] = sqlReader.GetInt32(iCol);
                 }
                 else
@@ -143,7 +149,7 @@ namespace Utility
         }
 
 
-        private static bool compare(int[] result)
+        private static bool compare(int[] result, DataTableReader sqlReader)
         {
             bool greaterThan = false;
 
@@ -155,10 +161,10 @@ namespace Utility
 
                 if (comparison == 2)
                 {
-                        
+
                     //at least one must be greater than
                     greaterThan = true;
-                        
+
                 }
                 else if (comparison == 0)
                 {
@@ -217,11 +223,11 @@ namespace Utility
                     SqlMetaData OutputColumn;
                     if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(DateTime)))
                     {
-                        OutputColumn = new SqlMetaData(col.ColumnName, Utility.TypeConverter.ToSqlDbType(col.DataType));
+                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType));
                     }
                     else
                     {
-                        OutputColumn = new SqlMetaData(col.ColumnName, Utility.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
+                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
                     }
                     outputColumns.Add(OutputColumn);
                 }
@@ -231,10 +237,5 @@ namespace Utility
         }
 
 
-
     }
-
-
-
-
 }

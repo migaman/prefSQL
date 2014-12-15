@@ -1,26 +1,31 @@
-﻿using System;
+//------------------------------------------------------------------------------
+// <copyright file="CSSqlClassFile.cs" company="Microsoft">
+//     Copyright (c) Microsoft Corporation.  All rights reserved.
+// </copyright>
+//------------------------------------------------------------------------------
+using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
 using System.Collections;
-using System.Collections.Generic;
 
-//Hinweis: Wenn mit startswith statt equals gearbeitet wird führt dies zu massiven performance problemen, z.B. large dataset 30 statt 3 Sekunden mit 13 Dimensionen!!
-//WICHTIG: Vergleiche immer mit equals und nie mit z.B. startsWith oder Contains oder so.... --> Enorme Performance Unterschiede
-namespace Utility
+
+namespace prefSQL.SQLSkyline
 {
-    class SkylineDQ
+    public class SP_SkylineDQ
     {
         //Only this parameters are different beteen SQL CLR function and Utility class
         private const string connectionstring = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
         private const int MaxSize = 4000;
 
         [Microsoft.SqlServer.Server.SqlProcedure]
-        public static void SP_SkylineDQ(SqlString strQuery, SqlString strOperators)
+        public static void getSkylineDQ(SqlString strQuery, SqlString strOperators, SqlBoolean isDebug)
         {
             ArrayList resultCollection = new ArrayList();
-            
+
             string[] operators = strOperators.ToString().Split(';');
 
 
@@ -56,7 +61,7 @@ namespace Utility
                 return S1 [_ Mer   geBasic(S1,S2,Dimension)
                 */
 
-                
+
                 /*int iCount = 0;
                 //Read all records only once. (SqlDataReader works forward only!!)
                 while (sqlReader.Read())
@@ -103,7 +108,7 @@ namespace Utility
 
                 //System.Diagnostics.Debug.WriteLine("Rows:" + computeMedianPrice);
 
-               
+
 
             }
             catch (Exception ex)
@@ -113,8 +118,16 @@ namespace Utility
                 strError += ex.Message.Replace("'", "''");
                 strError += "'";
 
-                //TODO: only for real Stored Procedure
-                SqlContext.Pipe.Send(strError);
+
+                if (isDebug == true)
+                {
+                    System.Diagnostics.Debug.WriteLine(strError);
+
+                }
+                else
+                {
+                    SqlContext.Pipe.Send(strError);
+                }
 
             }
             finally
@@ -236,7 +249,7 @@ namespace Utility
 
             //Erste Spalte ist die ID
             int[] recordInt = new int[operators.GetUpperBound(0) + 1];
-            
+
 
 
             for (int iCol = 0; iCol < sqlReader.FieldCount; iCol++)
@@ -293,7 +306,7 @@ namespace Utility
          * 2 = greater than
          * */
         private static int compareValue(int value1, int value2)
-        {                
+        {
             if (value1 >= value2)
             {
                 if (value1 > value2)
@@ -321,11 +334,11 @@ namespace Utility
                     SqlMetaData OutputColumn;
                     if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(DateTime)))
                     {
-                        OutputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType));
+                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType));
                     }
                     else
                     {
-                        OutputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
+                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
                     }
                     outputColumns.Add(OutputColumn);
                 }
