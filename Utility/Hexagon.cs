@@ -24,50 +24,53 @@ namespace Utility
 
 
         [Microsoft.SqlServer.Server.SqlProcedure]
-        public static void SP_SkylineHexagon(SqlString strQuery, SqlString strOperators)
+        public static void SP_SkylineHexagon(SqlString strQuery, SqlString strOperators, SqlString strQueryConstruction)
         {
 
             String strSQL = strQuery.ToString();
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
-            int amountOfPreferences = operators.Length;
-            construction(amountOfPreferences);
-            
+            int amountOfPreferences = operators.GetUpperBound(0)+1;
+            construction(amountOfPreferences, strQueryConstruction.ToString());
+            int startSkylineColumns = 0;
 
             SqlConnection connection = new SqlConnection(connectionstring);
             try
             {
                 //Some checks
-                if (strSQL.ToString().Length == MaxSize)
+                if (strSQL.Length == MaxSize)
                 {
                     throw new Exception("Query is too long. Maximum size is " + MaxSize);
                 }
                 connection.Open();
 
-                //WICHTIG: Sortieren gleich wie in construction
-                strSQL = "SELECT " +
-                    "DENSE_RANK() OVER (ORDER BY t1.mileage)-1 AS RankMileage, " +
-                    "DENSE_RANK() OVER (ORDER BY CASE WHEN t2.Name = 'schwarz' THEN 1 ELSE 2 END)-1 AS RankColour, " +
-                    "DENSE_RANK() OVER (ORDER BY t1.price)-1 AS RankPrice " +
-                    "FROM Cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID ";
-
-                SqlDataAdapter dap = new SqlDataAdapter(strSQL.ToString(), connection);
+                SqlDataAdapter dap = new SqlDataAdapter(strSQL, connection);
                 DataTable dt = new DataTable();
                 dap.Fill(dt);
 
+                //Read start of skyline
+                int i = 0;
+                foreach(DataColumn col in dt.Columns) 
+                {
+                    
+                    if(col.Caption.StartsWith("Rank"))
+                    {
+                        startSkylineColumns = i;
+                        break;
+                    }
+                    i++;
+                    
+                }
+                
 
-                // Build our record schema 
-                //List<SqlMetaData> outputColumns = buildRecordSchema(dt, operators);
-
-                //SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
                 DataTableReader sqlReader = dt.CreateDataReader();
 
 
                 //Read all records only once. (SqlDataReader works forward only!!)
                 while (sqlReader.Read())
                 {
-                    add(sqlReader, amountOfPreferences);
+                    add(sqlReader, amountOfPreferences, startSkylineColumns);
                 }
                 sqlReader.Close();
 
@@ -101,7 +104,7 @@ namespace Utility
             catch (Exception ex)
             {
                 //Pack Errormessage in a SQL and return the result
-                string strError = "SELECT 'Fehler in SP_SkylineBNL: ";
+                string strError = "SELECT 'Fehler in SP_SkylineHexagon: ";
                 strError += ex.Message.Replace("'", "''");
                 strError += "'";
 
@@ -154,18 +157,11 @@ namespace Utility
             for(i = 0; i <= index; i++) {
                 // follow the edge for preference i (only if not already on last level)
                 if (id+weight[i] <= level.GetUpperBound(0) &&  level[id + weight[i]] == level[id] + 1)
-                //if(level[id+i] == level[id]+1)
                 {
                     remove(id + weight[i], i);
                 }
             }
 
-            //for i ← 1, 2, . . . , index do
-              // follow the edge for preference i
-              //if lvl[id + i] = lvl[id] + 1 then
-                //remove(id + i, i)
-               //end if
-            //end for
 
 
         }
@@ -238,13 +234,13 @@ namespace Utility
            
 
         }
-        private static void add(DataTableReader sqlReader, int amountOfPreferences) //add tuple
+        private static void add(DataTableReader sqlReader, int amountOfPreferences, int startSkylineColumns) //add tuple
         {
             //create int array from sqlReader
-            long[] tuple = new long[sqlReader.FieldCount];
-            for (int iCol = 0; iCol < sqlReader.FieldCount; iCol++)
+            long[] tuple = new long[sqlReader.FieldCount - startSkylineColumns];
+            for (int iCol = startSkylineColumns; iCol < sqlReader.FieldCount; iCol++)
             {
-                tuple[iCol] = sqlReader.GetInt64(iCol);
+                tuple[iCol-startSkylineColumns] = sqlReader.GetInt64(iCol);
             }
 
 
@@ -269,23 +265,15 @@ namespace Utility
         }
 
 
-        private static void construction(int amountOfPreferences)
+        private static void construction(int amountOfPreferences, string strQuery)
         {
             SqlConnection connection = new SqlConnection(connectionstring);
             try
             {
                 connection.Open();
-                //Reihenfolge der Attribute spielt hier keine Rolle
-                String strQuery = "SELECT MAX(Level_Mileage)-1, MAX(Level_Colour)-1, MAX(Level_Price)-1 FROM " +
-                                        "( " +
-	                                        "SELECT " +
-                                            "      DENSE_RANK() OVER (ORDER BY mileage) AS Level_Mileage " +
-		                                    "    , DENSE_RANK() OVER (ORDER BY CASE WHEN Colors.Name = 'schwarz' THEN 1 ELSE 2 END) AS Level_Colour " +
-                                            "    , DENSE_RANK() OVER (ORDER BY price) AS Level_Price " +
-	                                        "FROM Cars_small t1 " +
-	                                        "LEFT OUTER JOIN Colors on t1.Color_Id = Colors.Id " +
-                                        ") " +
-	                                    "MyQuery";
+
+
+
                 SqlDataAdapter dap = new SqlDataAdapter(strQuery, connection);
                 DataTable dt = new DataTable();
                 dap.Fill(dt);
@@ -394,31 +382,6 @@ namespace Utility
         }
 
 
-
-        private static List<SqlMetaData> buildRecordSchema(DataTable dt, string[] operators)
-        {
-            List<SqlMetaData> outputColumns = new List<SqlMetaData>(dt.Columns.Count);
-            int iCol = 0;
-            foreach (DataColumn col in dt.Columns)
-            {
-                //Only the real columns (skyline columns are not output fields)
-                if (iCol > operators.GetUpperBound(0))
-                {
-                    SqlMetaData OutputColumn;
-                    if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(DateTime)))
-                    {
-                        OutputColumn = new SqlMetaData(col.ColumnName, Utility.TypeConverter.ToSqlDbType(col.DataType));
-                    }
-                    else
-                    {
-                        OutputColumn = new SqlMetaData(col.ColumnName, Utility.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
-                    }
-                    outputColumns.Add(OutputColumn);
-                }
-                iCol++;
-            }
-            return outputColumns;
-        }
 
 
 

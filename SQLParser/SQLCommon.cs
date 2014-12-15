@@ -34,6 +34,7 @@ namespace prefSQL.SQLParser
             NativeSQL,
             BNL,
             DQ,
+            Hexagon
         };
 
         public enum Ordering
@@ -136,6 +137,18 @@ namespace prefSQL.SQLParser
                             strFirstSQL += strOrderBy.Replace("'", "''");
                             strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "'";
                         }
+                        else if(_SkylineType == Algorithm.Hexagon)
+                        {
+                            string strOperators = "";
+                            string strAttributesSkyline = buildSELECTDENSERank(prefSQL, strNewSQL, ref strOperators);
+                            string strFirstSQL = strAttributesSkyline.Replace("'", "''");
+
+
+                            string strHexagon = buildSELECTHexagon(prefSQL, strNewSQL);
+
+                            strNewSQL = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "'";
+
+                        }
                     }
                     /*else if (prefSQL.HasPrioritize == true)
                     {
@@ -195,6 +208,69 @@ namespace prefSQL.SQLParser
             //Add the ranked column before the FROM keyword
             posOfFROM = strPreSQL.IndexOf("FROM");
             strSQL = strPreSQL.Substring(0, posOfFROM-1) + strSQL + strPreSQL.Substring(posOfFROM-1);
+
+            return strSQL;
+        }
+
+
+        /// <summary>TODO</summary>
+        /// <param name="model">model of parsed Preference SQL Statement</param>
+        /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
+        /// <param name="strOperators">Returns the operators</param>
+        /// <returns>TODO</returns>
+        private string buildSELECTDENSERank(PrefSQLModel model, string strPreSQL, ref string strOperators)
+        {
+            strOperators = "";
+
+
+            string strSQL = "";
+            int posOfFROM = 0;
+
+            //Add a RankColumn for each PRIORITIZE preference
+            for (int iChild = 0; iChild < model.Rank.Count; iChild++)
+            {
+                //Replace ROW_NUMBER with Rank, for the reason that multiple tuples can have the same value (i.e. mileage=0)
+                string strRank = model.Rank[iChild].RankHexagon;
+                strSQL += ", " + strRank;
+                strOperators += "LOW" + ";";
+            }
+
+            //Add the ranked column before the FROM keyword
+            posOfFROM = strPreSQL.IndexOf("FROM");
+            strSQL = strPreSQL.Substring(0, posOfFROM - 1) + strSQL + strPreSQL.Substring(posOfFROM - 1);
+            strOperators = strOperators.TrimEnd(';');
+
+            return strSQL;
+        }
+
+
+
+        /// <summary>TODO</summary>
+        /// <param name="model">model of parsed Preference SQL Statement</param>
+        /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
+        /// <param name="strOperators">Returns the operators</param>
+        /// <returns>TODO</returns>
+        private string buildSELECTHexagon(PrefSQLModel model, string strPreSQL)
+        {
+            string strSQL = "";
+            string strMaxSQL = "";
+            int posOfFROM = 0;
+
+            //Add a RankColumn for each PRIORITIZE preference
+            for (int iChild = 0; iChild < model.Rank.Count; iChild++)
+            {
+                //Replace ROW_NUMBER with Rank, for the reason that multiple tuples can have the same value (i.e. mileage=0)
+                string strRank = model.Rank[iChild].RankHexagon;
+                strSQL += ", " + strRank;
+                strMaxSQL += ", MAX(Rank" + model.Rank[iChild].ColumnName + ")";
+            }
+            strMaxSQL = strMaxSQL.TrimStart(',');
+            strSQL = strSQL.TrimStart(',');
+            strSQL = "SELECT " + strMaxSQL + " FROM (SELECT " + strSQL ;
+
+            //Add the ranked column before the FROM keyword
+            posOfFROM = strPreSQL.IndexOf("FROM");
+            strSQL = strSQL + strPreSQL.Substring(posOfFROM - 1) + ") MyQuery";
 
             return strSQL;
         }
@@ -284,6 +360,9 @@ namespace prefSQL.SQLParser
             strSQL = strSQL.TrimStart(',');
             return strSQL;
         }
+
+
+
     }
 }
 

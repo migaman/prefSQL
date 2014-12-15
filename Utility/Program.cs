@@ -51,21 +51,61 @@ namespace Utility
             string str2 = "LOW;LOW";
             */
 
-            string strPrefSQL = "SELECT t1.id FROM cars t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID " +
+            string strPrefSQL = "SELECT t1.id FROM cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID " +
                 //"SKYLINE OF t1.price LOW, t1.mileage LOW, t1.consumption LOW, t1.enginesize HIGH, t1.registration HIGHDATE, t1.horsepower HIGH";
                 //"SKYLINE OF t1.price LOW, t1.mileage LOW, t1.enginesize HIGH,  t1.horsepower HIGH, t1.registration HIGHDATE, t1.consumption LOW";
                 //"SKYLINE OF t1.price LOW, t2.name ('schwarz' >> OTHERS EQUAL)"; //Results in 3 rows
-                "SKYLINE OF t1.price LOW, t1.mileage LOW, t2.name ('schwarz' >> OTHERS EQUAL)"; //Results in 16 rows
+                //"SKYLINE OF t1.price LOW, t1.mileage LOW, t2.name ('schwarz' >> OTHERS EQUAL)"; //Results in 16 rows
+                "SKYLINE OF t2.name ('schwarz' >> OTHERS EQUAL), t1.mileage LOW, t1.price LOW"; //Results in 16 rows
                 //"SKYLINE OF t1.price LOW, t1.mileage LOW"; //Results in 16 rows
                 //"SKYLINE OF t1.price LOW, t1.mileage LOW";
             SQLCommon parser = new SQLCommon();
-            parser.SkylineType = SQLCommon.Algorithm.BNL;
+            parser.SkylineType = SQLCommon.Algorithm.Hexagon;
             string strSQL = parser.parsePreferenceSQL(strPrefSQL);
-            string str1 = strSQL.Substring(strSQL.IndexOf("'"), strSQL.IndexOf(", 'LOW")-strSQL.IndexOf("'"));
-            string str2 = strSQL.Substring(strSQL.IndexOf(", 'LOW")+3);
+
+            //Erstes Hochkomma suchen
+            int iPosStart = strSQL.IndexOf("'")+1;
+            int iPosMiddle = iPosStart;
+            bool bEnd = false;
+            while(bEnd == false)
+            {
+                iPosMiddle = iPosMiddle + strSQL.Substring(iPosMiddle).IndexOf("'") + 1;
+                if (!strSQL.Substring(iPosMiddle, 1).Equals("'")) 
+                {
+                    bEnd = true;
+                }
+                else
+                {
+                    iPosMiddle++;
+                }
+                //Prüfen ob es kein doppeltes Hochkomma ist
+            }
+            iPosMiddle += 3;
+
+            int iPosEnd = iPosMiddle;
+            bEnd = false;
+            while (bEnd == false)
+            {
+                iPosEnd = iPosEnd + strSQL.Substring(iPosEnd).IndexOf("'") + 1;
+                if (!strSQL.Substring(iPosEnd, 1).Equals("'"))
+                {
+                    bEnd = true;
+                }
+                else
+                {
+                    iPosEnd++;
+                }
+                //Prüfen ob es kein doppeltes Hochkomma ist
+            }
+            iPosEnd += 3;
+
+
+            string str1 = strSQL.Substring(iPosStart, iPosMiddle - iPosStart-4);
+            string str2 = strSQL.Substring(iPosMiddle, iPosEnd - iPosMiddle-4);
+            string str3 = strSQL.Substring(iPosEnd).TrimEnd('\'');
             str1 = str1.Replace("''", "'").Trim('\'');
             str2 = str2.Replace("''", "'").Trim('\'');
-
+            str3 = str3.Replace("''", "'").Trim('\'');
 
             Stopwatch sw = new Stopwatch();
 
@@ -75,8 +115,8 @@ namespace Utility
             {
                 //SkylineDQ.SP_SkylineDQ(str1, str2);
                 //SkylineBNL.SP_SkylineBNL(str1, str2);
-                SkylineBNLLevel.SP_SkylineBNLLevel(str1, str2);
-                Hexagon.SP_SkylineHexagon(str1, str2);
+                //SkylineBNLLevel.SP_SkylineBNLLevel(str1, str2);
+                Hexagon.SP_SkylineHexagon(str1, str2, str3);
             }
             catch(Exception e)
             {
