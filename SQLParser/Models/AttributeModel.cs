@@ -9,7 +9,7 @@ namespace prefSQL.SQLParser.Models
     class AttributeModel
     {
 
-        public AttributeModel(string strColumnExpression, string strOperator, string strTable, string strInnerTable, string strInnerColumnExpression, string strColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute)
+        public AttributeModel(string strColumnExpression, string strOperator, string strTable, string strInnerTable, string strInnerColumnExpression, string strColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumn, string strTableName, string strRankColumnName, string strExpression, string strRankHexagon)
         {
             Table = strTable;                                       //Tablename for the mainquery       (i.e. cars)
             InnerTable = strInnerTable;                             //Tablename for the subquery        (i.e. cars_INNER)
@@ -20,6 +20,13 @@ namespace prefSQL.SQLParser.Models
             InnerColumnName = strInnerColumnName;                   //Dito
             Comparable = isComparable;                              //Check if at least one value is incomparable
             IncomparableAttribute = strIncomporableAttribute;       //Attribute that returns the textvalue if the value is incomparable
+
+
+            Expression = strExpression;
+            TableName = strTableName;
+            RankColumnName = strRankColumnName;
+            RankColumn = strRankColumn;
+            RankHexagon = strRankHexagon;
         }
 
 
@@ -44,6 +51,14 @@ namespace prefSQL.SQLParser.Models
         public string IncomparableAttribute { get; set; }
 
 
+
+
+        public string RankColumnName { get; set; }
+        public string TableName { get; set; }
+        public string Expression { get; set; }
+        public string RankColumn { get; set; }
+
+        public string RankHexagon { get; set; }
 
     }
 }

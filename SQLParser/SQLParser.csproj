@@ -73,7 +73,6 @@
     <Compile Include="ErrorListener.cs" />
     <Compile Include="Models\AttributeModel.cs" />
     <Compile Include="Models\PrefSQLModel.cs" />
-    <Compile Include="Models\RankModel.cs" />
     <Compile Include="SQLCommon.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SQLCriterion.cs" />

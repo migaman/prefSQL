@@ -10,7 +10,6 @@ namespace prefSQL.SQLParser.Models
     {
         private bool _hasTOP = false;                                                   //if the query has the TOP Keyword
         private List<AttributeModel> _skyline = new List<AttributeModel>();             //skyline attributes
-        private List<RankModel> _rank = new List<RankModel>();                          //rank attributes
         private List<string> _orderBySkyline = new List<string>();                             //orderby attributes
         private Dictionary<string, string> _orderBy = new Dictionary<string, string>();  //the category order by and the calculated sql
         private Dictionary<string, string> _tables = new Dictionary<string, string>();  //the tablename and its alias
@@ -29,12 +28,6 @@ namespace prefSQL.SQLParser.Models
             set { _hasSkyline = value; }
         }
         
-        internal List<RankModel> Rank
-        {
-            get { return _rank; }
-            set { _rank = value; }
-        }
-
         public bool HasTop
         {
             get { return _hasTOP; }

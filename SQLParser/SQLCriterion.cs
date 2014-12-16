@@ -60,14 +60,14 @@ namespace prefSQL.SQLParser
             string strSQL = "";
 
             //Build the where clause with each column in the skyline
-            for (int iChild = 0; iChild < model.Rank.Count; iChild++)
+            for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
                 //First child doesn't need an OR
                 if (iChild > 0)
                 {
                     strSQL += " OR ";
                 }
-                strSQL += "Rank" + model.Rank[iChild].ColumnName + " = 1";
+                strSQL += "Rank" + model.Skyline[iChild].ColumnName + " = 1";
             }
 
             return strSQL;

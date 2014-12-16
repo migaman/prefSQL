@@ -105,7 +105,7 @@ namespace prefSQL.SQLSkyline
 
 
                             //Now, check if the new point dominates the one in the window
-                            //--> It is not possible that the new point dominates the one in the window --> Raason data is ORDERED
+                            //--> It is not possible that the new point dominates the one in the window --> Reason data is ORDERED
                         }
                         if (bDominated == false)
                         {

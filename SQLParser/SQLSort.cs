@@ -77,14 +77,14 @@ namespace prefSQL.SQLParser
             string strSQL = "";
 
 
-            for (int iChild = 0; iChild < model.Rank.Count; iChild++)
+            for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
                 //First attribute doesn't need a plus
                 if(iChild > 0)
                 {
                     strSQL += " + ";
                 }
-                strSQL += model.Rank[iChild].Expression;
+                strSQL += model.Skyline[iChild].Expression;
 
             }
 
@@ -102,26 +102,26 @@ namespace prefSQL.SQLParser
             string strSQL = "CASE ";
             string strRanking = "";
 
-            for (int iChild = 0; iChild < model.Rank.Count; iChild++)
+            for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
-                if(iChild == model.Rank.Count-1)
+                if (iChild == model.Skyline.Count - 1)
                 {
                     //Last record only needs ELSE
-                    strSQL += " ELSE " + "" + model.Rank[iChild].Expression;
+                    strSQL += " ELSE " + "" + model.Skyline[iChild].Expression;
                 }
                 else
                 {
                     strSQL += "WHEN ";
-                    strRanking = model.Rank[iChild].Expression;
-                    for (int iSubChild = iChild+1; iSubChild < model.Rank.Count; iSubChild++)
+                    strRanking = model.Skyline[iChild].Expression;
+                    for (int iSubChild = iChild + 1; iSubChild < model.Skyline.Count; iSubChild++)
                     {
-                        strSQL += strRanking + " <=" + model.Rank[iSubChild].Expression;
-                        if(iSubChild < model.Rank.Count-1)
+                        strSQL += strRanking + " <=" + model.Skyline[iSubChild].Expression;
+                        if (iSubChild < model.Skyline.Count - 1)
                         {
                             strSQL += " AND ";
                         }
                     }
-                    strSQL += " THEN " + model.Rank[iChild].Expression + " ";
+                    strSQL += " THEN " + model.Skyline[iChild].Expression + " ";
                 }
                 
             }

@@ -135,7 +135,7 @@ namespace prefSQL.SQLParser
                             //Sortieren nach Attributen (damit algo funktioniert)
                             string strOrderBy = sqlSort.getSortClause(prefSQL, SQLCommon.Ordering.AttributePosition); // sqlSort.getSortClause(prefSQL, _OrderType);
                             strFirstSQL += strOrderBy.Replace("'", "''");
-                            strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "'";
+                            strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', 'false'";
                         }
                         else if(_SkylineType == Algorithm.Hexagon)
                         {
@@ -152,7 +152,7 @@ namespace prefSQL.SQLParser
                             string strHexagon = buildSELECTHexagon(prefSQL, strNewSQL);
                             strHexagon = strHexagon.Replace("'", "''");
 
-                            strNewSQL = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "'";
+                            strNewSQL = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "', 'false'";
 
                         }
                     }
@@ -204,10 +204,10 @@ namespace prefSQL.SQLParser
             int posOfFROM = 0;
 
             //Add a RankColumn for each PRIORITIZE preference
-            for (int iChild = 0; iChild < model.Rank.Count; iChild++)
+            for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
                 //Replace ROW_NUMBER with Rank, for the reason that multiple tuples can have the same value (i.e. mileage=0)
-                string strRank = model.Rank[iChild].RankColumn.Replace("ROW_NUMBER", "RANK");
+                string strRank = model.Skyline[iChild].RankColumn.Replace("ROW_NUMBER", "RANK");
                 strSQL += ", " + strRank;
             }
 
@@ -233,10 +233,10 @@ namespace prefSQL.SQLParser
             int posOfFROM = 0;
 
             //Add a RankColumn for each PRIORITIZE preference
-            for (int iChild = 0; iChild < model.Rank.Count; iChild++)
+            for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
                 //Replace ROW_NUMBER with Rank, for the reason that multiple tuples can have the same value (i.e. mileage=0)
-                string strRank = model.Rank[iChild].RankHexagon;
+                string strRank = model.Skyline[iChild].RankHexagon;
                 strSQL += ", " + strRank;
                 strOperators += "LOW" + ";";
             }
@@ -264,12 +264,12 @@ namespace prefSQL.SQLParser
             int posOfFROM = 0;
 
             //Add a RankColumn for each PRIORITIZE preference
-            for (int iChild = 0; iChild < model.Rank.Count; iChild++)
+            for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
                 //Replace ROW_NUMBER with Rank, for the reason that multiple tuples can have the same value (i.e. mileage=0)
-                string strRank = model.Rank[iChild].RankHexagon;
+                string strRank = model.Skyline[iChild].RankHexagon;
                 strSQL += ", " + strRank;
-                strMaxSQL += ", MAX(Rank" + model.Rank[iChild].ColumnName + ")";
+                strMaxSQL += ", MAX(Rank" + model.Skyline[iChild].RankColumnName + ")";
             }
             strMaxSQL = strMaxSQL.TrimStart(',');
             strSQL = strSQL.TrimStart(',');

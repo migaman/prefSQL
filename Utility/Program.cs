@@ -93,7 +93,8 @@ namespace Utility
 
 
                 SQLCommon parser = new SQLCommon();
-                parser.SkylineType = SQLCommon.Algorithm.Hexagon;
+                //parser.SkylineType = SQLCommon.Algorithm.Hexagon;
+                parser.SkylineType = SQLCommon.Algorithm.BNL;
                 //parser.OrderType = SQLCommon.Ordering.RankingBestOf;
                 //parser.ShowSkylineAttributes = true;
 
@@ -124,8 +125,8 @@ namespace Utility
 
         private void executeDb(String strSQL)
         {
-            //
-            //Erstes Hochkomma suchen
+            
+            //First parameter
             int iPosStart = strSQL.IndexOf("'") + 1;
             int iPosMiddle = iPosStart;
             bool bEnd = false;
@@ -144,6 +145,7 @@ namespace Utility
             }
             iPosMiddle += 3;
 
+            //Second parameter
             int iPosEnd = iPosMiddle;
             bEnd = false;
             while (bEnd == false)
@@ -167,9 +169,10 @@ namespace Utility
             string str1 = strSQL.Substring(iPosStart, iPosMiddle - iPosStart - 4);
             string str2 = strSQL.Substring(iPosMiddle, iPosEnd - iPosMiddle - 4);
             string str3 = "";
-            if (iPosEnd < strSQL.Length)
+            if (iPosEnd < strSQL.Length-10)
             {
-                str3 = strSQL.Substring(iPosEnd).TrimEnd('\'');
+                //str3 = strSQL.Substring(iPosEnd).TrimEnd('\'');
+                str3 = strSQL.Substring(iPosEnd, strSQL.Length-iPosEnd-10).TrimEnd('\'');
             }
             str1 = str1.Replace("''", "'").Trim('\'');
             str2 = str2.Replace("''", "'").Trim('\'');
@@ -186,9 +189,9 @@ namespace Utility
                 System.Data.SqlTypes.SqlString strSQL1 = str1;
                 System.Data.SqlTypes.SqlString strSQL2 = str2;
                 System.Data.SqlTypes.SqlString strSQL3 = str3;
-                //prefSQL.SQLSkyline.SP_SkylineBNL.getSkylineBNL(str1, str2, true);
+                prefSQL.SQLSkyline.SP_SkylineBNL.getSkylineBNL(str1, str2, true);
                 //prefSQL.SQLSkyline.SP_SkylineBNLLevel.getSkylineBNLLevel(str1, str2, true);
-                prefSQL.SQLSkyline.SP_SkylineHexagon.getSkylineHexagon(str1, str2, str3, true);
+                //prefSQL.SQLSkyline.SP_SkylineHexagon.getSkylineHexagon(str1, str2, str3, true);
             }
             catch (Exception e)
             {

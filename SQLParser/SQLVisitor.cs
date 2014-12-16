@@ -205,8 +205,7 @@ namespace prefSQL.SQLParser
                 strRankColumn = RankingFunction + " over (ORDER BY " + strSQL + ")";
                 strRankHexagon = "DENSE_RANK()" + " over (ORDER BY " + strSQL + ")-1 AS Rank" + strSingleColumn.Replace(".", "");
                 //Add the preference to the list               
-                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute));
-                pref.Rank.Add(new RankModel(strRankExpression, strTable, strSingleColumn.Replace(".", ""), strRankColumn, strRankHexagon));
+                pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, strRankExpression, strTable, strSingleColumn.Replace(".", ""), strRankColumn, strRankHexagon));
             }
 
 
@@ -284,8 +283,7 @@ namespace prefSQL.SQLParser
 
 
                 //Add the preference to the list               
-                pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", "", true, ""));
-                pref.Rank.Add(new RankModel(strRankExpression, strTable, strColumn, strRankColumn, strRankHexagon));
+                pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", "", true, "", strRankExpression, strTable, strColumn, strRankColumn, strRankHexagon));
 
             }
 
@@ -309,8 +307,6 @@ namespace prefSQL.SQLParser
             PrefSQLModel pref = new PrefSQLModel();
             pref.Skyline.AddRange(left.Skyline);
             pref.Skyline.AddRange(right.Skyline);
-            pref.Rank.AddRange(left.Rank);
-            pref.Rank.AddRange(right.Rank);
             pref.OrderBySkyline.AddRange(left.OrderBySkyline);
             pref.OrderBySkyline.AddRange(right.OrderBySkyline);
             pref.Tables = tables;
@@ -357,7 +353,7 @@ namespace prefSQL.SQLParser
                     }
                     strOperator = "<";
 
-                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", "", true, ""));
+                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", "", true, "", "", "", "", "", ""));
 
                     break;
 
@@ -368,7 +364,7 @@ namespace prefSQL.SQLParser
                     strInnerColumnExpression = strColumn.Replace(strTable, strTable + InnerTableSuffix);
                     strOperator = "<";
 
-                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", "", true, ""));
+                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", "", true, "", "", "", "", "", ""));
 
                     break;
 
@@ -380,7 +376,7 @@ namespace prefSQL.SQLParser
                     strOperator = ">";
 
 
-                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", "", true, ""));
+                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", "", true, "", "", "", "", "", ""));
 
                     break;
 
