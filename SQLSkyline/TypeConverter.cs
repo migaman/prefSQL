@@ -1,12 +1,15 @@
-﻿using System;
+//------------------------------------------------------------------------------
+// <copyright file="CSSqlClassFile.cs" company="Microsoft">
+//     Copyright (c) Microsoft Corporation.  All rights reserved.
+// </copyright>
+//------------------------------------------------------------------------------
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Data;
 
-namespace Utility
+namespace prefSQL.SQLSkyline
 {
-
-
     /// <summary>
     /// Convert a base data type to another base data type
     /// </summary>
@@ -40,7 +43,7 @@ namespace Utility
             DbTypeMapEntry dbTypeMapEntry = new DbTypeMapEntry(typeof(bool), DbType.Boolean, SqlDbType.Bit);
             _DbTypeList.Add(dbTypeMapEntry);
 
-            dbTypeMapEntry = new DbTypeMapEntry(typeof(byte), DbType.Double, SqlDbType.TinyInt);
+            dbTypeMapEntry= new DbTypeMapEntry(typeof(byte), DbType.Double, SqlDbType.TinyInt);
             _DbTypeList.Add(dbTypeMapEntry);
 
             dbTypeMapEntry = new DbTypeMapEntry(typeof(byte[]), DbType.Binary, SqlDbType.Image);
@@ -55,7 +58,7 @@ namespace Utility
             dbTypeMapEntry = new DbTypeMapEntry(typeof(double), DbType.Double, SqlDbType.Float);
             _DbTypeList.Add(dbTypeMapEntry);
 
-            dbTypeMapEntry = new DbTypeMapEntry(typeof(Guid), DbType.Guid, SqlDbType.UniqueIdentifier);
+            dbTypeMapEntry  = new DbTypeMapEntry(typeof(Guid), DbType.Guid, SqlDbType.UniqueIdentifier);
             _DbTypeList.Add(dbTypeMapEntry);
 
             dbTypeMapEntry = new DbTypeMapEntry(typeof(Int16), DbType.Int16, SqlDbType.SmallInt);
@@ -179,7 +182,7 @@ namespace Utility
 
         private static DbTypeMapEntry Find(SqlDbType sqlDbType)
         {
-            foreach (DbTypeMapEntry entry in _DbTypeList)
+            foreach(DbTypeMapEntry entry in _DbTypeList)
             {
                 if (entry.SqlDbType == sqlDbType)
                 {
@@ -192,5 +195,4 @@ namespace Utility
 
         #endregion
     }
-
 }

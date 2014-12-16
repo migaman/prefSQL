@@ -68,5 +68,8 @@
   <ItemGroup>
     <Compile Include="SP_SkylineBNL.cs" />
     <Compile Include="TypeConverter.cs" />
+    <Compile Include="SP_SkylineBNLLevel.cs" />
+    <Compile Include="SP_SkylineHexagon.cs" />
+    <Compile Include="SP_SkylineDQ.cs" />
   </ItemGroup>
 </Project>

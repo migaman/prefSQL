@@ -7,10 +7,12 @@ using prefSQL.SQLParser.Models;
 
 namespace prefSQL.SQLParser
 {
+    
     class SQLSort
     {
 
         //Create the ORDERBY-Clause from the preferene model
+        //public string getSortClause(PrefSQLModel model)
         public string getSortClause(PrefSQLModel model, SQLCommon.Ordering type)
         {
             string strSQL = "";
@@ -40,7 +42,7 @@ namespace prefSQL.SQLParser
             return strSQL;
         }
 
-
+    
         /**
          *  Sorts the results according to the attributes values. the first attribute has the highest priority.
          *  For example a tuple has the attributes price and color. The result will be sorted after price and color, whereas 
@@ -50,17 +52,18 @@ namespace prefSQL.SQLParser
         private string getSortAttributePositionClause(PrefSQLModel model)
         {
             string strSQL = "";
-            for (int iChild = 0; iChild < model.OrderBy.Count; iChild++)
+            for (int iChild = 0; iChild < model.OrderBySkyline.Count; iChild++)
             {
                 //First record doesn't need a comma to separate
                 if (iChild > 0)
                 {
                     strSQL += ", ";
                 }
-                strSQL += model.OrderBy[iChild].ToString();
+                strSQL += model.OrderBySkyline[iChild].ToString();
             }
             return strSQL;
         }
+       
 
 
         /**
@@ -68,7 +71,8 @@ namespace prefSQL.SQLParser
          *  For example a tuple has the best, 5th and 7th rank in three attributes. This leads to a ranking of 13.
          * 
          * */
-        private string getSortRankingSumClause(PrefSQLModel model)
+    
+    private string getSortRankingSumClause(PrefSQLModel model)
         {
             string strSQL = "";
 
@@ -86,7 +90,7 @@ namespace prefSQL.SQLParser
 
             return strSQL;
         }
-
+    
 
         /**
          *  Sorts the results according to their best ranking of all attributes
@@ -125,7 +129,7 @@ namespace prefSQL.SQLParser
 
             return strSQL;
         }
-
+    
 
         /**
          *  Sorts the results according to their best ranking of all attributes
@@ -140,4 +144,5 @@ namespace prefSQL.SQLParser
         }
         
     }
+      
 }

@@ -50,7 +50,7 @@ select_or_values
  : K_SELECT (top_keyword)? ( K_DISTINCT | K_ALL )? result_column ( ',' result_column )*
    ( K_FROM ( table_or_subquery ( ',' table_or_subquery )* | join_clause ) )?
    ( K_WHERE expr )?
-   ( K_PREFERENCE expr )?
+   ( K_SKYLINE K_OF exprSkyline )?
    ( K_GROUP K_BY expr ( ',' expr )* ( K_HAVING expr )? )?
  | K_VALUES '(' expr ( ',' expr )* ')' ( ',' '(' expr ( ',' expr )* ')' )*
  ;
@@ -77,40 +77,50 @@ type_name : name+ ( '(' signed_number ')' | '(' signed_number ',' signed_number 
 
 
 expr
- : literal_value																						#opLiteral
- | column_term																							#opDatabaseName
- | unary_operator expr																					#opUnary
- | expr '||' expr																						#opOr
- | expr ( '*' | '/' | '%' ) expr																		#opPoint
- | expr ( '+' | '-' ) expr																				#opLine
- | expr ( '<<' | '>>' | '&' | '|' ) expr																#opDoubleOrder
- | expr ( '<' | '<=' | '>' | '>=' ) expr																#opOrder
- | expr ( '=' | '==' | '!=' | '<>' | K_IS | K_IS K_NOT | K_IN | K_LIKE | K_MATCH ) expr					#opequal
- | '{' exprOwnPreference '}'														#exprOwnPreferenceOp																	
- | expr K_AND expr																	#exprand
- | expr K_PRIORITIZE expr															#exprPrioritize
- | expr K_OR expr																	#expror
- | function_name '(' ( K_DISTINCT? expr ( ',' expr )* | '*' )? ')'					#function
- | '(' expr ')'																		#exprInBracket
- | K_CAST '(' expr K_AS type_name ')'												#cast
- | expr K_COLLATE collation_name													#collate
+ : literal_value																						#expropLiteral
+ | column_term																							#expropDatabaseName
+ | unary_operator expr																					#expropUnary
+ | expr '||' expr																						#expropOr
+ | expr ( '*' | '/' | '%' ) expr																		#expropPoint
+ | expr ( '+' | '-' ) expr																				#expropLine
+ | expr ( '<<' | '>>' | '&' | '|' ) expr																#expropDoubleOrder
+ | expr ( '<' | '<=' | '>' | '>=' ) expr																#expropOrder
+ | expr ( '=' | '==' | '!=' | '<>' | K_IS | K_IS K_NOT | K_IN | K_LIKE | K_MATCH ) expr					#expropequal
+ | '{' exprOwnPreference '}'																			#exprexprOwnPreferenceOp																	
+ | expr K_AND expr																						#exprexprand
+ | expr K_OR expr																						#exprexpror
+ | function_name '(' ( K_DISTINCT? expr ( ',' expr )* | '*' )? ')'										#exprfunction
+ | '(' expr ')'																							#exprexprInBracket
+ | K_CAST '(' expr K_AS type_name ')'																	#exprcast
+ | expr K_COLLATE collation_name																		#exprcollate
  | expr K_NOT? ( K_LIKE | K_MATCH ) expr ( K_ESCAPE expr )?		#not
- | expr ( K_ISNULL | K_NOTNULL | K_NOT K_NULL )										#isNull
- | expr K_IS K_NOT? expr															#isNot
- | expr K_NOT? K_BETWEEN expr K_AND expr											#notBetween
+ | expr ( K_ISNULL | K_NOTNULL | K_NOT K_NULL )															#exprisNull
+ | expr K_IS K_NOT? expr																				#exprisNot
+ | expr K_NOT? K_BETWEEN expr K_AND expr																#exprnotBetween
  | expr K_NOT? K_IN ( '(' ( select_stmt												
                           | expr ( ',' expr )*
                           )? 
                       ')'															
-                    | ( database_name '.' )? table_name )							#notIn
- | ( ( K_NOT )? K_EXISTS )? '(' select_stmt ')'										#notExists
- | K_CASE expr? ( K_WHEN expr K_THEN expr )+ ( K_ELSE expr )? K_END									#case
- //Don't use expression. The word after Low or High must be a column name!!
- | op=(K_LOW | K_HIGH | K_LOWDATE | K_HIGHDATE) column_term ('{' expr '}')?													#preferenceLOWHIGH
- | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term)		#preferenceAROUND
- 							
+                    | ( database_name '.' )? table_name )												#exprnotIn
+ | ( ( K_NOT )? K_EXISTS )? '(' select_stmt ')'															#exprnotExists
+ | K_CASE expr? ( K_WHEN expr K_THEN expr )+ ( K_ELSE expr )? K_END										#exprcase
+ | column_term ('(' exprSkyline ')')																	#orderbyCategory
+ ;
+
+ 
+exprSkyline
+ : literal_value																						#opLiteral
+ | column_term																							#opDatabaseName
+ | exprSkyline ( '>>'  | '==') exprSkyline																#opDoubleOrder
+ | '{' exprOwnPreference '}'																			#exprOwnPreferenceOp																	
+ | exprSkyline ',' exprSkyline																			#exprand   
+ | column_term op=(K_LOW | K_HIGH | K_LOWDATE | K_HIGHDATE)												#preferenceLOWHIGH
+ | column_term ('(' exprSkyline ')')																	#preferenceCategory
+ | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term)			#preferenceAROUND
+ | K_OTHERS (K_EQUAL | K_INCOMPARABLE)																	#preferenceOTHERS
  //| K_WEIGHTED expr													#prefWeighted
  ;
+
  /*
 exprPreference
 	: literal_value
@@ -147,15 +157,6 @@ join_clause : table_or_subquery ( join_operator table_or_subquery join_constrain
 join_operator: ',' | ( K_LEFT K_OUTER? | K_INNER | K_CROSS )? K_JOIN;
 
 join_constraint: ( K_ON expr  | K_USING '(' column_name ( ',' column_name )* ')' )?;
-
-select_core
- : K_SELECT ( K_DISTINCT | K_ALL )? result_column ( ',' result_column )*
-   ( K_FROM ( table_or_subquery ( ',' table_or_subquery )* | join_clause ) )?
-   ( K_WHERE expr )?
-   ( K_PREFERENCE expr )?
-   ( K_GROUP K_BY expr ( ',' expr )* ( K_HAVING expr )? )?
- | K_VALUES '(' expr ( ',' expr )* ')' ( ',' '(' expr ( ',' expr )* ')' )*
- ;
 
 compound_operator: K_UNION | K_UNION K_ALL | K_INTERSECT | K_EXCEPT;
 
@@ -244,10 +245,9 @@ keyword
  | K_HIGHDATE
  | K_LOWDATE
  | K_OTHERS
- | K_OTHERSEQUAL
- | K_PREFERENCE
- | K_WEIGHTED
- | K_PRIORITIZE
+ | K_EQUAL
+ | K_INCOMPARABLE
+ | K_SKYLINE
  ;
 
 
@@ -362,11 +362,10 @@ K_HIGH : H I G H;
 K_LOW : L O W;
 K_HIGHDATE: H I G H D A T E;
 K_LOWDATE : L O W D A T E;
-K_OTHERS : O T H E R S;
-K_OTHERSEQUAL : O T H E R S E Q U A L;
-K_PREFERENCE : P R E F E R E N C E;
-K_WEIGHTED : W E I G H T E D;
-K_PRIORITIZE  : P R I O R I T I Z E;
+K_OTHERS : O T H E R S ;
+K_EQUAL : E Q U A L;
+K_INCOMPARABLE : I N C O M P A R A B L E;
+K_SKYLINE : S K Y L I N E;
 
 
 
