@@ -299,23 +299,6 @@ namespace prefSQL.SQLParser
         }
 
 
-        /*public override PrefSQLModel VisitExprPrioritize(SQLParser.ExprPrioritizeContext context)
-        {
-            //And was used --> visit left and right node
-            PrefSQLModel left = Visit(context.expr(0));
-            PrefSQLModel right = Visit(context.expr(1));
-
-            //Add the columns to the preference model
-            PrefSQLModel pref = new PrefSQLModel();
-            pref.Rank.AddRange(left.Rank);
-            pref.Rank.AddRange(right.Rank);
-            pref.OrderBy.AddRange(left.OrderBy);
-            pref.OrderBy.AddRange(right.OrderBy);
-            pref.Tables = tables;
-            pref.HasTop = includesTOP;
-            pref.HasPrioritize = true;
-            return pref;
-        }*/
         public override PrefSQLModel VisitExprand(SQLParser.ExprandContext context)
         {
             //And was used --> visit left and right node

@@ -141,10 +141,16 @@ namespace prefSQL.SQLParser
                         {
                             string strOperators = "";
                             string strAttributesSkyline = buildSELECTDENSERank(prefSQL, strNewSQL, ref strOperators);
-                            string strFirstSQL = strAttributesSkyline.Replace("'", "''");
+                            //Without SELECT 
+                            string strAttributesOutput = ", " + strNewSQL.Substring(7, strNewSQL.IndexOf("FROM") - 7);
+                            string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
+
+                            string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
+                            strFirstSQL = strFirstSQL.Replace("'", "''");
 
 
                             string strHexagon = buildSELECTHexagon(prefSQL, strNewSQL);
+                            strHexagon = strHexagon.Replace("'", "''");
 
                             strNewSQL = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "'";
 
@@ -236,8 +242,9 @@ namespace prefSQL.SQLParser
             }
 
             //Add the ranked column before the FROM keyword
-            posOfFROM = strPreSQL.IndexOf("FROM");
-            strSQL = strPreSQL.Substring(0, posOfFROM - 1) + strSQL + strPreSQL.Substring(posOfFROM - 1);
+            //posOfFROM = strPreSQL.IndexOf("FROM");
+            //strSQL = strPreSQL.Substring(0, posOfFROM - 1) + strSQL + strPreSQL.Substring(posOfFROM - 1);
+            strSQL = strSQL.TrimStart(',');
             strOperators = strOperators.TrimEnd(';');
 
             return strSQL;

@@ -14,7 +14,8 @@ namespace prefSQL.SQLSkyline
     public class SP_SkylineHexagon
     {
         //Only this parameters are different beteen SQL CLR function and Utility class
-        private const string connectionstring = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
+        private const string cnnStringSQLCLR = "context connection=true";
+        private const string cnnStringLocalhost = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
         private const int MaxSize = 4000;
 
 
@@ -27,16 +28,18 @@ namespace prefSQL.SQLSkyline
             int[] level = null;
             int[] weight = null;
 
+            SqlConnection connection = null;
+            if (isDebug == false)
+                connection = new SqlConnection(cnnStringSQLCLR);
+            else
+                connection = new SqlConnection(cnnStringLocalhost);
 
             String strSQL = strQuery.ToString();
-            ArrayList resultCollection = new ArrayList();
-            ArrayList resultstringCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
             int amountOfPreferences = operators.GetUpperBound(0) + 1;
-            construction(amountOfPreferences, strQueryConstruction.ToString(), ref btg, ref next, ref prev, ref level, ref weight);
-            int startSkylineColumns = 0;
+            construction(amountOfPreferences, strQueryConstruction.ToString(), ref btg, ref next, ref prev, ref level, ref weight, connection);
+            
 
-            SqlConnection connection = new SqlConnection(connectionstring);
             try
             {
                 //Some checks
@@ -50,19 +53,16 @@ namespace prefSQL.SQLSkyline
                 DataTable dt = new DataTable();
                 dap.Fill(dt);
 
-                //Read start of skyline
-                int i = 0;
-                foreach (DataColumn col in dt.Columns)
+                // Build our record schema 
+                List<SqlMetaData> outputColumns = buildRecordSchema(dt, operators);
+
+                SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
+                if (isDebug == false)
                 {
-
-                    if (col.Caption.StartsWith("Rank"))
-                    {
-                        startSkylineColumns = i;
-                        break;
-                    }
-                    i++;
-
+                    SqlContext.Pipe.SendResultsStart(record);
                 }
+
+                //Read start of skyline
 
 
                 DataTableReader sqlReader = dt.CreateDataReader();
@@ -71,25 +71,37 @@ namespace prefSQL.SQLSkyline
                 //Read all records only once. (SqlDataReader works forward only!!)
                 while (sqlReader.Read())
                 {
-                    add(sqlReader, amountOfPreferences, startSkylineColumns, ref btg, ref weight);
+                    add(sqlReader, amountOfPreferences, operators, ref btg, ref weight, outputColumns);
                 }
                 sqlReader.Close();
 
                 findBMO(amountOfPreferences, ref btg, ref next, ref prev, ref level, ref weight);
 
 
+
+               
+                
+
                 //Now read next list
                 int iItem = 0;
-
+                int iAmountOfRecords = 0;
                 //Unitl no more nodes are found
                 while (iItem != -1)
                 {
                     //Add all records of this node
                     if (btg[iItem] != null)
                     {
-                        foreach (long[] test in btg[iItem])
+                        foreach (SqlDataRecord recSkyline in btg[iItem])
                         {
-                            resultCollection.Add(test);
+                            if (isDebug == true)
+                            {
+                                iAmountOfRecords++;
+                                
+                            }
+                            else
+                            {
+                                SqlContext.Pipe.SendResultsRow(recSkyline);
+                            }
                         }
                     }
 
@@ -100,7 +112,11 @@ namespace prefSQL.SQLSkyline
 
                 if (isDebug == true)
                 {
-                    System.Diagnostics.Debug.WriteLine(resultCollection.Count);
+                    System.Diagnostics.Debug.WriteLine("Total records in skyline: " + iAmountOfRecords);
+                }
+                else
+                {
+                    SqlContext.Pipe.SendResultsEnd();
                 }
 
 
@@ -133,158 +149,11 @@ namespace prefSQL.SQLSkyline
 
         }
 
-        private static void remove(int id, int index, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight)
-        {
-            //check if the node has already been removed
-            if (prev[id] == -1)
-            {
-                return;
-            }
-            if (next[prev[id]] != id)
-            {
-                return;
-            }
-            else
-            {
-                //remove the node from next/prev relation
-                next[prev[id]] = next[id];
-                if (next[id] != -1)
-                {
-                    prev[next[id]] = prev[id];
-                }
-                //else
-                /*{
-                    prev[id] = -1;
-                }*/
-                //prev[id] = prev[id];
 
-                //next[id] = -1;
-                //prev[id] = -1;
-
-                //remove tuples in node
-                btg[id] = null;
-
-            }
-
-            int i = 1;
-
-            //remove followers
-            for (i = 0; i <= index; i++)
-            {
-                // follow the edge for preference i (only if not already on last level)
-                if (id + weight[i] <= level.GetUpperBound(0) && level[id + weight[i]] == level[id] + 1)
-                {
-                    remove(id + weight[i], i, ref btg, ref next, ref prev, ref level, ref weight);
-                }
-            }
-
-
-
-        }
-
-        //Find BestMatchesOnly
-        private static void findBMO(int amountPreferences, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight)
-        {
-            int last = 0;
-
-            // special case: top node is not empty
-            if (btg[0] != null)
-            {
-                //Top node contains a tuple --> This is the perfect tuple. Set next to -1,
-                next[0] = -1;
-
-            }
-            else
-            {
-                //follow the breadth-first walk
-                int cur = 1;
-                //while (cur != -1)
-                while (cur != -1 && next[cur] != -1) //<= btg.GetUpperBound(0)
-                {
-                    if (btg[cur] != null)
-                    {
-                        // non-empty node belonging to BMO set
-                        int nextCur = next[cur];
-                        last = cur;
-                        // remove all nodes dominated by current
-                        for (int i = 0; i < amountPreferences; i++)
-                        {
-                            // check if there is an edge for Pi
-                            if (cur + weight[i] <= level.GetUpperBound(0))
-                            {
-                                if (level[cur + weight[i]] == level[cur] + 1)
-                                {
-                                    remove(cur + weight[i], i, ref btg, ref next, ref prev, ref level, ref weight);
-                                }
-                            }
-
-
-                        }
-                        cur = nextCur;
-
-                    }
-                    else
-                    {
-                        // node is empty: remove from next/prev
-                        int nextCur = next[cur];
-
-                        next[last] = next[cur];
-                        prev[next[cur]] = last;
-                        next[cur] = -1; //gibt es nicht mehr dieses node
-                        prev[cur] = -1;
-                        /*next[last] = cur;
-                        if (next[cur] != -1)
-                        {
-                            prev[next[cur]] = last;
-                        }*/
-
-                        cur = nextCur; //Damit Breadt-First Walk
-                    }
-
-                    //Goto next node
-                    //cur++;
-                }
-
-            }
-
-
-
-        }
-        private static void add(DataTableReader sqlReader, int amountOfPreferences, int startSkylineColumns, ref ArrayList[] btg, ref int[] weight) //add tuple
-        {
-            //create int array from sqlReader
-            long[] tuple = new long[sqlReader.FieldCount - startSkylineColumns];
-            for (int iCol = startSkylineColumns; iCol < sqlReader.FieldCount; iCol++)
-            {
-                tuple[iCol - startSkylineColumns] = sqlReader.GetInt64(iCol);
-            }
-
-
-
-            //1: procedure add(tuple)
-            // compute the node ID for the tuple
-            long id = 0;
-            for (int i = 0; i < amountOfPreferences; i++)
-            {
-                //id = id + levelPi(tuple) * weight(i);
-                id = id + tuple[i] * weight[i];
-            }
-
-            // add tuple to its node
-            if (btg[id] == null)
-            {
-                btg[id] = new ArrayList();
-            }
-            btg[id].Add(tuple);
-
-
-        }
-
-
-        private static void construction(int amountOfPreferences, string strQuery, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight)
+        private static void construction(int amountOfPreferences, string strQuery, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight, SqlConnection connection)
         {
 
-            SqlConnection connection = new SqlConnection(connectionstring);
+
             try
             {
                 connection.Open();
@@ -390,7 +259,7 @@ namespace prefSQL.SQLSkyline
                 //set previous node of top node
                 prev[0] = -1;
 
-
+                connection.Close();
 
             }
             catch (Exception e)
@@ -399,6 +268,199 @@ namespace prefSQL.SQLSkyline
             }
         }
 
+        private static void add(DataTableReader sqlReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, List<SqlMetaData> outputColumns) //add tuple
+        {
+            SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
+
+            //create int array from sqlReader
+            long[] tuple = new long[operators.GetUpperBound(0)+1];
+            for (int iCol = 0; iCol < sqlReader.FieldCount; iCol++)
+            {
+                //Only the real columns (skyline columns are not output fields)
+                if (iCol <= operators.GetUpperBound(0))
+                {
+                    tuple[iCol] = sqlReader.GetInt64(iCol);
+                }
+                else
+                {
+                    record.SetValue(iCol - (operators.GetUpperBound(0) + 1), sqlReader[iCol]);
+                }
+
+            }
+
+
+
+            
+            /*for (int iCol = startSkylineColumns; iCol < sqlReader.FieldCount; iCol++)
+            {
+                tuple[iCol - startSkylineColumns] = sqlReader.GetInt64(iCol);
+            }*/
+
+
+
+            //1: procedure add(tuple)
+            // compute the node ID for the tuple
+            long id = 0;
+            for (int i = 0; i < amountOfPreferences; i++)
+            {
+                //id = id + levelPi(tuple) * weight(i);
+                id = id + tuple[i] * weight[i];
+            }
+
+            // add tuple to its node
+            if (btg[id] == null)
+            {
+                btg[id] = new ArrayList();
+            }
+            btg[id].Add(record);
+
+
+        }
+
+        
+
+        //Find BestMatchesOnly
+        private static void findBMO(int amountPreferences, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight)
+        {
+            int last = 0;
+
+            // special case: top node is not empty
+            if (btg[0] != null)
+            {
+                //Top node contains a tuple --> This is the perfect tuple. Set next to -1,
+                next[0] = -1;
+
+            }
+            else
+            {
+                //follow the breadth-first walk
+                int cur = 1;
+                //while (cur != -1)
+                while (cur != -1 && next[cur] != -1) //<= btg.GetUpperBound(0)
+                {
+                    if (btg[cur] != null)
+                    {
+                        // non-empty node belonging to BMO set
+                        int nextCur = next[cur];
+                        last = cur;
+                        // remove all nodes dominated by current
+                        for (int i = 0; i < amountPreferences; i++)
+                        {
+                            // check if there is an edge for Pi
+                            if (cur + weight[i] <= level.GetUpperBound(0))
+                            {
+                                if (level[cur + weight[i]] == level[cur] + 1)
+                                {
+                                    remove(cur + weight[i], i, ref btg, ref next, ref prev, ref level, ref weight);
+                                }
+                            }
+
+
+                        }
+                        cur = nextCur;
+
+                    }
+                    else
+                    {
+                        // node is empty: remove from next/prev
+                        int nextCur = next[cur];
+
+                        next[last] = next[cur];
+                        prev[next[cur]] = last;
+                        next[cur] = -1; //gibt es nicht mehr dieses node
+                        prev[cur] = -1;
+                        /*next[last] = cur;
+                        if (next[cur] != -1)
+                        {
+                            prev[next[cur]] = last;
+                        }*/
+
+                        cur = nextCur; //Damit Breadt-First Walk
+                    }
+
+                    //Goto next node
+                    //cur++;
+                }
+
+            }
+
+
+
+        }
+
+
+
+        private static void remove(int id, int index, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight)
+        {
+            //check if the node has already been removed
+            if (prev[id] == -1)
+            {
+                return;
+            }
+            if (next[prev[id]] != id)
+            {
+                return;
+            }
+            else
+            {
+                //remove the node from next/prev relation
+                next[prev[id]] = next[id];
+                if (next[id] != -1)
+                {
+                    prev[next[id]] = prev[id];
+                }
+                //else
+                /*{
+                    prev[id] = -1;
+                }*/
+                //prev[id] = prev[id];
+
+                //next[id] = -1;
+                //prev[id] = -1;
+
+                //remove tuples in node
+                btg[id] = null;
+
+            }
+
+            int i = 1;
+
+            //remove followers
+            for (i = 0; i <= index; i++)
+            {
+                // follow the edge for preference i (only if not already on last level)
+                if (id + weight[i] <= level.GetUpperBound(0) && level[id + weight[i]] == level[id] + 1)
+                {
+                    remove(id + weight[i], i, ref btg, ref next, ref prev, ref level, ref weight);
+                }
+            }
+        }
+
+
+        private static List<SqlMetaData> buildRecordSchema(DataTable dt, string[] operators)
+        {
+            List<SqlMetaData> outputColumns = new List<SqlMetaData>(dt.Columns.Count);
+            int iCol = 0;
+            foreach (DataColumn col in dt.Columns)
+            {
+                //Only the real columns (skyline columns are not output fields)
+                if (iCol > operators.GetUpperBound(0))
+                {
+                    SqlMetaData OutputColumn;
+                    if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(DateTime)))
+                    {
+                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType));
+                    }
+                    else
+                    {
+                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
+                    }
+                    outputColumns.Add(OutputColumn);
+                }
+                iCol++;
+            }
+            return outputColumns;
+        }
 
     }
 }
