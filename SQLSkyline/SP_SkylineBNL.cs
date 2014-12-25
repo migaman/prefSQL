@@ -61,14 +61,6 @@ namespace prefSQL.SQLSkyline
                     SqlContext.Pipe.SendResultsStart(record);
                 }
 
-                //dt.CreateDataReader();
-                /*string sqlsc = createTABLEStructure(dt);
-                SqlCommand sqlCommand = new SqlCommand(sqlsc, connection);
-                sqlCommand.ExecuteNonQuery();*/
-
-                //Clones the structure of the DataTable, including all DataTable schemas and constraints.
-                //DataTable dtInsert = dt.Clone();
-
 
                 DataTableReader sqlReader = dt.CreateDataReader();
 
@@ -81,8 +73,6 @@ namespace prefSQL.SQLSkyline
                     if (resultCollection.Count == 0)
                     {
                         // Build our SqlDataRecord and start the results 
-                        //dtInsert.ImportRow(dt.Rows[iIndex]);
-                        //record.SetInt32(0, 10);
                         addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isDebug);
                     }
                     else
@@ -129,43 +119,6 @@ namespace prefSQL.SQLSkyline
                     SqlContext.Pipe.SendResultsEnd();
                 }
 
-
-                //Bulk load into sql server
-                //dtInsert.AcceptChanges();
-
-
-                //System.Diagnostics.Debug.WriteLine(dtInsert.Rows.Count);
-                /*using (SqlBulkCopy bulkCopy = new SqlBulkCopy(connection))
-                {
-                    bulkCopy.DestinationTableName = TempTable;
-                    bulkCopy.WriteToServer(dtInsert);
-                }*/
-
-                //SendDataTableOverPipe(dtInsert);
-
-                //SqlContext.Pipe.SendResultsEnd();
-                /*
-                string strSQL = "SELECT * FROM " + TempTable;
-
-                sqlCommand = new SqlCommand(strSQL, connection);
-                sqlReader = sqlCommand.ExecuteReader();
-            
-                */
-
-
-                //DataTableReader reader = dtInsert.CreateDataReader();
-
-                //TODO: only for real Stored Procedure
-                //SqlContext.Pipe.Send(sqlReader);
-                //SqlContext.Pipe.SendResultsEnd();
-
-
-
-                /*
-                strSQL = "DROP TABLE " + TempTable;
-                sqlCommand = new SqlCommand(strSQL, connection);
-                sqlCommand.ExecuteNonQuery();
-                */
 
             }
             catch (Exception ex)
@@ -349,41 +302,6 @@ namespace prefSQL.SQLSkyline
             }
             return outputColumns;
         }
-
-        /*
-        private static string createTABLEStructure(DataTable table)
-        {
-            string sqlsc;
-
-            sqlsc = "CREATE TABLE " + TempTable + "(";
-            for (int i = 0; i < table.Columns.Count; i++)
-            {
-                sqlsc += "\n [" + table.Columns[i].ColumnName + "] ";
-                if (table.Columns[i].DataType.ToString().Contains("System.Int32"))
-                    sqlsc += " int ";
-                else if (table.Columns[i].DataType.ToString().Contains("System.DateTime"))
-                    sqlsc += " datetime ";
-                else if (table.Columns[i].DataType.ToString().Contains("System.String"))
-                    sqlsc += " nvarchar(" + MaxVarcharSize + ") ";
-                else
-                    sqlsc += " nvarchar(" + MaxVarcharSize + ") ";
-
-
-
-                /*if (table.Columns[i].AutoIncrement)
-                    sqlsc += " IDENTITY(" + table.Columns[i].AutoIncrementSeed.ToString() + "," + table.Columns[i].AutoIncrementStep.ToString() + ") ";
-                if (!table.Columns[i].AllowDBNull)
-                    sqlsc += " NOT NULL ";*/
-        /*      sqlsc += ",";
-
-          }
-          sqlsc = sqlsc.Substring(0, sqlsc.Length - 1) + ")";
-
-          return sqlsc;
-
-
-
-      }*/
 
 
     }

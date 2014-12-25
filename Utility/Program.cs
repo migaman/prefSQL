@@ -5,18 +5,25 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using prefSQL.SQLParser;
+using System.Data;
+using System.Data.SqlClient;
+using System.Data.SqlTypes;
+using Microsoft.SqlServer.Server;
+
 
 namespace Utility
 {
     class Program
     {
+        private const string cnnStringLocalhost = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
+
         static void Main(string[] args)
         {
 
 
             /*
             Performance p = new Performance();
-            p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.NativeSQL, false);
+            p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.Hexagon, false, true);
             */
 
             /*
@@ -56,7 +63,7 @@ namespace Utility
 
                 //string strPrefSQL = "SELECT cars.id, cars.title, colors.name, fuels.name FROM cars " +
                 //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name, mileage FROM cars " +
-                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t1.enginesize FROM cars_small t1 " +
+                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t1.enginesize FROM cars_superlarge t1 " +
                     //string strPrefSQL = "SELECT cars.id, cars.Price, cars.mileage FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage, cars.horsepower, cars.enginesize, cars.registration, cars.consumption, cars.doors, colors.name, fuels.name FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, colors.name AS colourname, fuels.name AS fuelname, cars.price FROM cars " +
@@ -71,7 +78,7 @@ namespace Utility
                 //"SKYLINE OF t1.price LOW AND t1.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL) ORDER BY t1.price, t1.mileage ";
 
                 //"SKYLINE OF t1.horsepower HIGH, t1.price LOW 10000, t1.mileage LOW 10000, t2.name ('schwarz' >> 'rot' >> OTHERS EQUAL), t1.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL)";
-                "SKYLINE OF t1.price LOW, t1.mileage LOW, t2.name ('pink' >> 'rot' == 'schwarz' >> 'beige' == 'gelb') " +
+                "SKYLINE OF t1.price LOW 10000, t1.mileage LOW 10000, t2.name ('pink' >> 'rot' == 'schwarz' >> 'beige' == 'gelb' >> OTHERS EQUAL) " +
                 //"SKYLINE OF LOW t1.price PRIORITIZE LOW t1.mileage";
                 //"SKYLINE OF LOW t1.price PRIORITIZE LOW t1.mileage PRIORITIZE HIGH t2.name {OTHERS >> 'pink'}";
                 //"SKYLINE OF cars.price AROUND 10000 ";
@@ -94,7 +101,9 @@ namespace Utility
 
 
                 SQLCommon parser = new SQLCommon();
-                parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
+                //parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
+                //parser.SkylineType = SQLCommon.Algorithm.BNL;
+                //parser.SkylineType = SQLCommon.Algorithm.Hexagon;
                 //parser.OrderType = SQLCommon.Ordering.RankingBestOf;
                 //parser.ShowSkylineAttributes = true;
 
@@ -103,7 +112,7 @@ namespace Utility
                 Debug.WriteLine(strSQL);
 
 
-                //executeDb(strSQL);
+                executeDb(strSQL, parser.SkylineType);
                 
 
 
@@ -123,7 +132,7 @@ namespace Utility
 
 
 
-        private void executeDb(String strSQL)
+        private void executeDb(String strSQL, SQLCommon.Algorithm algorithm)
         {
             
             //First parameter
@@ -189,9 +198,30 @@ namespace Utility
                 System.Data.SqlTypes.SqlString strSQL1 = str1;
                 System.Data.SqlTypes.SqlString strSQL2 = str2;
                 System.Data.SqlTypes.SqlString strSQL3 = str3;
-                prefSQL.SQLSkyline.SP_SkylineBNL.getSkylineBNL(str1, str2, true);
+                if (algorithm == SQLCommon.Algorithm.BNL)
+                {
+                    prefSQL.SQLSkyline.SP_SkylineBNL.getSkylineBNL(str1, str2, true);
+                }
+                else if (algorithm == SQLCommon.Algorithm.Hexagon)
+                {
+                    prefSQL.SQLSkyline.SP_SkylineHexagon.getSkylineHexagon(str1, str2, str3, true);
+                }
+                else if (algorithm == SQLCommon.Algorithm.NativeSQL)
+                {
+                    //Native SQL
+                    SqlConnection connection = null;
+                    connection = new SqlConnection(cnnStringLocalhost);
+
+                    connection.Open();
+
+                    SqlDataAdapter dap = new SqlDataAdapter(strSQL, connection);
+                    DataTable dt = new DataTable();
+                    dap.Fill(dt);
+
+                    System.Diagnostics.Debug.WriteLine(dt.Rows.Count);
+                }
                 //prefSQL.SQLSkyline.SP_SkylineBNLLevel.getSkylineBNLLevel(str1, str2, true);
-                //prefSQL.SQLSkyline.SP_SkylineHexagon.getSkylineHexagon(str1, str2, str3, true);
+                
             }
             catch (Exception e)
             {

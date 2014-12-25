@@ -11,7 +11,9 @@ namespace Utility
 {
     class Performance
     {
-        public void GeneratePerformanceQueries(SQLCommon.Algorithm algorithmType, bool withIncomparable)
+        private const string path = "E:\\Doc\\Studies\\PRJ_Thesis\\15 Performance\\";
+
+        public void GeneratePerformanceQueries(SQLCommon.Algorithm algorithmType, bool withIncomparable, bool withLeveling)
         {
             //Add more columns
             string[] columns = { "cars.price", "cars.mileage", "cars.horsepower", "cars.enginesize", "cars.registration", "cars.consumption", "cars.doors", "colors.name", "fuels.name", "bodies.name", "cars.title", "makes.name", "conditions.name" };
@@ -20,24 +22,25 @@ namespace Utility
             string[] preferences;
             if (withIncomparable == true)
             {
-                preferences = new string[] { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGHDATE cars.registration", "LOW cars.consumption", "HIGH cars.doors", "HIGH colors.name {'rot' == 'blau' >> OTHERS >> 'grau'}", "HIGH fuels.name {'Benzin' >> OTHERS >> 'Diesel'}", "HIGH bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS >> 'Pick-Up'}", "HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERS}", "HIGH makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS >> 'FERRARI'}", "HIGH conditions.name {'Neu' >> OTHERS}" };
+                preferences = new string[] { "cars.price LOW", "cars.mileage LOW", "cars.horsepower HIGH", "cars.enginesize HIGH", "cars.registration HIGHDATE", "cars.consumption LOW", "cars.doors HIGH", "colors.name ('rot' == 'blau' >> OTHERS INCOMPARABLE >> 'grau')", "fuels.name ('Benzin' >> OTHERS INCOMPARABLE >> 'Diesel')", "bodies.name ('Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS INCOMPARABLE >> 'Pick-Up')", "cars.title ('MERCEDES-BENZ SL 600' >> OTHERS INCOMPARABLE)", "makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS INCOMPARABLE >> 'FERRARI')", "conditions.name ('Neu' >> OTHERS INCOMPARABLE)" };
             }
             else
             {
-                preferences = new string[] { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGHDATE cars.registration", "LOW cars.consumption", "HIGH cars.doors", "HIGH colors.name {'rot' == 'blau' >> OTHERS EQUAL >> 'grau'}", "HIGH fuels.name {'Benzin' >> OTHERS EQUAL >> 'Diesel'}", "HIGH bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS EQUAL >> 'Pick-Up'}", "HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERS EQUAL}", "HIGH makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI'}", "HIGH conditions.name {'Neu' >> OTHERS EQUAL}" };
+                if (withLeveling == true)
+                {
+                    preferences = new string[] { "cars.price LOW 10000", "cars.mileage LOW 10000", "cars.horsepower HIGH 100", "cars.enginesize HIGH 1000", "cars.registration HIGHDATE", "cars.consumption LOW 5", "cars.doors HIGH", "colors.name ('rot' == 'blau' >> OTHERS EQUAL >> 'grau')", "fuels.name ('Benzin' >> OTHERS EQUAL >> 'Diesel')", "bodies.name ('Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS EQUAL >> 'Pick-Up')", "cars.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL)", "makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI')", "conditions.name ('Neu' >> OTHERS EQUAL)" };
+                }
+                else
+                {
+                    preferences = new string[] { "cars.price LOW", "cars.mileage LOW", "cars.horsepower HIGH", "cars.enginesize HIGH", "cars.registration HIGHDATE", "cars.consumption LOW", "cars.doors HIGH", "colors.name ('rot' == 'blau' >> OTHERS EQUAL >> 'grau')", "fuels.name ('Benzin' >> OTHERS EQUAL >> 'Diesel')", "bodies.name ('Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS EQUAL >> 'Pick-Up')", "cars.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL)", "makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI')", "conditions.name ('Neu' >> OTHERS EQUAL)" };
+                }
             }
-            //string[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGHDATE cars.registration", "LOW cars.consumption", "HIGH cars.doors", "HIGH colors.name {'rot' == 'blau' >> OTHERS >> 'grau'}", "HIGH fuels.name {'Benzin' >> OTHERS >> 'Diesel'}", "HIGH bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS >> 'Pick-Up'}", "HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERS}", "HIGH makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS >> 'FERRARI'}", "HIGH conditions.name {'Neu' >> OTHERS}" };
-            //string[] preferences = { "LOW cars.price", "LOW cars.mileage", "HIGH cars.horsepower", "HIGH cars.enginesize", "HIGHDATE cars.registration", "LOW cars.consumption", "HIGH cars.doors", "HIGH colors.name {'rot' == 'blau' >> OTHERS EQUAL >> 'grau'}", "HIGH fuels.name {'Benzin' >> OTHERS EQUAL >> 'Diesel'}", "HIGH bodies.name {'Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS EQUAL >> 'Pick-Up'}", "HIGH cars.title {'MERCEDES-BENZ SL 600' >> OTHERS EQUAL}", "HIGH makes.name {'ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI'}", "HIGH conditions.name {'Neu' >> OTHERS EQUAL}" };
+
             
             string[] sizes = { "small", "medium", "large", "superlarge" };
-            
-            
-
             StringBuilder sb = new StringBuilder();
-            //sb.AppendLine("set statistics time on");
 
-
-            for (int i = columns.GetUpperBound(0); i >= 1; i--)
+            for (int i = columns.GetUpperBound(0); i >= 0; i--)
             {
                 //SELECT FROM
                 string strSQL = "SELECT " + string.Join(",", columns) + " FROM cars ";
@@ -72,7 +75,7 @@ namespace Utility
 
 
                 //ADD Preferences
-                strSQL += "SKYLINE OF " + string.Join(" AND ", preferences);
+                strSQL += "SKYLINE OF " + string.Join(", ", preferences);
 
 
                 //Convert to real SQL
@@ -92,22 +95,14 @@ namespace Utility
 
                 }
 
-
-                //strPerformanceQuery += "\n\n\n";
                 sb.AppendLine("");
                 sb.AppendLine("");
                 sb.AppendLine("");
-                //Debug.WriteLine();
-
-
-
 
                 //Remove current column
                 columns = columns.Where(w => w != columns[i]).ToArray();
                 preferences = preferences.Where(w => w != preferences[i]).ToArray();
             }
-            //
-            //sb.AppendLine("set statistics time off");
 
             //Write in file
             string strFileName = "";
@@ -118,11 +113,15 @@ namespace Utility
             }
             if(algorithmType == SQLCommon.Algorithm.NativeSQL) 
             {
-                strFileName = "E:\\Doc\\Studies\\PRJ_Thesis\\15 Performance\\Performance_Native_" + strIncomparable + ".sql";
+                strFileName = path + "Performance_Native_" + strIncomparable + ".sql";
+            }
+            else if(algorithmType == SQLCommon.Algorithm.Hexagon)
+            {
+                strFileName = path + "Performance_Hexagon_" + strIncomparable + ".sql";
             }
             else
             {
-                strFileName = "E:\\Doc\\Studies\\PRJ_Thesis\\15 Performance\\Performance_BNL_" + strIncomparable + ".sql";
+                strFileName = path + "Performance_BNL_" + strIncomparable + ".sql";
             }
             StreamWriter outfile = new StreamWriter(strFileName);
             outfile.Write(sb.ToString());
