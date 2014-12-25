@@ -43,8 +43,17 @@ sql_stmt_list : ';'* sql_stmt ( ';'+ sql_stmt )* ';'* ;
 sql_stmt : ( select_stmt) ;
 
  
-select_stmt : select_or_values ( compound_operator select_or_values )*  ( K_ORDER K_BY ordering_term ( ',' ordering_term )* )?
+select_stmt : select_or_values ( compound_operator select_or_values )*  ( order_by )?
  ;
+
+order_by
+	: K_ORDER K_BY op=(K_SUMRANK|K_BESTRANK) '(' + ')'			#orderBySpecial
+	| K_ORDER K_BY ordering_term ( ',' ordering_term )*	 	#orderByDefault
+	 
+ 
+
+
+;
 
 select_or_values
  : K_SELECT (top_keyword)? ( K_DISTINCT | K_ALL )? result_column ( ',' result_column )*
@@ -92,7 +101,6 @@ expr
  | function_name '(' ( K_DISTINCT? expr ( ',' expr )* | '*' )? ')'										#exprfunction
  | '(' expr ')'																							#exprexprInBracket
  | K_CAST '(' expr K_AS type_name ')'																	#exprcast
- | expr K_COLLATE collation_name																		#exprcollate
  | expr K_NOT? ( K_LIKE | K_MATCH ) expr ( K_ESCAPE expr )?		#not
  | expr ( K_ISNULL | K_NOTNULL | K_NOT K_NULL )															#exprisNull
  | expr K_IS K_NOT? expr																				#exprisNot
@@ -113,8 +121,8 @@ exprSkyline
  | column_term																							#opDatabaseName
  | exprSkyline ( '>>'  | '==') exprSkyline																#opDoubleOrder
  | '{' exprOwnPreference '}'																			#exprOwnPreferenceOp																	
- | exprSkyline ',' exprSkyline																			#exprand   
- | column_term op=(K_LOW | K_HIGH | K_LOWDATE | K_HIGHDATE)												#preferenceLOWHIGH
+ | exprSkyline ',' exprSkyline																			#exprAnd   
+ | column_term op=(K_LOW | K_HIGH | K_LOWDATE | K_HIGHDATE)	(signed_number)?							#preferenceLOWHIGH
  | column_term ('(' exprSkyline ')')																	#preferenceCategory
  | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term)			#preferenceAROUND
  | K_OTHERS (K_EQUAL | K_INCOMPARABLE)																	#preferenceOTHERS
@@ -140,7 +148,7 @@ exprOwnPreference
 ;
 
 column_term : ( ( database_name '.' )? table_name '.' )? column_name;
-ordering_term : expr ( K_COLLATE collation_name )? ( K_ASC | K_DESC )? ;
+ordering_term : expr ( K_ASC | K_DESC )? ;
 
 result_column : '*' | table_name '.' '*'  | expr ( K_AS? column_alias )?;
 
@@ -192,7 +200,6 @@ keyword
  | K_BY
  | K_CASE
  | K_CAST
- | K_COLLATE
  | K_CROSS
  | K_CURRENT_DATE
  | K_CURRENT_TIME
@@ -242,12 +249,15 @@ keyword
  | K_FAVOUR
  | K_HIGH
  | K_LOW
+ | K_LOWLEVEL
  | K_HIGHDATE
  | K_LOWDATE
  | K_OTHERS
  | K_EQUAL
  | K_INCOMPARABLE
  | K_SKYLINE
+ | K_SUMRANK
+ | K_BESTRANK
  ;
 
 
@@ -263,8 +273,6 @@ table_name : any_name;
 new_table_name : any_name;
 
 column_name : any_name;
-
-collation_name : any_name;
 
 table_alias : any_name;
 
@@ -310,7 +318,6 @@ K_BETWEEN : B E T W E E N;
 K_BY : B Y;
 K_CASE : C A S E;
 K_CAST : C A S T;
-K_COLLATE : C O L L A T E;
 K_CROSS : C R O S S;
 K_CURRENT_DATE : C U R R E N T '_' D A T E;
 K_CURRENT_TIME : C U R R E N T '_' T I M E;
@@ -360,12 +367,15 @@ K_DISFAVOUR : D I S F A V O U R;
 K_FAVOUR : F A V O U R;
 K_HIGH : H I G H;
 K_LOW : L O W;
+K_LOWLEVEL : L O W L E V E L;
 K_HIGHDATE: H I G H D A T E;
 K_LOWDATE : L O W D A T E;
 K_OTHERS : O T H E R S ;
 K_EQUAL : E Q U A L;
 K_INCOMPARABLE : I N C O M P A R A B L E;
 K_SKYLINE : S K Y L I N E;
+K_SUMRANK : S U M R A N K;
+K_BESTRANK : B E S T R A N K;
 
 
 

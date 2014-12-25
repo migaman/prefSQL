@@ -9,9 +9,9 @@ namespace prefSQL.SQLParser.Models
     class AttributeModel
     {
 
-        public AttributeModel(string strColumnExpression, string strOperator, string strTable, string strInnerTable, string strInnerColumnExpression, string strColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumn, string strTableName, string strRankColumnName, string strExpression, string strRankHexagon)
+        public AttributeModel(string strColumnExpression, string strOperator, string strTableName, string strInnerTable, string strInnerColumnExpression, string strColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumn, string strRankColumnName, string strExpression, string strRankHexagon, string strOrderBy)
         {
-            Table = strTable;                                       //Tablename for the mainquery       (i.e. cars)
+            TableName = strTableName;                               //Tablename for the mainquery       (i.e. cars)
             InnerTable = strInnerTable;                             //Tablename for the subquery        (i.e. cars_INNER)
             ColumnExpression = strColumnExpression;                 //Column expression                 (i.e. CASE WHEN colors.name = 'türkis' THEN 0 WHEN colors.name = 'gelb' THEN 100 ELSE 200 END)
             InnerColumnExpression = strInnerColumnExpression;       //Inner column expression           (i.e CASE WHEN colors_INNER.name = 'türkis' THEN 0 WHEN colors_INNER.name = 'gelb' THEN 100 ELSE 200 END)
@@ -21,19 +21,19 @@ namespace prefSQL.SQLParser.Models
             Comparable = isComparable;                              //Check if at least one value is incomparable
             IncomparableAttribute = strIncomporableAttribute;       //Attribute that returns the textvalue if the value is incomparable
 
-
             Expression = strExpression;
-            TableName = strTableName;
             RankColumnName = strRankColumnName;
             RankColumn = strRankColumn;
             RankHexagon = strRankHexagon;
+
+            OrderBy = strOrderBy;
         }
 
 
         public string ColumnName { get; set; }
 
         public string InnerColumnName { get; set; }
-        
+
         public string ColumnExpression { get; set; }
 
         public string InnerColumnExpression { get; set; }
@@ -44,7 +44,6 @@ namespace prefSQL.SQLParser.Models
         //Operator
         public string Op { get; set; }
 
-        public string Table { get; set; }
 
         public bool Comparable { get; set; }
 
@@ -60,5 +59,7 @@ namespace prefSQL.SQLParser.Models
 
         public string RankHexagon { get; set; }
 
+
+        public string OrderBy { get; set; }
     }
 }

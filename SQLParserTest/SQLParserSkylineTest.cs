@@ -238,6 +238,20 @@ namespace prefSQL.SQLParserTest
 
 
 
+        [TestMethod]
+        public void TestSKYLINE_LOW_With_Level()
+        {
+            string strPrefSQL = "SELECT cars.id, cars.title, cars.Price FROM cars SKYLINE OF cars.price LOW 1000, cars.mileage LOW";
+
+            string expected = "SELECT cars.id, cars.title, cars.Price FROM cars WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.Price FROM cars cars_INNER WHERE cars_INNER.price / 1000 <= cars.price / 1000 AND cars_INNER.mileage <= cars.mileage AND ( cars_INNER.price / 1000 < cars.price / 1000 OR cars_INNER.mileage < cars.mileage) ) ";
+            SQLCommon common = new SQLCommon();
+            string actual = common.parsePreferenceSQL(strPrefSQL);
+
+            // assert
+
+            Assert.AreEqual(expected.Trim(), actual.Trim(), true, "SQL not built correctly");
+        }
+
 
         [TestMethod]
         public void TestSKYLINEFavourRot()

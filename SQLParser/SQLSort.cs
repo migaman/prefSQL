@@ -52,14 +52,14 @@ namespace prefSQL.SQLParser
         private string getSortAttributePositionClause(PrefSQLModel model)
         {
             string strSQL = "";
-            for (int iChild = 0; iChild < model.OrderBySkyline.Count; iChild++)
+            for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
                 //First record doesn't need a comma to separate
                 if (iChild > 0)
                 {
                     strSQL += ", ";
                 }
-                strSQL += model.OrderBySkyline[iChild].ToString();
+                strSQL += model.Skyline[iChild].OrderBy.ToString();
             }
             return strSQL;
         }

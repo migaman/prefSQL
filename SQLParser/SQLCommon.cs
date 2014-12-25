@@ -11,6 +11,7 @@ using System.Diagnostics;
 
 namespace prefSQL.SQLParser
 {
+
     /// <summary>
     /// Entry point of the library for parsing a PREFERENCE SQL to an ANSI-SQL Statement
     /// </summary>
@@ -19,9 +20,26 @@ namespace prefSQL.SQLParser
     /// </remarks>
     public class SQLCommon
     {
-        private Algorithm _SkylineType = Algorithm.NativeSQL;
-        private Ordering _OrderType = Ordering.AttributePosition;
-        private bool _ShowSkylineAttributes = false;
+        private const string SkylineOf = "SKYLINE OF";
+        private Algorithm _SkylineType = Algorithm.NativeSQL;   //Defines with which Algorithm the Skyline should be calculated
+        private bool _ShowSkylineAttributes = false;            //Defines if the skyline attributes should be added to the SELECT list
+
+        public enum Algorithm
+        {
+            NativeSQL,              //Works with ANSI-SQL syntax
+            BNL,                    //Block nested loops
+            DQ,                     //Divide and Conquer
+            Hexagon                 //Hexagon Augsburg
+        };
+
+        public enum Ordering
+        {
+            AttributePosition,      //Sorted according to the attribute position in the select list
+            RankingSummarize,       //Sorted according to the the sum of the rank of all attributes
+            RankingBestOf,          //Sorted according to the best rank of all attributes
+            Random,                 //Randomly sorted, Every query results in a different sort order
+            AsIs                    //Without OrderBy-Clause as it comes from the database
+        }
 
         public bool ShowSkylineAttributes
         {
@@ -29,40 +47,17 @@ namespace prefSQL.SQLParser
             set { _ShowSkylineAttributes = value; }
         }
 
-        public enum Algorithm
-        {
-            NativeSQL,
-            BNL,
-            DQ,
-            Hexagon
-        };
-
-        public enum Ordering
-        {
-            AttributePosition,
-            RankingSummarize,
-            RankingBestOf,
-            Random,
-            AsIs //Without OrderBy-Clause as it comes from the database
-        }
-
-        
         public Algorithm SkylineType
         {
             get { return _SkylineType; }
             set { _SkylineType = value; }
         }
 
-        public Ordering OrderType
-        {
-            get { return _OrderType; }
-            set { _OrderType = value; }
-        }
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
         /// <param name="strInput">Preference SQL Statement</param>
         /// <returns>Return the ANSI SQL Statement</returns>
-        public string parsePreferenceSQL(string strInput) 
+        public string parsePreferenceSQL(string strInput)
         {
             AntlrInputStream inputStream = new AntlrInputStream(strInput);
             SQLLexer sqlLexer = new SQLLexer(inputStream);
@@ -74,30 +69,31 @@ namespace prefSQL.SQLParser
 
             try
             {
-                //Add error listener to parser
+                //Add error listener to parser (helps to return detailed parser syntax errors)
                 ErrorListener listener = new ErrorListener();
                 parser.AddErrorListener(listener);
 
                 //Parse query
                 IParseTree tree = parser.parse();
-                Debug.WriteLine("Tree: " + tree.ToStringTree(parser));
-                
-                //Visit parsetree
+                Debug.WriteLine("Parse Tree: " + tree.ToStringTree(parser));
+
+                //Visit parsetree (PrefSQL model is built during the visit of the parse tree)
                 SQLVisitor visitor = new SQLVisitor();
-                PrefSQLModel prefSQL = visitor.Visit(tree);
-                prefSQL = visitor.Model;
+                visitor.Visit(tree);
+                PrefSQLModel prefSQL = visitor.Model;
+
                 
-
-                //Check if parse was successful
-                if (prefSQL != null && strInput.IndexOf("SKYLINE OF") > 0)
+                //Check if parse was successful and query contains PrefSQL syntax
+                if (prefSQL != null && strInput.IndexOf(SkylineOf) > 0)
                 {
-                    strNewSQL = strInput.Substring(0, strInput.IndexOf("SKYLINE OF") - 1);
+                    //All Syntax before Skyline-Clause
+                    strNewSQL = strInput.Substring(0, strInput.IndexOf(SkylineOf) - 1);
 
-                    if(prefSQL.HasSkyline == true)
+                    if (prefSQL.HasSkyline == true)
                     {
                         if (_SkylineType == Algorithm.NativeSQL)
                         {
-                            if(_ShowSkylineAttributes == true)
+                            if (_ShowSkylineAttributes == true)
                             {
                                 string strPreferences = getPreferenceAttributes(prefSQL, strNewSQL);
                                 string strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
@@ -110,15 +106,21 @@ namespace prefSQL.SQLParser
                             string strOrderBy = "";
                             if (strInput.IndexOf("ORDER BY") > 0)
                             {
-                                strOrderBy = strInput.Substring(strInput.IndexOf("ORDER BY"));
-
-                                foreach (KeyValuePair<string, string> orderBy in prefSQL.OrderBy)
+                                if (prefSQL.Ordering == Ordering.AsIs)
                                 {
-                                    //String strOrderByNoSpaces = strOrderBy.Replace()
-                                    strOrderBy = strOrderBy.Replace(orderBy.Key, orderBy.Value);
+                                    strOrderBy = strInput.Substring(strInput.IndexOf("ORDER BY"));
+
+                                    foreach (KeyValuePair<string, string> orderBy in prefSQL.OrderBy)
+                                    {
+                                        //String strOrderByNoSpaces = strOrderBy.Replace()
+                                        strOrderBy = strOrderBy.Replace(orderBy.Key, orderBy.Value);
+                                    }
+                                    //Replace category clauses
                                 }
-                                //Replace category clauses
-                                
+                                else
+                                {
+                                    strOrderBy = sqlSort.getSortClause(prefSQL, prefSQL.Ordering); // sqlSort.getSortClause(prefSQL, _OrderType);
+                                }
                             }
                             strNewSQL += strWHERE;
                             strNewSQL += strOrderBy;
@@ -128,7 +130,7 @@ namespace prefSQL.SQLParser
                             string strOperators = "";
                             string strAttributesSkyline = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
                             //Without SELECT 
-                            string strAttributesOutput = ", " + strNewSQL.Substring(7, strNewSQL.IndexOf("FROM")-7);
+                            string strAttributesOutput = ", " + strNewSQL.Substring(7, strNewSQL.IndexOf("FROM") - 7);
                             string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
 
                             string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
@@ -137,7 +139,7 @@ namespace prefSQL.SQLParser
                             strFirstSQL += strOrderBy.Replace("'", "''");
                             strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', 'false'";
                         }
-                        else if(_SkylineType == Algorithm.Hexagon)
+                        else if (_SkylineType == Algorithm.Hexagon)
                         {
                             string strOperators = "";
                             string strAttributesSkyline = buildSELECTDENSERank(prefSQL, strNewSQL, ref strOperators);
@@ -156,18 +158,6 @@ namespace prefSQL.SQLParser
 
                         }
                     }
-                    /*else if (prefSQL.HasPrioritize == true)
-                    {
-                        string strWHERE = ""; // sqlCriterion.getCriterionClause(prefSQL, strNewSQL);
-                        string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
-
-                        //string strSelectRank = strNewSQL; // buildSELECTRank(prefSQL, strNewSQL);
-                        //strNewSQL = "SELECT * FROM (" + strSelectRank;
-                        //strNewSQL += ") RankedResult ";
-
-                        strNewSQL += strWHERE;
-                        strNewSQL += strOrderBy;
-                    }*/
                     /*else
                     {
                         //string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
@@ -182,9 +172,9 @@ namespace prefSQL.SQLParser
                 }
             }
 
-            catch(Exception e)
+            catch (Exception e)
             {
-                //Syntaxerror
+                //Parse syntaxerror
                 /// <exception cref="Exception">This is exception is thrown because the String is not a valid PrefSQL Query</exception>
                 throw new Exception(e.Message);
             }
@@ -192,31 +182,6 @@ namespace prefSQL.SQLParser
 
         }
 
-       
-
-        /// <summary>Adds ranking columns to a SELECT-Statement. Used for PRIORITIZE-Preference</summary>
-        /// <param name="model">model of parsed Preference SQL Statement</param>
-        /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
-        /// <returns>Return the extended SQL Statement</returns>
-        private string buildSELECTRank(PrefSQLModel model, string strPreSQL)
-        {
-            string strSQL = "";
-            int posOfFROM = 0;
-
-            //Add a RankColumn for each PRIORITIZE preference
-            for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
-            {
-                //Replace ROW_NUMBER with Rank, for the reason that multiple tuples can have the same value (i.e. mileage=0)
-                string strRank = model.Skyline[iChild].RankColumn.Replace("ROW_NUMBER", "RANK");
-                strSQL += ", " + strRank;
-            }
-
-            //Add the ranked column before the FROM keyword
-            posOfFROM = strPreSQL.IndexOf("FROM");
-            strSQL = strPreSQL.Substring(0, posOfFROM-1) + strSQL + strPreSQL.Substring(posOfFROM-1);
-
-            return strSQL;
-        }
 
 
         /// <summary>TODO</summary>
@@ -230,7 +195,6 @@ namespace prefSQL.SQLParser
 
 
             string strSQL = "";
-            int posOfFROM = 0;
 
             //Add a RankColumn for each PRIORITIZE preference
             for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
@@ -273,7 +237,7 @@ namespace prefSQL.SQLParser
             }
             strMaxSQL = strMaxSQL.TrimStart(',');
             strSQL = strSQL.TrimStart(',');
-            strSQL = "SELECT " + strMaxSQL + " FROM (SELECT " + strSQL ;
+            strSQL = "SELECT " + strMaxSQL + " FROM (SELECT " + strSQL;
 
             //Add the ranked column before the FROM keyword
             posOfFROM = strPreSQL.IndexOf("FROM");
@@ -311,7 +275,7 @@ namespace prefSQL.SQLParser
                         //Multiply HIGH preferences with -1 --> small values are always better than high 
                         strSQL += ", " + model.Skyline[iChild].ColumnExpression + "*-1 AS SkylineAttribute" + iChild;
                     }
-                       
+
                 }
             }
 
@@ -339,7 +303,7 @@ namespace prefSQL.SQLParser
                     if (model.Skyline[iChild].Op.Equals("<"))
                     {
                         op = "LOW";
-                        strSQL += ", " + model.Skyline[iChild].ColumnExpression.Replace("'", "''") +" AS SkylineAttribute" + iChild;
+                        strSQL += ", " + model.Skyline[iChild].ColumnExpression.Replace("'", "''") + " AS SkylineAttribute" + iChild;
                     }
                     else
                     {
@@ -349,8 +313,8 @@ namespace prefSQL.SQLParser
 
                     }
                     strOperators += op + ";";
-                    
-                    
+
+
 
                     //Incomparable field --> Add string field
                     if (model.Skyline[iChild].Comparable == false)

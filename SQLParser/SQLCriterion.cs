@@ -18,15 +18,7 @@ namespace prefSQL.SQLParser
             bool isWHEREPresent = false;
 
             //Build Skyline only if more than one attribute
-            //if (model.Skyline.Count > 1)
-            //{
-                strSQL = getCriterionSkylineClause(model, strPreSQL);
-            //}
-            /*else if (model.Rank.Count > 1)
-            {
-                strSQL = getCriterionRankClause(model);
-
-            }*/
+            strSQL = getCriterionSkylineClause(model, strPreSQL);
 
             //Check if a WHERE-Clause was built
             if (strSQL.Length > 0)
@@ -44,34 +36,9 @@ namespace prefSQL.SQLParser
 
             }
 
-
             return strSQL;
         }
 
-
-
-
-        /**
-         * Build the WHERE Clause for a PRIORITIZE Preference SQL statement
-         * 
-         * */
-        private string getCriterionRankClause(PrefSQLModel model)
-        {
-            string strSQL = "";
-
-            //Build the where clause with each column in the skyline
-            for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
-            {
-                //First child doesn't need an OR
-                if (iChild > 0)
-                {
-                    strSQL += " OR ";
-                }
-                strSQL += "Rank" + model.Skyline[iChild].ColumnName + " = 1";
-            }
-
-            return strSQL;
-        }
 
         /**
          *  Build the WHERE Clause to implement a Skyline
