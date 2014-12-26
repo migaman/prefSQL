@@ -23,7 +23,7 @@ namespace Utility
 
             /*
             Performance p = new Performance();
-            p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.Hexagon, false, true);
+            p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.Hexagon, false, true, true);
             */
 
             /*
@@ -63,7 +63,7 @@ namespace Utility
 
                 //string strPrefSQL = "SELECT cars.id, cars.title, colors.name, fuels.name FROM cars " +
                 //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name, mileage FROM cars " +
-                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t1.enginesize FROM cars_superlarge t1 " +
+                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t1.enginesize FROM cars t1 " +
                     //string strPrefSQL = "SELECT cars.id, cars.Price, cars.mileage FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage, cars.horsepower, cars.enginesize, cars.registration, cars.consumption, cars.doors, colors.name, fuels.name FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, colors.name AS colourname, fuels.name AS fuelname, cars.price FROM cars " +
@@ -78,7 +78,8 @@ namespace Utility
                 //"SKYLINE OF t1.price LOW AND t1.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL) ORDER BY t1.price, t1.mileage ";
 
                 //"SKYLINE OF t1.horsepower HIGH, t1.price LOW 10000, t1.mileage LOW 10000, t2.name ('schwarz' >> 'rot' >> OTHERS EQUAL), t1.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL)";
-                "SKYLINE OF t1.price LOW 10000, t1.mileage LOW 10000, t2.name ('pink' >> 'rot' == 'schwarz' >> 'beige' == 'gelb' >> OTHERS EQUAL) " +
+                //"SKYLINE OF t1.price LOW, t1.mileage LOW, t2.name ('pink' >> 'rot' == 'schwarz' >> 'beige' == 'gelb' >> OTHERS EQUAL), t1.consumption LOW 50, t1.enginesize HIGH 1000 " +
+                "SKYLINE OF t1.price LOW 10000, t1.mileage LOW 1000" +
                 //"SKYLINE OF LOW t1.price PRIORITIZE LOW t1.mileage";
                 //"SKYLINE OF LOW t1.price PRIORITIZE LOW t1.mileage PRIORITIZE HIGH t2.name {OTHERS >> 'pink'}";
                 //"SKYLINE OF cars.price AROUND 10000 ";
@@ -103,7 +104,8 @@ namespace Utility
                 SQLCommon parser = new SQLCommon();
                 //parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
                 //parser.SkylineType = SQLCommon.Algorithm.BNL;
-                //parser.SkylineType = SQLCommon.Algorithm.Hexagon;
+                //parser.SkylineType = SQLCommon.Algorithm.BNLSort;
+                parser.SkylineType = SQLCommon.Algorithm.Hexagon;
                 //parser.OrderType = SQLCommon.Ordering.RankingBestOf;
                 //parser.ShowSkylineAttributes = true;
 
@@ -134,60 +136,68 @@ namespace Utility
 
         private void executeDb(String strSQL, SQLCommon.Algorithm algorithm)
         {
-            
-            //First parameter
-            int iPosStart = strSQL.IndexOf("'") + 1;
-            int iPosMiddle = iPosStart;
-            bool bEnd = false;
-            while (bEnd == false)
-            {
-                iPosMiddle = iPosMiddle + strSQL.Substring(iPosMiddle).IndexOf("'") + 1;
-                if (!strSQL.Substring(iPosMiddle, 1).Equals("'"))
-                {
-                    bEnd = true;
-                }
-                else
-                {
-                    iPosMiddle++;
-                }
-                //Prüfen ob es kein doppeltes Hochkomma ist
-            }
-            iPosMiddle += 3;
-
-            //Second parameter
-            int iPosEnd = iPosMiddle;
-            bEnd = false;
-            while (bEnd == false)
-            {
-                iPosEnd = iPosEnd + strSQL.Substring(iPosEnd).IndexOf("'") + 1;
-                if (iPosEnd == strSQL.Length)
-                    break; //Kein 3.Parameter
-                if (!strSQL.Substring(iPosEnd, 1).Equals("'"))
-                {
-                    bEnd = true;
-                }
-                else
-                {
-                    iPosEnd++;
-                }
-                //Prüfen ob es kein doppeltes Hochkomma ist
-            }
-            iPosEnd += 3;
-
-
-            string str1 = strSQL.Substring(iPosStart, iPosMiddle - iPosStart - 4);
-            string str2 = strSQL.Substring(iPosMiddle, iPosEnd - iPosMiddle - 4);
+            string str1 = "";
+            string str2 = "";
             string str3 = "";
-            if (iPosEnd < strSQL.Length-10)
+
+            if (algorithm != SQLCommon.Algorithm.NativeSQL)
             {
-                //str3 = strSQL.Substring(iPosEnd).TrimEnd('\'');
-                str3 = strSQL.Substring(iPosEnd, strSQL.Length-iPosEnd-10).TrimEnd('\'');
+
+
+
+                //First parameter
+                int iPosStart = strSQL.IndexOf("'") + 1;
+                int iPosMiddle = iPosStart;
+                bool bEnd = false;
+                while (bEnd == false)
+                {
+                    iPosMiddle = iPosMiddle + strSQL.Substring(iPosMiddle).IndexOf("'") + 1;
+                    if (!strSQL.Substring(iPosMiddle, 1).Equals("'"))
+                    {
+                        bEnd = true;
+                    }
+                    else
+                    {
+                        iPosMiddle++;
+                    }
+                    //Prüfen ob es kein doppeltes Hochkomma ist
+                }
+                iPosMiddle += 3;
+
+                //Second parameter
+                int iPosEnd = iPosMiddle;
+                bEnd = false;
+                while (bEnd == false)
+                {
+                    iPosEnd = iPosEnd + strSQL.Substring(iPosEnd).IndexOf("'") + 1;
+                    if (iPosEnd == strSQL.Length)
+                        break; //Kein 3.Parameter
+                    if (!strSQL.Substring(iPosEnd, 1).Equals("'"))
+                    {
+                        bEnd = true;
+                    }
+                    else
+                    {
+                        iPosEnd++;
+                    }
+                    //Prüfen ob es kein doppeltes Hochkomma ist
+                }
+                iPosEnd += 3;
+
+
+                str1 = strSQL.Substring(iPosStart, iPosMiddle - iPosStart - 4);
+                str2 = strSQL.Substring(iPosMiddle, iPosEnd - iPosMiddle - 4);
+                str3 = "";
+                if (iPosEnd < strSQL.Length - 10)
+                {
+                    //str3 = strSQL.Substring(iPosEnd).TrimEnd('\'');
+                    str3 = strSQL.Substring(iPosEnd, strSQL.Length - iPosEnd - 10).TrimEnd('\'');
+                }
+                str1 = str1.Replace("''", "'").Trim('\'');
+                str2 = str2.Replace("''", "'").Trim('\'');
+                str3 = str3.Replace("''", "'").Trim('\'');
+
             }
-            str1 = str1.Replace("''", "'").Trim('\'');
-            str2 = str2.Replace("''", "'").Trim('\'');
-            str3 = str3.Replace("''", "'").Trim('\'');
-
-
 
             Stopwatch sw = new Stopwatch();
 
@@ -201,6 +211,10 @@ namespace Utility
                 if (algorithm == SQLCommon.Algorithm.BNL)
                 {
                     prefSQL.SQLSkyline.SP_SkylineBNL.getSkylineBNL(str1, str2, true);
+                }
+                else if (algorithm == SQLCommon.Algorithm.BNLSort)
+                {
+                    prefSQL.SQLSkyline.SP_SkylineBNLSort.getSkylineBNLSort(str1, str2, true);
                 }
                 else if (algorithm == SQLCommon.Algorithm.Hexagon)
                 {

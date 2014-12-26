@@ -71,5 +71,6 @@
     <Compile Include="SP_SkylineBNLLevel.cs" />
     <Compile Include="SP_SkylineHexagon.cs" />
     <Compile Include="SP_SkylineDQ.cs" />
+    <Compile Include="SP_SkylineBNLSort.cs" />
   </ItemGroup>
 </Project>

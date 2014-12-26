@@ -17,8 +17,6 @@ namespace prefSQL.SQLSkyline
         private const string cnnStringSQLCLR = "context connection=true";
         private const string cnnStringLocalhost = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
         private const int MaxSize = 4000;
-        //private const string TempTable = "##MySkylineTable";
-        //private const int MaxVarcharSize = 100; 
 
         /// <summary>
         /// Calculate the skyline points from a dataset
@@ -95,14 +93,22 @@ namespace prefSQL.SQLSkyline
 
 
                             //Now, check if the new point dominates the one in the window
-                            //--> It is not possible that the new point dominates the one in the window --> Reason data is ORDERED
+                            //This is only possible with not sorted data
+                            
+                            if (compareDifferent(sqlReader, operators, result, strResult) == true)
+                            {
+                                //The new record dominates the one in the windows. Remove point from window and test further
+                                resultCollection.RemoveAt(i);
+                            }
+
+                            
+                            
+
+
                         }
                         if (bDominated == false)
                         {
-                            //dtInsert.ImportRow(dt.Rows[iIndex]);
                             addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isDebug);
-
-
                         }
 
                     }
@@ -204,6 +210,70 @@ namespace prefSQL.SQLSkyline
                 {
                     long value = sqlReader.GetInt32(iCol);
                     int comparison = compareValue(value, result[iCol]);
+
+                    if (comparison >= 1)
+                    {
+                        if (comparison == 2)
+                        {
+                            //at least one must be greater than
+                            greaterThan = true;
+                        }
+                        else
+                        {
+                            //It is the same long value
+                            //Check if the value must be text compared
+                            if (iCol + 1 <= result.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
+                            {
+                                //string value is always the next field
+                                string strValue = sqlReader.GetString(iCol + 1);
+                                //If it is not the same string value, the values are incomparable!!
+                                //If two values are comparable the strings will be empty!
+                                if (!strValue.Equals(stringResult[iCol]))
+                                {
+                                    //Value is incomparable --> return false
+                                    return false;
+                                }
+
+
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //Value is smaller --> return false
+                        return false;
+                    }
+
+
+                }
+            }
+
+
+            //all equal and at least one must be greater than
+            //if (equalTo == true && greaterThan == true)
+            if (greaterThan == true)
+                return true;
+            else
+                return false;
+
+
+
+        }
+
+
+
+        private static bool compareDifferent(DataTableReader sqlReader, string[] operators, long[] result, string[] stringResult)
+        {
+            bool greaterThan = false;
+
+            for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
+            {
+                string op = operators[iCol];
+                //Compare only LOW attributes
+                if (op.Equals("LOW"))
+                {
+                    long value = sqlReader.GetInt32(iCol);
+                    int comparison = compareValue(result[iCol], value);
 
                     if (comparison >= 1)
                     {

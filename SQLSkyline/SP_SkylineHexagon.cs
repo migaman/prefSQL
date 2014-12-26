@@ -56,25 +56,26 @@ namespace prefSQL.SQLSkyline
                 // Build our record schema 
                 List<SqlMetaData> outputColumns = buildRecordSchema(dt, operators);
 
-                SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
-                if (isDebug == false)
-                {
-                    SqlContext.Pipe.SendResultsStart(record);
-                }
+                
 
                 //Read start of skyline
 
 
+
+                
+             
+                
                 DataTableReader sqlReader = dt.CreateDataReader();
 
-
+                
                 //Read all records only once. (SqlDataReader works forward only!!)
                 while (sqlReader.Read())
                 {
-                    add(sqlReader, amountOfPreferences, operators, ref btg, ref weight, outputColumns);
+                    add(sqlReader, amountOfPreferences, operators, ref btg, ref weight);
                 }
                 sqlReader.Close();
 
+                
                 findBMO(amountOfPreferences, ref btg, ref next, ref prev, ref level, ref weight);
 
 
@@ -85,22 +86,33 @@ namespace prefSQL.SQLSkyline
                 //Now read next list
                 int iItem = 0;
                 int iAmountOfRecords = 0;
+                //Benötigt viele Zeit im CLR-Modus (Deshalb erst hier und nur einmal initialisieren)
+                SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
+                if (isDebug == false)
+                {
+                    SqlContext.Pipe.SendResultsStart(record);
+                }
+                
                 //Unitl no more nodes are found
                 while (iItem != -1)
                 {
                     //Add all records of this node
                     if (btg[iItem] != null)
                     {
-                        foreach (SqlDataRecord recSkyline in btg[iItem])
+                        //foreach (SqlDataRecord recSkyline in btg[iItem])
+                        foreach (ArrayList recSkyline in btg[iItem])
                         {
                             if (isDebug == true)
                             {
                                 iAmountOfRecords++;
-                                
                             }
                             else
                             {
-                                SqlContext.Pipe.SendResultsRow(recSkyline);
+                                for (int i = 0; i < recSkyline.Count; i++)
+                                {
+                                    record.SetValue(i, recSkyline[i]);
+                                }
+                                SqlContext.Pipe.SendResultsRow(record);
                             }
                         }
                     }
@@ -109,7 +121,7 @@ namespace prefSQL.SQLSkyline
                     iItem = next[iItem];
 
                 }
-
+                
                 if (isDebug == true)
                 {
                     System.Diagnostics.Debug.WriteLine("Total records in skyline: " + iAmountOfRecords);
@@ -118,7 +130,7 @@ namespace prefSQL.SQLSkyline
                 {
                     SqlContext.Pipe.SendResultsEnd();
                 }
-
+                
 
 
             }
@@ -268,9 +280,9 @@ namespace prefSQL.SQLSkyline
             }
         }
 
-        private static void add(DataTableReader sqlReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, List<SqlMetaData> outputColumns) //add tuple
+        private static void add(DataTableReader sqlReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight) //add tuple
         {
-            SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
+            ArrayList al = new ArrayList();
 
             //create int array from sqlReader
             long[] tuple = new long[operators.GetUpperBound(0)+1];
@@ -283,21 +295,16 @@ namespace prefSQL.SQLSkyline
                 }
                 else
                 {
-                    record.SetValue(iCol - (operators.GetUpperBound(0) + 1), sqlReader[iCol]);
+                    //record.SetValue(iCol - (operators.GetUpperBound(0) + 1), sqlReader[iCol]);
+                    al.Add(sqlReader[iCol]);
+                    
+
                 }
 
             }
 
-
-
             
-            /*for (int iCol = startSkylineColumns; iCol < sqlReader.FieldCount; iCol++)
-            {
-                tuple[iCol - startSkylineColumns] = sqlReader.GetInt64(iCol);
-            }*/
-
-
-
+            
             //1: procedure add(tuple)
             // compute the node ID for the tuple
             long id = 0;
@@ -312,9 +319,9 @@ namespace prefSQL.SQLSkyline
             {
                 btg[id] = new ArrayList();
             }
-            btg[id].Add(record);
+            btg[id].Add(al);
 
-
+            
         }
 
         

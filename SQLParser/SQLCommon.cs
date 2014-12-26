@@ -28,6 +28,7 @@ namespace prefSQL.SQLParser
         {
             NativeSQL,              //Works with ANSI-SQL syntax
             BNL,                    //Block nested loops
+            BNLSort,                //Block nested loops with presort
             DQ,                     //Divide and Conquer
             Hexagon                 //Hexagon Augsburg
         };
@@ -134,10 +135,22 @@ namespace prefSQL.SQLParser
                             string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
 
                             string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
+                            //Bewusst nicht sortieren
+                            strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', 'false'";
+                        }
+                        else if (_SkylineType == Algorithm.BNLSort)
+                        {
+                            string strOperators = "";
+                            string strAttributesSkyline = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
+                            //Without SELECT 
+                            string strAttributesOutput = ", " + strNewSQL.Substring(7, strNewSQL.IndexOf("FROM") - 7);
+                            string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
+
+                            string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
                             //Sortieren nach Attributen (damit algo funktioniert)
                             string strOrderBy = sqlSort.getSortClause(prefSQL, SQLCommon.Ordering.AttributePosition); // sqlSort.getSortClause(prefSQL, _OrderType);
                             strFirstSQL += strOrderBy.Replace("'", "''");
-                            strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', 'false'";
+                            strNewSQL = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "', 'false'";
                         }
                         else if (_SkylineType == Algorithm.Hexagon)
                         {
