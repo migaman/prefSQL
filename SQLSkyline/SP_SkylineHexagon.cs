@@ -37,11 +37,14 @@ namespace prefSQL.SQLSkyline
             String strSQL = strQuery.ToString();
             string[] operators = strOperators.ToString().Split(';');
             int amountOfPreferences = operators.GetUpperBound(0) + 1;
-            construction(amountOfPreferences, strQueryConstruction.ToString(), ref btg, ref next, ref prev, ref level, ref weight, connection);
+            
             
 
             try
             {
+
+                construction(amountOfPreferences, strQueryConstruction.ToString(), ref btg, ref next, ref prev, ref level, ref weight, connection);
+
                 //Some checks
                 if (strSQL.Length == MaxSize)
                 {
@@ -59,12 +62,6 @@ namespace prefSQL.SQLSkyline
                 
 
                 //Read start of skyline
-
-
-
-                
-             
-                
                 DataTableReader sqlReader = dt.CreateDataReader();
 
                 
@@ -276,7 +273,7 @@ namespace prefSQL.SQLSkyline
             }
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine(e.Message);
+                throw e;
             }
         }
 

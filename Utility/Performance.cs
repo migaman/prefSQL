@@ -6,14 +6,19 @@ using System.Threading.Tasks;
 using prefSQL.SQLParser;
 using System.IO;
 using System.Diagnostics;
+using System.Data;
+using System.Data.SqlClient;
+using System.Data.SqlTypes;
+using Microsoft.SqlServer.Server;
 
 namespace Utility
 {
     class Performance
     {
-        private const string path = "E:\\Doc\\Studies\\PRJ_Thesis\\15 Performance\\";
-
-        public void GeneratePerformanceQueries(SQLCommon.Algorithm algorithmType, bool withIncomparable, bool withLeveling, bool includeDate)
+        private const string path = "E:\\Doc\\Studies\\PRJ_Thesis\\19 Performance Level\\";
+        private const string cnnStringLocalhost = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
+        
+        public void GeneratePerformanceQueries(SQLCommon.Algorithm algorithmType, bool withIncomparable, bool withLeveling, bool includeDate, bool doExecute)
         {
             //Add more columns
            string[] columns;
@@ -35,13 +40,10 @@ namespace Utility
             }
             else
             {
-                if (withLeveling == true && includeDate == true)
+                if (withLeveling == true)
                 {
-                    preferences = new string[] { "cars.price LOW 100000", "cars.mileage LOW 100000", "cars.horsepower HIGH 100", "cars.enginesize HIGH 1000", "cars.registration HIGHDATE", "cars.consumption LOW 5", "cars.doors HIGH", "colors.name ('rot' == 'blau' >> OTHERS EQUAL >> 'grau')", "fuels.name ('Benzin' >> OTHERS EQUAL >> 'Diesel')", "bodies.name ('Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS EQUAL >> 'Pick-Up')", "cars.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL)", "makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI')", "conditions.name ('Neu' >> OTHERS EQUAL)" };
-                }
-                else if (withLeveling == true)
-                {
-                    preferences = new string[] { "cars.price LOW 100000", "cars.mileage LOW 100000", "cars.horsepower HIGH 100", "cars.enginesize HIGH 1000", "cars.consumption LOW 5", "cars.doors HIGH", "colors.name ('rot' == 'blau' >> OTHERS EQUAL >> 'grau')", "fuels.name ('Benzin' >> OTHERS EQUAL >> 'Diesel')", "bodies.name ('Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS EQUAL >> 'Pick-Up')", "cars.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL)", "makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI')", "conditions.name ('Neu' >> OTHERS EQUAL)" };
+                    preferences = new string[] { "cars.price LOW 60000", "cars.mileage LOW 60000", "cars.horsepower HIGH 80", "cars.enginesize HIGH 1000", "cars.consumption LOW 30", "colors.name ('rot' >> 'blau' >> OTHERS EQUAL >> 'grau')", "fuels.name ('Benzin' >> OTHERS EQUAL >> 'Diesel')", "bodies.name ('Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS EQUAL >> 'Pick-Up')", "makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI')", "conditions.name ('Neu' >> OTHERS EQUAL)" };
+                    columns = new string[] { "cars.price", "cars.mileage", "cars.horsepower", "cars.enginesize", "cars.consumption", "colors.name", "fuels.name", "bodies.name", "makes.name", "conditions.name" };
                 }
                 else if(includeDate == true)
                 {
@@ -100,22 +102,51 @@ namespace Utility
                 parser.SkylineType = algorithmType; // SQLCommon.Algorithm.NativeSQL;
                 strSQL = parser.parsePreferenceSQL(strSQL);
 
-
-                //Format for each of the customer profiles
-                sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
-                sb.AppendLine("PRINT '----- " + (i + 1) + " dimensions, " + (countJoins) + " join(s) ------'");
-                sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
-                foreach (string size in sizes)
+                if (doExecute == true)
                 {
-                    sb.AppendLine("GO"); //we need this in order the profiler shows each query in a new line
-                    sb.AppendLine(strSQL.Replace("cars", "cars_" + size));
+                    Stopwatch sw = new Stopwatch();
+                    sw.Start();
+                    try
+                    {
+                        //Native SQL
+                        SqlConnection connection = null;
+                        connection = new SqlConnection(cnnStringLocalhost);
 
+                        connection.Open();
+
+                        SqlDataAdapter dap = new SqlDataAdapter(strSQL, connection);
+                        DataTable dt = new DataTable();
+                        dap.Fill(dt);
+
+                        sw.Stop();
+
+                        System.Diagnostics.Debug.WriteLine(dt.Rows.Count);
+
+                        sb.AppendLine(i + 1 + ";" + dt.Rows.Count + ";" + sw.ElapsedMilliseconds);
+                        
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine(e.Message);
+                    }
                 }
+                else
+                {
+                    //Format for each of the customer profiles
+                    sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
+                    sb.AppendLine("PRINT '----- " + (i + 1) + " dimensions, " + (countJoins) + " join(s) ------'");
+                    sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
+                    foreach (string size in sizes)
+                    {
+                        sb.AppendLine("GO"); //we need this in order the profiler shows each query in a new line
+                        sb.AppendLine(strSQL.Replace("cars", "cars_" + size));
 
-                sb.AppendLine("");
-                sb.AppendLine("");
-                sb.AppendLine("");
+                    }
 
+                    sb.AppendLine("");
+                    sb.AppendLine("");
+                    sb.AppendLine("");
+                }
                 //Remove current column
                 columns = columns.Where(w => w != columns[i]).ToArray();
                 preferences = preferences.Where(w => w != preferences[i]).ToArray();
@@ -124,25 +155,34 @@ namespace Utility
             //Write in file
             string strFileName = "";
             string strIncomparable = "Level";
+            string strFiletype = "";
             if( withIncomparable == true)
             {
                 strIncomparable = "Incomparable";
             }
-            if(algorithmType == SQLCommon.Algorithm.NativeSQL) 
+            if(doExecute == true)
             {
-                strFileName = path + "Performance_Native_" + strIncomparable + ".sql";
-            }
-            else if(algorithmType == SQLCommon.Algorithm.Hexagon)
-            {
-                strFileName = path + "Performance_Hexagon_" + strIncomparable + ".sql";
-            }
-            else if(algorithmType == SQLCommon.Algorithm.BNLSort)
-            {
-                strFileName = path + "Performance_BNLSort_" + strIncomparable + ".sql";
+                strFiletype = ".csv";
             }
             else
             {
-                strFileName = path + "Performance_BNL_" + strIncomparable + ".sql";
+                strFiletype = ".sql";
+            }
+            if(algorithmType == SQLCommon.Algorithm.NativeSQL) 
+            {
+                strFileName = path + "Performance_Native_" + strIncomparable + strFiletype;
+            }
+            else if(algorithmType == SQLCommon.Algorithm.Hexagon)
+            {
+                strFileName = path + "Performance_Hexagon_" + strIncomparable + strFiletype;
+            }
+            else if(algorithmType == SQLCommon.Algorithm.BNLSort)
+            {
+                strFileName = path + "Performance_BNLSort_" + strIncomparable + strFiletype;
+            }
+            else
+            {
+                strFileName = path + "Performance_BNL_" + strIncomparable + strFiletype;
             }
             StreamWriter outfile = new StreamWriter(strFileName);
             outfile.Write(sb.ToString());

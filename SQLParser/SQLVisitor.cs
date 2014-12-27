@@ -287,7 +287,7 @@ namespace prefSQL.SQLParser
             }
             else if (context.op.Type == SQLParser.K_HIGH)
             {
-                strSQL = strColumnName + " DESC";
+                strSQL = strColumnName + strLevelStep + " DESC";
                 strOperator = ">";
                 strRankExpression = RankingFunction + " over (ORDER BY " + strFullColumnName + " DESC) AS Rank" + strColumnName;
                 strRankHexagon = "DENSE_RANK()" + " over (ORDER BY " + strFullColumnName + strLevelStep + " DESC)-1 AS Rank" + strColumnName;

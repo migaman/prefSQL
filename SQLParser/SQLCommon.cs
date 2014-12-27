@@ -307,7 +307,7 @@ namespace prefSQL.SQLParser
             strOperators = "";
 
             //Build Skyline only if more than one attribute
-            if (model.Skyline.Count > 1)
+            if (model.Skyline.Count > 0)
             {
                 //Build the where clause with each column in the skyline
                 for (int iChild = 0; iChild < model.Skyline.Count; iChild++)

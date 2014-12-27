@@ -23,7 +23,7 @@ namespace Utility
 
             /*
             Performance p = new Performance();
-            p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.Hexagon, false, true, true);
+            p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.BNLSort, false, true, false, true);
             */
 
             /*
@@ -32,10 +32,10 @@ namespace Utility
             */
 
             
-            
+            /*
             Program prg = new Program();
             prg.Run();
-            
+            */
             
             /*
             FrmSQLParser form = new FrmSQLParser();
@@ -63,7 +63,7 @@ namespace Utility
 
                 //string strPrefSQL = "SELECT cars.id, cars.title, colors.name, fuels.name FROM cars " +
                 //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name, mileage FROM cars " +
-                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t1.enginesize FROM cars t1 " +
+                string strPrefSQL = "SELECT t1.id, t1.title, t1.price / 60000, t1.horsepower / 80 *-1, t1.enginesize / 1000 *-1 FROM cars_medium t1 " +
                     //string strPrefSQL = "SELECT cars.id, cars.Price, cars.mileage FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage, cars.horsepower, cars.enginesize, cars.registration, cars.consumption, cars.doors, colors.name, fuels.name FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, colors.name AS colourname, fuels.name AS fuelname, cars.price FROM cars " +
@@ -71,15 +71,15 @@ namespace Utility
                     "LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID " +
                     //"LEFT OUTER JOIN bodies ON cars.body_id = bodies.ID " +
                     //"LEFT OUTER JOIN fuels ON cars.fuel_id = fuels.ID " +
-                //"WHERE t1.id NOT IN (54521, 25612, 46268, 668, 47392, 1012, 22350, 55205, 51017) " +
+                    //"WHERE t1.id NOT IN (54521, 25612, 46268, 668, 47392, 1012, 22350, 55205, 51017) " +
                     //"SKYLINE OF LOW cars.price AND colors.name FAVOUR 'rot'";
                     //"SKYLINE OF HIGH t2.name {'schwarz' >> OTHERS} AND LOW t1.price AND HIGH t1.horsepower";
                     //"SKYLINE OF HIGH colors.name {'rot' == 'blau' >> OTHERS >> 'grau'} AND HIGH cars.registration";
-                //"SKYLINE OF t1.price LOW AND t1.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL) ORDER BY t1.price, t1.mileage ";
+                    //"SKYLINE OF t1.price LOW AND t1.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL) ORDER BY t1.price, t1.mileage ";
 
                 //"SKYLINE OF t1.horsepower HIGH, t1.price LOW 10000, t1.mileage LOW 10000, t2.name ('schwarz' >> 'rot' >> OTHERS EQUAL), t1.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL)";
-                //"SKYLINE OF t1.price LOW, t1.mileage LOW, t2.name ('pink' >> 'rot' == 'schwarz' >> 'beige' == 'gelb' >> OTHERS EQUAL), t1.consumption LOW 50, t1.enginesize HIGH 1000 " +
-                "SKYLINE OF t1.price LOW 10000, t1.mileage LOW 1000" +
+                    //"SKYLINE OF t1.price LOW, t1.mileage LOW, t2.name ('pink' >> 'rot' == 'schwarz' >> 'beige' == 'gelb' >> OTHERS EQUAL), t1.consumption LOW 50, t1.enginesize HIGH 1000 " +
+                "SKYLINE OF t1.price LOW 60000, t1.horsepower HIGH 80, t1.enginesize HIGH 1000";
                 //"SKYLINE OF LOW t1.price PRIORITIZE LOW t1.mileage";
                 //"SKYLINE OF LOW t1.price PRIORITIZE LOW t1.mileage PRIORITIZE HIGH t2.name {OTHERS >> 'pink'}";
                 //"SKYLINE OF cars.price AROUND 10000 ";
@@ -91,7 +91,7 @@ namespace Utility
                 //"SKYLINE OF LOW cars.price AND HIGH colors.name {'rot' >> OTHERS}";
                 //"SKYLINE OF LOW cars.price AND HIGH colors.name {'pink' >> 'rot' == 'schwarz'}";
                 //"SKYLINE OF LOW cars.price AND HIGH colors.name {'pink' >> {'rot', 'schwarz'} >> 'beige' >> OTHERS}";
-                "ORDER BY t1.price ";
+                //"ORDER BY t1.price ";
                 //"SKYLINE OF HIGH colors.name {'gelb' >> OTHERS >> 'grau'} AND HIGH fuels.name {'Benzin' >> OTHERS >> 'Diesel'} AND LOW cars.price ";
                 //"SKYLINE OF colors.name DISFAVOUR 'rot' ";
                 //"SKYLINE OF cars.location AROUND (47.0484, 8.32629) ";
@@ -104,8 +104,8 @@ namespace Utility
                 SQLCommon parser = new SQLCommon();
                 //parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
                 //parser.SkylineType = SQLCommon.Algorithm.BNL;
-                //parser.SkylineType = SQLCommon.Algorithm.BNLSort;
-                parser.SkylineType = SQLCommon.Algorithm.Hexagon;
+                parser.SkylineType = SQLCommon.Algorithm.BNLSort;
+                //parser.SkylineType = SQLCommon.Algorithm.Hexagon;
                 //parser.OrderType = SQLCommon.Ordering.RankingBestOf;
                 //parser.ShowSkylineAttributes = true;
 
