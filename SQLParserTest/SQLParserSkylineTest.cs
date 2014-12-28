@@ -2,6 +2,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using prefSQL.SQLParser;
 using System.Data.SqlClient;
+using System.Collections;
+using System.Collections.Generic;
+
 
 namespace prefSQL.SQLParserTest
 {
@@ -9,6 +12,129 @@ namespace prefSQL.SQLParserTest
     public class SQLParserSkylineTest
     {
         private const string strConnection = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
+
+
+        [TestMethod]
+        public void TestSKYLINEMultipleLevels()
+        {
+            string strSQL = "SELECT t1.id, t1.price, t1.mileage FROM cars_small t1 ";
+            string strPreferences = " SKYLINE OF t1.price LOW, t1.mileage LOW";
+            //string strPreferences = " SKYLINE OF t1.price LOW 60000, t1.horsepower HIGH 80";
+            SQLCommon common = new SQLCommon();
+            
+
+            SqlConnection cnnSQL = new SqlConnection(strConnection);
+            try
+            {
+                cnnSQL.Open();
+
+
+                //Tree Algorithm
+                common.SkylineType = SQLCommon.Algorithm.Tree;
+                string sqlTree = common.parsePreferenceSQL(strSQL + strPreferences);
+                ArrayList levelRecordsTree = new ArrayList(); ;
+                SqlCommand sqlCommand = new SqlCommand(sqlTree, cnnSQL);
+                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
+
+                if (sqlReader.HasRows)
+                {
+                    while (sqlReader.Read())
+                    {
+                        int level = (int)sqlReader["level"];
+                        if (levelRecordsTree.Count > level)
+                        {
+                            levelRecordsTree[level] = (int)levelRecordsTree[level] + 1;
+                        }
+                        else
+                        {
+                            levelRecordsTree.Add(1);
+
+                        }
+                    }
+                }
+                sqlReader.Close();
+
+
+                //BNL Algorithm (multiple times)
+                //As long as Query returns skyline tuples
+                common.SkylineType = SQLCommon.Algorithm.BNLSort;
+                List<int> listIDs = new List<int>();
+                bool isSkylineEmpty = false;
+                ArrayList levelRecordsBNLSort = new ArrayList();
+                int iLevel = 0;
+                while (isSkylineEmpty == false)
+                {
+                    //Add WHERE clause with IDs that were already in the skyline
+                    String strIDs = "";
+                    foreach (int id in listIDs)
+                    {
+                        strIDs += id + ",";
+                    }
+                    if (strIDs.Length > 0)
+                    {
+                        strIDs = "WHERE t1.id NOT IN (" + strIDs.TrimEnd(',') + ")";
+                    }
+                    //Parse PreferenceSQL into SQL
+                    string sqlBNLSort = common.parsePreferenceSQL(strSQL + strIDs + strPreferences);
+                    
+                    sqlCommand = new SqlCommand(sqlBNLSort, cnnSQL);
+                    sqlReader = sqlCommand.ExecuteReader();
+
+                    if (sqlReader.HasRows)
+                    {
+                        while (sqlReader.Read())
+                        {
+                            listIDs.Add(Int32.Parse(sqlReader["id"].ToString()));
+
+                            //int level = (int)sqlReader["level"];
+                            if (levelRecordsBNLSort.Count > iLevel)
+                            {
+                                levelRecordsBNLSort[iLevel] = (int)levelRecordsBNLSort[iLevel] + 1;
+                            }
+                            else
+                            {
+                                levelRecordsBNLSort.Add(1);
+
+                            }
+                        }
+                        sqlReader.Close();
+                    }
+                    else
+                    {
+                        isSkylineEmpty = true;
+                    }
+                    //Next level
+                    iLevel++;
+                }
+
+
+                cnnSQL.Close();
+
+
+                //Compare the two arrays
+                if(levelRecordsTree.Count == levelRecordsBNLSort.Count)
+                {
+                    for (int i = 0; i < levelRecordsTree.Count; i++ )
+                    {
+                        if ((int)levelRecordsBNLSort[i] != (int)levelRecordsTree[i])
+                        {
+                            Assert.Fail("Level " + i + " has another amount of records");
+                        }
+                    }
+                }
+                else
+                {
+                    Assert.Fail("Arrays don't have the same dimension");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail("Connection failed:" + ex.Message);
+            }
+
+        }
+
 
         [TestMethod]
         public void TestSKYLINEShowSkylineAttributes()

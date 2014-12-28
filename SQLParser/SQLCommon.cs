@@ -30,7 +30,8 @@ namespace prefSQL.SQLParser
             BNL,                    //Block nested loops
             BNLSort,                //Block nested loops with presort
             DQ,                     //Divide and Conquer
-            Hexagon                 //Hexagon Augsburg
+            Hexagon,                //Hexagon Augsburg
+            Tree                    //Treebased for all skylines
         };
 
         public enum Ordering
@@ -138,7 +139,7 @@ namespace prefSQL.SQLParser
                             //Bewusst nicht sortieren
                             strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', 'false'";
                         }
-                        else if (_SkylineType == Algorithm.BNLSort)
+                        else if (_SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.Tree)
                         {
                             string strOperators = "";
                             string strAttributesSkyline = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
@@ -150,7 +151,15 @@ namespace prefSQL.SQLParser
                             //Sortieren nach Attributen (damit algo funktioniert)
                             string strOrderBy = sqlSort.getSortClause(prefSQL, SQLCommon.Ordering.AttributePosition); // sqlSort.getSortClause(prefSQL, _OrderType);
                             strFirstSQL += strOrderBy.Replace("'", "''");
-                            strNewSQL = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "', 'false'";
+                            if (_SkylineType == Algorithm.BNLSort)
+                            {
+                                strNewSQL = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "', 'false'";
+                            }
+                            else
+                            {
+                                strNewSQL = "EXEC dbo.SP_SkylineTree '" + strFirstSQL + "', '" + strOperators + "', 'false'";
+                            }
+                            
                         }
                         else if (_SkylineType == Algorithm.Hexagon)
                         {

@@ -108,20 +108,25 @@ namespace Utility
                     sw.Start();
                     try
                     {
+                        /*
+                        Program prg = new Program();
+                        prg.executeDb(strSQL, SQLCommon.Algorithm.BNL);
+                        */
                         //Native SQL
                         SqlConnection connection = null;
                         connection = new SqlConnection(cnnStringLocalhost);
-
+                        
                         connection.Open();
 
                         SqlDataAdapter dap = new SqlDataAdapter(strSQL, connection);
+                        dap.SelectCommand.CommandTimeout = 0;
                         DataTable dt = new DataTable();
                         dap.Fill(dt);
 
                         sw.Stop();
 
                         System.Diagnostics.Debug.WriteLine(dt.Rows.Count);
-
+                        
                         sb.AppendLine(i + 1 + ";" + dt.Rows.Count + ";" + sw.ElapsedMilliseconds);
                         
                     }

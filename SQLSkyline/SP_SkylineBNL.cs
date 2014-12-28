@@ -29,6 +29,7 @@ namespace prefSQL.SQLSkyline
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
+            ArrayList recordCollection = new ArrayList();
 
             SqlConnection connection = null;
             if (isDebug == false)
@@ -53,11 +54,7 @@ namespace prefSQL.SQLSkyline
                 // Build our record schema 
                 List<SqlMetaData> outputColumns = buildRecordSchema(dt, operators);
 
-                SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
-                if (isDebug == false)
-                {
-                    SqlContext.Pipe.SendResultsStart(record);
-                }
+                
 
 
                 DataTableReader sqlReader = dt.CreateDataReader();
@@ -71,7 +68,7 @@ namespace prefSQL.SQLSkyline
                     if (resultCollection.Count == 0)
                     {
                         // Build our SqlDataRecord and start the results 
-                        addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isDebug);
+                        addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, isDebug, ref recordCollection);
                     }
                     else
                     {
@@ -99,6 +96,9 @@ namespace prefSQL.SQLSkyline
                             {
                                 //The new record dominates the one in the windows. Remove point from window and test further
                                 resultCollection.RemoveAt(i);
+                                recordCollection.RemoveAt(i);
+                                resultstringCollection.RemoveAt(i);
+                                //System.Diagnostics.Debug.WriteLine("test");
                             }
 
                             
@@ -108,7 +108,7 @@ namespace prefSQL.SQLSkyline
                         }
                         if (bDominated == false)
                         {
-                            addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isDebug);
+                            addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, isDebug, ref recordCollection);
                         }
 
                     }
@@ -122,6 +122,19 @@ namespace prefSQL.SQLSkyline
                 }
                 else
                 {
+                    //Send results to client
+                    SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
+                    SqlContext.Pipe.SendResultsStart(record);
+
+                    //foreach (SqlDataRecord recSkyline in btg[iItem])
+                    foreach (ArrayList recSkyline in recordCollection)
+                    {
+                        for (int i = 0; i < recSkyline.Count; i++)
+                        {
+                            record.SetValue(i, recSkyline[i]);
+                        }
+                        SqlContext.Pipe.SendResultsRow(record);
+                    }
                     SqlContext.Pipe.SendResultsEnd();
                 }
 
@@ -154,13 +167,13 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        private static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlDataRecord record, SqlBoolean isDebug)
+        private static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlBoolean isDebug, ref ArrayList recordCollection)
         {
 
             //Erste Spalte ist die ID
             long[] recordInt = new long[operators.GetUpperBound(0) + 1];
             string[] recordstring = new string[operators.GetUpperBound(0) + 1];
-
+            ArrayList al = new ArrayList();
 
             for (int iCol = 0; iCol < sqlReader.FieldCount; iCol++)
             {
@@ -183,16 +196,15 @@ namespace prefSQL.SQLSkyline
                 }
                 else
                 {
-                    record.SetValue(iCol - (operators.GetUpperBound(0) + 1), sqlReader[iCol]);
+                    //record.SetValue(iCol - (operators.GetUpperBound(0) + 1), sqlReader[iCol]);
+                    al.Add(sqlReader[iCol]);
                 }
 
 
             }
 
-            if (isDebug == false)
-            {
-                SqlContext.Pipe.SendResultsRow(record);
-            }
+
+            recordCollection.Add(al);
             resultCollection.Add(recordInt);
             resultstringCollection.Add(recordstring);
         }

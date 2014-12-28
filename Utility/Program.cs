@@ -23,7 +23,7 @@ namespace Utility
 
             /*
             Performance p = new Performance();
-            p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.BNLSort, false, true, false, true);
+            p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.NativeSQL, false, true, false, true);
             */
 
             /*
@@ -32,10 +32,10 @@ namespace Utility
             */
 
             
-            /*
+            
             Program prg = new Program();
             prg.Run();
-            */
+            
             
             /*
             FrmSQLParser form = new FrmSQLParser();
@@ -63,7 +63,7 @@ namespace Utility
 
                 //string strPrefSQL = "SELECT cars.id, cars.title, colors.name, fuels.name FROM cars " +
                 //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name, mileage FROM cars " +
-                string strPrefSQL = "SELECT t1.id, t1.title, t1.price / 60000, t1.horsepower / 80 *-1, t1.enginesize / 1000 *-1 FROM cars_medium t1 " +
+                string strPrefSQL = "SELECT t1.id, t1.title, t1.price / 60000, t1.horsepower / 80 *-1 FROM cars_small t1 " +
                     //string strPrefSQL = "SELECT cars.id, cars.Price, cars.mileage FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage, cars.horsepower, cars.enginesize, cars.registration, cars.consumption, cars.doors, colors.name, fuels.name FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, colors.name AS colourname, fuels.name AS fuelname, cars.price FROM cars " +
@@ -79,7 +79,8 @@ namespace Utility
 
                 //"SKYLINE OF t1.horsepower HIGH, t1.price LOW 10000, t1.mileage LOW 10000, t2.name ('schwarz' >> 'rot' >> OTHERS EQUAL), t1.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL)";
                     //"SKYLINE OF t1.price LOW, t1.mileage LOW, t2.name ('pink' >> 'rot' == 'schwarz' >> 'beige' == 'gelb' >> OTHERS EQUAL), t1.consumption LOW 50, t1.enginesize HIGH 1000 " +
-                "SKYLINE OF t1.price LOW 60000, t1.horsepower HIGH 80, t1.enginesize HIGH 1000";
+                //"SKYLINE OF t1.price LOW 60000, t1.horsepower HIGH 80";
+                "SKYLINE OF t1.price LOW, t1.mileage LOW ";
                 //"SKYLINE OF LOW t1.price PRIORITIZE LOW t1.mileage";
                 //"SKYLINE OF LOW t1.price PRIORITIZE LOW t1.mileage PRIORITIZE HIGH t2.name {OTHERS >> 'pink'}";
                 //"SKYLINE OF cars.price AROUND 10000 ";
@@ -104,7 +105,8 @@ namespace Utility
                 SQLCommon parser = new SQLCommon();
                 //parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
                 //parser.SkylineType = SQLCommon.Algorithm.BNL;
-                parser.SkylineType = SQLCommon.Algorithm.BNLSort;
+                //parser.SkylineType = SQLCommon.Algorithm.BNLSort;
+                parser.SkylineType = SQLCommon.Algorithm.Tree;
                 //parser.SkylineType = SQLCommon.Algorithm.Hexagon;
                 //parser.OrderType = SQLCommon.Ordering.RankingBestOf;
                 //parser.ShowSkylineAttributes = true;
@@ -134,7 +136,7 @@ namespace Utility
 
 
 
-        private void executeDb(String strSQL, SQLCommon.Algorithm algorithm)
+        public void executeDb(String strSQL, SQLCommon.Algorithm algorithm)
         {
             string str1 = "";
             string str2 = "";
@@ -219,6 +221,10 @@ namespace Utility
                 else if (algorithm == SQLCommon.Algorithm.Hexagon)
                 {
                     prefSQL.SQLSkyline.SP_SkylineHexagon.getSkylineHexagon(str1, str2, str3, true);
+                }
+                else if(algorithm == SQLCommon.Algorithm.Tree)
+                {
+                    prefSQL.SQLSkyline.SP_SkylineTree.getSkyline(str1, str2, true);
                 }
                 else if (algorithm == SQLCommon.Algorithm.NativeSQL)
                 {
