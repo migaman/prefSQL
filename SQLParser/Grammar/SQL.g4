@@ -48,7 +48,7 @@ select_stmt : select_or_values ( compound_operator select_or_values )*  ( order_
 
 order_by
 	: K_ORDER K_BY op=(K_SUMRANK|K_BESTRANK) '(' + ')'			#orderBySpecial
-	| K_ORDER K_BY ordering_term ( ',' ordering_term )*	 	#orderByDefault
+	| K_ORDER K_BY ordering_term ( ',' ordering_term )*	 		#orderByDefault
 	 
  
 

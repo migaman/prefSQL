@@ -110,14 +110,17 @@ namespace prefSQL.SQLParser
                             {
                                 if (prefSQL.Ordering == Ordering.AsIs)
                                 {
-                                    strOrderBy = strInput.Substring(strInput.IndexOf("ORDER BY"));
+                                    string strTmpInput = strInput;
 
-                                    foreach (KeyValuePair<string, string> orderBy in prefSQL.OrderBy)
-                                    {
-                                        //String strOrderByNoSpaces = strOrderBy.Replace()
-                                        strOrderBy = strOrderBy.Replace(orderBy.Key, orderBy.Value);
-                                    }
                                     //Replace category clauses
+                                    //Start with latest order by (otherwise substring start, stop position are changed)
+                                    for (int iIndex = prefSQL.OrderBy.Count-1; iIndex >= 0; iIndex--)
+                                    {
+                                        OrderByModel model = prefSQL.OrderBy[iIndex];
+                                        strTmpInput = strTmpInput.Substring(0, model.start) + model.text + strTmpInput.Substring(model.stop);
+                                    }
+
+                                    strOrderBy = strTmpInput.Substring(strInput.IndexOf("ORDER BY"));
                                 }
                                 else
                                 {
