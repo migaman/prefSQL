@@ -26,7 +26,7 @@ namespace prefSQL.SQLParser
             set { model = value; }
         }
 
-
+        
         public override PrefSQLModel VisitOrderByDefault(SQLParser.OrderByDefaultContext context)
         {
             model.Ordering = SQLCommon.Ordering.AsIs;

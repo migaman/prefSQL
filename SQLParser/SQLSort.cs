@@ -84,7 +84,7 @@ namespace prefSQL.SQLParser
                 {
                     strSQL += " + ";
                 }
-                strSQL += model.Skyline[iChild].Expression;
+                strSQL += model.Skyline[iChild].Expression.Replace("ROW_NUMBER()", "DENSE_RANK()");
 
             }
 

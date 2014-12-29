@@ -92,7 +92,7 @@ namespace Utility
                 //"SKYLINE OF LOW cars.price AND HIGH colors.name {'rot' >> OTHERS}";
                 //"SKYLINE OF LOW cars.price AND HIGH colors.name {'pink' >> 'rot' == 'schwarz'}";
                 //"SKYLINE OF LOW cars.price AND HIGH colors.name {'pink' >> {'rot', 'schwarz'} >> 'beige' >> OTHERS}";
-                "ORDER BY bodies.name ('Kompaktvan / Minivan' >> OTHERS EQUAL) ,t2.name ('weiss' >> OTHERS EQUAL) ";
+                "ORDER BY SUM_RANK() ";
                 //"SKYLINE OF HIGH colors.name {'gelb' >> OTHERS >> 'grau'} AND HIGH fuels.name {'Benzin' >> OTHERS >> 'Diesel'} AND LOW cars.price ";
                 //"SKYLINE OF colors.name DISFAVOUR 'rot' ";
                 //"SKYLINE OF cars.location AROUND (47.0484, 8.32629) ";
