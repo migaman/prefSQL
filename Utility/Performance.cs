@@ -21,7 +21,8 @@ namespace Utility
         public enum PreferenceSet
         {
             Jon,
-            Mya
+            Mya,
+            Barra
         };
 
         public void GeneratePerformanceQueries(SQLCommon.Algorithm algorithmType, bool doExecute, PreferenceSet set)
@@ -40,6 +41,11 @@ namespace Utility
             {
                 columns = new string[] { "fuels.name", "makes.name", "bodies.name", "models.name" };
                 preferences = new string[] { "fuels.name ('Benzin' >> OTHERS EQUAL)", "makes.name ('FISKER' >> OTHERS EQUAL)", "bodies.name ('Roller' >> OTHERS EQUAL)", "models.name ('123' >> OTHERS EQUAL)" };
+            }
+            else if (set == PreferenceSet.Barra)
+            {
+                columns = new string[] { "cars.price", "cars.mileage", "cars.horsepower", "cars.enginesize", "cars.consumption", "cars.registration", "cars.doors", "cars.seats", "cars.cylinders", "cars.gears" };
+                preferences = new string[] { "cars.price LOW 3000", "cars.mileage LOW 20000", "cars.horsepower HIGH 20", "cars.enginesize HIGH 1000", "cars.consumption LOW 10", "cars.registration HIGHDATE 525600", "cars.doors HIGH", "cars.seats HIGH 2", "cars.cylinders HIGH", "cars.gears HIGH" };
             }
             else
             {

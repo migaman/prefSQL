@@ -145,7 +145,6 @@ namespace prefSQL.SQLParser
             string strColumnName = "";
             string strTable = "";
             string strOperator = "";
-            string strRankExpression = "";
             string strRankColumn = "";
             string strRankHexagon = "";
 
@@ -225,11 +224,10 @@ namespace prefSQL.SQLParser
             strSQL += " ASC";
             strOperator = "<";
 
-            strRankExpression = RankingFunction + " over (ORDER BY " + strSQL + ") AS Rank" + strSingleColumn.Replace(".", "");
             strRankColumn = RankingFunction + " over (ORDER BY " + strSQL + ")";
             strRankHexagon = "DENSE_RANK()" + " over (ORDER BY " + strSQL + ")-1 AS Rank" + strSingleColumn.Replace(".", "");
             //Add the preference to the list               
-            pref.Skyline.Add(new AttributeModel(strColumnName, strOperator, strTable, strTable + "_" + "INNER", strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, strRankExpression, strSingleColumn.Replace(".", ""), strRankColumn, strRankHexagon, strSQL));
+            pref.Skyline.Add(new AttributeModel(strColumnName, strOperator, strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, strSingleColumn.Replace(".", ""), strRankColumn, strRankHexagon, strSQL));
 
 
 
@@ -250,7 +248,6 @@ namespace prefSQL.SQLParser
             string strFullColumnName = "";
             string strTable = "";
             string strOperator = "";
-            string strRankExpression = "";
             string strRankColumn = "";
             string strRankHexagon = "";
             string strLevelStep = "";
@@ -272,7 +269,6 @@ namespace prefSQL.SQLParser
             {
                 strSQL = strColumnName + strLevelStep + " ASC";
                 strOperator = "<";
-                strRankExpression = RankingFunction + " over (ORDER BY " + strFullColumnName + " ASC) AS Rank" + strColumnName;
                 strRankHexagon = "DENSE_RANK()" + " over (ORDER BY " + strFullColumnName + strLevelStep + " ASC)-1 AS Rank" + strColumnName;
                 strRankColumn = RankingFunction + " over (ORDER BY " + strFullColumnName + " ASC)";
 
@@ -284,7 +280,6 @@ namespace prefSQL.SQLParser
             {
                 strSQL = strColumnName + strLevelStep + " DESC";
                 strOperator = ">";
-                strRankExpression = RankingFunction + " over (ORDER BY " + strFullColumnName + " DESC) AS Rank" + strColumnName;
                 strRankHexagon = "DENSE_RANK()" + " over (ORDER BY " + strFullColumnName + strLevelStep + " DESC)-1 AS Rank" + strColumnName;
                 strRankColumn = RankingFunction + " over (ORDER BY " + strFullColumnName + " DESC)";
                 strColumnExpression = strTable + "." + strColumnName + strLevelStep; ;
@@ -294,10 +289,8 @@ namespace prefSQL.SQLParser
             {
                 strSQL = strColumnName + " ASC";
                 strOperator = ">";
-                strRankExpression = RankingFunction + " over (ORDER BY " + strFullColumnName + " DESC) AS Rank" + strColumnName;
-                strRankHexagon = "DENSE_RANK()" + " over (ORDER BY " + strFullColumnName + " DESC)-1 AS Rank" + strColumnName;
+                strRankHexagon = "DENSE_RANK()" + " over (ORDER BY DATEDIFF(minute, '1900-01-01', " + strFullColumnName + ") " + strLevelStep + " ASC)-1 AS Rank" + strColumnName;
                 strRankColumn = RankingFunction + " over (ORDER BY " + strFullColumnName + " DESC)";
-                strColumnExpression = strTable + "." + strColumnName;
                 strColumnExpression = "DATEDIFF(minute, '1900-01-01', " + strTable + "." + strColumnName + ")";
                 strInnerColumnExpression = "DATEDIFF(minute, '1900-01-01', " + strTable + InnerTableSuffix + "." + strColumnName + ")"; 
             }
@@ -305,16 +298,15 @@ namespace prefSQL.SQLParser
             {
                 strSQL = strColumnName + " DESC";
                 strOperator = ">";
-                strRankExpression = RankingFunction + " over (ORDER BY " + strFullColumnName + " DESC) AS Rank" + strColumnName;
-                strRankHexagon = "DENSE_RANK()" + " over (ORDER BY " + strFullColumnName + " DESC)-1 AS Rank" + strColumnName;
+                strRankHexagon = "DENSE_RANK()" + " over (ORDER BY DATEDIFF(minute, '1900-01-01', " + strFullColumnName + ") " + strLevelStep + " DESC)-1 AS Rank" + strColumnName;
                 strRankColumn = RankingFunction + " over (ORDER BY " + strFullColumnName + " DESC)";
-                strColumnExpression = "DATEDIFF(minute, '1900-01-01', " + strTable + "." + strColumnName + ")";
-                strInnerColumnExpression = "DATEDIFF(minute, '1900-01-01', " + strTable + InnerTableSuffix + "." + strColumnName + ")"; 
+                strColumnExpression = "DATEDIFF(minute, '1900-01-01', " + strTable + "." + strColumnName + ") " + strLevelStep;
+                strInnerColumnExpression = "DATEDIFF(minute, '1900-01-01', " + strTable + InnerTableSuffix + "." + strColumnName + ") " + strLevelStep; 
             }
 
 
             //Add the preference to the list               
-            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", "", true, "", strRankExpression, strColumnName, strRankColumn, strRankHexagon, strSQL));
+            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", true, "", strColumnName, strRankColumn, strRankHexagon, strSQL));
             pref.HasSkyline = true;
             pref.Tables = tables;
             model = pref;
@@ -380,7 +372,7 @@ namespace prefSQL.SQLParser
                     }
                     strOperator = "<";
 
-                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", "", true, "", "", "", "", "", strSQL));
+                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strInnerColumnExpression, "", "", true, "", "", "", "", strSQL));
 
                     break;
 
@@ -391,7 +383,7 @@ namespace prefSQL.SQLParser
                     strInnerColumnExpression = strColumn.Replace(strTable, strTable + InnerTableSuffix);
                     strOperator = "<";
 
-                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", "", true, "", "", "", "", "", strSQL));
+                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strInnerColumnExpression, "", "", true, "", "", "", "", strSQL));
 
                     break;
 
@@ -403,7 +395,7 @@ namespace prefSQL.SQLParser
                     strOperator = ">";
 
 
-                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strTable, strTable + InnerTableSuffix, strInnerColumnExpression, "", "", true, "", "", "", "", "", strSQL));
+                    pref.Skyline.Add(new AttributeModel(strColumn, strOperator, strInnerColumnExpression, "", "", true, "", "", "", "", strSQL));
 
                     break;
 

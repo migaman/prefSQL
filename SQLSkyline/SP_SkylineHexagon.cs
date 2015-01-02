@@ -5,6 +5,8 @@ using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 
 
@@ -186,15 +188,18 @@ namespace prefSQL.SQLSkyline
 
 
                 // calculate the BTG size
-                int sizeNodes = 1;
+                long sizeNodes = 1;
                 for (int i = 0; i < amountOfPreferences; i++)
                 {
                     sizeNodes *= (maxPreferenceLevel[i] + 1);
                 }
 
+                if(sizeNodes > System.Int32.MaxValue)
+                {
+                    throw new Exception("Berechnung nicht möglich mit Hexagon. Baum wäre zu gross");
+                }
 
 
-                //ArrayList listOfTuples 
                 btg = new ArrayList[sizeNodes];
                 next = new int[sizeNodes];
                 prev = new int[sizeNodes];

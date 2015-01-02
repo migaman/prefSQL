@@ -9,10 +9,8 @@ namespace prefSQL.SQLParser.Models
     class AttributeModel
     {
 
-        public AttributeModel(string strColumnExpression, string strOperator, string strTableName, string strInnerTable, string strInnerColumnExpression, string strColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumn, string strRankColumnName, string strExpression, string strRankHexagon, string strOrderBy)
+        public AttributeModel(string strColumnExpression, string strOperator, string strInnerColumnExpression, string strColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumnName, string strExpression, string strRankHexagon, string strOrderBy)
         {
-            TableName = strTableName;                               //Tablename for the mainquery       (i.e. cars)
-            InnerTable = strInnerTable;                             //Tablename for the subquery        (i.e. cars_INNER)
             ColumnExpression = strColumnExpression;                 //Column expression                 (i.e. CASE WHEN colors.name = 'türkis' THEN 0 WHEN colors.name = 'gelb' THEN 100 ELSE 200 END)
             InnerColumnExpression = strInnerColumnExpression;       //Inner column expression           (i.e CASE WHEN colors_INNER.name = 'türkis' THEN 0 WHEN colors_INNER.name = 'gelb' THEN 100 ELSE 200 END)
             Op = strOperator;                                       //Operator                          (<, >)
@@ -23,7 +21,6 @@ namespace prefSQL.SQLParser.Models
 
             Expression = strExpression;
             RankColumnName = strRankColumnName;
-            RankColumn = strRankColumn;
             RankHexagon = strRankHexagon;
 
             OrderBy = strOrderBy;
@@ -38,27 +35,17 @@ namespace prefSQL.SQLParser.Models
 
         public string InnerColumnExpression { get; set; }
 
-
-        public string InnerTable { get; set; }
-
         //Operator
         public string Op { get; set; }
-
 
         public bool Comparable { get; set; }
 
         public string IncomparableAttribute { get; set; }
 
-
-
-
         public string RankColumnName { get; set; }
-        public string TableName { get; set; }
         public string Expression { get; set; }
-        public string RankColumn { get; set; }
-
+        
         public string RankHexagon { get; set; }
-
 
         public string OrderBy { get; set; }
     }

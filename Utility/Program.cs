@@ -79,10 +79,16 @@ namespace Utility
                     "LEFT OUTER JOIN Efficiencies ON t1.efficiency_id = Efficiencies.id " +
                     "LEFT OUTER JOIN Makes ON t1.make_id = Makes.id " +
                     "LEFT OUTER JOIN Models ON t1.model_id = Models.id " +
-
+                    //"WHERE t1.price < 100000 " +
                     //"LEFT OUTER JOIN fuels ON cars.fuel_id = fuels.ID " +
                     //"WHERE t1.id NOT IN (54521, 25612, 46268, 668, 47392, 1012, 22350, 55205, 51017) " +
-                    "SKYLINE OF t1.price LOW, t1.mileage LOW ";
+                    "SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000" +
+                    ", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +
+
+                    ", t1.doors HIGH, t1.seats HIGH 2, t1.cylinders HIGH, t1.gears HIGH ";
+
+                    
+                    
                     //"SKYLINE OF HIGH t2.name {'schwarz' >> OTHERS} AND LOW t1.price AND HIGH t1.horsepower";
                     //"SKYLINE OF HIGH colors.name {'rot' == 'blau' >> OTHERS >> 'grau'} AND HIGH cars.registration";
                     //"SKYLINE OF t1.price LOW AND t1.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL) ORDER BY t1.price, t1.mileage ";
@@ -269,7 +275,6 @@ namespace Utility
                     //Native SQL
                     SqlConnection connection = null;
                     connection = new SqlConnection(cnnStringLocalhost);
-
                     connection.Open();
 
                     SqlDataAdapter dap = new SqlDataAdapter(strSQL, connection);
@@ -278,7 +283,6 @@ namespace Utility
 
                     System.Diagnostics.Debug.WriteLine(dt.Rows.Count);
                 }
-                //prefSQL.SQLSkyline.SP_SkylineBNLLevel.getSkylineBNLLevel(str1, str2, true);
                 
             }
             catch (Exception e)
