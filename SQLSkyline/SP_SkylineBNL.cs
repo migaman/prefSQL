@@ -13,18 +13,14 @@ namespace prefSQL.SQLSkyline
 {
     public class SP_SkylineBNL
     {
-        //Only this parameters are different beteen SQL CLR function and Utility class
-        private const string cnnStringSQLCLR = "context connection=true";
-        private const string cnnStringLocalhost = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
-        private const int MaxSize = 4000;
-
         /// <summary>
         /// Calculate the skyline points from a dataset
         /// </summary>
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
-        [Microsoft.SqlServer.Server.SqlProcedure]
-        public static void getSkylineBNL(SqlString strQuery, SqlString strOperators, SqlBoolean isDebug)
+        /// <param name="isDebug"></param>
+        [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineBNL")]
+        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlBoolean isDebug)
         {
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
@@ -33,16 +29,16 @@ namespace prefSQL.SQLSkyline
 
             SqlConnection connection = null;
             if (isDebug == false)
-                connection = new SqlConnection(cnnStringSQLCLR);
+                connection = new SqlConnection(Helper.cnnStringSQLCLR);
             else
-                connection = new SqlConnection(cnnStringLocalhost);
+                connection = new SqlConnection(Helper.cnnStringLocalhost);
 
             try
             {
                 //Some checks
-                if (strQuery.ToString().Length == MaxSize)
+                if (strQuery.ToString().Length == Helper.MaxSize)
                 {
-                    throw new Exception("Query is too long. Maximum size is " + MaxSize);
+                    throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
                 }
                 connection.Open();
 
@@ -52,15 +48,10 @@ namespace prefSQL.SQLSkyline
 
 
                 // Build our record schema 
-                List<SqlMetaData> outputColumns = buildRecordSchema(dt, operators);
-
-                
-
+                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators);
 
                 DataTableReader sqlReader = dt.CreateDataReader();
 
-
-                //int iIndex = 0;
                 //Read all records only once. (SqlDataReader works forward only!!)
                 while (sqlReader.Read())
                 {
@@ -91,19 +82,13 @@ namespace prefSQL.SQLSkyline
 
                             //Now, check if the new point dominates the one in the window
                             //This is only possible with not sorted data
-                            
                             if (compareDifferent(sqlReader, operators, result, strResult) == true)
                             {
                                 //The new record dominates the one in the windows. Remove point from window and test further
                                 resultCollection.RemoveAt(i);
                                 recordCollection.RemoveAt(i);
                                 resultstringCollection.RemoveAt(i);
-                                //System.Diagnostics.Debug.WriteLine("test");
                             }
-
-                            
-                            
-
 
                         }
                         if (bDominated == false)
@@ -221,7 +206,7 @@ namespace prefSQL.SQLSkyline
                 if (op.Equals("LOW"))
                 {
                     long value = sqlReader.GetInt32(iCol);
-                    int comparison = compareValue(value, result[iCol]);
+                    int comparison = Helper.compareValue(value, result[iCol]);
 
                     if (comparison >= 1)
                     {
@@ -285,7 +270,7 @@ namespace prefSQL.SQLSkyline
                 if (op.Equals("LOW"))
                 {
                     long value = sqlReader.GetInt32(iCol);
-                    int comparison = compareValue(result[iCol], value);
+                    int comparison = Helper.compareValue(result[iCol], value);
 
                     if (comparison >= 1)
                     {
@@ -337,53 +322,8 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        /*
-         * 0 = false
-         * 1 = equal
-         * 2 = greater than
-         * */
-        private static int compareValue(long value1, long value2)
-        {
 
-            if (value1 >= value2)
-            {
-                if (value1 > value2)
-                    return 2;
-                else
-                    return 1;
-
-            }
-            else
-            {
-                return 0;
-            }
-
-        }
-
-        private static List<SqlMetaData> buildRecordSchema(DataTable dt, string[] operators)
-        {
-            List<SqlMetaData> outputColumns = new List<SqlMetaData>(dt.Columns.Count);
-            int iCol = 0;
-            foreach (DataColumn col in dt.Columns)
-            {
-                //Only the real columns (skyline columns are not output fields)
-                if (iCol > operators.GetUpperBound(0))
-                {
-                    SqlMetaData OutputColumn;
-                    if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(DateTime)))
-                    {
-                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType));
-                    }
-                    else
-                    {
-                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
-                    }
-                    outputColumns.Add(OutputColumn);
-                }
-                iCol++;
-            }
-            return outputColumns;
-        }
+        
 
 
     }

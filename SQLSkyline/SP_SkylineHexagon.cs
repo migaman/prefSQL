@@ -12,27 +12,22 @@ namespace prefSQL.SQLSkyline
 {
 
     public class SP_SkylineHexagon
-    {
-        //Only this parameters are different beteen SQL CLR function and Utility class
-        private const string cnnStringSQLCLR = "context connection=true";
-        private const string cnnStringLocalhost = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
-        private const int MaxSize = 4000;
-
-
-        [Microsoft.SqlServer.Server.SqlProcedure]
-        public static void getSkylineHexagon(SqlString strQuery, SqlString strOperators, SqlString strQueryConstruction, SqlBoolean isDebug)
+    {        
+        [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineHexagon")]
+        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlString strQueryConstruction, SqlBoolean isDebug)
         {
             ArrayList[] btg = null;
             int[] next = null;
             int[] prev = null;
             int[] level = null;
             int[] weight = null;
-
+            long maxID = 0;
+            
             SqlConnection connection = null;
             if (isDebug == false)
-                connection = new SqlConnection(cnnStringSQLCLR);
+                connection = new SqlConnection(Helper.cnnStringSQLCLR);
             else
-                connection = new SqlConnection(cnnStringLocalhost);
+                connection = new SqlConnection(Helper.cnnStringLocalhost);
 
             String strSQL = strQuery.ToString();
             string[] operators = strOperators.ToString().Split(';');
@@ -46,9 +41,9 @@ namespace prefSQL.SQLSkyline
                 construction(amountOfPreferences, strQueryConstruction.ToString(), ref btg, ref next, ref prev, ref level, ref weight, connection);
 
                 //Some checks
-                if (strSQL.Length == MaxSize)
+                if (strSQL.Length == Helper.MaxSize)
                 {
-                    throw new Exception("Query is too long. Maximum size is " + MaxSize);
+                    throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
                 }
                 connection.Open();
 
@@ -57,7 +52,7 @@ namespace prefSQL.SQLSkyline
                 dap.Fill(dt);
 
                 // Build our record schema 
-                List<SqlMetaData> outputColumns = buildRecordSchema(dt, operators);
+                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators);
 
                 
 
@@ -68,10 +63,9 @@ namespace prefSQL.SQLSkyline
                 //Read all records only once. (SqlDataReader works forward only!!)
                 while (sqlReader.Read())
                 {
-                    add(sqlReader, amountOfPreferences, operators, ref btg, ref weight);
+                    add(sqlReader, amountOfPreferences, operators, ref btg, ref weight, ref maxID);
                 }
                 sqlReader.Close();
-
                 
                 findBMO(amountOfPreferences, ref btg, ref next, ref prev, ref level, ref weight);
 
@@ -199,6 +193,7 @@ namespace prefSQL.SQLSkyline
                 }
 
 
+
                 //ArrayList listOfTuples 
                 btg = new ArrayList[sizeNodes];
                 next = new int[sizeNodes];
@@ -277,7 +272,7 @@ namespace prefSQL.SQLSkyline
             }
         }
 
-        private static void add(DataTableReader sqlReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight) //add tuple
+        private static void add(DataTableReader sqlReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID) //add tuple
         {
             ArrayList al = new ArrayList();
 
@@ -318,7 +313,11 @@ namespace prefSQL.SQLSkyline
             }
             btg[id].Add(al);
 
-            
+
+            if (id > maxID)
+            {
+                maxID = id;
+            }
         }
 
         
@@ -355,7 +354,7 @@ namespace prefSQL.SQLSkyline
                             {
                                 if (level[cur + weight[i]] == level[cur] + 1)
                                 {
-                                    remove(cur + weight[i], i, ref btg, ref next, ref prev, ref level, ref weight);
+                                    remove(cur + weight[i], i, ref btg, ref next, ref prev, ref level, ref weight, 0);
                                 }
                             }
 
@@ -373,17 +372,10 @@ namespace prefSQL.SQLSkyline
                         prev[next[cur]] = last;
                         next[cur] = -1; //gibt es nicht mehr dieses node
                         prev[cur] = -1;
-                        /*next[last] = cur;
-                        if (next[cur] != -1)
-                        {
-                            prev[next[cur]] = last;
-                        }*/
 
                         cur = nextCur; //Damit Breadt-First Walk
                     }
 
-                    //Goto next node
-                    //cur++;
                 }
 
             }
@@ -394,8 +386,14 @@ namespace prefSQL.SQLSkyline
 
 
 
-        private static void remove(int id, int index, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight)
+        private static void remove(int id, int index, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight, int iRecursionLoop)
         {
+            /*if (iRecursionLoop > 8000)
+            {
+                System.Diagnostics.Debug.WriteLine("Rec Loop: " + iRecursionLoop);
+            }*/
+            
+            
             //check if the node has already been removed
             if (prev[id] == -1)
             {
@@ -413,14 +411,6 @@ namespace prefSQL.SQLSkyline
                 {
                     prev[next[id]] = prev[id];
                 }
-                //else
-                /*{
-                    prev[id] = -1;
-                }*/
-                //prev[id] = prev[id];
-
-                //next[id] = -1;
-                //prev[id] = -1;
 
                 //remove tuples in node
                 btg[id] = null;
@@ -435,36 +425,12 @@ namespace prefSQL.SQLSkyline
                 // follow the edge for preference i (only if not already on last level)
                 if (id + weight[i] <= level.GetUpperBound(0) && level[id + weight[i]] == level[id] + 1)
                 {
-                    remove(id + weight[i], i, ref btg, ref next, ref prev, ref level, ref weight);
+                    remove(id + weight[i], i, ref btg, ref next, ref prev, ref level, ref weight, ++iRecursionLoop);
                 }
             }
         }
 
 
-        private static List<SqlMetaData> buildRecordSchema(DataTable dt, string[] operators)
-        {
-            List<SqlMetaData> outputColumns = new List<SqlMetaData>(dt.Columns.Count);
-            int iCol = 0;
-            foreach (DataColumn col in dt.Columns)
-            {
-                //Only the real columns (skyline columns are not output fields)
-                if (iCol > operators.GetUpperBound(0))
-                {
-                    SqlMetaData OutputColumn;
-                    if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(DateTime)))
-                    {
-                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType));
-                    }
-                    else
-                    {
-                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
-                    }
-                    outputColumns.Add(OutputColumn);
-                }
-                iCol++;
-            }
-            return outputColumns;
-        }
 
     }
 }

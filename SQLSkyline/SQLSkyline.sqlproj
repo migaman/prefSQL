@@ -24,6 +24,9 @@
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
     <TargetDatabase>SQLSkyline</TargetDatabase>
+    <GenerateCreateScript>False</GenerateCreateScript>
+    <GenerateSqlClrSymbols>True</GenerateSqlClrSymbols>
+    <GenerateSqlClrDdl>True</GenerateSqlClrDdl>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release\</OutputPath>
@@ -73,5 +76,7 @@
     <Compile Include="SP_SkylineDQ.cs" />
     <Compile Include="SP_SkylineBNLSort.cs" />
     <Compile Include="SP_SkylineTree.cs" />
+    <Compile Include="SP_SkylineBNLSortLevel.cs" />
+    <Compile Include="Helper.cs" />
   </ItemGroup>
 </Project>

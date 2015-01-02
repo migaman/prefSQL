@@ -28,7 +28,9 @@ namespace prefSQL.SQLParser
         {
             NativeSQL,              //Works with ANSI-SQL syntax
             BNL,                    //Block nested loops
+            BNLLevel,               //Block nested loops (does not support incomparable)
             BNLSort,                //Block nested loops with presort
+            BNLSortLevel,           //Block nested loops with presort (does not support incomparable)
             DQ,                     //Divide and Conquer
             Hexagon,                //Hexagon Augsburg
             Tree                    //Treebased for all skylines
@@ -130,7 +132,7 @@ namespace prefSQL.SQLParser
                             strNewSQL += strWHERE;
                             strNewSQL += strOrderBy;
                         }
-                        else if (_SkylineType == Algorithm.BNL)
+                        else if (_SkylineType == Algorithm.BNL || _SkylineType == Algorithm.BNLLevel)
                         {
                             string strOperators = "";
                             string strAttributesSkyline = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
@@ -140,9 +142,16 @@ namespace prefSQL.SQLParser
 
                             string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
                             //Bewusst nicht sortieren
-                            strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', 'false'";
+                            if (_SkylineType == Algorithm.BNL)
+                            {
+                                strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', 'false'";
+                            }
+                            else if (_SkylineType == Algorithm.BNLLevel)
+                            {
+                                strNewSQL = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "', 'false'";
+                            }
                         }
-                        else if (_SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.Tree)
+                        else if (_SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.BNLSortLevel || _SkylineType == Algorithm.Tree)
                         {
                             string strOperators = "";
                             string strAttributesSkyline = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
@@ -157,6 +166,10 @@ namespace prefSQL.SQLParser
                             if (_SkylineType == Algorithm.BNLSort)
                             {
                                 strNewSQL = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "', 'false'";
+                            }
+                            else if (_SkylineType == Algorithm.BNLSortLevel)
+                            {
+                                strNewSQL = "EXEC dbo.SP_SkylineBNLSortLevel '" + strFirstSQL + "', '" + strOperators + "', 'false'";
                             }
                             else
                             {

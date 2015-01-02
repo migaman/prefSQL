@@ -17,25 +17,26 @@ namespace prefSQL.SQLSkyline
 {
     public class SP_SkylineDQ
     {
-        //Only this parameters are different beteen SQL CLR function and Utility class
-        private const string connectionstring = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
-        private const int MaxSize = 4000;
-
-        [Microsoft.SqlServer.Server.SqlProcedure]
-        public static void getSkylineDQ(SqlString strQuery, SqlString strOperators, SqlBoolean isDebug)
+        [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineDQ")]
+        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlBoolean isDebug)
         {
             ArrayList resultCollection = new ArrayList();
 
             string[] operators = strOperators.ToString().Split(';');
 
 
-            SqlConnection connection = new SqlConnection(connectionstring);
+            SqlConnection connection = null;
+            if (isDebug == false)
+                connection = new SqlConnection(Helper.cnnStringSQLCLR);
+            else
+                connection = new SqlConnection(Helper.cnnStringLocalhost);
+
             try
             {
                 //Some checks
-                if (strQuery.ToString().Length == MaxSize)
+                if (strQuery.ToString().Length == Helper.MaxSize)
                 {
-                    throw new Exception("Query is too long. Maximum size is " + MaxSize);
+                    throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
                 }
                 connection.Open();
 
@@ -46,7 +47,7 @@ namespace prefSQL.SQLSkyline
 
 
                 // Build our record schema 
-                List<SqlMetaData> outputColumns = buildRecordSchema(dt, operators);
+                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators);
                 SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
 
 
@@ -298,55 +299,7 @@ namespace prefSQL.SQLSkyline
 
 
         }
-
-
-        /*
-         * 0 = false
-         * 1 = equal
-         * 2 = greater than
-         * */
-        private static int compareValue(int value1, int value2)
-        {
-            if (value1 >= value2)
-            {
-                if (value1 > value2)
-                    return 2;
-                else
-                    return 1;
-
-            }
-            else
-            {
-                return 0;
-            }
-
-        }
-
-        private static List<SqlMetaData> buildRecordSchema(DataTable dt, string[] operators)
-        {
-            List<SqlMetaData> outputColumns = new List<SqlMetaData>(dt.Columns.Count);
-            int iCol = 0;
-            foreach (DataColumn col in dt.Columns)
-            {
-                //Only the real columns (skyline columns are not output fields)
-                if (iCol > operators.GetUpperBound(0))
-                {
-                    SqlMetaData OutputColumn;
-                    if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(DateTime)))
-                    {
-                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType));
-                    }
-                    else
-                    {
-                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
-                    }
-                    outputColumns.Add(OutputColumn);
-                }
-                iCol++;
-            }
-            return outputColumns;
-        }
-
+        
 
     }
 }
