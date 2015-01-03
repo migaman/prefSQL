@@ -10,6 +10,7 @@ using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
 using System.Threading;
+using System.Data.Common;
 
 namespace Utility
 {
@@ -22,7 +23,8 @@ namespace Utility
             /*
             Performance p = new Performance();
             p.GeneratePerformanceQueries(SQLCommon.Algorithm.NativeSQL, true, Performance.PreferenceSet.Mya);
-             * */
+            */
+
             /*p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.BNL,             false, true, false, true);
             p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.BNLLevel,        false, true, false, true);
             p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.BNLSort,         false, true, false, true);*/
@@ -64,12 +66,12 @@ namespace Utility
 
                 //string strPrefSQL = "SELECT cars.id, cars.title, colors.name, fuels.name FROM cars " +
                 //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name, mileage FROM cars " +
-                string strPrefSQL = "SELECT t1.id, t1.title, colors.name AS Colour, bodies.name AS Body, conditions.name AS Condition FROM cars t1 " +
+                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage FROM cars t1 " +
                     //string strPrefSQL = "SELECT cars.id, cars.Price, cars.mileage FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage, cars.horsepower, cars.enginesize, cars.registration, cars.consumption, cars.doors, colors.name, fuels.name FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, colors.name AS colourname, fuels.name AS fuelname, cars.price FROM cars " +
                     //string strPrefSQL = "SELECT id FROM cars " +
-                    "LEFT OUTER JOIN colors ON t1.color_id = colors.ID " +
+                    /*"LEFT OUTER JOIN colors ON t1.color_id = colors.ID " +
                     "LEFT OUTER JOIN bodies ON t1.body_id = bodies.ID " +
                     "LEFT OUTER JOIN conditions ON t1.condition_id = conditions.id " +
                     "LEFT OUTER JOIN Transmissions ON t1.transmission_id = Transmissions.id " +
@@ -78,15 +80,15 @@ namespace Utility
                     "LEFT OUTER JOIN Pollutions ON t1.pollution_id = Pollutions.id " +
                     "LEFT OUTER JOIN Efficiencies ON t1.efficiency_id = Efficiencies.id " +
                     "LEFT OUTER JOIN Makes ON t1.make_id = Makes.id " +
-                    "LEFT OUTER JOIN Models ON t1.model_id = Models.id " +
+                    "LEFT OUTER JOIN Models ON t1.model_id = Models.id " +*/
                     //"WHERE t1.price < 100000 " +
                     //"LEFT OUTER JOIN fuels ON cars.fuel_id = fuels.ID " +
                     //"WHERE t1.id NOT IN (54521, 25612, 46268, 668, 47392, 1012, 22350, 55205, 51017) " +
-                    "SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000" +
+                    "SKYLINE OF t1.price LOW, t1.mileage LOW";
+                    /*"SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000" +
                     ", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +
-
                     ", t1.doors HIGH, t1.seats HIGH 2, t1.cylinders HIGH, t1.gears HIGH ";
-
+                    */
                     
                     
                     //"SKYLINE OF HIGH t2.name {'schwarz' >> OTHERS} AND LOW t1.price AND HIGH t1.horsepower";
@@ -128,23 +130,27 @@ namespace Utility
 
 
                 SQLCommon parser = new SQLCommon();
-                //parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
+                parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
                 //parser.SkylineType = SQLCommon.Algorithm.BNL;
                 //parser.SkylineType = SQLCommon.Algorithm.BNLLevel;
                 //parser.SkylineType = SQLCommon.Algorithm.BNLSort;
                 //parser.SkylineType = SQLCommon.Algorithm.BNLSortLevel;
-                parser.SkylineType = SQLCommon.Algorithm.Hexagon;
+                //parser.SkylineType = SQLCommon.Algorithm.Hexagon;
                 //parser.OrderType = SQLCommon.Ordering.RankingBestOf;
                 //parser.SkylineType = SQLCommon.Algorithm.Tree;
                 //parser.ShowSkylineAttributes = true;
+                
 
                 string strSQL = parser.parsePreferenceSQL(strPrefSQL);
 
                 Debug.WriteLine(strSQL);
 
 
-                executeDb(strSQL, parser.SkylineType);
-                
+                Helper helper = new Helper();
+                helper.DriverString = "System.Data.SqlClient";
+                helper.ConnectionString = cnnStringLocalhost;
+                DataTable dt = helper.getResults(strSQL, parser.SkylineType);
+                System.Diagnostics.Debug.WriteLine(dt.Rows.Count);
 
 
 
@@ -160,141 +166,5 @@ namespace Utility
             Environment.Exit(0);
         }
 
-
-
-
-        public void executeDb(String strSQL, SQLCommon.Algorithm algorithm)
-        {
-            string str1 = "";
-            string str2 = "";
-            string str3 = "";
-
-            if (algorithm != SQLCommon.Algorithm.NativeSQL)
-            {
-
-
-
-                //First parameter
-                int iPosStart = strSQL.IndexOf("'") + 1;
-                int iPosMiddle = iPosStart;
-                bool bEnd = false;
-                while (bEnd == false)
-                {
-                    iPosMiddle = iPosMiddle + strSQL.Substring(iPosMiddle).IndexOf("'") + 1;
-                    if (!strSQL.Substring(iPosMiddle, 1).Equals("'"))
-                    {
-                        bEnd = true;
-                    }
-                    else
-                    {
-                        iPosMiddle++;
-                    }
-                    //Prüfen ob es kein doppeltes Hochkomma ist
-                }
-                iPosMiddle += 3;
-
-                //Second parameter
-                int iPosEnd = iPosMiddle;
-                bEnd = false;
-                while (bEnd == false)
-                {
-                    iPosEnd = iPosEnd + strSQL.Substring(iPosEnd).IndexOf("'") + 1;
-                    if (iPosEnd == strSQL.Length)
-                        break; //Kein 3.Parameter
-                    if (!strSQL.Substring(iPosEnd, 1).Equals("'"))
-                    {
-                        bEnd = true;
-                    }
-                    else
-                    {
-                        iPosEnd++;
-                    }
-                    //Prüfen ob es kein doppeltes Hochkomma ist
-                }
-                iPosEnd += 3;
-
-
-                str1 = strSQL.Substring(iPosStart, iPosMiddle - iPosStart - 4);
-                str2 = strSQL.Substring(iPosMiddle, iPosEnd - iPosMiddle - 4);
-                str3 = "";
-                if (iPosEnd < strSQL.Length - 10)
-                {
-                    //str3 = strSQL.Substring(iPosEnd).TrimEnd('\'');
-                    str3 = strSQL.Substring(iPosEnd, strSQL.Length - iPosEnd - 10).TrimEnd('\'');
-                }
-                str1 = str1.Replace("''", "'").Trim('\'');
-                str2 = str2.Replace("''", "'").Trim('\'');
-                str3 = str3.Replace("''", "'").Trim('\'');
-
-            }
-
-            Stopwatch sw = new Stopwatch();
-
-            sw.Start();
-
-            try
-            {
-                System.Data.SqlTypes.SqlString strSQL1 = str1;
-                System.Data.SqlTypes.SqlString strSQL2 = str2;
-                System.Data.SqlTypes.SqlString strSQL3 = str3;
-                if (algorithm == SQLCommon.Algorithm.BNL)
-                {
-                    prefSQL.SQLSkyline.SP_SkylineBNL.getSkyline(str1, str2, true);
-                }
-                else if (algorithm == SQLCommon.Algorithm.BNLLevel)
-                {
-                    prefSQL.SQLSkyline.SP_SkylineBNLLevel.getSkyline(str1, str2, true);
-                }
-                else if (algorithm == SQLCommon.Algorithm.BNLSort)
-                {
-                    prefSQL.SQLSkyline.SP_SkylineBNLSort.getSkyline(str1, str2, true);
-                }
-                else if (algorithm == SQLCommon.Algorithm.BNLSortLevel)
-                {
-                    prefSQL.SQLSkyline.SP_SkylineBNLSortLevel.getSkyline(str1, str2, true);
-                }
-                else if (algorithm == SQLCommon.Algorithm.Hexagon)
-                {
-                    //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
-
-                    //Default stack size is 1MB (1024000) --> Double it to 2MB
-                    Thread T = new Thread(() => prefSQL.SQLSkyline.SP_SkylineHexagon.getSkyline(str1, str2, str3, true), 2048000);
-                    T.Start();
-
-                    //Join method to block the current thread  until the object's thread terminates.
-                    T.Join();
-
-                    //prefSQL.SQLSkyline.SP_SkylineHexagon.getSkyline(str1, str2, str3, true);
-                }
-                else if(algorithm == SQLCommon.Algorithm.Tree)
-                {
-                    prefSQL.SQLSkyline.SP_SkylineTree.getSkyline(str1, str2, true);
-                }
-                else if (algorithm == SQLCommon.Algorithm.NativeSQL)
-                {
-                    //Native SQL
-                    SqlConnection connection = null;
-                    connection = new SqlConnection(cnnStringLocalhost);
-                    connection.Open();
-
-                    SqlDataAdapter dap = new SqlDataAdapter(strSQL, connection);
-                    DataTable dt = new DataTable();
-                    dap.Fill(dt);
-
-                    System.Diagnostics.Debug.WriteLine(dt.Rows.Count);
-                }
-                
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e.Message);
-            }
-
-
-
-            sw.Stop();
-
-            Console.WriteLine("Elapsed={0}", sw.Elapsed);
-        }
     }
 }

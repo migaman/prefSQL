@@ -393,7 +393,7 @@ namespace prefSQL.SQLSkyline
 
         private static void remove(int id, int index, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight, int iRecursionLoop)
         {
-            /*if (iRecursionLoop > 8000)
+            /*if (iRecursionLoop > 15000)
             {
                 System.Diagnostics.Debug.WriteLine("Rec Loop: " + iRecursionLoop);
             }*/

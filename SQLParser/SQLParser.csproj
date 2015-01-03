@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ErrorListener.cs" />
+    <Compile Include="Helper.cs" />
     <Compile Include="Models\AttributeModel.cs" />
     <Compile Include="Models\OrderByModel.cs" />
     <Compile Include="Models\PrefSQLModel.cs" />
@@ -123,6 +124,12 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SQLSkyline\SQLSkyline.sqlproj">
+      <Project>{c0006fb5-527b-4812-8e5c-9b2cba268b59}</Project>
+      <Name>SQLSkyline</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
