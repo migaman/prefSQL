@@ -117,9 +117,8 @@ namespace prefSQL.SQLSkyline
             catch (Exception ex)
             {
                 //Pack Errormessage in a SQL and return the result
-                string strError = "SELECT 'Fehler in SP_SkylineBNL: ";
-                strError += ex.Message.Replace("'", "''");
-                strError += "'";
+                string strError = "Fehler in SP_SkylineBNLSort: ";
+                strError += ex.Message;
 
                 if (isDebug == true)
                 {

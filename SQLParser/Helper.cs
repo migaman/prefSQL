@@ -104,6 +104,7 @@ namespace prefSQL.SQLParser
                 else if (algorithm == SQLCommon.Algorithm.BNLSortLevel)
                 {
                     prefSQL.SQLSkyline.SP_SkylineBNLSortLevel.getSkyline(str1, str2, true);
+
                 }
                 else if (algorithm == SQLCommon.Algorithm.Hexagon)
                 {
@@ -120,7 +121,7 @@ namespace prefSQL.SQLParser
                 }
                 else if (algorithm == SQLCommon.Algorithm.Tree)
                 {
-                    prefSQL.SQLSkyline.SP_SkylineTree.getSkyline(str1, str2, true);
+                    prefSQL.SQLSkyline.SP_SkylineTree.getSkyline(str1, str2, true, 3);
                 }
                 else if (algorithm == SQLCommon.Algorithm.NativeSQL)
                 {

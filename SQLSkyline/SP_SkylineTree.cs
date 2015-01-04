@@ -19,7 +19,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineTree")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlBoolean isDebug)
+        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlBoolean isDebug, SqlInt32 upToLevel)
         {
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
@@ -46,7 +46,8 @@ namespace prefSQL.SQLSkyline
 
                 //trees erstellen mit n nodes (n = anzahl tupels)
                 int[] graph = new int[dt.Rows.Count];
-                int[] levels = new int[dt.Rows.Count];
+                //int[] levels = new int[dt.Rows.Count];
+                List<int> levels = new List<int>();
                 int[,] values = new int[dt.Rows.Count, operators.GetUpperBound(0)];
 
 
@@ -74,14 +75,11 @@ namespace prefSQL.SQLSkyline
                     //Check if window list is empty
                     if (resultCollection.Count == 0)
                     {
-
-
-                        //values[iIndex]
-
                         // Build our SqlDataRecord and start the results 
-                        levels[iIndex] = 0; //root level
+                        levels.Add(0);
+                        //levels[iIndex] = 0; //root level
                         iMaxLevel = 0;
-                        addToWindow(sqlReader, operators, ref resultCollection, record, isDebug, levels[iIndex]);
+                        addToWindow(sqlReader, operators, ref resultCollection, record, isDebug, levels[levels.Count-1]);
                     }
                     else
                     {
@@ -89,13 +87,12 @@ namespace prefSQL.SQLSkyline
                         //Insert the new record to the tree
                         bool bFound = false;
                         
-                        //Start wie level 0 nodes
-                        for (int iLevel = 0; iLevel <= iMaxLevel && bFound == false; iLevel++)
+                        //Start wie level 0 nodes (until uptolevels or maximum levels)
+                        for (int iLevel = 0; iLevel <= iMaxLevel && bFound == false && iLevel < upToLevel; iLevel++)
                         {
                             bool bDominated = false;
-                            for(int i = 0; i < iIndex; i++)
+                            for (int i = 0; i < resultCollection.Count; i++)
                             {
-
                                 if (levels[i] == iLevel)
                                 {
                                     long[] result = (long[])resultCollection[i];
@@ -107,20 +104,13 @@ namespace prefSQL.SQLSkyline
                                         bDominated = true;
                                         break;
                                     }
-                                    else
-                                    {
-                                        //levels[iIndex] = iLevel;
-                                        //bFound = true;
-                                        //break;
-
-                                        //Now check other values from this level
-                                    }
                                 }
                             }
                             //Check if the record is dominated in this level
                             if(bDominated == false)
                             {
-                                levels[iIndex] = iLevel;
+                                //levels[iIndex] = iLevel;
+                                levels.Add(iLevel);
                                 bFound = true;
                                 break;
                             }
@@ -128,11 +118,16 @@ namespace prefSQL.SQLSkyline
                         if (bFound == false)
                         {
                             iMaxLevel++;
-                            levels[iIndex] = iMaxLevel;
+                            if (iMaxLevel < upToLevel)
+                            {
+                                levels.Add(iMaxLevel);
+                                addToWindow(sqlReader, operators, ref resultCollection, record, isDebug, levels[levels.Count - 1]);
+                            }
                         }
-
-                        
-                        addToWindow(sqlReader, operators, ref resultCollection, record, isDebug, levels[iIndex]);
+                        else
+                        {
+                            addToWindow(sqlReader, operators, ref resultCollection, record, isDebug, levels[levels.Count - 1]);
+                        }
                     }
                     iIndex++;
                 }
@@ -153,9 +148,8 @@ namespace prefSQL.SQLSkyline
             catch (Exception ex)
             {
                 //Pack Errormessage in a SQL and return the result
-                string strError = "SELECT 'Fehler in SP_SkylineBNL: ";
-                strError += ex.Message.Replace("'", "''");
-                strError += "'";
+                string strError = "Fehler in SP_SkylineTree: ";
+                strError += ex.Message;
 
                 if (isDebug == true)
                 {

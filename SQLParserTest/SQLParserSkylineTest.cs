@@ -31,6 +31,7 @@ namespace prefSQL.SQLParserTest
 
                 //Tree Algorithm
                 common.SkylineType = SQLCommon.Algorithm.Tree;
+                common.SkylineUpToLevel = 3;
                 string sqlTree = common.parsePreferenceSQL(strSQL + strPreferences);
                 ArrayList levelRecordsTree = new ArrayList(); ;
                 SqlCommand sqlCommand = new SqlCommand(sqlTree, cnnSQL);
@@ -62,7 +63,7 @@ namespace prefSQL.SQLParserTest
                 bool isSkylineEmpty = false;
                 ArrayList levelRecordsBNLSort = new ArrayList();
                 int iLevel = 0;
-                while (isSkylineEmpty == false)
+                while (isSkylineEmpty == false && iLevel < common.SkylineUpToLevel)
                 {
                     //Add WHERE clause with IDs that were already in the skyline
                     String strIDs = "";
@@ -597,7 +598,7 @@ namespace prefSQL.SQLParserTest
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH, cars.enginesize HIGH, cars.registration HIGHDATE, cars.consumption LOW ORDER BY price ASC, mileage ASC, horsepower DESC, enginesize DESC, registration DESC, consumption ASC";
 
-            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND cars_INNER.enginesize >= cars.enginesize AND DATEDIFF(minute, '1900-01-01', cars_INNER.registration) >= DATEDIFF(minute, '1900-01-01', cars.registration) AND cars_INNER.consumption <= cars.consumption AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower OR cars_INNER.enginesize > cars.enginesize OR DATEDIFF(minute, '1900-01-01', cars_INNER.registration) > DATEDIFF(minute, '1900-01-01', cars.registration) OR cars_INNER.consumption < cars.consumption) ) ORDER BY price ASC, mileage ASC, horsepower DESC, enginesize DESC, registration DESC, consumption ASC";
+            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND cars_INNER.enginesize >= cars.enginesize AND DATEDIFF(minute, '1900-01-01', cars_INNER.registration)  >= DATEDIFF(minute, '1900-01-01', cars.registration)  AND cars_INNER.consumption <= cars.consumption AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower OR cars_INNER.enginesize > cars.enginesize OR DATEDIFF(minute, '1900-01-01', cars_INNER.registration)  > DATEDIFF(minute, '1900-01-01', cars.registration)  OR cars_INNER.consumption < cars.consumption) ) ORDER BY price ASC, mileage ASC, horsepower DESC, enginesize DESC, registration DESC, consumption ASC";
             SQLCommon common = new SQLCommon();
             string actual = common.parsePreferenceSQL(strPrefSQL);
 

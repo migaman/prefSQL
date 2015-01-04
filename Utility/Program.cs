@@ -84,6 +84,8 @@ namespace Utility
                     //"WHERE t1.price < 100000 " +
                     //"LEFT OUTER JOIN fuels ON cars.fuel_id = fuels.ID " +
                     //"WHERE t1.id NOT IN (54521, 25612, 46268, 668, 47392, 1012, 22350, 55205, 51017) " +
+                    //"WHERE t1.id not in (25612, 46268, 1012, 22350, 51017, 55205, 47392, 668, 54521) " +
+                    //" AND t1.id not in (32347, 37368, 40646, 53526, 52601, 27068, 1667, 27675, 5328, 35699, 51417, 25251, 33363, 31825, 24266, 52256, 54259) " +
                     "SKYLINE OF t1.price LOW, t1.mileage LOW";
                     /*"SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000" +
                     ", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +
@@ -130,14 +132,14 @@ namespace Utility
 
 
                 SQLCommon parser = new SQLCommon();
-                parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
+                //parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
                 //parser.SkylineType = SQLCommon.Algorithm.BNL;
                 //parser.SkylineType = SQLCommon.Algorithm.BNLLevel;
                 //parser.SkylineType = SQLCommon.Algorithm.BNLSort;
                 //parser.SkylineType = SQLCommon.Algorithm.BNLSortLevel;
                 //parser.SkylineType = SQLCommon.Algorithm.Hexagon;
                 //parser.OrderType = SQLCommon.Ordering.RankingBestOf;
-                //parser.SkylineType = SQLCommon.Algorithm.Tree;
+                parser.SkylineType = SQLCommon.Algorithm.Tree;
                 //parser.ShowSkylineAttributes = true;
                 
 

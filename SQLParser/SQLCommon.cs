@@ -23,6 +23,10 @@ namespace prefSQL.SQLParser
         private const string SkylineOf = "SKYLINE OF";
         private Algorithm _SkylineType = Algorithm.NativeSQL;   //Defines with which Algorithm the Skyline should be calculated
         private bool _ShowSkylineAttributes = false;            //Defines if the skyline attributes should be added to the SELECT list
+        private int _SkylineUpToLevel = 3;
+
+
+
 
         public enum Algorithm
         {
@@ -55,6 +59,12 @@ namespace prefSQL.SQLParser
         {
             get { return _SkylineType; }
             set { _SkylineType = value; }
+        }
+
+        public int SkylineUpToLevel
+        {
+            get { return _SkylineUpToLevel; }
+            set { _SkylineUpToLevel = value; }
         }
 
 
@@ -171,9 +181,9 @@ namespace prefSQL.SQLParser
                             {
                                 strNewSQL = "EXEC dbo.SP_SkylineBNLSortLevel '" + strFirstSQL + "', '" + strOperators + "', 'false'";
                             }
-                            else
+                            else if (_SkylineType == Algorithm.Tree)
                             {
-                                strNewSQL = "EXEC dbo.SP_SkylineTree '" + strFirstSQL + "', '" + strOperators + "', 'false'";
+                                strNewSQL = "EXEC dbo.SP_SkylineTree '" + strFirstSQL + "', '" + strOperators + "', 'false', " + _SkylineUpToLevel; 
                             }
                             
                         }
