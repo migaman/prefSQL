@@ -161,11 +161,11 @@ namespace prefSQL.SQLParser
                             //Bewusst nicht sortieren
                             if (_SkylineType == Algorithm.BNL)
                             {
-                                strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', 'false'";
+                                strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "'";
                             }
                             else if (_SkylineType == Algorithm.BNLLevel)
                             {
-                                strNewSQL = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "', 'false'";
+                                strNewSQL = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "'";
                             }
                         }
                         else if (_SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.BNLSortLevel || _SkylineType == Algorithm.MultipleBNL)
@@ -182,11 +182,11 @@ namespace prefSQL.SQLParser
                             strFirstSQL += strOrderBy.Replace("'", "''");
                             if (_SkylineType == Algorithm.BNLSort)
                             {
-                                strNewSQL = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "', 'false'";
+                                strNewSQL = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "'";
                             }
                             else if (_SkylineType == Algorithm.BNLSortLevel)
                             {
-                                strNewSQL = "EXEC dbo.SP_SkylineBNLSortLevel '" + strFirstSQL + "', '" + strOperators + "', 'false'";
+                                strNewSQL = "EXEC dbo.SP_SkylineBNLSortLevel '" + strFirstSQL + "', '" + strOperators + "'";
                             }
                             else if (_SkylineType == Algorithm.MultipleBNL)
                             {

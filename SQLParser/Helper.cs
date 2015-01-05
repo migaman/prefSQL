@@ -91,7 +91,8 @@ namespace prefSQL.SQLParser
                 System.Data.SqlTypes.SqlString strSQL3 = str3;
                 if (algorithm == SQLCommon.Algorithm.BNL)
                 {
-                    prefSQL.SQLSkyline.SP_SkylineBNL.getSkyline(str1, str2, true);
+                    prefSQL.SQLSkyline.SP_SkylineBNL skyline = new SQLSkyline.SP_SkylineBNL();
+                    dt = skyline.getSkylineTable(str1, str2, ConnectionString);
                 }
                 else if (algorithm == SQLCommon.Algorithm.BNLLevel)
                 {

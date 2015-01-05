@@ -133,8 +133,8 @@ namespace Utility
 
                 SQLCommon parser = new SQLCommon();
                 //parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
-                //parser.SkylineType = SQLCommon.Algorithm.BNL;
-                parser.SkylineType = SQLCommon.Algorithm.BNLLevel;
+                parser.SkylineType = SQLCommon.Algorithm.BNL;
+                //parser.SkylineType = SQLCommon.Algorithm.BNLLevel;
                 //parser.SkylineType = SQLCommon.Algorithm.BNLSort;
                 //parser.SkylineType = SQLCommon.Algorithm.BNLSortLevel;
                 //parser.SkylineType = SQLCommon.Algorithm.Hexagon;

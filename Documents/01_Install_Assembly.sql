@@ -62,7 +62,7 @@ CREATE ASSEMBLY SQLSkyline FROM @ASSEMBLY_PATH
 GO
 
 --Create SP for BNL (with Incomparable)
-CREATE PROCEDURE SP_SkylineBNL (@Name nvarchar(4000), @Operators nvarchar(200), @IsDebug bit)
+CREATE PROCEDURE SP_SkylineBNL (@Name nvarchar(4000), @Operators nvarchar(200))
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineBNL].getSkyline;
 GO
 --Create SP for BNL Levelized (without incomparable)
