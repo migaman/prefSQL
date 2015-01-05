@@ -30,7 +30,7 @@ namespace prefSQL.SQLParserTest
 
 
                 //Tree Algorithm
-                common.SkylineType = SQLCommon.Algorithm.Tree;
+                common.SkylineType = SQLCommon.Algorithm.MultipleBNL;
                 common.SkylineUpToLevel = 3;
                 string sqlTree = common.parsePreferenceSQL(strSQL + strPreferences);
                 ArrayList levelRecordsTree = new ArrayList(); ;

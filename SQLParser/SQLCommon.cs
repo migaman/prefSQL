@@ -37,7 +37,7 @@ namespace prefSQL.SQLParser
             BNLSortLevel,           //Block nested loops with presort (does not support incomparable)
             DQ,                     //Divide and Conquer
             Hexagon,                //Hexagon Augsburg
-            Tree                    //Treebased for all skylines
+            MultipleBNL             //Multiple Skyline calculation (define levels with SkylineUptoLevel variable)
         };
 
         public enum Ordering
@@ -161,7 +161,7 @@ namespace prefSQL.SQLParser
                                 strNewSQL = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "', 'false'";
                             }
                         }
-                        else if (_SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.BNLSortLevel || _SkylineType == Algorithm.Tree)
+                        else if (_SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.BNLSortLevel || _SkylineType == Algorithm.MultipleBNL)
                         {
                             string strOperators = "";
                             string strAttributesSkyline = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
@@ -181,9 +181,9 @@ namespace prefSQL.SQLParser
                             {
                                 strNewSQL = "EXEC dbo.SP_SkylineBNLSortLevel '" + strFirstSQL + "', '" + strOperators + "', 'false'";
                             }
-                            else if (_SkylineType == Algorithm.Tree)
+                            else if (_SkylineType == Algorithm.MultipleBNL)
                             {
-                                strNewSQL = "EXEC dbo.SP_SkylineTree '" + strFirstSQL + "', '" + strOperators + "', 'false', " + _SkylineUpToLevel; 
+                                strNewSQL = "EXEC dbo.SP_MultipleSkylineBNL '" + strFirstSQL + "', '" + strOperators + "', 'false', " + _SkylineUpToLevel; 
                             }
                             
                         }

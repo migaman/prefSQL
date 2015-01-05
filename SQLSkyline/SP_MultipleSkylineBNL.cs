@@ -11,14 +11,14 @@ using System.Collections.Generic;
 //WICHTIG: Vergleiche immer mit equals und nie mit z.B. startsWith oder Contains oder so.... --> Enorme Performance Unterschiede
 namespace prefSQL.SQLSkyline
 {
-    public class SP_SkylineTree
+    public class SP_MultipleSkylineBNL
     {
         /// <summary>
         /// Calculate the skyline points from a dataset
         /// </summary>
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
-        [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineTree")]
+        [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_MultipleSkylineBNL")]
         public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlBoolean isDebug, SqlInt32 upToLevel)
         {
             ArrayList resultCollection = new ArrayList();
@@ -79,14 +79,14 @@ namespace prefSQL.SQLSkyline
                         levels.Add(0);
                         //levels[iIndex] = 0; //root level
                         iMaxLevel = 0;
-                        addToWindow(sqlReader, operators, ref resultCollection, record, isDebug, levels[levels.Count-1]);
+                        addToWindow(sqlReader, operators, ref resultCollection, record, isDebug, levels[levels.Count - 1]);
                     }
                     else
                     {
 
                         //Insert the new record to the tree
                         bool bFound = false;
-                        
+
                         //Start wie level 0 nodes (until uptolevels or maximum levels)
                         for (int iLevel = 0; iLevel <= iMaxLevel && bFound == false && iLevel < upToLevel; iLevel++)
                         {
@@ -107,7 +107,7 @@ namespace prefSQL.SQLSkyline
                                 }
                             }
                             //Check if the record is dominated in this level
-                            if(bDominated == false)
+                            if (bDominated == false)
                             {
                                 //levels[iIndex] = iLevel;
                                 levels.Add(iLevel);
@@ -148,7 +148,7 @@ namespace prefSQL.SQLSkyline
             catch (Exception ex)
             {
                 //Pack Errormessage in a SQL and return the result
-                string strError = "Fehler in SP_SkylineTree: ";
+                string strError = "Fehler in SP_MultipleSkylineBNL: ";
                 strError += ex.Message;
 
                 if (isDebug == true)
@@ -191,7 +191,7 @@ namespace prefSQL.SQLSkyline
                     record.SetValue(iCol - (operators.GetUpperBound(0) + 1), sqlReader[iCol]);
                 }
             }
-            record.SetValue(record.FieldCount-1, level);
+            record.SetValue(record.FieldCount - 1, level);
 
             if (isDebug == false)
             {
@@ -244,7 +244,7 @@ namespace prefSQL.SQLSkyline
 
         }
 
-        
+
 
     }
 }

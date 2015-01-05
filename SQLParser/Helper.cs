@@ -119,9 +119,9 @@ namespace prefSQL.SQLParser
 
                     //prefSQL.SQLSkyline.SP_SkylineHexagon.getSkyline(str1, str2, str3, true);
                 }
-                else if (algorithm == SQLCommon.Algorithm.Tree)
+                else if (algorithm == SQLCommon.Algorithm.MultipleBNL)
                 {
-                    prefSQL.SQLSkyline.SP_SkylineTree.getSkyline(str1, str2, true, 3);
+                    prefSQL.SQLSkyline.SP_MultipleSkylineBNL.getSkyline(str1, str2, true, 3);
                 }
                 else if (algorithm == SQLCommon.Algorithm.NativeSQL)
                 {
