@@ -17,7 +17,7 @@ namespace prefSQL.SQLParser
         public String ConnectionString { get; set; }
 
 
-        public DataTable getResults(String strPrefSQL, SQLCommon.Algorithm algorithm)
+        public DataTable getResults(String strPrefSQL, SQLCommon.Algorithm algorithm, bool useMSSQLCLR)
         {
             DataTable dt = new DataTable();
             string str1 = "";
@@ -103,8 +103,8 @@ namespace prefSQL.SQLParser
                 }
                 else if (algorithm == SQLCommon.Algorithm.BNLSortLevel)
                 {
-                    prefSQL.SQLSkyline.SP_SkylineBNLSortLevel.getSkyline(str1, str2, true);
-
+                    prefSQL.SQLSkyline.SP_SkylineBNLSortLevel skyline = new SQLSkyline.SP_SkylineBNLSortLevel();
+                    dt = skyline.getSkylineTable(str1, str2, ConnectionString);
                 }
                 else if (algorithm == SQLCommon.Algorithm.Hexagon)
                 {
@@ -158,5 +158,6 @@ namespace prefSQL.SQLParser
 
             return dt;
         }
+
     }
 }
