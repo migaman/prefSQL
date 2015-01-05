@@ -20,17 +20,28 @@ namespace prefSQL.SQLSkyline
         /// <param name="strOperators"></param>
         /// <param name="isDebug"></param>
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineBNLLevel")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlBoolean isDebug)
+        public static void getSkyline(SqlString strQuery, SqlString strOperators)
+        {
+            SP_SkylineBNLLevel skyline = new SP_SkylineBNLLevel();
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), false, "");
+        }
+
+        public DataTable getSkylineTable(String strQuery, String strOperators, String strConnection)
+        {
+            return getSkylineTable(strQuery, strOperators, true, strConnection);
+        }
+
+        private DataTable getSkylineTable(String strQuery, String strOperators, bool isDebug, string strConnection)
         {
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
-            ArrayList recordCollection = new ArrayList();
+            DataTable dtResult = new DataTable();
 
             SqlConnection connection = null;
             if (isDebug == false)
                 connection = new SqlConnection(Helper.cnnStringSQLCLR);
             else
-                connection = new SqlConnection(Helper.cnnStringLocalhost);
+                connection = new SqlConnection(strConnection);
 
             try
             {
@@ -47,22 +58,23 @@ namespace prefSQL.SQLSkyline
 
 
                 // Build our record schema 
-                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators);
-
-                DataTableReader sqlReader = dt.CreateDataReader();
+                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, ref dtResult);
+                SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
 
                 //Read all records only once. (SqlDataReader works forward only!!)
+                DataTableReader sqlReader = dt.CreateDataReader();
                 while (sqlReader.Read())
                 {
                     //Check if window list is empty
                     if (resultCollection.Count == 0)
                     {
                         // Build our SqlDataRecord and start the results 
-                        addToWindow(sqlReader, operators, ref resultCollection, isDebug, ref recordCollection);
+                        //Records cannot be immediately sent to client, because it is possible that they are not in the skyline
+                        Helper.addToWindow(sqlReader, operators, ref resultCollection, record, true, ref dtResult);
                     }
                     else
                     {
-                        bool bDominated = false;
+                        bool isDominated = false;
 
                         //check if record is dominated (compare against the records in the window)
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
@@ -70,27 +82,28 @@ namespace prefSQL.SQLSkyline
                             long[] result = (long[])resultCollection[i];
 
                             //Dominanz
-                            if (compare(sqlReader, operators, result) == true)
+                            if (Helper.compare(sqlReader, operators, result) == true)
                             {
                                 //New point is dominated. No further testing necessary
-                                bDominated = true;
+                                isDominated = true;
                                 break;
                             }
 
 
                             //Now, check if the new point dominates the one in the window
                             //This is only possible with not sorted data
-                            if (compareDifferent(sqlReader, operators, result) == true)
+                            if (Helper.compareDifferent(sqlReader, operators, result) == true)
                             {
                                 //The new record dominates the one in the windows. Remove point from window and test further
                                 resultCollection.RemoveAt(i);
-                                recordCollection.RemoveAt(i);
+                                dtResult.Rows.RemoveAt(i);
                             }
 
                         }
-                        if (bDominated == false)
+                        if (isDominated == false)
                         {
-                            addToWindow(sqlReader, operators, ref resultCollection, isDebug, ref recordCollection);
+                            //Records cannot be immediately sent to client, because it is possible that they are not in the skyline
+                            Helper.addToWindow(sqlReader, operators, ref resultCollection, record, true, ref dtResult);
                         }
 
                     }
@@ -98,20 +111,14 @@ namespace prefSQL.SQLSkyline
 
                 sqlReader.Close();
 
-                if (isDebug == true)
-                {
-                    System.Diagnostics.Debug.WriteLine(resultCollection.Count);
-                }
-                else
+                if (isDebug == false)
                 {
                     //Send results to client
-                    SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
                     SqlContext.Pipe.SendResultsStart(record);
 
-                    //foreach (SqlDataRecord recSkyline in btg[iItem])
-                    foreach (ArrayList recSkyline in recordCollection)
+                    foreach (DataRow recSkyline in dtResult.Rows)
                     {
-                        for (int i = 0; i < recSkyline.Count; i++)
+                        for (int i = 0; i < recSkyline.Table.Columns.Count; i++)
                         {
                             record.SetValue(i, recSkyline[i]);
                         }
@@ -144,7 +151,7 @@ namespace prefSQL.SQLSkyline
                 if (connection != null)
                     connection.Close();
             }
-
+            return dtResult;
         }
 
 
@@ -178,91 +185,11 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        private static bool compare(DataTableReader sqlReader, string[] operators, long[] result)
-        {
-            bool greaterThan = false;
-
-            for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
-            {
-                string op = operators[iCol];
-                //Compare only LOW attributes
-                
-                long value = sqlReader.GetInt32(iCol);
-                int comparison = Helper.compareValue(value, result[iCol]);
-
-                if (comparison >= 1)
-                {
-                    if (comparison == 2)
-                    {
-                        //at least one must be greater than
-                        greaterThan = true;
-                    }
-
-                }
-                else
-                {
-                    //Value is smaller --> return false
-                    return false;
-                }
-
-
-                
-            }
-
-
-            //all equal and at least one must be greater than
-            //if (equalTo == true && greaterThan == true)
-            if (greaterThan == true)
-                return true;
-            else
-                return false;
 
 
 
-        }
 
-
-
-        private static bool compareDifferent(DataTableReader sqlReader, string[] operators, long[] result)
-        {
-            bool greaterThan = false;
-
-            for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
-            {
-                string op = operators[iCol];
-                
-                long value = sqlReader.GetInt32(iCol);
-                int comparison = Helper.compareValue(result[iCol], value);
-
-                if (comparison >= 1)
-                {
-                    if (comparison == 2)
-                    {
-                        //at least one must be greater than
-                        greaterThan = true;
-                    }
-                }
-                else
-                {
-                    //Value is smaller --> return false
-                    return false;
-                }
-
-
-                
-            }
-
-
-            //all equal and at least one must be greater than
-            //if (equalTo == true && greaterThan == true)
-            if (greaterThan == true)
-                return true;
-            else
-                return false;
-
-
-
-        }
+        
 
 
 

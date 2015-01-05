@@ -114,6 +114,49 @@ namespace prefSQL.SQLSkyline
         }
 
 
+
+        public static bool compareDifferent(DataTableReader sqlReader, string[] operators, long[] result)
+        {
+            bool greaterThan = false;
+
+            for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
+            {
+                string op = operators[iCol];
+
+                long value = sqlReader.GetInt32(iCol);
+                int comparison = Helper.compareValue(result[iCol], value);
+
+                if (comparison >= 1)
+                {
+                    if (comparison == 2)
+                    {
+                        //at least one must be greater than
+                        greaterThan = true;
+                    }
+                }
+                else
+                {
+                    //Value is smaller --> return false
+                    return false;
+                }
+
+
+
+            }
+
+
+            //all equal and at least one must be greater than
+            //if (equalTo == true && greaterThan == true)
+            if (greaterThan == true)
+                return true;
+            else
+                return false;
+
+
+
+        }
+
+
         public static bool compareIncomparable(DataTableReader sqlReader, string[] operators, long[] result, string[] stringResult)
         {
             bool greaterThan = false;
