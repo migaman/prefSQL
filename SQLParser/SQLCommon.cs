@@ -8,6 +8,7 @@ using Antlr4.Runtime.Tree;
 using Antlr4.Runtime.Tree.Pattern;
 using prefSQL.SQLParser.Models;
 using System.Diagnostics;
+using System.Data;
 
 namespace prefSQL.SQLParser
 {
@@ -67,6 +68,12 @@ namespace prefSQL.SQLParser
             set { _SkylineUpToLevel = value; }
         }
 
+
+        public DataTable getDatatable(string strPrefSQL)
+        {
+            DataTable dt = new DataTable();
+            return dt;
+        }
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
         /// <param name="strInput">Preference SQL Statement</param>
