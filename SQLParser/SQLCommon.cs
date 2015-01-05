@@ -190,7 +190,7 @@ namespace prefSQL.SQLParser
                             }
                             else if (_SkylineType == Algorithm.MultipleBNL)
                             {
-                                strNewSQL = "EXEC dbo.SP_MultipleSkylineBNL '" + strFirstSQL + "', '" + strOperators + "', 'false', " + _SkylineUpToLevel; 
+                                strNewSQL = "EXEC dbo.SP_MultipleSkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + _SkylineUpToLevel; 
                             }
                             
                         }
