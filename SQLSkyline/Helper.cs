@@ -77,7 +77,7 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        public static bool compare(DataTableReader sqlReader, string[] operators, long[] result, string[] stringResult)
+        public static bool compare(DataTableReader sqlReader, string[] operators, long[] result)
         {
             bool greaterThan = false;
 
@@ -114,11 +114,69 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        public static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlDataRecord record, bool isDebug, ref DataTable dtResult)
+        public static bool compareIncomparable(DataTableReader sqlReader, string[] operators, long[] result, string[] stringResult)
+        {
+            bool greaterThan = false;
+
+            for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
+            {
+                string op = operators[iCol];
+                //Compare only LOW attributes
+                if (op.Equals("LOW"))
+                {
+                    long value = sqlReader.GetInt32(iCol);
+                    int comparison = Helper.compareValue(value, result[iCol]);
+
+                    if (comparison >= 1)
+                    {
+                        if (comparison == 2)
+                        {
+                            //at least one must be greater than
+                            greaterThan = true;
+                        }
+                        else
+                        {
+                            //It is the same long value
+                            //Check if the value must be text compared
+                            if (iCol + 1 <= result.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
+                            {
+                                //string value is always the next field
+                                string strValue = sqlReader.GetString(iCol + 1);
+                                //If it is not the same string value, the values are incomparable!!
+                                //If two values are comparable the strings will be empty!
+                                if (!strValue.Equals(stringResult[iCol]))
+                                {
+                                    //Value is incomparable --> return false
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //Value is smaller --> return false
+                        return false;
+                    }
+                }
+            }
+
+
+            //all equal and at least one must be greater than
+            //if (equalTo == true && greaterThan == true)
+            if (greaterThan == true)
+                return true;
+            else
+                return false;
+
+
+
+        }
+
+
+        public static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, SqlDataRecord record, bool isFrameworkMode, ref DataTable dtResult)
         {
             //Erste Spalte ist die ID
             long[] recordInt = new long[operators.GetUpperBound(0) + 1];
-            string[] recordstring = new string[operators.GetUpperBound(0) + 1];
             DataRow row = dtResult.NewRow();
 
             for (int iCol = 0; iCol < sqlReader.FieldCount; iCol++)
@@ -135,13 +193,57 @@ namespace prefSQL.SQLSkyline
                 }
             }
 
-            if (isDebug == false)
+            if (isFrameworkMode == true)
             {
-                SqlContext.Pipe.SendResultsRow(record);
+                dtResult.Rows.Add(row);
             }
             else
             {
+                SqlContext.Pipe.SendResultsRow(record);
+                
+            }
+            resultCollection.Add(recordInt);
+        }
+
+
+        public static void addToWindowIncomparable(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, ref DataTable dtResult)
+        {
+            long[] recordInt = new long[operators.GetUpperBound(0) + 1];
+            string[] recordstring = new string[operators.GetUpperBound(0) + 1];
+            DataRow row = dtResult.NewRow();
+
+            for (int iCol = 0; iCol < sqlReader.FieldCount; iCol++)
+            {
+                //Only the real columns (skyline columns are not output fields)
+                if (iCol <= operators.GetUpperBound(0))
+                {
+                    //LOW und HIGH Spalte in record abfüllen
+                    if (operators[iCol].Equals("LOW"))
+                    {
+                        recordInt[iCol] = sqlReader.GetInt32(iCol);
+
+                        //Check if long value is incomparable
+                        if (iCol + 1 <= recordInt.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
+                        {
+                            //Incomparable field is always the next one
+                            recordstring[iCol] = sqlReader.GetString(iCol + 1);
+                        }
+                    }
+                }
+                else
+                {
+                    row[iCol - (operators.GetUpperBound(0) + 1)] = sqlReader[iCol];
+                    record.SetValue(iCol - (operators.GetUpperBound(0) + 1), sqlReader[iCol]);
+                }
+            }
+
+            if (isFrameworkMode == true)
+            {
                 dtResult.Rows.Add(row);
+            }
+            else
+            {
+                SqlContext.Pipe.SendResultsRow(record);
             }
             resultCollection.Add(recordInt);
             resultstringCollection.Add(recordstring);

@@ -9,7 +9,8 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
 
-
+//Caution: Attention small changes in this code can lead to performance issues, i.e. using a startswith instead of an equal can increase by 10 times
+//Important: Only use equal for comparing text (otherwise performance issues)
 namespace prefSQL.SQLSkyline
 {
 

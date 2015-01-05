@@ -7,8 +7,8 @@ using System.Collections;
 using System.Collections.Generic;
 
 
-//Hinweis: Wenn mit startswith statt equals gearbeitet wird führt dies zu massiven performance problemen, z.B. large dataset 30 statt 3 Sekunden mit 13 Dimensionen!!
-//WICHTIG: Vergleiche immer mit equals und nie mit z.B. startsWith oder Contains oder so.... --> Enorme Performance Unterschiede
+//Caution: Attention small changes in this code can lead to performance issues, i.e. using a startswith instead of an equal can increase by 10 times
+//Important: Only use equal for comparing text (otherwise performance issues)
 namespace prefSQL.SQLSkyline
 {
     public class SP_SkylineBNLSort
@@ -19,17 +19,29 @@ namespace prefSQL.SQLSkyline
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineBNLSort")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlBoolean isDebug)
+        public static void getSkyline(SqlString strQuery, SqlString strOperators)
+        {
+            SP_SkylineBNLSort skyline = new SP_SkylineBNLSort();
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), false, "");
+        }
+
+        public DataTable getSkylineTable(String strQuery, String strOperators, String strConnection)
+        {
+            return getSkylineTable(strQuery, strOperators, true, strConnection);
+        }
+
+        private DataTable getSkylineTable(String strQuery, String strOperators, bool isDebug, string strConnection)
         {
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
+            DataTable dtResult = new DataTable();
 
             SqlConnection connection = null;
             if (isDebug == false)
                 connection = new SqlConnection(Helper.cnnStringSQLCLR);
             else
-                connection = new SqlConnection(Helper.cnnStringLocalhost);
+                connection = new SqlConnection(strConnection);
 
             try
             {
@@ -46,31 +58,26 @@ namespace prefSQL.SQLSkyline
 
 
                 // Build our record schema 
-                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators);
-
+                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, ref dtResult);
                 SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
                 if (isDebug == false)
                 {
                     SqlContext.Pipe.SendResultsStart(record);
                 }
 
-
-                DataTableReader sqlReader = dt.CreateDataReader();
-
-
-                //int iIndex = 0;
                 //Read all records only once. (SqlDataReader works forward only!!)
+                DataTableReader sqlReader = dt.CreateDataReader();
                 while (sqlReader.Read())
                 {
                     //Check if window list is empty
                     if (resultCollection.Count == 0)
                     {
-                        // Build our SqlDataRecord and start the results 
-                        addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isDebug);
+                        //first record is always added to collection
+                        Helper.addToWindowIncomparable(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isDebug, ref dtResult);
                     }
                     else
                     {
-                        bool bDominated = false;
+                        bool isDominated = false;
 
                         //check if record is dominated (compare against the records in the window)
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
@@ -79,23 +86,19 @@ namespace prefSQL.SQLSkyline
                             string[] strResult = (string[])resultstringCollection[i];
 
                             //Dominanz
-                            if (compare(sqlReader, operators, result, strResult) == true)
+                            if (Helper.compareIncomparable(sqlReader, operators, result, strResult) == true)
                             {
                                 //New point is dominated. No further testing necessary
-                                bDominated = true;
+                                isDominated = true;
                                 break;
                             }
-
 
                             //Now, check if the new point dominates the one in the window
                             //--> It is not possible that the new point dominates the one in the window --> Reason data is ORDERED
                         }
-                        if (bDominated == false)
+                        if (isDominated == false)
                         {
-                            //dtInsert.ImportRow(dt.Rows[iIndex]);
-                            addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isDebug);
-
-
+                            Helper.addToWindowIncomparable(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isDebug, ref dtResult);
                         }
 
                     }
@@ -103,11 +106,7 @@ namespace prefSQL.SQLSkyline
 
                 sqlReader.Close();
 
-                if (isDebug == true)
-                {
-                    System.Diagnostics.Debug.WriteLine(resultCollection.Count);
-                }
-                else
+                if (isDebug == false)
                 {
                     SqlContext.Pipe.SendResultsEnd();
                 }
@@ -123,7 +122,6 @@ namespace prefSQL.SQLSkyline
                 if (isDebug == true)
                 {
                     System.Diagnostics.Debug.WriteLine(strError);
-
                 }
                 else
                 {
@@ -136,115 +134,14 @@ namespace prefSQL.SQLSkyline
                 if (connection != null)
                     connection.Close();
             }
-
+            return dtResult;
         }
 
 
-        private static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlDataRecord record, SqlBoolean isDebug)
-        {
-
-            //Erste Spalte ist die ID
-            long[] recordInt = new long[operators.GetUpperBound(0) + 1];
-            string[] recordstring = new string[operators.GetUpperBound(0) + 1];
+        
 
 
-            for (int iCol = 0; iCol < sqlReader.FieldCount; iCol++)
-            {
-                //Only the real columns (skyline columns are not output fields)
-                if (iCol <= operators.GetUpperBound(0))
-                {
-                    //LOW und HIGH Spalte in record abfüllen
-                    if (operators[iCol].Equals("LOW"))
-                    {
-                        recordInt[iCol] = sqlReader.GetInt32(iCol);
-
-                        //Check if long value is incomparable
-                        if (iCol + 1 <= recordInt.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
-                        {
-                            //Incomparable field is always the next one
-                            recordstring[iCol] = sqlReader.GetString(iCol + 1);
-                        }
-                    }
-
-                }
-                else
-                {
-                    record.SetValue(iCol - (operators.GetUpperBound(0) + 1), sqlReader[iCol]);
-                }
-
-
-            }
-
-            if (isDebug == false)
-            {
-                SqlContext.Pipe.SendResultsRow(record);
-            }
-            resultCollection.Add(recordInt);
-            resultstringCollection.Add(recordstring);
-        }
-
-
-        private static bool compare(DataTableReader sqlReader, string[] operators, long[] result, string[] stringResult)
-        {
-            bool greaterThan = false;
-
-            for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
-            {
-                string op = operators[iCol];
-                //Compare only LOW attributes
-                if (op.Equals("LOW"))
-                {
-                    long value = sqlReader.GetInt32(iCol);
-                    int comparison = Helper.compareValue(value, result[iCol]);
-
-                    if (comparison >= 1)
-                    {
-                        if (comparison == 2)
-                        {
-                            //at least one must be greater than
-                            greaterThan = true;
-                        }
-                        else
-                        {
-                            //It is the same long value
-                            //Check if the value must be text compared
-                            if (iCol + 1 <= result.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
-                            {
-                                //string value is always the next field
-                                string strValue = sqlReader.GetString(iCol + 1);
-                                //If it is not the same string value, the values are incomparable!!
-                                //If two values are comparable the strings will be empty!
-                                if (!strValue.Equals(stringResult[iCol]))
-                                {
-                                    //Value is incomparable --> return false
-                                    return false;
-                                }
-
-
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //Value is smaller --> return false
-                        return false;
-                    }
-
-
-                }
-            }
-
-
-            //all equal and at least one must be greater than
-            //if (equalTo == true && greaterThan == true)
-            if (greaterThan == true)
-                return true;
-            else
-                return false;
-
-
-
-        }
+        
 
 
       

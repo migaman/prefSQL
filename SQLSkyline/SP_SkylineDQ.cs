@@ -13,8 +13,11 @@ using Microsoft.SqlServer.Server;
 using System.Collections;
 
 
+//Caution: Attention small changes in this code can lead to performance issues, i.e. using a startswith instead of an equal can increase by 10 times
+//Important: Only use equal for comparing text (otherwise performance issues)
 namespace prefSQL.SQLSkyline
 {
+    
     public class SP_SkylineDQ
     {
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineDQ")]

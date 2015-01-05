@@ -70,7 +70,7 @@ CREATE PROCEDURE SP_SkylineBNLLevel (@Name nvarchar(4000), @Operators nvarchar(2
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineBNLLevel].getSkyline;
 GO
 --Create SP for BNLSort (with Incomparable)
-CREATE PROCEDURE SP_SkylineBNLSort (@Name nvarchar(4000), @Operators nvarchar(200), @IsDebug bit)
+CREATE PROCEDURE SP_SkylineBNLSort (@Name nvarchar(4000), @Operators nvarchar(200))
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineBNLSort].getSkyline;
 GO
 --Create SP for BNLSort Levelized (without incomparable)

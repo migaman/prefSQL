@@ -7,8 +7,8 @@ using System.Collections;
 using System.Collections.Generic;
 
 
-//Hinweis: Wenn mit startswith statt equals gearbeitet wird führt dies zu massiven performance problemen, z.B. large dataset 30 statt 3 Sekunden mit 13 Dimensionen!!
-//WICHTIG: Vergleiche immer mit equals und nie mit z.B. startsWith oder Contains oder so.... --> Enorme Performance Unterschiede
+//Caution: Attention small changes in this code can lead to performance issues, i.e. using a startswith instead of an equal can increase by 10 times
+//Important: Only use equal for comparing text (otherwise performance issues)
 namespace prefSQL.SQLSkyline
 {
     public class SP_SkylineBNLSortLevel
@@ -33,7 +33,6 @@ namespace prefSQL.SQLSkyline
         private DataTable getSkylineTable(String strQuery, String strOperators, bool isDebug, string strConnection)
         {
             ArrayList resultCollection = new ArrayList();
-            ArrayList resultstringCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
             DataTable dtResult = new DataTable();
             
@@ -75,7 +74,7 @@ namespace prefSQL.SQLSkyline
                     if (resultCollection.Count == 0)
                     {
                         //first record is always added to collection
-                        Helper.addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isDebug, ref dtResult);
+                        Helper.addToWindow(sqlReader, operators, ref resultCollection, record, isDebug, ref dtResult);
                     }
                     else
                     {
@@ -85,10 +84,9 @@ namespace prefSQL.SQLSkyline
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
                         {
                             long[] result = (long[])resultCollection[i];
-                            string[] strResult = (string[])resultstringCollection[i];
 
                             //Dominanz
-                            if (Helper.compare(sqlReader, operators, result, strResult) == true)
+                            if (Helper.compare(sqlReader, operators, result) == true)
                             {
                                 //New point is dominated. No further testing necessary
                                 isDominated = true;
@@ -100,7 +98,7 @@ namespace prefSQL.SQLSkyline
                         }
                         if (isDominated == false)
                         {
-                            Helper.addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isDebug, ref dtResult);
+                            Helper.addToWindow(sqlReader, operators, ref resultCollection, record, isDebug, ref dtResult);
                         }
 
                     }
@@ -123,7 +121,6 @@ namespace prefSQL.SQLSkyline
                 if (isDebug == true)
                 {
                     System.Diagnostics.Debug.WriteLine(strError);
-
                 }
                 else
                 {
