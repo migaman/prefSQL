@@ -198,7 +198,7 @@ namespace prefSQL.SQLParserTest
         {
 
             string strPrefSQL = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
-                "SKYLINE OF cars_small.price LOW, cars_small.mileage LOW, cars_small.horsepower HIGH, cars_small.enginesize HIGH, cars_small.consumption LOW 15, cars_small.doors HIGH " +
+                "SKYLINE OF cars_small.price LOW, cars_small.mileage LOW, cars_small.horsepower HIGH, cars_small.enginesize HIGH, cars_small.consumption LOW, cars_small.doors HIGH " +
                 ", colors.name ('rot' == 'blau' >> OTHERS EQUAL >> 'grau')  , fuels.name ('Benzin' >> OTHERS EQUAL >> 'Diesel') , bodies.name ('Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS EQUAL >> 'Pick-Up') " +
                 ", cars_small.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL) , makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI') , conditions.name ('Neu' >> OTHERS EQUAL)";
 
@@ -262,7 +262,7 @@ namespace prefSQL.SQLParserTest
         {
 
             string strPrefSQL = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
-                "SKYLINE OF cars_small.price LOW 3000, cars_small.mileage LOW 20000, cars_small.horsepower HIGH 20, cars_small.enginesize HIGH 1000, cars_small.consumption LOW 15, cars_small.doors HIGH ";
+                "SKYLINE OF cars_small.price LOW 3000 EQUAL, cars_small.mileage LOW 20000 EQUAL, cars_small.horsepower HIGH 20 EQUAL, cars_small.enginesize HIGH 1000 EQUAL, cars_small.consumption LOW 15 EQUAL, cars_small.doors HIGH ";
 
             SQLCommon common = new SQLCommon();
             common.SkylineType = SQLCommon.Algorithm.NativeSQL;
@@ -456,7 +456,7 @@ namespace prefSQL.SQLParserTest
         [TestMethod]
         public void TestSKYLINE_LOW_With_Level()
         {
-            string strPrefSQL = "SELECT cars.id, cars.title, cars.Price FROM cars SKYLINE OF cars.price LOW 1000, cars.mileage LOW";
+            string strPrefSQL = "SELECT cars.id, cars.title, cars.Price FROM cars SKYLINE OF cars.price LOW 1000 EQUAL, cars.mileage LOW";
 
             string expected = "SELECT cars.id, cars.title, cars.Price FROM cars WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.Price FROM cars cars_INNER WHERE cars_INNER.price / 1000 <= cars.price / 1000 AND cars_INNER.mileage <= cars.mileage AND ( cars_INNER.price / 1000 < cars.price / 1000 OR cars_INNER.mileage < cars.mileage) ) ";
             SQLCommon common = new SQLCommon();

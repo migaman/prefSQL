@@ -65,6 +65,7 @@ namespace prefSQL.SQLParser
             string strSQLELSE = "";
 
 
+
             //Define sort order value for each attribute
             int iWeight = 0;
             for (int i = 0; i < strTemp.GetLength(0); i++)
@@ -79,7 +80,6 @@ namespace prefSQL.SQLParser
                     case "OTHERSINCOMPARABLE":
                         ////Add one, so that equal-clause cannot be true with same level-values, but other names
                         strSQLELSE = " ELSE " + (iWeight);
-                        //bComparable = false;
                         break;
                     case "OTHERSEQUAL":
                         //Special word OTHERS EQUAL = all other attributes are defined with this order by value
@@ -124,6 +124,10 @@ namespace prefSQL.SQLParser
             if (context.ChildCount == 2)
             {
                 strTableAlias = context.GetChild(1).GetText();
+            }
+            else if (context.ChildCount == 3) //ALIAS introduced with "AS"-Keyword
+            {
+                strTableAlias = context.GetChild(2).GetText();
             }
             tables.Add(strTable, strTableAlias);
 
@@ -242,6 +246,7 @@ namespace prefSQL.SQLParser
         {
             string strSQL = "";
             PrefSQLModel pref = new PrefSQLModel();
+            bool isLevelStepEqual = true;
             string strColumnName = "";
             string strColumnExpression = "";
             string strInnerColumnExpression = "";
@@ -251,18 +256,35 @@ namespace prefSQL.SQLParser
             string strRankColumn = "";
             string strRankHexagon = "";
             string strLevelStep = "";
+            string strLevelAdd = "";
+            string strLevelMinus = "";
+            bool bComparable = true;
+            string strIncomporableAttribute = "";
             
             //Separate Column and Table
             strColumnName = getColumn(context.GetChild(0));
             strTable = getTable(context.GetChild(0));
             strFullColumnName = strTable + "." + strColumnName;
             
-            if (context.ChildCount == 3)
+            if (context.ChildCount == 4)
             {
                 //If a third parameter is given, it is the Level Step  (i.e. LOW price 1000 means prices divided through 1000)
                 //The user doesn't care about a price difference of 1000
                 //This results in a smaller skyline
                 strLevelStep = " / " + context.GetChild(2).GetText();
+                strLevelAdd = " + " + context.GetChild(2).GetText();
+                strLevelMinus = " - " + context.GetChild(2).GetText();
+                if (context.GetChild(3).GetText().Equals("EQUAL"))
+                {
+                    isLevelStepEqual = true;
+                    bComparable = true;
+                }
+                else
+                {
+                    isLevelStepEqual = false;
+                    bComparable = false;
+                }
+                
             }
             //Keyword LOW or HIGH, build ORDER BY
             if (context.op.Type == SQLParser.K_LOW)
@@ -271,10 +293,18 @@ namespace prefSQL.SQLParser
                 strOperator = "<";
                 strRankHexagon = "DENSE_RANK()" + " over (ORDER BY " + strFullColumnName + strLevelStep + " ASC)-1 AS Rank" + strColumnName;
                 strRankColumn = RankingFunction + " over (ORDER BY " + strFullColumnName + " ASC)";
-
-
                 strColumnExpression = strTable + "." + strColumnName + strLevelStep;
-                strInnerColumnExpression = strTable + InnerTableSuffix + "." + strColumnName + strLevelStep;
+                if (isLevelStepEqual == true)
+                {
+                    strInnerColumnExpression = strTable + InnerTableSuffix + "." + strColumnName + strLevelStep;
+                }
+                else
+                {   
+                    //Values from the same step are Incomparable
+                    strInnerColumnExpression = "(" + strTable + InnerTableSuffix + "." + strColumnName + strLevelAdd + ")" + strLevelStep;
+                    strIncomporableAttribute = "'INCOMPARABLE'";
+                }
+                
             }
             else if (context.op.Type == SQLParser.K_HIGH)
             {
@@ -282,8 +312,16 @@ namespace prefSQL.SQLParser
                 strOperator = ">";
                 strRankHexagon = "DENSE_RANK()" + " over (ORDER BY " + strFullColumnName + strLevelStep + " DESC)-1 AS Rank" + strColumnName;
                 strRankColumn = RankingFunction + " over (ORDER BY " + strFullColumnName + " DESC)";
-                strColumnExpression = strTable + "." + strColumnName + strLevelStep; ;
-                strInnerColumnExpression = strTable + InnerTableSuffix + "." + strColumnName + strLevelStep; ;
+                strColumnExpression = strTable + "." + strColumnName + strLevelStep;
+                if (isLevelStepEqual == true)
+                {
+                    strInnerColumnExpression = strTable + InnerTableSuffix + "." + strColumnName + strLevelStep;
+                }
+                else
+                {
+                    //Values from the same step are Incomparable
+                    strInnerColumnExpression = "(" + strTable + InnerTableSuffix + "." + strColumnName + strLevelMinus + ")" + strLevelStep;
+                }
             }
             else if (context.op.Type == SQLParser.K_LOWDATE)
             {
@@ -306,7 +344,7 @@ namespace prefSQL.SQLParser
 
 
             //Add the preference to the list               
-            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", true, "", strColumnName, strRankColumn, strRankHexagon, strSQL));
+            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", bComparable, strIncomporableAttribute, strColumnName, strRankColumn, strRankHexagon, strSQL));
             pref.HasSkyline = true;
             pref.Tables = tables;
             model = pref;

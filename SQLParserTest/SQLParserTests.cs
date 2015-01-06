@@ -43,7 +43,7 @@ namespace prefSQL.SQLParserTest
         [TestMethod]
         public void TestLOWLevel()
         {
-            string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW 10000";
+            string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW 10000 EQUAL";
 
             string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price / 10000 <= cars.price / 10000 AND ( cars_INNER.price / 10000 < cars.price / 10000) ) ";
             SQLCommon common = new SQLCommon();

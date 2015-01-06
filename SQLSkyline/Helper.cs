@@ -248,7 +248,7 @@ namespace prefSQL.SQLSkyline
                                 string strValue = sqlReader.GetString(iCol + 1);
                                 //If it is not the same string value, the values are incomparable!!
                                 //If two values are comparable the strings will be empty!
-                                if (!strValue.Equals(stringResult[iCol]))
+                                if (strValue.Equals("INCOMPARABLE") || !strValue.Equals(stringResult[iCol]))
                                 {
                                     //Value is incomparable --> return false
                                     return false;
