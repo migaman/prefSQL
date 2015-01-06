@@ -16,8 +16,6 @@ namespace prefSQL.SQLSkyline
     {
         //Only this parameters are different beteen SQL CLR function and Utility class
         public const string cnnStringSQLCLR = "context connection=true";
-        //TODO: cnnLocalhost wird es nicht mehr geben sobald alles konvertiert
-        public const string cnnStringLocalhost = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
         public const int MaxSize = 4000;
 
         public static List<SqlMetaData> buildRecordSchema(DataTable dt, string[] operators)

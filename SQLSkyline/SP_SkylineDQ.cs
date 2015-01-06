@@ -43,7 +43,7 @@ namespace prefSQL.SQLSkyline
             if (isDebug == false)
                 connection = new SqlConnection(Helper.cnnStringSQLCLR);
             else
-                connection = new SqlConnection(Helper.cnnStringLocalhost);
+                connection = new SqlConnection(strConnection);
 
             try
             {

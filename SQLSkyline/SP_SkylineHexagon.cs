@@ -17,7 +17,19 @@ namespace prefSQL.SQLSkyline
     public class SP_SkylineHexagon
     {        
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineHexagon")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlString strQueryConstruction, SqlBoolean isDebug)
+        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlString strQueryConstruction)
+        {
+            SP_SkylineHexagon skyline = new SP_SkylineHexagon();
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), strQueryConstruction.ToString(), false, "");
+        }
+
+        
+        public DataTable getSkylineTable(String strQuery, String strOperators, String strQueryConstruction, String strConnection)
+        {
+            return getSkylineTable(strQuery, strOperators, strQueryConstruction, true, strConnection);
+        }
+
+        private DataTable getSkylineTable(string strQuery, string strOperators,  string strQueryConstruction, bool isDebug, string strConnection)
         {
             ArrayList[] btg = null;
             int[] next = null;
@@ -25,12 +37,13 @@ namespace prefSQL.SQLSkyline
             int[] level = null;
             int[] weight = null;
             long maxID = 0;
+            DataTable dtResult = new DataTable();
             
             SqlConnection connection = null;
             if (isDebug == false)
                 connection = new SqlConnection(Helper.cnnStringSQLCLR);
             else
-                connection = new SqlConnection(Helper.cnnStringLocalhost);
+                connection = new SqlConnection(strConnection);
 
             String strSQL = strQuery.ToString();
             string[] operators = strOperators.ToString().Split(';');
@@ -55,7 +68,7 @@ namespace prefSQL.SQLSkyline
                 dap.Fill(dt);
 
                 // Build our record schema 
-                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators);
+                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, ref dtResult);
 
                 
 
@@ -72,14 +85,8 @@ namespace prefSQL.SQLSkyline
                 
                 findBMO(amountOfPreferences, ref btg, ref next, ref prev, ref level, ref weight);
 
-
-
-               
-                
-
                 //Now read next list
                 int iItem = 0;
-                int iAmountOfRecords = 0;
                 //Benötigt viele Zeit im CLR-Modus (Deshalb erst hier und nur einmal initialisieren)
                 SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
                 if (isDebug == false)
@@ -96,16 +103,20 @@ namespace prefSQL.SQLSkyline
                         //foreach (SqlDataRecord recSkyline in btg[iItem])
                         foreach (ArrayList recSkyline in btg[iItem])
                         {
+                            DataRow row = dtResult.NewRow();
+                            for (int i = 0; i < recSkyline.Count; i++)
+                            {
+                                record.SetValue(i, recSkyline[i]);
+                                row[i] = recSkyline[i];
+                            }
+
+
                             if (isDebug == true)
                             {
-                                iAmountOfRecords++;
+                                dtResult.Rows.Add(row);    
                             }
                             else
                             {
-                                for (int i = 0; i < recSkyline.Count; i++)
-                                {
-                                    record.SetValue(i, recSkyline[i]);
-                                }
                                 SqlContext.Pipe.SendResultsRow(record);
                             }
                         }
@@ -116,11 +127,7 @@ namespace prefSQL.SQLSkyline
 
                 }
                 
-                if (isDebug == true)
-                {
-                    System.Diagnostics.Debug.WriteLine("Total records in skyline: " + iAmountOfRecords);
-                }
-                else
+                if (isDebug == false)
                 {
                     SqlContext.Pipe.SendResultsEnd();
                 }
@@ -151,6 +158,7 @@ namespace prefSQL.SQLSkyline
                 if (connection != null)
                     connection.Close();
             }
+            return dtResult;
 
         }
 

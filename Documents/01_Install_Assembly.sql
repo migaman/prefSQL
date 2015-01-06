@@ -78,15 +78,15 @@ CREATE PROCEDURE SP_SkylineBNLSortLevel (@Name nvarchar(4000), @Operators nvarch
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineBNLSortLevel].getSkyline;
 GO
 --Create SP for DQ
-CREATE PROCEDURE SP_SkylineDQ (@Name nvarchar(4000), @Operators nvarchar(200), @IsDebug bit)
+CREATE PROCEDURE SP_SkylineDQ (@Name nvarchar(4000), @Operators nvarchar(200))
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineDQ].getSkyline;
 GO
 --Create SP for Hexagon
-CREATE PROCEDURE SP_SkylineHexagon (@Name nvarchar(4000), @Operators nvarchar(200), @Construction nvarchar(4000), @IsDebug bit)
+CREATE PROCEDURE SP_SkylineHexagon (@Name nvarchar(4000), @Operators nvarchar(200), @Construction nvarchar(4000))
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineHexagon].getSkyline;
 GO
 --Create SP for MultipleSkyline
-CREATE PROCEDURE SP_MultipleSkylineBNL (@Name nvarchar(4000), @Operators nvarchar(200), @IsDebug bit, @UpToLevel int)
+CREATE PROCEDURE SP_MultipleSkylineBNL (@Name nvarchar(4000), @Operators nvarchar(200), @UpToLevel int)
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_MultipleSkylineBNL].getSkyline;
 GO
 

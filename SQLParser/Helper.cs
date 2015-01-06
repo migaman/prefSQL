@@ -69,10 +69,11 @@ namespace prefSQL.SQLParser
                 str1 = strPrefSQL.Substring(iPosStart, iPosMiddle - iPosStart - 4);
                 str2 = strPrefSQL.Substring(iPosMiddle, iPosEnd - iPosMiddle - 4);
                 str3 = "";
-                if (iPosEnd < strPrefSQL.Length - 10)
+                //if (iPosEnd < strPrefSQL.Length - 10)
+                if (iPosEnd < strPrefSQL.Length)
                 {
-                    //str3 = strSQL.Substring(iPosEnd).TrimEnd('\'');
-                    str3 = strPrefSQL.Substring(iPosEnd, strPrefSQL.Length - iPosEnd - 10).TrimEnd('\'');
+                    str3 = strPrefSQL.Substring(iPosEnd).TrimEnd('\'');
+                    //str3 = strPrefSQL.Substring(iPosEnd, strPrefSQL.Length - iPosEnd - 10).TrimEnd('\'');
                 }
                 str1 = str1.Replace("''", "'").Trim('\'');
                 str2 = str2.Replace("''", "'").Trim('\'');
@@ -111,16 +112,22 @@ namespace prefSQL.SQLParser
                 }
                 else if (algorithm == SQLCommon.Algorithm.Hexagon)
                 {
+                    prefSQL.SQLSkyline.SP_SkylineHexagon skyline = new SQLSkyline.SP_SkylineHexagon();
                     //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
 
                     //Default stack size is 1MB (1024000) --> Increase to 8MB
-                    Thread T = new Thread(() => prefSQL.SQLSkyline.SP_SkylineHexagon.getSkyline(str1, str2, str3, true), 8000000);
-                    T.Start();
+                    var thread = new Thread(
+                        () =>
+                        {
+                            dt = skyline.getSkylineTable(str1, str2, str3, ConnectionString);
+                        }, 8000000);
+
+                    
+                    thread.Start();
 
                     //Join method to block the current thread  until the object's thread terminates.
-                    T.Join();
+                    thread.Join();
 
-                    //prefSQL.SQLSkyline.SP_SkylineHexagon.getSkyline(str1, str2, str3, true);
                 }
                 else if (algorithm == SQLCommon.Algorithm.MultipleBNL)
                 {

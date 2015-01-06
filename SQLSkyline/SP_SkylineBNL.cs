@@ -159,56 +159,5 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        private static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlBoolean isDebug, ref ArrayList recordCollection)
-        {
-
-            //Erste Spalte ist die ID
-            long[] recordInt = new long[operators.GetUpperBound(0) + 1];
-            string[] recordstring = new string[operators.GetUpperBound(0) + 1];
-            ArrayList al = new ArrayList();
-
-            for (int iCol = 0; iCol < sqlReader.FieldCount; iCol++)
-            {
-                //Only the real columns (skyline columns are not output fields)
-                if (iCol <= operators.GetUpperBound(0))
-                {
-                    //LOW und HIGH Spalte in record abfüllen
-                    if (operators[iCol].Equals("LOW"))
-                    {
-                        recordInt[iCol] = sqlReader.GetInt32(iCol);
-
-                        //Check if long value is incomparable
-                        if (iCol + 1 <= recordInt.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
-                        {
-                            //Incomparable field is always the next one
-                            recordstring[iCol] = sqlReader.GetString(iCol + 1);
-                        }
-                    }
-
-                }
-                else
-                {
-                    //record.SetValue(iCol - (operators.GetUpperBound(0) + 1), sqlReader[iCol]);
-                    al.Add(sqlReader[iCol]);
-                }
-
-
-            }
-
-
-            recordCollection.Add(al);
-            resultCollection.Add(recordInt);
-            resultstringCollection.Add(recordstring);
-        }
-
-        
-
-        
-
-
-
-        
-
-
     }
 }

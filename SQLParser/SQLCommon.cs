@@ -209,7 +209,7 @@ namespace prefSQL.SQLParser
                             string strHexagon = buildSELECTHexagon(prefSQL, strNewSQL);
                             strHexagon = strHexagon.Replace("'", "''");
 
-                            strNewSQL = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "', 'false'";
+                            strNewSQL = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "'";
 
                         }
                     }
