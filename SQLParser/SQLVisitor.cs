@@ -125,6 +125,10 @@ namespace prefSQL.SQLParser
             {
                 strTableAlias = context.GetChild(1).GetText();
             }
+            else if (context.ChildCount == 3) //ALIAS introduced with "AS"-Keyword
+            {
+                strTableAlias = context.GetChild(2).GetText();
+            }
             tables.Add(strTable, strTableAlias);
 
             return base.VisitTable_or_subquery(context);
