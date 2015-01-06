@@ -21,13 +21,24 @@ namespace prefSQL.SQLSkyline
     public class SP_SkylineDQ
     {
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineDQ")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlBoolean isDebug)
+        public static void getSkyline(SqlString strQuery, SqlString strOperators)
+        {
+            SP_SkylineDQ skyline = new SP_SkylineDQ();
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), false, "");
+        }
+
+        public DataTable getSkylineTable(String strQuery, String strOperators, String strConnection)
+        {
+            return getSkylineTable(strQuery, strOperators, true, strConnection);
+        }
+
+
+        private DataTable getSkylineTable(String strQuery, String strOperators, bool isDebug, string strConnection)
         {
             ArrayList resultCollection = new ArrayList();
-
             string[] operators = strOperators.ToString().Split(';');
-
-
+            DataTable dtResult = new DataTable();
+            
             SqlConnection connection = null;
             if (isDebug == false)
                 connection = new SqlConnection(Helper.cnnStringSQLCLR);
@@ -138,7 +149,7 @@ namespace prefSQL.SQLSkyline
                 if (connection != null)
                     connection.Close();
             }
-
+            return dtResult;
         }
 
         private static void computeSkyline(DataTable dt, string[] operators)
