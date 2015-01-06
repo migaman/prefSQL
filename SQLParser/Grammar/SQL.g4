@@ -118,7 +118,6 @@ expr
  
 exprSkyline
  : literal_value																						#opLiteral
- | column_term																							#opDatabaseName
  | exprSkyline ( '>>'  | '==') exprSkyline																#opDoubleOrder
  | '{' exprOwnPreference '}'																			#exprOwnPreferenceOp																	
  | exprSkyline ',' exprSkyline																			#exprAnd   
@@ -126,17 +125,8 @@ exprSkyline
  | column_term ('(' exprSkyline ')')																	#preferenceCategory
  | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term)			#preferenceAROUND
  | K_OTHERS (K_EQUAL | K_INCOMPARABLE)																	#preferenceOTHERS
- //| K_WEIGHTED expr													#prefWeighted
  ;
 
- /*
-exprPreference
-	: literal_value
-	| column_term
-	| exprPreference ( '<<' | '>>') exprPreference															
-	| '{' exprPreference ',' exprPreference '}'																		
-;
-*/
 
 
 geocoordinate :'(' expr ',' expr ')';
