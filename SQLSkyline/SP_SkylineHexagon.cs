@@ -29,7 +29,7 @@ namespace prefSQL.SQLSkyline
             return getSkylineTable(strQuery, strOperators, strQueryConstruction, true, strConnection);
         }
 
-        private DataTable getSkylineTable(string strQuery, string strOperators,  string strQueryConstruction, bool isDebug, string strConnection)
+        private DataTable getSkylineTable(string strQuery, string strOperators, string strQueryConstruction, bool isIndependent, string strConnection)
         {
             ArrayList[] btg = null;
             int[] next = null;
@@ -40,7 +40,7 @@ namespace prefSQL.SQLSkyline
             DataTable dtResult = new DataTable();
             
             SqlConnection connection = null;
-            if (isDebug == false)
+            if (isIndependent == false)
                 connection = new SqlConnection(Helper.cnnStringSQLCLR);
             else
                 connection = new SqlConnection(strConnection);
@@ -89,7 +89,7 @@ namespace prefSQL.SQLSkyline
                 int iItem = 0;
                 //Benötigt viele Zeit im CLR-Modus (Deshalb erst hier und nur einmal initialisieren)
                 SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
-                if (isDebug == false)
+                if (isIndependent == false)
                 {
                     SqlContext.Pipe.SendResultsStart(record);
                 }
@@ -111,7 +111,7 @@ namespace prefSQL.SQLSkyline
                             }
 
 
-                            if (isDebug == true)
+                            if (isIndependent == true)
                             {
                                 dtResult.Rows.Add(row);    
                             }
@@ -126,8 +126,8 @@ namespace prefSQL.SQLSkyline
                     iItem = next[iItem];
 
                 }
-                
-                if (isDebug == false)
+
+                if (isIndependent == false)
                 {
                     SqlContext.Pipe.SendResultsEnd();
                 }
@@ -141,7 +141,7 @@ namespace prefSQL.SQLSkyline
                 string strError = "Fehler in SP_SkylineHexagon: ";
                 strError += ex.Message;
 
-                if (isDebug == true)
+                if (isIndependent == true)
                 {
                     System.Diagnostics.Debug.WriteLine(strError);
 
@@ -400,13 +400,7 @@ namespace prefSQL.SQLSkyline
 
 
         private static void remove(int id, int index, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight, int iRecursionLoop)
-        {
-            /*if (iRecursionLoop > 15000)
-            {
-                System.Diagnostics.Debug.WriteLine("Rec Loop: " + iRecursionLoop);
-            }*/
-            
-            
+        {               
             //check if the node has already been removed
             if (prev[id] == -1)
             {

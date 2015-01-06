@@ -18,7 +18,6 @@ namespace prefSQL.SQLSkyline
         /// </summary>
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
-        /// <param name="isDebug"></param>
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineBNLLevel")]
         public static void getSkyline(SqlString strQuery, SqlString strOperators)
         {
@@ -31,14 +30,14 @@ namespace prefSQL.SQLSkyline
             return getSkylineTable(strQuery, strOperators, true, strConnection);
         }
 
-        private DataTable getSkylineTable(String strQuery, String strOperators, bool isDebug, string strConnection)
+        private DataTable getSkylineTable(String strQuery, String strOperators, bool isIndependent, string strConnection)
         {
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
             DataTable dtResult = new DataTable();
 
             SqlConnection connection = null;
-            if (isDebug == false)
+            if (isIndependent == false)
                 connection = new SqlConnection(Helper.cnnStringSQLCLR);
             else
                 connection = new SqlConnection(strConnection);
@@ -111,7 +110,7 @@ namespace prefSQL.SQLSkyline
 
                 sqlReader.Close();
 
-                if (isDebug == false)
+                if (isIndependent == false)
                 {
                     //Send results to client
                     SqlContext.Pipe.SendResultsStart(record);
@@ -135,7 +134,7 @@ namespace prefSQL.SQLSkyline
                 string strError = "Fehler in SP_SkylineBNLLevel: ";
                 strError += ex.Message;
 
-                if (isDebug == true)
+                if (isIndependent == true)
                 {
                     System.Diagnostics.Debug.WriteLine(strError);
 
@@ -153,48 +152,6 @@ namespace prefSQL.SQLSkyline
             }
             return dtResult;
         }
-
-
-        private static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, SqlBoolean isDebug, ref ArrayList recordCollection)
-        {
-
-            //Erste Spalte ist die ID
-            long[] recordInt = new long[operators.GetUpperBound(0) + 1];
-            string[] recordstring = new string[operators.GetUpperBound(0) + 1];
-            ArrayList al = new ArrayList();
-
-            for (int iCol = 0; iCol < sqlReader.FieldCount; iCol++)
-            {
-                //Only the real columns (skyline columns are not output fields)
-                if (iCol <= operators.GetUpperBound(0))
-                {
-                    recordInt[iCol] = sqlReader.GetInt32(iCol);
-                }
-                else
-                {
-                    //record.SetValue(iCol - (operators.GetUpperBound(0) + 1), sqlReader[iCol]);
-                    al.Add(sqlReader[iCol]);
-                }
-
-
-            }
-
-
-            recordCollection.Add(al);
-            resultCollection.Add(recordInt);
-        }
-
-
-
-
-
-
-        
-
-
-
-
-
 
     }
 }

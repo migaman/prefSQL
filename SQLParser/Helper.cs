@@ -11,13 +11,14 @@ using System.Threading.Tasks;
 
 namespace prefSQL.SQLParser
 {
-    public class Helper
+    //internal class
+    class Helper
     {
         public String DriverString { get; set;} 
         public String ConnectionString { get; set; }
 
 
-        public DataTable getResults(String strPrefSQL, SQLCommon.Algorithm algorithm, bool useMSSQLCLR, int upToLevel)
+        public DataTable getResults(String strPrefSQL, SQLCommon.Algorithm algorithm, int upToLevel)
         {
             DataTable dt = new DataTable();
             string str1 = "";

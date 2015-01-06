@@ -18,7 +18,6 @@ namespace prefSQL.SQLSkyline
         /// </summary>
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
-        /// <param name="isDebug"></param>
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineBNL")]
         public static void getSkyline(SqlString strQuery, SqlString strOperators)
         {
@@ -31,7 +30,7 @@ namespace prefSQL.SQLSkyline
             return getSkylineTable(strQuery, strOperators, true, strConnection);
         }
 
-        private DataTable getSkylineTable(String strQuery, String strOperators, bool isDebug, string strConnection)
+        private DataTable getSkylineTable(String strQuery, String strOperators, bool isIndependent, string strConnection)
         {
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
@@ -39,7 +38,7 @@ namespace prefSQL.SQLSkyline
             DataTable dtResult = new DataTable();
 
             SqlConnection connection = null;
-            if (isDebug == false)
+            if (isIndependent == false)
                 connection = new SqlConnection(Helper.cnnStringSQLCLR);
             else
                 connection = new SqlConnection(strConnection);
@@ -114,7 +113,7 @@ namespace prefSQL.SQLSkyline
 
                 sqlReader.Close();
 
-                if (isDebug == false)
+                if (isIndependent == false)
                 {
                     //Send results to client
                     SqlContext.Pipe.SendResultsStart(record);
@@ -139,7 +138,7 @@ namespace prefSQL.SQLSkyline
                 string strError = "Fehler in SP_SkylineBNL: ";
                 strError += ex.Message;
 
-                if (isDebug == true)
+                if (isIndependent == true)
                 {
                     System.Diagnostics.Debug.WriteLine(strError);
 

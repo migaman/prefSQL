@@ -17,6 +17,7 @@ namespace Utility
     class Program
     {
         private const string cnnStringLocalhost = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
+        private const string driver = "System.Data.SqlClient";
 
         static void Main(string[] args)
         {
@@ -135,9 +136,9 @@ namespace Utility
                 //parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
                 //parser.SkylineType = SQLCommon.Algorithm.BNL;
                 //parser.SkylineType = SQLCommon.Algorithm.BNLLevel;
-                //parser.SkylineType = SQLCommon.Algorithm.BNLSort;
+                parser.SkylineType = SQLCommon.Algorithm.BNLSort;
                 //parser.SkylineType = SQLCommon.Algorithm.BNLSortLevel;
-                parser.SkylineType = SQLCommon.Algorithm.Hexagon;
+                //parser.SkylineType = SQLCommon.Algorithm.Hexagon;
                 //parser.OrderType = SQLCommon.Ordering.RankingBestOf;
                 //parser.SkylineType = SQLCommon.Algorithm.MultipleBNL;
                 //parser.ShowSkylineAttributes = true;
@@ -145,14 +146,9 @@ namespace Utility
                 
 
                 string strSQL = parser.parsePreferenceSQL(strPrefSQL);
-
                 Debug.WriteLine(strSQL);
 
-
-                Helper helper = new Helper();
-                helper.DriverString = "System.Data.SqlClient";
-                helper.ConnectionString = cnnStringLocalhost;
-                DataTable dt = helper.getResults(strSQL, parser.SkylineType, false, parser.SkylineUpToLevel);
+                DataTable dt = parser.parseAndExeutePrefSQL(cnnStringLocalhost, driver, strPrefSQL, parser.SkylineType, parser.SkylineUpToLevel);
                 System.Diagnostics.Debug.WriteLine(dt.Rows.Count);
 
 

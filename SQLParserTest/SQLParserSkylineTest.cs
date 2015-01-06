@@ -24,6 +24,7 @@ namespace prefSQL.SQLParserTest
             
 
             SqlConnection cnnSQL = new SqlConnection(strConnection);
+            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
             try
             {
                 cnnSQL.Open();
@@ -165,6 +166,7 @@ namespace prefSQL.SQLParserTest
             int amountOfTupelsBNL = 0;
 
             SqlConnection cnnSQL = new SqlConnection(strConnection);
+            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
             try
             {
                 cnnSQL.Open();
@@ -196,7 +198,7 @@ namespace prefSQL.SQLParserTest
         {
 
             string strPrefSQL = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
-                "SKYLINE OF cars_small.price LOW, cars_small.mileage LOW , cars_small.horsepower HIGH , cars_small.enginesize HIGH , cars_small.consumption LOW , cars_small.doors HIGH " +
+                "SKYLINE OF cars_small.price LOW, cars_small.mileage LOW, cars_small.horsepower HIGH, cars_small.enginesize HIGH, cars_small.consumption LOW 15, cars_small.doors HIGH " +
                 ", colors.name ('rot' == 'blau' >> OTHERS EQUAL >> 'grau')  , fuels.name ('Benzin' >> OTHERS EQUAL >> 'Diesel') , bodies.name ('Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS EQUAL >> 'Pick-Up') " +
                 ", cars_small.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL) , makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI') , conditions.name ('Neu' >> OTHERS EQUAL)";
 
@@ -206,10 +208,12 @@ namespace prefSQL.SQLParserTest
             common.SkylineType = SQLCommon.Algorithm.BNL;
             string sqlBNL = common.parsePreferenceSQL(strPrefSQL);
 
+
             int amountOfTupelsNative = 0;
             int amountOfTupelsBNL = 0;
 
             SqlConnection cnnSQL = new SqlConnection(strConnection);
+            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
             try
             {
                 cnnSQL.Open();
@@ -238,6 +242,9 @@ namespace prefSQL.SQLParserTest
                         amountOfTupelsBNL++;
                     }
                 }
+                sqlReader.Close();
+
+
                 cnnSQL.Close();
             }
             catch (Exception ex)
@@ -247,6 +254,85 @@ namespace prefSQL.SQLParserTest
 
             Assert.AreEqual(amountOfTupelsNative, amountOfTupelsBNL, 0, "Amount of tupels does not match");
         }
+
+
+
+        [TestMethod]
+        public void TestSKYLINEAmountsOfTupels11EqualWithHexagon()
+        {
+
+            string strPrefSQL = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
+                "SKYLINE OF cars_small.price LOW 3000, cars_small.mileage LOW 20000, cars_small.horsepower HIGH 20, cars_small.enginesize HIGH 1000, cars_small.consumption LOW 15, cars_small.doors HIGH ";
+
+            SQLCommon common = new SQLCommon();
+            common.SkylineType = SQLCommon.Algorithm.NativeSQL;
+            string sqlNative = common.parsePreferenceSQL(strPrefSQL);
+            common.SkylineType = SQLCommon.Algorithm.BNL;
+            string sqlBNL = common.parsePreferenceSQL(strPrefSQL);
+            common.SkylineType = SQLCommon.Algorithm.Hexagon;
+            string sqlHexagon = common.parsePreferenceSQL(strPrefSQL);
+
+
+            int amountOfTupelsNative = 0;
+            int amountOfTupelsBNL = 0;
+            int amountOfTupelsHexagon = 0;
+
+            SqlConnection cnnSQL = new SqlConnection(strConnection);
+            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
+            try
+            {
+                cnnSQL.Open();
+
+                //Native
+                SqlCommand sqlCommand = new SqlCommand(sqlNative, cnnSQL);
+                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
+
+                if (sqlReader.HasRows)
+                {
+                    while (sqlReader.Read())
+                    {
+                        amountOfTupelsNative++;
+                    }
+                }
+                sqlReader.Close();
+
+                //BNL
+                sqlCommand = new SqlCommand(sqlBNL, cnnSQL);
+                sqlReader = sqlCommand.ExecuteReader();
+
+                if (sqlReader.HasRows)
+                {
+                    while (sqlReader.Read())
+                    {
+                        amountOfTupelsBNL++;
+                    }
+                }
+                sqlReader.Close();
+
+                //Hexagon
+                sqlCommand = new SqlCommand(sqlHexagon, cnnSQL);
+                sqlReader = sqlCommand.ExecuteReader();
+
+                if (sqlReader.HasRows)
+                {
+                    while (sqlReader.Read())
+                    {
+                        amountOfTupelsHexagon++;
+                    }
+                }
+                sqlReader.Close();
+
+                cnnSQL.Close();
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail("Connection failed:" + ex.Message);
+            }
+
+            Assert.AreEqual(amountOfTupelsNative, amountOfTupelsBNL, 0, "Amount of tupels does not match");
+        }
+
+        
 
 
 
@@ -268,6 +354,7 @@ namespace prefSQL.SQLParserTest
             int amountOfTupelsBNL = 0;
 
             SqlConnection cnnSQL = new SqlConnection(strConnection);
+            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
             try
             {
                 cnnSQL.Open();
@@ -323,6 +410,7 @@ namespace prefSQL.SQLParserTest
 
 
             SqlConnection cnnSQL = new SqlConnection(strConnection);
+            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
             try
             {
                 cnnSQL.Open();
@@ -623,6 +711,12 @@ namespace prefSQL.SQLParserTest
 
             Assert.AreEqual(expected.Trim(), actual.Trim(), true, "SQL not built correctly");
 
+        }
+
+
+        void cnnSQL_InfoMessage(object sender, SqlInfoMessageEventArgs e)
+        {
+            Assert.Fail(e.Message);
         }
 
     }

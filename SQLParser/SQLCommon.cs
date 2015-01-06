@@ -17,17 +17,14 @@ namespace prefSQL.SQLParser
     /// Entry point of the library for parsing a PREFERENCE SQL to an ANSI-SQL Statement
     /// </summary>
     /// <remarks>
-    /// You can choose the Skyline Type, Ordering Type and if the SELECT List should be extended with the Skyline Values
+    /// You can choose the Skyline algorithm, the maxium level in multiple skyline algorithms and if the SELECT List should be extended with the Skyline Values
     /// </remarks>
     public class SQLCommon
     {
         private const string SkylineOf = "SKYLINE OF";
         private Algorithm _SkylineType = Algorithm.NativeSQL;   //Defines with which Algorithm the Skyline should be calculated
         private bool _ShowSkylineAttributes = false;            //Defines if the skyline attributes should be added to the SELECT list
-        private int _SkylineUpToLevel = 3;
-
-
-
+        private int _SkylineUpToLevel = 3;                      //Defines the maximum level that should be returned for the multiple skyline algorithnmm
 
         public enum Algorithm
         {
@@ -68,11 +65,19 @@ namespace prefSQL.SQLParser
             set { _SkylineUpToLevel = value; }
         }
 
-
-        public DataTable getDatatable(string strPrefSQL)
+        public DataTable parseAndExeutePrefSQL(string connectionString, string driverString, String strPrefSQL, SQLCommon.Algorithm algorithm, int upToLevel)
         {
-            DataTable dt = new DataTable();
-            return dt;
+            string strSQL = parsePreferenceSQL(strPrefSQL);
+            Helper helper = new Helper();
+            helper.ConnectionString = connectionString;
+            helper.DriverString = driverString;
+            return helper.getResults(strSQL, algorithm, upToLevel);
+        }
+
+        public DataTable parseAndExeutePrefSQL(string connectionString, string DriverString, String strPrefSQL, SQLCommon.Algorithm algorithm)
+        {
+            //No maximum Level defined. Set max level to 3
+            return parseAndExeutePrefSQL(connectionString, DriverString, strPrefSQL, algorithm, 3);
         }
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
@@ -213,11 +218,6 @@ namespace prefSQL.SQLParser
 
                         }
                     }
-                    /*else
-                    {
-                        //string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
-                        //strNewSQL += strOrderBy;
-                    }*/
 
                 }
                 else

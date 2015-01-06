@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 
 namespace prefSQL.SQLParser
 {
+    //internal class
     class ErrorListener : IAntlrErrorListener<IToken>
     {
 

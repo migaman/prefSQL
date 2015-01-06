@@ -10,7 +10,7 @@ using prefSQL.SQLParser.Models;
 
 namespace prefSQL.SQLParser
 {
-    
+    //internal class
     class SQLVisitor : SQLBaseVisitor<PrefSQLModel>
     {
         private Dictionary<string, string> tables = new Dictionary<string, string>();

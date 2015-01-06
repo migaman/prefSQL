@@ -30,7 +30,7 @@ namespace prefSQL.SQLSkyline
             return getSkylineTable(strQuery, strOperators, true, strConnection);
         }
 
-        private DataTable getSkylineTable(String strQuery, String strOperators, bool isDebug, string strConnection)
+        private DataTable getSkylineTable(String strQuery, String strOperators, bool isIndependent, string strConnection)
         {
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
@@ -38,7 +38,7 @@ namespace prefSQL.SQLSkyline
             
            
             SqlConnection connection = null;
-            if (isDebug == false)
+            if (isIndependent == false)
                 connection = new SqlConnection(Helper.cnnStringSQLCLR);
             else
                 connection = new SqlConnection(strConnection);
@@ -60,7 +60,7 @@ namespace prefSQL.SQLSkyline
                 // Build our record schema 
                 List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, ref dtResult);
                 SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
-                if (isDebug == false)
+                if (isIndependent == false)
                 {
                     SqlContext.Pipe.SendResultsStart(record);
                 }
@@ -74,7 +74,7 @@ namespace prefSQL.SQLSkyline
                     if (resultCollection.Count == 0)
                     {
                         //first record is always added to collection
-                        Helper.addToWindow(sqlReader, operators, ref resultCollection, record, isDebug, ref dtResult);
+                        Helper.addToWindow(sqlReader, operators, ref resultCollection, record, isIndependent, ref dtResult);
                     }
                     else
                     {
@@ -98,7 +98,7 @@ namespace prefSQL.SQLSkyline
                         }
                         if (isDominated == false)
                         {
-                            Helper.addToWindow(sqlReader, operators, ref resultCollection, record, isDebug, ref dtResult);
+                            Helper.addToWindow(sqlReader, operators, ref resultCollection, record, isIndependent, ref dtResult);
                         }
 
                     }
@@ -106,7 +106,7 @@ namespace prefSQL.SQLSkyline
 
                 sqlReader.Close();
 
-                if (isDebug == false)
+                if (isIndependent == false)
                 {
                     SqlContext.Pipe.SendResultsEnd();
                 }
@@ -118,7 +118,7 @@ namespace prefSQL.SQLSkyline
                 string strError = "Fehler in SP_SkylineBNLSortLevel: ";
                 strError += ex.Message;
 
-                if (isDebug == true)
+                if (isIndependent == true)
                 {
                     System.Diagnostics.Debug.WriteLine(strError);
                 }

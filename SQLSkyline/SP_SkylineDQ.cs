@@ -33,14 +33,14 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        private DataTable getSkylineTable(String strQuery, String strOperators, bool isDebug, string strConnection)
+        private DataTable getSkylineTable(String strQuery, String strOperators, bool isIndependent, string strConnection)
         {
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
             DataTable dtResult = new DataTable();
             
             SqlConnection connection = null;
-            if (isDebug == false)
+            if (isIndependent == false)
                 connection = new SqlConnection(Helper.cnnStringSQLCLR);
             else
                 connection = new SqlConnection(strConnection);
@@ -121,7 +121,6 @@ namespace prefSQL.SQLSkyline
 
                 sqlReader.Close();*/
 
-                //System.Diagnostics.Debug.WriteLine("Rows:" + computeMedianPrice);
 
 
 
@@ -133,7 +132,7 @@ namespace prefSQL.SQLSkyline
                 strError += ex.Message;
 
 
-                if (isDebug == true)
+                if (isIndependent == true)
                 {
                     System.Diagnostics.Debug.WriteLine(strError);
 

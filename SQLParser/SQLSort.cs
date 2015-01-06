@@ -7,7 +7,7 @@ using prefSQL.SQLParser.Models;
 
 namespace prefSQL.SQLParser
 {
-    
+    //internal class
     class SQLSort
     {
 

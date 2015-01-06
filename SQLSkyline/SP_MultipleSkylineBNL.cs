@@ -34,14 +34,14 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        private DataTable getSkylineTable(String strQuery, String strOperators, bool isDebug, string strConnection, int upToLevel)
+        private DataTable getSkylineTable(String strQuery, String strOperators, bool isIndependent, string strConnection, int upToLevel)
         {
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
             DataTable dtResult = new DataTable();
 
             SqlConnection connection = null;
-            if (isDebug == false)
+            if (isIndependent == false)
                 connection = new SqlConnection(Helper.cnnStringSQLCLR);
             else
                 connection = new SqlConnection(strConnection);
@@ -74,7 +74,7 @@ namespace prefSQL.SQLSkyline
                 outputColumns.Add(OutputColumnLevel);
                 dtResult.Columns.Add("level", typeof(int));
                 SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
-                if (isDebug == false)
+                if (isIndependent == false)
                 {
                     SqlContext.Pipe.SendResultsStart(record);
                 }
@@ -90,7 +90,7 @@ namespace prefSQL.SQLSkyline
                         // Build our SqlDataRecord and start the results 
                         levels.Add(0);
                         iMaxLevel = 0;
-                        addToWindow(sqlReader, operators, ref resultCollection, record, isDebug, levels[levels.Count - 1], ref dtResult);
+                        addToWindow(sqlReader, operators, ref resultCollection, record, isIndependent, levels[levels.Count - 1], ref dtResult);
                     }
                     else
                     {
@@ -131,19 +131,19 @@ namespace prefSQL.SQLSkyline
                             if (iMaxLevel < upToLevel)
                             {
                                 levels.Add(iMaxLevel);
-                                addToWindow(sqlReader, operators, ref resultCollection, record, isDebug, levels[levels.Count - 1], ref dtResult);
+                                addToWindow(sqlReader, operators, ref resultCollection, record, isIndependent, levels[levels.Count - 1], ref dtResult);
                             }
                         }
                         else
                         {
-                            addToWindow(sqlReader, operators, ref resultCollection, record, isDebug, levels[levels.Count - 1], ref dtResult);
+                            addToWindow(sqlReader, operators, ref resultCollection, record, isIndependent, levels[levels.Count - 1], ref dtResult);
                         }
                     }
                 }
 
                 sqlReader.Close();
 
-                if (isDebug == false)
+                if (isIndependent == false)
                 {
                     SqlContext.Pipe.SendResultsEnd();
                 }
@@ -156,7 +156,7 @@ namespace prefSQL.SQLSkyline
                 string strError = "Fehler in SP_MultipleSkylineBNL: ";
                 strError += ex.Message;
 
-                if (isDebug == true)
+                if (isIndependent == true)
                 {
                     System.Diagnostics.Debug.WriteLine(strError);
 
