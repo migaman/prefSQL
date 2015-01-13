@@ -88,7 +88,7 @@ namespace Utility
                     " AND t1.id not in (25612, 46268, 1012, 22350, 51017, 55205, 47392, 668, 54521) " +
                     " AND t1.id not in (32347, 37368, 40646, 53526, 52601, 27068, 1667, 27675, 5328, 35699, 51417, 25251, 33363, 31825, 24266, 52256, 54259) " +*/
                     //"SKYLINE OF t1.price LOW 1000, t1.mileage LOW";
-                    "SKYLINE OF t1.price LOW, t1.mileage";
+                    "SKYLINE OF t1.price AROUND 10000, t1.mileage LOW";
                     //"SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000";
                     //", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +
                     //", t1.doors HIGH, t1.seats HIGH 2, t1.cylinders HIGH, t1.gears HIGH ";
@@ -138,8 +138,8 @@ namespace Utility
                 //parser.SkylineType = SQLCommon.Algorithm.BNLSortLevel;
                 //parser.SkylineType = SQLCommon.Algorithm.Hexagon;
                 //parser.OrderType = SQLCommon.Ordering.RankingBestOf;
-                //parser.SkylineType = SQLCommon.Algorithm.MultipleBNL;
-                //parser.ShowSkylineAttributes = true;
+                parser.SkylineType = SQLCommon.Algorithm.MultipleBNL;
+                parser.ShowSkylineAttributes = true;
                 parser.SkylineUpToLevel = 3;
                 
 

@@ -117,16 +117,18 @@ namespace prefSQL.SQLParser
 
                     if (prefSQL.HasSkyline == true)
                     {
+                        //Add Skyline Attributes to select list
+                        if (_ShowSkylineAttributes == true)
+                        {
+                            string strPreferences = getPreferenceAttributes(prefSQL, strNewSQL);
+                            string strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
+                            string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
+                            strNewSQL = strSQLBeforeFrom + strPreferences + " " + strSQLAfterFrom;
+                        }
+
+
                         if (_SkylineType == Algorithm.NativeSQL)
                         {
-                            if (_ShowSkylineAttributes == true)
-                            {
-                                string strPreferences = getPreferenceAttributes(prefSQL, strNewSQL);
-                                string strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
-                                string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
-                                strNewSQL = strSQLBeforeFrom + strPreferences + " " + strSQLAfterFrom;
-                            }
-
                             string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strNewSQL);
                             //string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
                             string strOrderBy = "";
@@ -323,12 +325,12 @@ namespace prefSQL.SQLParser
                     //
                     if (model.Skyline[iChild].Op.Equals("<"))
                     {
-                        strSQL += ", " + model.Skyline[iChild].ColumnExpression + " AS SkylineAttribute" + iChild;
+                        strSQL += ", " + model.Skyline[iChild].ColumnExpression + " AS SkylineAttribute" + model.Skyline[iChild].ColumnName;
                     }
                     else
                     {
                         //Multiply HIGH preferences with -1 --> small values are always better than high 
-                        strSQL += ", " + model.Skyline[iChild].ColumnExpression + "*-1 AS SkylineAttribute" + iChild;
+                        strSQL += ", " + model.Skyline[iChild].ColumnExpression + "*-1 AS SkylineAttribute" + model.Skyline[iChild].ColumnName;
                     }
 
                 }

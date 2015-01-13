@@ -71,7 +71,7 @@ namespace prefSQL.SQLParser
                 bool needsTextORClause = false;
 
                 //Competition
-                needsTextORClause = !model.Skyline[iChild].ColumnName.Equals("");
+                needsTextORClause = model.Skyline[iChild].IsCategory;
 
                 //First child doesn't need an OR/AND
                 if (iChild > 0)
@@ -97,7 +97,7 @@ namespace prefSQL.SQLParser
                 //Falls Text-Spalte ein zusätzliches OR einbauen für den Vergleich Farbe = Farbe
                 if (needsTextORClause == true)
                 {
-                    strWhereEqual += " OR " + model.Skyline[iChild].InnerColumnName + " = " + model.Skyline[iChild].ColumnName;
+                    strWhereEqual += " OR " + model.Skyline[iChild].InnerColumnName + " = " + model.Skyline[iChild].FullColumnName;
                     strWhereEqual += ")";
                 }
 
