@@ -121,9 +121,14 @@ namespace prefSQL.SQLParser
                         if (_ShowSkylineAttributes == true)
                         {
                             string strPreferences = getPreferenceAttributes(prefSQL, strNewSQL);
+                            if (_SkylineType != Algorithm.NativeSQL)
+                            {
+                                strPreferences = strPreferences.Replace("'", "''");
+                            }
                             string strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
                             string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
                             strNewSQL = strSQLBeforeFrom + strPreferences + " " + strSQLAfterFrom;
+                            
                         }
 
 
@@ -317,7 +322,7 @@ namespace prefSQL.SQLParser
             string strSQL = "";
 
             //Build Skyline only if more than one attribute
-            if (model.Skyline.Count > 1)
+            if (model.Skyline.Count > 0)
             {
                 //Build the where clause with each column in the skyline
                 for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
