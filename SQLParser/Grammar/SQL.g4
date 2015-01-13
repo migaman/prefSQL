@@ -112,21 +112,25 @@ expr
                     | ( database_name '.' )? table_name )												#exprnotIn
  | ( ( K_NOT )? K_EXISTS )? '(' select_stmt ')'															#exprnotExists
  | K_CASE expr? ( K_WHEN expr K_THEN expr )+ ( K_ELSE expr )? K_END										#exprcase
- | column_term ('(' exprSkyline ')')																	#orderbyCategory
+ | column_term ('(' exprCategory ')')																	#orderbyCategory
  ;
 
  
 exprSkyline
- : literal_value																						#opLiteral
- | exprSkyline ( '>>'  | '==') exprSkyline																#opDoubleOrder
- | '{' exprOwnPreference '}'																			#exprOwnPreferenceOp																	
- | exprSkyline ',' exprSkyline																			#exprAnd   
+ : exprSkyline ',' exprSkyline																			#exprAnd   
  | column_term op=(K_LOW | K_HIGH | K_LOWDATE | K_HIGHDATE)	(signed_number (K_EQUAL | K_INCOMPARABLE))?	#preferenceLOWHIGH
- | column_term ('(' exprSkyline ')')																	#preferenceCategory
+ | column_term ('(' exprCategory ')')																	#preferenceCategory
  | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term)			#preferenceAROUND
- | K_OTHERS (K_EQUAL | K_INCOMPARABLE)																	#preferenceOTHERS
+
  ;
 
+
+ exprCategory
+	: literal_value																						#opLiteral
+	| '{' exprOwnPreference '}'																			#exprOwnPreferenceOp																	
+	| exprCategory ( '>>'  | '==') exprCategory															#opDoubleOrder
+	| K_OTHERS (K_EQUAL | K_INCOMPARABLE)																#preferenceOTHERS
+	;
 
 
 geocoordinate :'(' expr ',' expr ')';

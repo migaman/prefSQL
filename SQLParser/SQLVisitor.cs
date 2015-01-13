@@ -57,7 +57,7 @@ namespace prefSQL.SQLParser
             string strTable = "";
 
             //Build CASE ORDER with arguments
-            string strExpr = context.exprSkyline().GetText();
+            string strExpr = context.exprCategory().GetText();
             strColumnName = getColumn(context.GetChild(0));
             strTable = getTable(context.GetChild(0));
             string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split signs are == and >>
@@ -155,7 +155,8 @@ namespace prefSQL.SQLParser
             //It is a text --> Text text must be converted in a given sortorder
 
             //Build CASE ORDER with arguments
-            string strExpr = context.exprSkyline().GetText();
+            string strExpr = context.exprCategory().GetText();
+            string strColumnExpression = "";
             strColumnName = getColumn(context.GetChild(0));
             strTable = getTable(context.GetChild(0));
             string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split signs are == and >>
@@ -219,11 +220,16 @@ namespace prefSQL.SQLParser
                 }
 
             }
+
+            //Add others incomparable clause at the top-level if not OTHERS was specified
+            if (strSQLELSE.Equals(""))
+            {
+                //TODO: OTHERS-Clause muss vorhanden sein. Sonst muss man annahmen treffen --> dies sollte verhindert werden
+            }
             strSQL = "CASE" + strSQLOrderBy + strSQLELSE + " END";
             strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLInnerELSE + " END";
             strIncomporableAttribute = "CASE" + strSQLIncomparableAttribute + strIncomporableAttributeELSE + " END";
-            strColumnName = strSQL;
-
+            strColumnExpression = strSQL;
             //Categories are always sorted ASCENDING
             strSQL += " ASC";
             strOperator = "<";
@@ -231,7 +237,7 @@ namespace prefSQL.SQLParser
             strRankColumn = RankingFunction + " over (ORDER BY " + strSQL + ")";
             strRankHexagon = "DENSE_RANK()" + " over (ORDER BY " + strSQL + ")-1 AS Rank" + strSingleColumn.Replace(".", "");
             //Add the preference to the list               
-            pref.Skyline.Add(new AttributeModel(strColumnName, strOperator, strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, strSingleColumn.Replace(".", ""), strRankColumn, strRankHexagon, strSQL, true, strColumnName));
+            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, strSingleColumn.Replace(".", ""), strRankColumn, strRankHexagon, strSQL, true, strColumnName));
 
 
 
