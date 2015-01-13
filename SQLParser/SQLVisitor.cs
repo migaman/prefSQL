@@ -18,6 +18,13 @@ namespace prefSQL.SQLParser
         private const string InnerTableSuffix = "_INNER"; //Table suffix for the inner query
         private const string RankingFunction = "ROW_NUMBER()";
         private PrefSQLModel model;
+        private bool isNative;
+
+        public bool IsNative
+        {
+            get { return isNative; }
+            set { isNative = value; }
+        }
         
 
         public PrefSQLModel Model
@@ -222,9 +229,15 @@ namespace prefSQL.SQLParser
             }
 
             //Add others incomparable clause at the top-level if not OTHERS was specified
-            if (strSQLELSE.Equals(""))
+            if (strSQLELSE.Equals("") && IsNative == false)
             {
-                //TODO: OTHERS-Clause muss vorhanden sein. Sonst muss man annahmen treffen --> dies sollte verhindert werden
+                //No OTHERS-clause available -- This means all other elements are incomparable --> Add it to the beginning
+                iWeight = 0;
+                strSQLELSE = " ELSE " + (iWeight);
+                strSQLInnerELSE = " ELSE " + (iWeight + 1);
+                strIncomporableAttributeELSE = "ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
+                bComparable = false;
+
             }
             strSQL = "CASE" + strSQLOrderBy + strSQLELSE + " END";
             strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLInnerELSE + " END";

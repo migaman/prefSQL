@@ -35,7 +35,8 @@ namespace prefSQL.SQLParser
             BNLSortLevel,           //Block nested loops with presort (does not support incomparable)
             DQ,                     //Divide and Conquer
             Hexagon,                //Hexagon Augsburg
-            MultipleBNL             //Multiple Skyline calculation (define levels with SkylineUptoLevel variable)
+            MultipleBNL,             //Multiple Skyline calculation (define levels with SkylineUptoLevel variable)
+            MultipleBNLLevel        //Multiple Skyline calculation (define levels with SkylineUptoLevel variable, does not support incomparable)
         };
 
         public enum Ordering
@@ -105,6 +106,7 @@ namespace prefSQL.SQLParser
 
                 //Visit parsetree (PrefSQL model is built during the visit of the parse tree)
                 SQLVisitor visitor = new SQLVisitor();
+                visitor.IsNative = _SkylineType == Algorithm.NativeSQL;
                 visitor.Visit(tree);
                 PrefSQLModel prefSQL = visitor.Model;
 

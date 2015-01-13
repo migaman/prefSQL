@@ -89,7 +89,7 @@ namespace Utility
                     " AND t1.id not in (32347, 37368, 40646, 53526, 52601, 27068, 1667, 27675, 5328, 35699, 51417, 25251, 33363, 31825, 24266, 52256, 54259) " +*/
                     //"SKYLINE OF t1.price LOW 1000, t1.mileage LOW";
                     
-                    "SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau')";
+                    "SKYLINE OF t1.price LOW, colors.name ('rot' == 'pink' == 'violett' == 'gold' >> 'blau')";
                     //"SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000";
                     //", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +
                     //", t1.doors HIGH, t1.seats HIGH 2, t1.cylinders HIGH, t1.gears HIGH ";
@@ -126,7 +126,6 @@ namespace Utility
                 //"SKYLINE OF colors.name DISFAVOUR 'rot' ";
                 //"SKYLINE OF cars.location AROUND (47.0484, 8.32629) ";
                 Debug.WriteLine(strPrefSQL);
-                strPrefSQL = "SELECT c.id AS ID FROM Cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF b.name ('Bus' >> 'Kleinwagen')";
 
                 Debug.WriteLine("--------------------------------------------");
 
@@ -140,8 +139,9 @@ namespace Utility
                 //parser.SkylineType = SQLCommon.Algorithm.Hexagon;
                 //parser.OrderType = SQLCommon.Ordering.RankingBestOf;
                 parser.SkylineType = SQLCommon.Algorithm.MultipleBNL;
+                //parser.SkylineType = SQLCommon.Algorithm.MultipleBNLLevel;
                 parser.ShowSkylineAttributes = true;
-                parser.SkylineUpToLevel = 5;
+                parser.SkylineUpToLevel = 1;
                 
 
                 string strSQL = parser.parsePreferenceSQL(strPrefSQL);
