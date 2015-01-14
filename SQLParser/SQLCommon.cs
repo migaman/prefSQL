@@ -29,11 +29,11 @@ namespace prefSQL.SQLParser
         public enum Algorithm
         {
             NativeSQL,              //Works with ANSI-SQL syntax
-            BNL,                    //Block nested loops
-            BNLLevel,               //Block nested loops (does not support incomparable)
+            //BNL,                    //Block nested loops
+            //BNLLevel,               //Block nested loops (does not support incomparable)
             BNLSort,                //Block nested loops with presort
             BNLSortLevel,           //Block nested loops with presort (does not support incomparable)
-            DQ,                     //Divide and Conquer
+            //DQ,                     //Divide and Conquer
             Hexagon,                //Hexagon Augsburg
             MultipleBNL,             //Multiple Skyline calculation (define levels with SkylineUptoLevel variable)
             MultipleBNLLevel        //Multiple Skyline calculation (define levels with SkylineUptoLevel variable, does not support incomparable)
@@ -163,7 +163,7 @@ namespace prefSQL.SQLParser
                             strNewSQL += strWHERE;
                             strNewSQL += strOrderBy;
                         }
-                        else if (_SkylineType == Algorithm.BNL || _SkylineType == Algorithm.BNLLevel)
+                        /*else if (_SkylineType == Algorithm.BNL || _SkylineType == Algorithm.BNLLevel)
                         {
                             string strOperators = "";
                             string strAttributesSkyline = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
@@ -181,7 +181,7 @@ namespace prefSQL.SQLParser
                             {
                                 strNewSQL = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "'";
                             }
-                        }
+                        }*/
                         else if (_SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.BNLSortLevel || _SkylineType == Algorithm.MultipleBNL)
                         {
                             string strOperators = "";

@@ -107,7 +107,7 @@ namespace prefSQL.SQLSkyline
                             {
                                 if (levels[i] == iLevel)
                                 {
-                                    long[] result = (long[])resultCollection[i];
+                                    long?[] result = (long?[])resultCollection[i];
                                     string[] strResult = (string[])resultstringCollection[i];
 
                                     //Dominanz
@@ -182,7 +182,7 @@ namespace prefSQL.SQLSkyline
         {
 
             //Erste Spalte ist die ID
-            long[] recordInt = new long[operators.GetUpperBound(0) + 1];
+            long?[] recordInt = new long?[operators.GetUpperBound(0) + 1];
             string[] recordstring = new string[operators.GetUpperBound(0) + 1];
             DataRow row = dtResult.NewRow();
 
@@ -194,8 +194,11 @@ namespace prefSQL.SQLSkyline
                     //LOW und HIGH Spalte in record abfüllen
                     if (operators[iCol].Equals("LOW"))
                     {
-                        recordInt[iCol] = sqlReader.GetInt32(iCol);
-
+                        if (sqlReader.IsDBNull(iCol) == true)
+                            recordInt[iCol] = null;
+                        else
+                            recordInt[iCol] = sqlReader.GetInt32(iCol);
+                        
                         //Check if long value is incomparable
                         if (iCol + 1 <= recordInt.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
                         {

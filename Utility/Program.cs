@@ -67,7 +67,7 @@ namespace Utility
 
                 //string strPrefSQL = "SELECT cars.id, cars.title, colors.name, fuels.name FROM cars " +
                 //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name, mileage FROM cars " +
-                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars t1 " +
+                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 " +
                     //string strPrefSQL = "SELECT cars.id, cars.Price, cars.mileage FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage, cars.horsepower, cars.enginesize, cars.registration, cars.consumption, cars.doors, colors.name, fuels.name FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, colors.name AS colourname, fuels.name AS fuelname, cars.price FROM cars " +
@@ -82,14 +82,9 @@ namespace Utility
                     "LEFT OUTER JOIN Efficiencies ON t1.efficiency_id = Efficiencies.id " +
                     "LEFT OUTER JOIN Makes ON t1.make_id = Makes.id " +
                     "LEFT OUTER JOIN Models ON t1.model_id = Models.id " +*/
-                    //"WHERE t1.price < 100000 " +
-                    //"LEFT OUTER JOIN fuels ON cars.fuel_id = fuels.ID " +
-                    /*"WHERE t1.id NOT IN (54521, 25612, 46268, 668, 47392, 1012, 22350, 55205, 51017) " +
-                    " AND t1.id not in (25612, 46268, 1012, 22350, 51017, 55205, 47392, 668, 54521) " +
-                    " AND t1.id not in (32347, 37368, 40646, 53526, 52601, 27068, 1667, 27675, 5328, 35699, 51417, 25251, 33363, 31825, 24266, 52256, 54259) " +*/
                     //"SKYLINE OF t1.price LOW 1000, t1.mileage LOW";
-                    
-                    "SKYLINE OF t1.price LOW, colors.name ('rot' == 'pink' == 'violett' == 'gold' >> 'blau')";
+                    //"SKYLINE OF t1.price LOW, t1.mileage LOW ";
+                    "SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' == OTHERS INCOMPARABLE)";
                     //"SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000";
                     //", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +
                     //", t1.doors HIGH, t1.seats HIGH 2, t1.cylinders HIGH, t1.gears HIGH ";
@@ -103,13 +98,6 @@ namespace Utility
                     //"SKYLINE OF t1.price LOW, t1.horsepower HIGH, t1.registration HIGHDATE, t1.consumption LOW, t1.mileage LOW, t1.enginesize HIGH ";
                 //"SKYLINE OF Fuels.name ('Benzin' >> OTHERS EQUAL), Makes.name ('FISKER' >> OTHERS EQUAL)   " +
                 //", bodies.name ('Roller' >> OTHERS EQUAL), models.name ('123' >> OTHERS EQUAL) "; 
-                //EXEC dbo.SP_SkylineBNLSort 'SELECT  CASE WHEN Fuels.name = ''Benzin'' THEN 0 ELSE 100 END AS SkylineAttribute0, CASE WHEN conditions.name = ''Vorführmodell'' THEN 0 WHEN conditions.name = ''dd'' THEN 100 END AS SkylineAttribute1 , t1.id, t1.title, colors.name AS Colour, bodies.name AS Body, conditions.name AS Condition FROM cars t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID LEFT OUTER JOIN bodies ON t1.body_id = bodies.ID LEFT OUTER JOIN conditions ON t1.condition_id = conditions.id LEFT OUTER JOIN Transmissions ON t1.transmission_id = Transmissions.id LEFT OUTER JOIN Fuels ON t1.fuel_id = Fuels.id LEFT OUTER JOIN Drives ON t1.drive_id = Drives.id LEFT OUTER JOIN Pollutions ON t1.pollution_id = Pollutions.id LEFT OUTER JOIN Efficiencies ON t1.efficiency_id = Efficiencies.id LEFT OUTER JOIN Makes ON t1.make_id = Makes.id ORDER BY CASE WHEN Fuels.name = ''Benzin'' THEN 0 ELSE 100 END ASC, CASE WHEN conditions.name = ''Vorführmodell'' THEN 0 WHEN conditions.name = ''dd'' THEN 100 END ASC', 'LOW;LOW', 'false'
-                    //t2.name ('schwarz' >> 'pink' >> 'blau' >> 'rot' >> OTHERS EQUAL), bodies.name ('Limousine' >> 'Roller' >> 'Coupé' >> OTHERS EQUAL) " +
-                //", drives.name ('Vorderradantrieb' >> OTHERS EQUAL), Transmissions.name ('Schaltgetriebe' >> 'Automat')  " +
-                //", Pollutions.name ('Euro 5' >> OTHERS EQUAL), bodies.name ('Limousine' >> OTHERS EQUAL) ";
-                /*", colors.name ('schwarz' >> OTHERS EQUAL), efficiencies.name ('G' >> OTHERS EQUAL) " +
-                //", makes.name ('VW' >> OTHERS EQUAL), t1.price LOW ";
-                */
                 //"SKYLINE OF LOW t1.price PRIORITIZE LOW t1.mileage";
                 //"SKYLINE OF LOW t1.price PRIORITIZE LOW t1.mileage PRIORITIZE HIGH t2.name {OTHERS >> 'pink'}";
                 //"SKYLINE OF cars.price AROUND 10000 ";
@@ -129,17 +117,12 @@ namespace Utility
 
                 Debug.WriteLine("--------------------------------------------");
 
-
                 SQLCommon parser = new SQLCommon();
                 //parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
-                //parser.SkylineType = SQLCommon.Algorithm.BNL;
-                //parser.SkylineType = SQLCommon.Algorithm.BNLLevel;
-                //parser.SkylineType = SQLCommon.Algorithm.BNLSort;
-                //parser.SkylineType = SQLCommon.Algorithm.BNLSortLevel;
+                parser.SkylineType = SQLCommon.Algorithm.BNLSort;
                 //parser.SkylineType = SQLCommon.Algorithm.Hexagon;
                 //parser.OrderType = SQLCommon.Ordering.RankingBestOf;
-                parser.SkylineType = SQLCommon.Algorithm.MultipleBNL;
-                //parser.SkylineType = SQLCommon.Algorithm.MultipleBNLLevel;
+                //parser.SkylineType = SQLCommon.Algorithm.MultipleBNL;
                 parser.ShowSkylineAttributes = true;
                 parser.SkylineUpToLevel = 1;
                 

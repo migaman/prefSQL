@@ -91,7 +91,7 @@ namespace prefSQL.SQLParser
                 System.Data.SqlTypes.SqlString strSQL1 = str1;
                 System.Data.SqlTypes.SqlString strSQL2 = str2;
                 System.Data.SqlTypes.SqlString strSQL3 = str3;
-                if (algorithm == SQLCommon.Algorithm.BNL)
+                /*if (algorithm == SQLCommon.Algorithm.BNL)
                 {
                     prefSQL.SQLSkyline.SP_SkylineBNL skyline = new SQLSkyline.SP_SkylineBNL();
                     dt = skyline.getSkylineTable(str1, str2, ConnectionString);
@@ -101,7 +101,8 @@ namespace prefSQL.SQLParser
                     prefSQL.SQLSkyline.SP_SkylineBNLLevel skyline = new SQLSkyline.SP_SkylineBNLLevel();
                     dt = skyline.getSkylineTable(str1, str2, ConnectionString);
                 }
-                else if (algorithm == SQLCommon.Algorithm.BNLSort)
+                else */
+                if (algorithm == SQLCommon.Algorithm.BNLSort)
                 {
                     prefSQL.SQLSkyline.SP_SkylineBNLSort skyline = new SQLSkyline.SP_SkylineBNLSort();
                     dt = skyline.getSkylineTable(str1, str2, ConnectionString);

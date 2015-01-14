@@ -1,4 +1,4 @@
-using System;
+/*using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
@@ -80,7 +80,7 @@ namespace prefSQL.SQLSkyline
                         //check if record is dominated (compare against the records in the window)
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
                         {
-                            long[] result = (long[])resultCollection[i];
+                            long?[] result = (long?[])resultCollection[i];
                             string[] strResult = (string[])resultstringCollection[i];
 
                             //Dominanz
@@ -160,3 +160,4 @@ namespace prefSQL.SQLSkyline
 
     }
 }
+*/
