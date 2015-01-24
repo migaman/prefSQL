@@ -14,6 +14,91 @@ namespace prefSQL.SQLParserTest
         private const string strConnection = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
 
         /**
+         * This test checks if the algorithms return the same amount of tupels for different prefSQL statements
+         * At the moment it contains the BNL and nativeSQL algorithm. It is intendend to add the hexagon as soon
+         * as it work with incomparable tuples
+         * 
+         * */
+
+        [TestMethod]
+        public void TestSKYLINEAmountOfTupels()
+        {
+            string[] strPrefSQL = new string[8];
+
+            strPrefSQL[0] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 900) SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber'})";
+            strPrefSQL[1] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau')";
+            strPrefSQL[2] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
+            strPrefSQL[3] = "SELECT c.id AS ID FROM Cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
+            strPrefSQL[4] = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
+                                "SKYLINE OF cars_small.price LOW, cars_small.mileage LOW, cars_small.horsepower HIGH, cars_small.enginesize HIGH, cars_small.consumption LOW, cars_small.doors HIGH " +
+                                ", colors.name ('rot' == 'blau' >> OTHERS EQUAL >> 'grau')  , fuels.name ('Benzin' >> OTHERS EQUAL >> 'Diesel') , bodies.name ('Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS EQUAL >> 'Pick-Up') " +
+                                ", cars_small.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL) , makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI') , conditions.name ('Neu' >> OTHERS EQUAL)";
+            strPrefSQL[5] = "SELECT cars_small.price,colors.name FROM cars_small " +
+                                "LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID " +
+                                "SKYLINE OF cars_small.price LOW, colors.name ('rot' == 'pink' >> OTHERS INCOMPARABLE >> 'grau') ";
+            strPrefSQL[6] = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH";
+            strPrefSQL[7] = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
+                "SKYLINE OF cars_small.price LOW 3000 EQUAL, cars_small.mileage LOW 20000 EQUAL, cars_small.horsepower HIGH 20 EQUAL, cars_small.enginesize HIGH 1000 EQUAL, cars_small.consumption LOW 15 EQUAL, cars_small.doors HIGH ";
+
+            //TODO: Add hexagon as soon as it works with incomparable tuples
+            for (int i = 0; i <= strPrefSQL.GetUpperBound(0); i++)
+            {
+
+                SQLCommon common = new SQLCommon();
+                common.SkylineType = SQLCommon.Algorithm.NativeSQL;
+                string sqlNative = common.parsePreferenceSQL(strPrefSQL[i]);
+                common.SkylineType = SQLCommon.Algorithm.BNLSort;
+                string sqlBNL = common.parsePreferenceSQL(strPrefSQL[i]);
+
+                int amountOfTupelsBNL = 0;
+                int amountOfTupelsSQL = 0;
+
+                SqlConnection cnnSQL = new SqlConnection(strConnection);
+                cnnSQL.InfoMessage += cnnSQL_InfoMessage;
+                try
+                {
+                    cnnSQL.Open();
+
+                    //Native
+                    SqlCommand sqlCommand = new SqlCommand(sqlNative, cnnSQL);
+                    SqlDataReader sqlReader = sqlCommand.ExecuteReader();
+
+                    if (sqlReader.HasRows)
+                    {
+                        while (sqlReader.Read())
+                        {
+                            amountOfTupelsSQL++;
+                        }
+                    }
+                    sqlReader.Close();
+
+                    //BNL
+                    sqlCommand = new SqlCommand(sqlBNL, cnnSQL);
+                    sqlReader = sqlCommand.ExecuteReader();
+
+                    if (sqlReader.HasRows)
+                    {
+                        while (sqlReader.Read())
+                        {
+                            amountOfTupelsBNL++;
+                        }
+                    }
+                    sqlReader.Close();
+
+
+                    cnnSQL.Close();
+                }
+                catch (Exception ex)
+                {
+                    Assert.Fail("Connection failed:" + ex.Message);
+                }
+
+
+                Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNL, 0, "Amount of tupels does not match");
+            }
+        }
+
+        /**
          * If only one skyline attribute is available --> Show all records for each algorithm
          * 
          */
@@ -93,191 +178,6 @@ namespace prefSQL.SQLParserTest
 
             Assert.AreEqual(amountOfTupels, amountOfTupelsSQL, 0, "Amount of tupels does not match");
             Assert.AreEqual(amountOfTupels, amountOfTupelsBNL, 0, "Amount of tupels does not match");
-        }
-
-
-        [TestMethod]
-        public void TestSKYLINEAmountsOfTupelsWithoutOTHERS()
-        {
-
-            string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 " +
-                "LEFT OUTER JOIN colors ON t1.color_id = colors.ID " +
-                "SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau')";
-
-            SQLCommon common = new SQLCommon();
-            common.SkylineType = SQLCommon.Algorithm.NativeSQL;
-            string sqlNative = common.parsePreferenceSQL(strPrefSQL);
-            common.SkylineType = SQLCommon.Algorithm.BNLSort;
-            string sqlBNL = common.parsePreferenceSQL(strPrefSQL);
-
-
-            int amountOfTupelsNative = 0;
-            int amountOfTupelsBNL = 0;
-
-            SqlConnection cnnSQL = new SqlConnection(strConnection);
-            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
-            try
-            {
-                cnnSQL.Open();
-
-                //Native
-                SqlCommand sqlCommand = new SqlCommand(sqlNative, cnnSQL);
-                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsNative++;
-                    }
-                }
-                sqlReader.Close();
-
-                //BNL
-                sqlCommand = new SqlCommand(sqlBNL, cnnSQL);
-                sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsBNL++;
-                    }
-                }
-                sqlReader.Close();
-
-
-                cnnSQL.Close();
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail("Connection failed:" + ex.Message);
-            }
-
-            Assert.AreEqual(amountOfTupelsNative, amountOfTupelsBNL, 0, "Amount of tupels does not match");
-        }
-
-
-        [TestMethod]
-        public void TestSKYLINEAmountsOfTupelsOTHERSIncomparable()
-        {
-             string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 " +
-                "LEFT OUTER JOIN colors ON t1.color_id = colors.ID " +
-                "SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
-
-            SQLCommon common = new SQLCommon();
-            common.SkylineType = SQLCommon.Algorithm.NativeSQL;
-            string sqlNative = common.parsePreferenceSQL(strPrefSQL);
-            common.SkylineType = SQLCommon.Algorithm.BNLSort;
-            string sqlBNL = common.parsePreferenceSQL(strPrefSQL);
-
-
-            int amountOfTupelsNative = 0;
-            int amountOfTupelsBNL = 0;
-
-            SqlConnection cnnSQL = new SqlConnection(strConnection);
-            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
-            try
-            {
-                cnnSQL.Open();
-
-                //Native
-                SqlCommand sqlCommand = new SqlCommand(sqlNative, cnnSQL);
-                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsNative++;
-                    }
-                }
-                sqlReader.Close();
-
-                //BNL
-                sqlCommand = new SqlCommand(sqlBNL, cnnSQL);
-                sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsBNL++;
-                    }
-                }
-                sqlReader.Close();
-
-
-                cnnSQL.Close();
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail("Connection failed:" + ex.Message);
-            }
-
-            Assert.AreEqual(amountOfTupelsNative, amountOfTupelsBNL, 0, "Amount of tupels does not match");
-        }
-
-
-        
-
-        [TestMethod]
-        public void TestSKYLINEAmountsOfTupelsModel()
-        {
-
-            string strPrefSQL = "SELECT c.id AS ID FROM Cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
-
-            SQLCommon common = new SQLCommon();
-            common.SkylineType = SQLCommon.Algorithm.NativeSQL;
-            string sqlNative = common.parsePreferenceSQL(strPrefSQL);
-            common.SkylineType = SQLCommon.Algorithm.BNLSort;
-            string sqlBNL = common.parsePreferenceSQL(strPrefSQL);
-
-
-            int amountOfTupelsNative = 0;
-            int amountOfTupelsBNL = 0;
-
-            SqlConnection cnnSQL = new SqlConnection(strConnection);
-            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
-            try
-            {
-                cnnSQL.Open();
-
-                //Native
-                SqlCommand sqlCommand = new SqlCommand(sqlNative, cnnSQL);
-                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsNative++;
-                    }
-                }
-                sqlReader.Close();
-
-                //BNL
-                sqlCommand = new SqlCommand(sqlBNL, cnnSQL);
-                sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsBNL++;
-                    }
-                }
-                sqlReader.Close();
-
-
-                cnnSQL.Close();
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail("Connection failed:" + ex.Message);
-            }
-
-            Assert.AreEqual(amountOfTupelsNative, amountOfTupelsBNL, 0, "Amount of tupels does not match");
         }
 
 
@@ -458,265 +358,6 @@ namespace prefSQL.SQLParserTest
 
             Assert.AreEqual(24, amountOfTupelsBNL, 0, "Amount of tupels does not match");
         }
-
-
-        [TestMethod]
-        public void TestSKYLINEAmountsOfTupels11Equal()
-        {
-
-            string strPrefSQL = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
-                "SKYLINE OF cars_small.price LOW, cars_small.mileage LOW, cars_small.horsepower HIGH, cars_small.enginesize HIGH, cars_small.consumption LOW, cars_small.doors HIGH " +
-                ", colors.name ('rot' == 'blau' >> OTHERS EQUAL >> 'grau')  , fuels.name ('Benzin' >> OTHERS EQUAL >> 'Diesel') , bodies.name ('Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS EQUAL >> 'Pick-Up') " +
-                ", cars_small.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL) , makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI') , conditions.name ('Neu' >> OTHERS EQUAL)";
-
-            SQLCommon common = new SQLCommon();
-            common.SkylineType = SQLCommon.Algorithm.NativeSQL;
-            string sqlNative = common.parsePreferenceSQL(strPrefSQL);
-            common.SkylineType = SQLCommon.Algorithm.BNLSort;
-            string sqlBNL = common.parsePreferenceSQL(strPrefSQL);
-
-
-            int amountOfTupelsNative = 0;
-            int amountOfTupelsBNL = 0;
-
-            SqlConnection cnnSQL = new SqlConnection(strConnection);
-            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
-            try
-            {
-                cnnSQL.Open();
-
-                //Native
-                SqlCommand sqlCommand = new SqlCommand(sqlNative, cnnSQL);
-                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsNative++;
-                    }
-                }
-                sqlReader.Close();
-
-                //BNL
-                sqlCommand = new SqlCommand(sqlBNL, cnnSQL);
-                sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsBNL++;
-                    }
-                }
-                sqlReader.Close();
-
-
-                cnnSQL.Close();
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail("Connection failed:" + ex.Message);
-            }
-
-            Assert.AreEqual(amountOfTupelsNative, amountOfTupelsBNL, 0, "Amount of tupels does not match");
-        }
-
-
-
-        [TestMethod]
-        public void TestSKYLINEAmountsOfTupels11EqualWithHexagon()
-        {
-
-            string strPrefSQL = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
-                "SKYLINE OF cars_small.price LOW 3000 EQUAL, cars_small.mileage LOW 20000 EQUAL, cars_small.horsepower HIGH 20 EQUAL, cars_small.enginesize HIGH 1000 EQUAL, cars_small.consumption LOW 15 EQUAL, cars_small.doors HIGH ";
-
-            SQLCommon common = new SQLCommon();
-            common.SkylineType = SQLCommon.Algorithm.NativeSQL;
-            string sqlNative = common.parsePreferenceSQL(strPrefSQL);
-            common.SkylineType = SQLCommon.Algorithm.BNLSort;
-            string sqlBNL = common.parsePreferenceSQL(strPrefSQL);
-            common.SkylineType = SQLCommon.Algorithm.Hexagon;
-            string sqlHexagon = common.parsePreferenceSQL(strPrefSQL);
-
-
-            int amountOfTupelsNative = 0;
-            int amountOfTupelsBNL = 0;
-            int amountOfTupelsHexagon = 0;
-
-            SqlConnection cnnSQL = new SqlConnection(strConnection);
-            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
-            try
-            {
-                cnnSQL.Open();
-
-                //Native
-                SqlCommand sqlCommand = new SqlCommand(sqlNative, cnnSQL);
-                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsNative++;
-                    }
-                }
-                sqlReader.Close();
-
-                //BNL
-                sqlCommand = new SqlCommand(sqlBNL, cnnSQL);
-                sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsBNL++;
-                    }
-                }
-                sqlReader.Close();
-
-                //Hexagon
-                sqlCommand = new SqlCommand(sqlHexagon, cnnSQL);
-                sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsHexagon++;
-                    }
-                }
-                sqlReader.Close();
-
-                cnnSQL.Close();
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail("Connection failed:" + ex.Message);
-            }
-
-            Assert.AreEqual(amountOfTupelsNative, amountOfTupelsBNL, 0, "Amount of tupels does not match");
-        }
-
-        
-
-
-
-        [TestMethod]
-        public void TestSKYLINEAmountsOfTupels2Incomparable()
-        {
-
-            string strPrefSQL = "SELECT cars_small.price,colors.name FROM cars_small "+
-            "LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID " +
-            "SKYLINE OF cars_small.price LOW, colors.name ('rot' == 'pink' >> OTHERS INCOMPARABLE >> 'grau') ";
-
-            SQLCommon common = new SQLCommon();
-            common.SkylineType = SQLCommon.Algorithm.NativeSQL;
-            string sqlNative = common.parsePreferenceSQL(strPrefSQL);
-            common.SkylineType = SQLCommon.Algorithm.BNLSort;
-            string sqlBNL = common.parsePreferenceSQL(strPrefSQL);
-
-            int amountOfTupelsNative = 0;
-            int amountOfTupelsBNL = 0;
-
-            SqlConnection cnnSQL = new SqlConnection(strConnection);
-            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
-            try
-            {
-                cnnSQL.Open();
-
-                //Native
-                SqlCommand sqlCommand = new SqlCommand(sqlNative, cnnSQL);
-                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsNative++;
-                    }
-                }
-                sqlReader.Close();
-
-                //BNL
-                sqlCommand = new SqlCommand(sqlBNL, cnnSQL);
-                sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsBNL++;
-                    }
-                }
-                cnnSQL.Close();
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail("Connection failed:" + ex.Message);
-            }
-
-            Assert.AreEqual(amountOfTupelsNative, amountOfTupelsBNL, 0, "Amount of tupels does not match");
-        }
-
-
-        [TestMethod]
-        public void TestSKYLINEAmountsOfTupels3()
-        {
-            string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH";
-
-            SQLCommon common = new SQLCommon();
-            common.SkylineType = SQLCommon.Algorithm.NativeSQL;
-            string sqlNative = common.parsePreferenceSQL(strPrefSQL);
-            common.SkylineType = SQLCommon.Algorithm.BNLSort;
-            string sqlBNL = common.parsePreferenceSQL(strPrefSQL);
-
-            int amountOfTupelsNative = 0;
-            int amountOfTupelsBNL = 0;
-
-
-            SqlConnection cnnSQL = new SqlConnection(strConnection);
-            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
-            try
-            {
-                cnnSQL.Open();
-
-                //Native
-                SqlCommand sqlCommand = new SqlCommand(sqlNative, cnnSQL);
-                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsNative++;
-                    }
-                }
-                sqlReader.Close();
-
-                //BNL
-                sqlCommand = new SqlCommand(sqlBNL, cnnSQL);
-                sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsBNL++;
-                    }
-                }
-                cnnSQL.Close();
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail("Connection failed:" + ex.Message);
-            }
-
-            Assert.AreEqual(amountOfTupelsNative, amountOfTupelsBNL, 0, "Amount of tupels does not match");
-
-        }
-
 
 
 

@@ -194,7 +194,7 @@ namespace prefSQL.SQLParser
                         ////Add one, so that equal-clause cannot be true with same level-values, but other names
                         strSQLELSE = " ELSE " + (iWeight);
                         strSQLInnerELSE = " ELSE " + (iWeight + 1);
-                        strIncomporableAttributeELSE = "ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
+                        strIncomporableAttributeELSE = " ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
                         bComparable = false;
                         break;
                     case "OTHERSEQUAL":
@@ -231,7 +231,7 @@ namespace prefSQL.SQLParser
             //Add others incomparable clause at the top-level if not OTHERS was specified
             if (strSQLELSE.Equals("") && IsNative == false)
             {
-                strIncomporableAttributeELSE = "ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
+                strIncomporableAttributeELSE = " ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
                 bComparable = false;
             }
             /*if (strSQLELSE.Equals("") && IsNative == false)
