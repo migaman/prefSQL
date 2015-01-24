@@ -11,18 +11,18 @@ using System.Collections.Generic;
 //Important: Only use equal for comparing text (otherwise performance issues)
 namespace prefSQL.SQLSkyline
 {
-    public class SP_MultipleSkylineBNL
+    public class SP_MultipleSkylineBNLLevel
     {
         /// <summary>
         /// Calculate the skyline points from a dataset
         /// </summary>
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
-        [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_MultipleSkylineBNL")]
+        [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_MultipleSkylineBNLLevel")]
         public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 upToLevel)
         {
             int up = upToLevel.Value;
-            SP_MultipleSkylineBNL skyline = new SP_MultipleSkylineBNL();
+            SP_MultipleSkylineBNLLevel skyline = new SP_MultipleSkylineBNLLevel();
             skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), false, "", up);
 
         }
@@ -37,7 +37,6 @@ namespace prefSQL.SQLSkyline
         private DataTable getSkylineTable(String strQuery, String strOperators, bool isIndependent, string strConnection, int upToLevel)
         {
             ArrayList resultCollection = new ArrayList();
-            ArrayList resultstringCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
             DataTable dtResult = new DataTable();
 
@@ -91,7 +90,7 @@ namespace prefSQL.SQLSkyline
                         // Build our SqlDataRecord and start the results 
                         levels.Add(0);
                         iMaxLevel = 0;
-                        addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isIndependent, levels[levels.Count - 1], ref dtResult);
+                        addToWindow(sqlReader, operators, ref resultCollection, record, isIndependent, levels[levels.Count - 1], ref dtResult);
                     }
                     else
                     {
@@ -107,11 +106,10 @@ namespace prefSQL.SQLSkyline
                             {
                                 if (levels[i] == iLevel)
                                 {
-                                    long?[] result = (long?[])resultCollection[i];
-                                    string[] strResult = (string[])resultstringCollection[i];
+                                    long[] result = (long[])resultCollection[i];
 
                                     //Dominanz
-                                    if (Helper.compareIncomparable(sqlReader, operators, result, strResult) == true)
+                                    if (Helper.compare(sqlReader, operators, result) == true)
                                     {
                                         //Dominated in this level. Next level
                                         isDominated = true;
@@ -133,12 +131,12 @@ namespace prefSQL.SQLSkyline
                             if (iMaxLevel < upToLevel)
                             {
                                 levels.Add(iMaxLevel);
-                                addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isIndependent, levels[levels.Count - 1], ref dtResult);
+                                addToWindow(sqlReader, operators, ref resultCollection, record, isIndependent, levels[levels.Count - 1], ref dtResult);
                             }
                         }
                         else
                         {
-                            addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isIndependent, levels[levels.Count - 1], ref dtResult);
+                            addToWindow(sqlReader, operators, ref resultCollection, record, isIndependent, levels[levels.Count - 1], ref dtResult);
                         }
                     }
                 }
@@ -178,12 +176,11 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        private static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlDataRecord record, SqlBoolean isFrameworkMode, int level, ref DataTable dtResult)
+        private static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, SqlDataRecord record, SqlBoolean isFrameworkMode, int level, ref DataTable dtResult)
         {
 
             //Erste Spalte ist die ID
-            long?[] recordInt = new long?[operators.GetUpperBound(0) + 1];
-            string[] recordstring = new string[operators.GetUpperBound(0) + 1];
+            long[] recordInt = new long[operators.GetUpperBound(0) + 1];
             DataRow row = dtResult.NewRow();
 
             for (int iCol = 0; iCol < sqlReader.FieldCount; iCol++)
@@ -191,22 +188,7 @@ namespace prefSQL.SQLSkyline
                 //Only the real columns (skyline columns are not output fields)
                 if (iCol <= operators.GetUpperBound(0))
                 {
-                    //LOW und HIGH Spalte in record abfüllen
-                    if (operators[iCol].Equals("LOW"))
-                    {
-                        if (sqlReader.IsDBNull(iCol) == true)
-                            recordInt[iCol] = null;
-                        else
-                            recordInt[iCol] = sqlReader.GetInt32(iCol);
-                        
-                        //Check if long value is incomparable
-                        if (iCol + 1 <= recordInt.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
-                        {
-                            //Incomparable field is always the next one
-                            recordstring[iCol] = sqlReader.GetString(iCol + 1);
-                        }
-                    }
-
+                    recordInt[iCol] = sqlReader.GetInt32(iCol);
                 }
                 else
                 {
@@ -226,7 +208,6 @@ namespace prefSQL.SQLSkyline
                 SqlContext.Pipe.SendResultsRow(record);
             }
             resultCollection.Add(recordInt);
-            resultstringCollection.Add(recordstring);
         }
 
 

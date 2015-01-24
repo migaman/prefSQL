@@ -82,7 +82,7 @@ namespace prefSQL.SQLSkyline
             for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
             {
                 long value = sqlReader.GetInt32(iCol);
-                int comparison = Helper.compareValue(value, result[iCol]);
+                int comparison = compareValue(value, result[iCol]);
 
                 if (comparison >= 1)
                 {
@@ -122,7 +122,7 @@ namespace prefSQL.SQLSkyline
                 string op = operators[iCol];
 
                 long value = sqlReader.GetInt32(iCol);
-                int comparison = Helper.compareValue(result[iCol], value);
+                int comparison = compareValue(result[iCol], value);
 
                 if (comparison >= 1)
                 {
@@ -166,7 +166,7 @@ namespace prefSQL.SQLSkyline
                 if (op.Equals("LOW"))
                 {
                     long value = sqlReader.GetInt32(iCol);
-                    int comparison = Helper.compareValue(result[iCol], value);
+                    int comparison = compareValue(result[iCol], value);
 
                     if (comparison >= 1)
                     {
@@ -218,7 +218,7 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        public static bool compareIncomparable(DataTableReader sqlReader, string[] operators, long[] result, string[] stringResult)
+        public static bool compareIncomparable(DataTableReader sqlReader, string[] operators, long?[] result, string[] stringResult)
         {
             bool greaterThan = false;
 
@@ -228,9 +228,45 @@ namespace prefSQL.SQLSkyline
                 //Compare only LOW attributes
                 if (op.Equals("LOW"))
                 {
-                    long value = sqlReader.GetInt32(iCol);
-                    int comparison = Helper.compareValue(value, result[iCol]);
+                    long value = 0;
+                    long tmpValue = 0;
+                    int comparison = 0;
 
+                    //check if value is incomparable
+                    if (sqlReader.IsDBNull(iCol) == true)
+                    {
+                        //check if value is incomparable
+                        if (result[iCol] == null)
+                        {
+                            //borh values are null --> compare text
+                            //return false;
+                            comparison = 1;
+                        }
+
+                        else
+                        {
+                            tmpValue = (long)result[iCol];
+                            comparison = compareValue(value, tmpValue);
+                        }
+
+
+                    }
+                    else
+                    {
+                        //
+                        value = sqlReader.GetInt32(iCol);
+                        //check if value is incomparable
+                        if (result[iCol] == null)
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            tmpValue = (long)result[iCol];
+                        }
+                        comparison = compareValue(value, tmpValue);
+                    }
+                        
                     if (comparison >= 1)
                     {
                         if (comparison == 2)
@@ -312,7 +348,8 @@ namespace prefSQL.SQLSkyline
 
         public static void addToWindowIncomparable(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, ref DataTable dtResult)
         {
-            long[] recordInt = new long[operators.GetUpperBound(0) + 1];
+            //long must be nullable (because of incomparable tupels)
+            long?[] recordInt = new long?[operators.GetUpperBound(0) + 1];
             string[] recordstring = new string[operators.GetUpperBound(0) + 1];
             DataRow row = dtResult.NewRow();
 
@@ -324,7 +361,11 @@ namespace prefSQL.SQLSkyline
                     //LOW und HIGH Spalte in record abfüllen
                     if (operators[iCol].Equals("LOW"))
                     {
-                        recordInt[iCol] = sqlReader.GetInt32(iCol);
+                        if (sqlReader.IsDBNull(iCol) == true)
+                            recordInt[iCol] = null;
+                        else
+                            recordInt[iCol] = sqlReader.GetInt32(iCol);
+                            
 
                         //Check if long value is incomparable
                         if (iCol + 1 <= recordInt.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))

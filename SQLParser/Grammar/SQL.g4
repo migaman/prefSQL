@@ -129,9 +129,16 @@ exprSkyline
 	: literal_value																						#opLiteral
 	| '{' exprOwnPreference '}'																			#exprOwnPreferenceOp																	
 	| exprCategory ( '>>'  | '==') exprCategory															#opDoubleOrder
-	| K_OTHERS (K_EQUAL | K_INCOMPARABLE)																#preferenceOTHERS
+	//OTHERS keywords are only possible with greater than
+		//With the EQUAL keyword it would be too much coding		(i.e. blue >> red == OTHERS EQUAL --> blue == OTHERS EQUAL)
+		//With the INCOMPARABLE keyword it would be a contradiction (i.e. red == OTHERS INCOMPARABLE)
+	| exprCategory ( '>>') exprOthers																	#opExprOthers
 	;
 
+
+exprOthers
+	: K_OTHERS (K_EQUAL)
+	| K_OTHERS (K_INCOMPARABLE);
 
 geocoordinate :'(' expr ',' expr ')';
 

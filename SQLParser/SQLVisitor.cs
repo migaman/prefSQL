@@ -231,6 +231,11 @@ namespace prefSQL.SQLParser
             //Add others incomparable clause at the top-level if not OTHERS was specified
             if (strSQLELSE.Equals("") && IsNative == false)
             {
+                strIncomporableAttributeELSE = "ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
+                bComparable = false;
+            }
+            /*if (strSQLELSE.Equals("") && IsNative == false)
+            {
                 //No OTHERS-clause available -- This means all other elements are incomparable --> Add it to the beginning
                 iWeight = 0;
                 strSQLELSE = " ELSE " + (iWeight);
@@ -238,7 +243,7 @@ namespace prefSQL.SQLParser
                 strIncomporableAttributeELSE = "ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
                 bComparable = false;
 
-            }
+            }*/
             strSQL = "CASE" + strSQLOrderBy + strSQLELSE + " END";
             strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLInnerELSE + " END";
             strIncomporableAttribute = "CASE" + strSQLIncomparableAttribute + strIncomporableAttributeELSE + " END";
