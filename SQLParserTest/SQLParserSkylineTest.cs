@@ -13,6 +13,87 @@ namespace prefSQL.SQLParserTest
     {
         private const string strConnection = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
 
+        /**
+         * If only one skyline attribute is available --> Show all records for each algorithm
+         * 
+         */
+        [TestMethod]
+        public void TestSKYLINEOneAttribute()
+        {
+            string sqlAll = "SELECT COUNT(*) FROM cars_small";
+            string strPrefSQL = "SELECT c.id AS ID FROM Cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF b.name ('Bus' >> 'Kleinwagen')";
+
+
+            SQLCommon common = new SQLCommon();
+            common.SkylineType = SQLCommon.Algorithm.NativeSQL;
+            string sqlNative = common.parsePreferenceSQL(strPrefSQL);
+            common.SkylineType = SQLCommon.Algorithm.BNLSort;
+            string sqlBNL = common.parsePreferenceSQL(strPrefSQL);
+
+
+            int amountOfTupels = 0;
+            int amountOfTupelsBNL = 0;
+            int amountOfTupelsSQL = 0;
+
+            SqlConnection cnnSQL = new SqlConnection(strConnection);
+            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
+            try
+            {
+                cnnSQL.Open();
+
+
+                //All
+                SqlCommand sqlCommand = new SqlCommand(sqlAll, cnnSQL);
+                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
+
+                if (sqlReader.HasRows)
+                {
+                    while (sqlReader.Read())
+                    {
+                        amountOfTupels = sqlReader.GetInt32(0);
+                        break;
+                    }
+                }
+                sqlReader.Close();
+
+                //Native
+                sqlCommand = new SqlCommand(sqlNative, cnnSQL);
+                sqlReader = sqlCommand.ExecuteReader();
+
+                if (sqlReader.HasRows)
+                {
+                    while (sqlReader.Read())
+                    {
+                        amountOfTupelsSQL++;
+                    }
+                }
+                sqlReader.Close();
+
+                //BNL
+                sqlCommand = new SqlCommand(sqlBNL, cnnSQL);
+                sqlReader = sqlCommand.ExecuteReader();
+
+                if (sqlReader.HasRows)
+                {
+                    while (sqlReader.Read())
+                    {
+                        amountOfTupelsBNL++;
+                    }
+                }
+                sqlReader.Close();
+
+
+                cnnSQL.Close();
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail("Connection failed:" + ex.Message);
+            }
+
+
+            Assert.AreEqual(amountOfTupels, amountOfTupelsSQL, 0, "Amount of tupels does not match");
+            Assert.AreEqual(amountOfTupels, amountOfTupelsBNL, 0, "Amount of tupels does not match");
+        }
 
 
         [TestMethod]
@@ -82,7 +163,7 @@ namespace prefSQL.SQLParserTest
         {
              string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 " +
                 "LEFT OUTER JOIN colors ON t1.color_id = colors.ID " +
-                "SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' == OTHERS INCOMPARABLE)";
+                "SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
 
             SQLCommon common = new SQLCommon();
             common.SkylineType = SQLCommon.Algorithm.NativeSQL;

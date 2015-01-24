@@ -69,6 +69,7 @@ namespace prefSQL.SQLParser
         public DataTable parseAndExeutePrefSQL(string connectionString, string driverString, String strPrefSQL, SQLCommon.Algorithm algorithm, int upToLevel)
         {
             string strSQL = parsePreferenceSQL(strPrefSQL);
+            Debug.WriteLine(strSQL);
             Helper helper = new Helper();
             helper.ConnectionString = connectionString;
             helper.DriverString = driverString;
