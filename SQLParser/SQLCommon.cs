@@ -124,65 +124,43 @@ namespace prefSQL.SQLParser
                         if (_ShowSkylineAttributes == true)
                         {
                             string strPreferences = getPreferenceAttributes(prefSQL, strNewSQL);
-                            if (_SkylineType != Algorithm.NativeSQL)
-                            {
-                                strPreferences = strPreferences.Replace("'", "''");
-                            }
                             string strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
                             string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
                             strNewSQL = strSQLBeforeFrom + strPreferences + " " + strSQLAfterFrom;
                             
                         }
 
+                        //Add ORDER BY Clause
+                        string strOrderBy = "";
+                        if (strInput.IndexOf("ORDER BY") > 0)
+                        {
+                            if (prefSQL.Ordering == Ordering.AsIs)
+                            {
+                                string strTmpInput = strInput;
+
+                                //Replace category clauses
+                                //Start with latest order by (otherwise substring start, stop position are changed)
+                                for (int iIndex = prefSQL.OrderBy.Count - 1; iIndex >= 0; iIndex--)
+                                {
+                                    OrderByModel model = prefSQL.OrderBy[iIndex];
+                                    strTmpInput = strTmpInput.Substring(0, model.start) + model.text + strTmpInput.Substring(model.stop);
+                                }
+
+                                strOrderBy = strTmpInput.Substring(strInput.IndexOf("ORDER BY"));
+                            }
+                            else
+                            {
+                                strOrderBy = sqlSort.getSortClause(prefSQL, prefSQL.Ordering); // sqlSort.getSortClause(prefSQL, _OrderType);
+                            }
+                        }
+
 
                         if (_SkylineType == Algorithm.NativeSQL)
                         {
                             string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strNewSQL);
-                            //string strOrderBy = sqlSort.getSortClause(prefSQL, _OrderType);
-                            string strOrderBy = "";
-                            if (strInput.IndexOf("ORDER BY") > 0)
-                            {
-                                if (prefSQL.Ordering == Ordering.AsIs)
-                                {
-                                    string strTmpInput = strInput;
-
-                                    //Replace category clauses
-                                    //Start with latest order by (otherwise substring start, stop position are changed)
-                                    for (int iIndex = prefSQL.OrderBy.Count-1; iIndex >= 0; iIndex--)
-                                    {
-                                        OrderByModel model = prefSQL.OrderBy[iIndex];
-                                        strTmpInput = strTmpInput.Substring(0, model.start) + model.text + strTmpInput.Substring(model.stop);
-                                    }
-
-                                    strOrderBy = strTmpInput.Substring(strInput.IndexOf("ORDER BY"));
-                                }
-                                else
-                                {
-                                    strOrderBy = sqlSort.getSortClause(prefSQL, prefSQL.Ordering); // sqlSort.getSortClause(prefSQL, _OrderType);
-                                }
-                            }
                             strNewSQL += strWHERE;
                             strNewSQL += strOrderBy;
                         }
-                        /*else if (_SkylineType == Algorithm.BNL || _SkylineType == Algorithm.BNLLevel)
-                        {
-                            string strOperators = "";
-                            string strAttributesSkyline = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
-                            //Without SELECT 
-                            string strAttributesOutput = ", " + strNewSQL.Substring(7, strNewSQL.IndexOf("FROM") - 7);
-                            string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
-
-                            string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
-                            //Bewusst nicht sortieren
-                            if (_SkylineType == Algorithm.BNL)
-                            {
-                                strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "'";
-                            }
-                            else if (_SkylineType == Algorithm.BNLLevel)
-                            {
-                                strNewSQL = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "'";
-                            }
-                        }*/
                         else if (_SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.BNLSortLevel || _SkylineType == Algorithm.MultipleBNL)
                         {
                             string strOperators = "";
@@ -192,9 +170,13 @@ namespace prefSQL.SQLParser
                             string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
 
                             string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
-                            //Sortieren nach Attributen (damit algo funktioniert)
-                            string strOrderBy = sqlSort.getSortClause(prefSQL, SQLCommon.Ordering.AttributePosition); // sqlSort.getSortClause(prefSQL, _OrderType);
-                            strFirstSQL += strOrderBy.Replace("'", "''");
+                            //Sortieren according to preferences (otherwise the algorithm would not work)
+                            string strOrderByAttributes = sqlSort.getSortClause(prefSQL, SQLCommon.Ordering.AttributePosition);
+                            strFirstSQL += strOrderByAttributes;
+
+                            //Quote quotes because it is a parameter of the stored procedure
+                            strFirstSQL = strFirstSQL.Replace("'", "''");
+
                             if (_SkylineType == Algorithm.BNLSort)
                             {
                                 strNewSQL = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "'";
@@ -217,10 +199,11 @@ namespace prefSQL.SQLParser
                             string strAttributesOutput = ", " + strNewSQL.Substring(7, strNewSQL.IndexOf("FROM") - 7);
                             string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
 
+                            //Quote quotes because it is a parameter of the stored procedure
                             string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
                             strFirstSQL = strFirstSQL.Replace("'", "''");
 
-
+                            //Quote quotes because it is a parameter of the stored procedure
                             string strHexagon = buildSELECTHexagon(prefSQL, strNewSQL);
                             strHexagon = strHexagon.Replace("'", "''");
 
@@ -368,13 +351,13 @@ namespace prefSQL.SQLParser
                     if (model.Skyline[iChild].Op.Equals("<"))
                     {
                         op = "LOW";
-                        strSQL += ", " + model.Skyline[iChild].ColumnExpression.Replace("'", "''") + " AS SkylineAttribute" + iChild;
+                        strSQL += ", " + model.Skyline[iChild].ColumnExpression + " AS SkylineAttribute" + iChild;
                     }
                     else
                     {
                         op = "LOW";
                         //Trick: Convert HIGH attributes in negative values
-                        strSQL += ", " + model.Skyline[iChild].ColumnExpression.Replace("'", "''") + "*-1 AS SkylineAttribute" + iChild;
+                        strSQL += ", " + model.Skyline[iChild].ColumnExpression + "*-1 AS SkylineAttribute" + iChild;
 
                     }
                     strOperators += op + ";";
@@ -384,7 +367,7 @@ namespace prefSQL.SQLParser
                     //Incomparable field --> Add string field
                     if (model.Skyline[iChild].Comparable == false)
                     {
-                        strSQL += ", " + model.Skyline[iChild].IncomparableAttribute.Replace("'", "''");
+                        strSQL += ", " + model.Skyline[iChild].IncomparableAttribute;
                         strOperators += "INCOMPARABLE" + ";";
                     }
 
