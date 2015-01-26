@@ -9,7 +9,7 @@ namespace prefSQL.SQLParser.Models
     class AttributeModel
     {
 
-        public AttributeModel(string strColumnExpression, string strOperator, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumnName, string strExpression, string strRankHexagon, string strOrderBy, bool isCategory, string columnName)
+        public AttributeModel(string strColumnExpression, string strOperator, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumnName, string strExpression, string strRankHexagon, string strOrderBy, bool isCategory, string columnName, string strHexagonIncomparable, int amountIncomparable)
         {
             ColumnExpression = strColumnExpression;                 //Column expression                 (i.e. CASE WHEN colors.name = 'türkis' THEN 0 WHEN colors.name = 'gelb' THEN 100 ELSE 200 END)
             InnerColumnExpression = strInnerColumnExpression;       //Inner column expression           (i.e CASE WHEN colors_INNER.name = 'türkis' THEN 0 WHEN colors_INNER.name = 'gelb' THEN 100 ELSE 200 END)
@@ -22,13 +22,16 @@ namespace prefSQL.SQLParser.Models
             Expression = strExpression;
             RankColumnName = strRankColumnName;
             RankHexagon = strRankHexagon;
+            HexagonIncomparable = strHexagonIncomparable;
 
             OrderBy = strOrderBy;
             IsCategory = isCategory;
             ColumnName = columnName;
+
+            AmountOfIncomparables = amountIncomparable;
         }
 
-
+        public int AmountOfIncomparables { get; set; }
         public string FullColumnName { get; set; }
 
         public string InnerColumnName { get; set; }
@@ -48,6 +51,8 @@ namespace prefSQL.SQLParser.Models
         public string Expression { get; set; }
         
         public string RankHexagon { get; set; }
+
+        public string HexagonIncomparable { get; set; }
 
         public string OrderBy { get; set; }
 

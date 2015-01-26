@@ -132,7 +132,8 @@ exprSkyline
 	//OTHERS keywords are only possible with greater than
 		//With the EQUAL keyword it would be too much coding		(i.e. blue >> red == OTHERS EQUAL --> blue == OTHERS EQUAL)
 		//With the INCOMPARABLE keyword it would be a contradiction (i.e. red == OTHERS INCOMPARABLE)
-	| exprCategory ( '>>') exprOthers																	#opExprOthers
+	| exprCategory ( '>>') exprOthers																	#opExprOthersAfter
+	| exprOthers ( '>>') exprCategory																	#opExprOthersBefore
 	;
 
 

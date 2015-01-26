@@ -34,7 +34,8 @@ namespace prefSQL.SQLParser
             BNLSort,                //Block nested loops with presort
             BNLSortLevel,           //Block nested loops with presort (does not support incomparable)
             //DQ,                     //Divide and Conquer
-            Hexagon,                //Hexagon Augsburg
+            Hexagon,                //Hexagon Augsburg 
+            HexagonLevel,           //Hexagon Augsburg (does not support incomparable)
             MultipleBNL,             //Multiple Skyline calculation (define levels with SkylineUptoLevel variable)
             MultipleBNLLevel        //Multiple Skyline calculation (define levels with SkylineUptoLevel variable, does not support incomparable)
         };
@@ -191,10 +192,10 @@ namespace prefSQL.SQLParser
                             }
                             
                         }
-                        else if (_SkylineType == Algorithm.Hexagon)
+                        else if (_SkylineType == Algorithm.Hexagon || _SkylineType == Algorithm.HexagonLevel)
                         {
                             string strOperators = "";
-                            string strAttributesSkyline = buildSELECTDENSERank(prefSQL, strNewSQL, ref strOperators);
+                            string strAttributesSkyline = buildSELECTHexagon(prefSQL, strNewSQL, ref strOperators);
                             //Without SELECT 
                             string strAttributesOutput = ", " + strNewSQL.Substring(7, strNewSQL.IndexOf("FROM") - 7);
                             string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
@@ -207,7 +208,14 @@ namespace prefSQL.SQLParser
                             string strHexagon = buildSELECTHexagon(prefSQL, strNewSQL);
                             strHexagon = strHexagon.Replace("'", "''");
 
-                            strNewSQL = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "'";
+                            if (_SkylineType == Algorithm.Hexagon)
+                            {
+                                strNewSQL = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "'";
+                            }
+                            else if (_SkylineType == Algorithm.HexagonLevel)
+                            {
+                                strNewSQL = "EXEC dbo.SP_SkylineHexagonLevel '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "'";
+                            }
 
                         }
                     }
@@ -237,7 +245,7 @@ namespace prefSQL.SQLParser
         /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
         /// <param name="strOperators">Returns the operators</param>
         /// <returns>TODO</returns>
-        private string buildSELECTDENSERank(PrefSQLModel model, string strPreSQL, ref string strOperators)
+        private string buildSELECTHexagon(PrefSQLModel model, string strPreSQL, ref string strOperators)
         {
             strOperators = "";
 
@@ -251,6 +259,15 @@ namespace prefSQL.SQLParser
                 string strRank = model.Skyline[iChild].RankHexagon;
                 strSQL += ", " + strRank;
                 strOperators += "LOW" + ";";
+                if (model.Skyline[iChild].Comparable == false && model.Skyline[iChild].AmountOfIncomparables > 0)
+                {
+                    strSQL += ", " + model.Skyline[iChild].HexagonIncomparable;
+                    //CASE WHEN  colors.name IN ('blau') THEN '001' WHEN colors.name IN ('silber') THEN '010' ELSE '100' END AS RankColorNew
+                    for (int iIncomparable = 1; iIncomparable < model.Skyline[iChild].AmountOfIncomparables; iIncomparable++)
+                    {
+                        strOperators += "INCOMPARABLE;";
+                    }
+                }
             }
 
             //Add the ranked column before the FROM keyword
@@ -282,6 +299,17 @@ namespace prefSQL.SQLParser
                 string strRank = model.Skyline[iChild].RankHexagon;
                 strSQL += ", " + strRank;
                 strMaxSQL += ", MAX(Rank" + model.Skyline[iChild].RankColumnName + ")";
+                
+                //Add additional columns if attribute is incomparable
+                if (model.Skyline[iChild].Comparable == false && model.Skyline[iChild].AmountOfIncomparables > 0)
+                {
+                    strMaxSQL += "+1";
+                    for (int iIncomparable = 1; iIncomparable < model.Skyline[iChild].AmountOfIncomparables; iIncomparable++)
+                    {
+                        strMaxSQL += ", 1";
+                    }
+                    
+                }
             }
             strMaxSQL = strMaxSQL.TrimStart(',');
             strSQL = strSQL.TrimStart(',');

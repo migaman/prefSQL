@@ -131,6 +131,25 @@ namespace prefSQL.SQLParser
                     thread.Join();
 
                 }
+                else if (algorithm == SQLCommon.Algorithm.HexagonLevel)
+                {
+                    prefSQL.SQLSkyline.SP_SkylineHexagonLevel skyline = new SQLSkyline.SP_SkylineHexagonLevel();
+                    //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
+
+                    //Default stack size is 1MB (1024000) --> Increase to 8MB
+                    var thread = new Thread(
+                        () =>
+                        {
+                            dt = skyline.getSkylineTable(str1, str2, str3, ConnectionString);
+                        }, 8000000);
+
+
+                    thread.Start();
+
+                    //Join method to block the current thread  until the object's thread terminates.
+                    thread.Join();
+
+                }
                 else if (algorithm == SQLCommon.Algorithm.MultipleBNL)
                 {
                     prefSQL.SQLSkyline.SP_MultipleSkylineBNL skyline = new SQLSkyline.SP_MultipleSkylineBNL();

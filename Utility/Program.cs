@@ -84,8 +84,9 @@ namespace Utility
                     "LEFT OUTER JOIN Models ON t1.model_id = Models.id " +*/
                     //"SKYLINE OF t1.price LOW 1000, t1.mileage LOW";
                     //"SKYLINE OF t1.price LOW, t1.mileage LOW ";
-                    "WHERE (t1.price = 2400 OR t1.price = 900) " +
-                    "SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber'} >> OTHERS INCOMPARABLE) " +
+                    //"WHERE (t1.price = 2400 OR t1.price = 900) " +
+                    //"WHERE (t1.price < 5000) " + 
+                    "SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber', 'rot', 'schwarz', 'gelb'} >> OTHERS INCOMPARABLE) " +
                     //"SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000";
                     //", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +
                     //", t1.doors HIGH, t1.seats HIGH 2, t1.cylinders HIGH, t1.gears HIGH ";
@@ -115,13 +116,16 @@ namespace Utility
                 //"SKYLINE OF colors.name DISFAVOUR 'rot' ";
 
 
+                //strPrefSQL = "SELECT cars_small.price,cars_small.mileage FROM cars_small SKYLINE OF cars_small.price LOW 3000 INCOMPARABLE, cars_small.mileage LOW 20000 EQUAL";
+
+
                 Debug.WriteLine(strPrefSQL);
                 Debug.WriteLine("--------------------------------------------");
 
                 SQLCommon parser = new SQLCommon();
                 //parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
-                //parser.SkylineType = SQLCommon.Algorithm.BNLSort;
-                parser.SkylineType = SQLCommon.Algorithm.Hexagon;
+                parser.SkylineType = SQLCommon.Algorithm.BNLSort;
+                //parser.SkylineType = SQLCommon.Algorithm.Hexagon;
                 //parser.SkylineType = SQLCommon.Algorithm.MultipleBNL;
                 parser.ShowSkylineAttributes = true;
                 parser.SkylineUpToLevel = 1;

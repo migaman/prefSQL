@@ -14,19 +14,12 @@ namespace prefSQL.SQLParser.Models
         private List<OrderByModel> _orderBy = new List<OrderByModel>();                 //the category order by and the calculated sql
         private Dictionary<string, string> _tables = new Dictionary<string, string>();  //the tablename and its alias
         private bool _hasSkyline = false;                                               //if the query needs a skyline clause
-        private bool _hasPrioritize = false;                                            //if the query needs a prioritize clause
         private SQLCommon.Ordering _ordering = SQLCommon.Ordering.AsIs;
 
         public SQLCommon.Ordering Ordering
         {
             get { return _ordering;  }
             set { _ordering = value;  }
-        }
-
-        public bool HasPrioritize
-        {
-            get { return _hasPrioritize; }
-            set { _hasPrioritize = value; }
         }
 
         public bool HasSkyline

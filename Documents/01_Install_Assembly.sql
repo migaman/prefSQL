@@ -44,6 +44,9 @@ IF EXISTS (SELECT * FROM sys.objects WHERE type = 'PC' AND name = 'SP_SkylineDQ'
 IF EXISTS (SELECT * FROM sys.objects WHERE type = 'PC' AND name = 'SP_SkylineHexagon')
 	DROP PROCEDURE SP_SkylineHexagon
 
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'PC' AND name = 'SP_SkylineHexagonLevel')
+	DROP PROCEDURE SP_SkylineHexagonLevel
+
 IF EXISTS (SELECT * FROM sys.objects WHERE type = 'PC' AND name = 'SP_MultipleSkylineBNL')
 	DROP PROCEDURE SP_MultipleSkylineBNL
 
@@ -84,6 +87,10 @@ GO
 --Create SP for Hexagon
 CREATE PROCEDURE SP_SkylineHexagon (@Name nvarchar(4000), @Operators nvarchar(200), @Construction nvarchar(4000))
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineHexagon].getSkyline;
+GO
+--Create SP for Hexagon Level
+CREATE PROCEDURE SP_SkylineHexagonLevel (@Name nvarchar(4000), @Operators nvarchar(200), @Construction nvarchar(4000))
+AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineHexagonLevel].getSkyline;
 GO
 --Create SP for MultipleSkyline
 CREATE PROCEDURE SP_MultipleSkylineBNL (@Name nvarchar(4000), @Operators nvarchar(200), @UpToLevel int)

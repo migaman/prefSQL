@@ -31,6 +31,15 @@ namespace prefSQL.SQLSkyline
 
         private DataTable getSkylineTable(string strQuery, string strOperators, string strQueryConstruction, bool isIndependent, string strConnection)
         {
+            //strQueryConstruction = "SELECT  MAX(Rankprice), MAX(Rankcolorsname)+1,1,1 FROM (SELECT  DENSE_RANK() over (ORDER BY t1.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY CASE WHEN colors.name IN ('blau','silber', 'schwarz') THEN 0 ELSE 100 END ASC)-1 AS Rankcolorsname FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 10990  or t1.price = 17900) ) MyQuery";
+            //strQueryConstruction = "SELECT  MAX(Rankprice), MAX(Rankcolorsname)+1,1,1 FROM (SELECT  DENSE_RANK() over (ORDER BY t1.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY CASE WHEN colors.name IN ('blau','silber', 'schwarz') THEN 0 ELSE 100 END ASC)-1 AS Rankcolorsname FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 10990  or t1.price = 17900) ) MyQuery";
+            //strQueryConstruction = "SELECT  MAX(Rankprice), MAX(Rankcolorsname)+1,1 FROM (SELECT  DENSE_RANK() over (ORDER BY t1.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY CASE WHEN colors.name IN ('blau','silber') THEN 0 ELSE 100 END ASC)-1 AS Rankcolorsname FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID ) MyQuery";
+            //strQueryConstruction = "SELECT  MAX(Rankprice), MAX(Rankcolorsname)+1,1,1 FROM (SELECT  DENSE_RANK() over (ORDER BY t1.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY CASE WHEN colors.name IN ('blau','silber','rot') THEN 0 ELSE 100 END ASC)-1 AS Rankcolorsname FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID) MyQuery";
+            //strOperators += ";INCOMPARABLE";
+            //strOperators += ";INCOMPARABLE";
+            //strQuery = "SELECT  DENSE_RANK() over (ORDER BY t1.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY CASE WHEN colors.name IN ('blau','silber','schwarz') THEN 0 ELSE 100 END ASC)-1 AS Rankcolorsname , CASE WHEN  colors.name IN ('blau') THEN '001' WHEN colors.name IN ('silber') THEN '010' ELSE '100' END AS RankColorNew, t1.id, t1.title, t1.price, t1.mileage, colors.name , t1.price AS SkylineAttributeprice, CASE WHEN colors.name IN ('blau','silber', 'schwarz') THEN 0 ELSE 100 END AS SkylineAttributename FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID  WHERE (t1.price = 2400 OR t1.price = 10990 or t1.price = 17900)";
+            //strQuery = "SELECT  DENSE_RANK() over (ORDER BY t1.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY CASE WHEN colors.name IN ('blau','silber','rot') THEN 0 ELSE 100 END ASC)-1 AS Rankcolorsname , CASE WHEN  colors.name IN ('blau') THEN '001' WHEN colors.name IN ('silber') THEN '010' ELSE '001' END AS RankColorNew, t1.id, t1.title, t1.price, t1.mileage, colors.name , t1.price AS SkylineAttributeprice, CASE WHEN colors.name IN ('blau','silber','rot') THEN 0 ELSE 100 END AS SkylineAttributename FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID";
+
             ArrayList[] btg = null;
             int[] next = null;
             int[] prev = null;
@@ -48,6 +57,7 @@ namespace prefSQL.SQLSkyline
             String strSQL = strQuery.ToString();
             string[] operators = strOperators.ToString().Split(';');
             int amountOfPreferences = operators.GetUpperBound(0) + 1;
+
             
             
 
@@ -178,7 +188,6 @@ namespace prefSQL.SQLSkyline
                 dap.Fill(dt);
 
 
-
                 int[] maxPreferenceLevel = new int[amountOfPreferences];
                 for (int i = 0; i < amountOfPreferences; i++)
                 {
@@ -296,7 +305,27 @@ namespace prefSQL.SQLSkyline
                 //Only the real columns (skyline columns are not output fields)
                 if (iCol <= operators.GetUpperBound(0))
                 {
-                    tuple[iCol] = sqlReader.GetInt64(iCol);
+                    //LOW und HIGH Spalte in record abfüllen
+                    if (operators[iCol].Equals("LOW"))
+                    {
+                        tuple[iCol] = sqlReader.GetInt64(iCol);
+
+                        //Check if long value is incomparable
+                        if (iCol + 1 <= tuple.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
+                        {
+                            //Incomparable field is always the next one
+                            String strValue = sqlReader.GetString(iCol+1);
+                            for (int iValue = 0; iValue < strValue.Length; iValue++)
+                            {
+                                tuple[iCol + iValue] = long.Parse(strValue.Substring(iValue, 1));
+                            }
+                            //tuple[iCol + 1] = long.Parse(strValue.Substring(1, 1));
+                            //tuple[iCol + 2] = long.Parse(strValue.Substring(2, 1));
+                            //recordstring[iCol] = sqlReader.GetString(iCol + 1);
+                        }
+
+                    }
+                    
                 }
                 else
                 {

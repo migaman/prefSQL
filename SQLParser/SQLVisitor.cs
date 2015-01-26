@@ -158,6 +158,8 @@ namespace prefSQL.SQLParser
             string strOperator = "";
             string strRankColumn = "";
             string strRankHexagon = "";
+            string strHexagonIncomparable = "";
+            int amountOfIncomparable = 0;
 
             //It is a text --> Text text must be converted in a given sortorder
 
@@ -214,6 +216,20 @@ namespace prefSQL.SQLParser
                             strSQLInnerOrderBy += " WHEN " + strTable + InnerTableSuffix + "." + strColumnName + " IN " + strTemp[i] + " THEN " + (iWeight + 1);
                             //Not comparable --> give string value of field
                             strSQLIncomparableAttribute += " WHEN " + strTable + "." + strColumnName + " IN " + strTemp[i] + " THEN " + strTable + "." + strColumnName;
+
+                            //Create hexagon single value statement for incomparable tuples
+                            strHexagonIncomparable = "CASE ";
+                            amountOfIncomparable = 0;
+                            foreach (String strCategory in strTemp[i].Split(','))
+                            {
+                                string strBitPattern = new String('0', strTemp[i].Split(',').GetUpperBound(0)+1);
+                                strBitPattern = strBitPattern.Substring(0, amountOfIncomparable) + "1" + strBitPattern.Substring(amountOfIncomparable + 1);
+                                strHexagonIncomparable += " WHEN " + strTable + "." + strColumnName + " = " + strCategory.Replace("(", "").Replace(")", "") + " THEN '" + strBitPattern + "'";
+                                amountOfIncomparable++;
+                            }
+                            string strBitPatternFull = new String('1', amountOfIncomparable); // string of 20 spaces;
+                            strHexagonIncomparable += " ELSE '" + strBitPatternFull + "' END AS HexagonIncomparable" + strSingleColumn.Replace(".", "");
+                            
                         }
                         else
                         {
@@ -254,8 +270,9 @@ namespace prefSQL.SQLParser
 
             strRankColumn = RankingFunction + " over (ORDER BY " + strSQL + ")";
             strRankHexagon = "DENSE_RANK()" + " over (ORDER BY " + strSQL + ")-1 AS Rank" + strSingleColumn.Replace(".", "");
+            //strHexagonIncomparable = "CASE WHEN  colors.name IN ('blau') THEN '001' WHEN colors.name IN ('silber') THEN '100' WHEN colors.name IN ('rot') THEN '010' ELSE '111' END AS RankColorNew";
             //Add the preference to the list               
-            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, strSingleColumn.Replace(".", ""), strRankColumn, strRankHexagon, strSQL, true, strColumnName));
+            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, strSingleColumn.Replace(".", ""), strRankColumn, strRankHexagon, strSQL, true, strColumnName, strHexagonIncomparable, amountOfIncomparable));
 
 
 
@@ -368,7 +385,7 @@ namespace prefSQL.SQLParser
 
 
             //Add the preference to the list               
-            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", bComparable, strIncomporableAttribute, strColumnName, strRankColumn, strRankHexagon, strSQL, false, strColumnName));
+            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", bComparable, strIncomporableAttribute, strColumnName, strRankColumn, strRankHexagon, strSQL, false, strColumnName, "", 0));
             pref.HasSkyline = true;
             pref.Tables = tables;
             model = pref;
@@ -436,7 +453,7 @@ namespace prefSQL.SQLParser
                     }
                     strOperator = "<";
 
-                    pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", true, "", "", "", "", strSQL, false, strColumn));
+                    pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", true, "", "", "", "", strSQL, false, strColumn, "", 0));
 
                     break;
 
@@ -447,7 +464,7 @@ namespace prefSQL.SQLParser
                     strInnerColumnExpression = strColumnExpression.Replace(strTable, strTable + InnerTableSuffix);
                     strOperator = "<";
 
-                    pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", true, "", "", "", "", strSQL, false, strColumn));
+                    pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", true, "", "", "", "", strSQL, false, strColumn, "", 0));
 
                     break;
 
@@ -459,7 +476,7 @@ namespace prefSQL.SQLParser
                     strOperator = ">";
 
 
-                    pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", true, "", "", "", "", strSQL, false, strColumn));
+                    pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", true, "", "", "", "", strSQL, false, strColumn, "", 0));
 
                     break;
 
