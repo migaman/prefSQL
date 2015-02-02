@@ -57,70 +57,9 @@ namespace prefSQL.SQLSkyline
                 SqlDataAdapter dap = new SqlDataAdapter(strQuery.ToString(), connection);
                 DataTable dt = new DataTable();
                 dap.Fill(dt);
+ 
 
-
-
-                // Build our record schema 
-                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators);
-                SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
-
-
-                computeSkyline(dt, operators); ;
-
-
-
-                //Pivot := Median{dimension} // equi-partition the set
-                /*(P1,P2) := Partition(M,Dimension,Pivot)
-                S1 := SkylineBasic(P1,Dimension) // compute skyline recursively
-                S2 := SkylineBasic(P2,Dimension)
-                return S1 [_ Mer   geBasic(S1,S2,Dimension)
-                */
-
-
-                /*int iCount = 0;
-                //Read all records only once. (SqlDataReader works forward only!!)
-                while (sqlReader.Read())
-                {
-                    //Check if window list is empty
-                    if (resultCollection.Count == 0)
-                    {
-                        // Build our SqlDataRecord and start the results 
-                        iCount++;
-                        addToWindow(sqlReader, operators, ref resultCollection, record);
-                    }
-                    else
-                    {
-                        bool bDominated = false;
-
-                        //check if record is dominated (compare against the records in the window)
-                        for (int i = resultCollection.Count - 1; i >= 0; i--)
-                        {
-                            int[] result = (int[])resultCollection[i];
-                            
-
-                            //Dominanz
-                            if (compare(sqlReader, result) == true)
-                            {
-                                //New point is dominated. No further testing necessary
-                                bDominated = true;
-                                break;
-                            }
-
-
-                        }
-                        if (bDominated == false)
-                        {
-                            iCount++;
-                            addToWindow(sqlReader, operators, ref resultCollection, record);
-
-
-                        }
-
-                    }
-                }
-
-                sqlReader.Close();*/
-
+                dtResult = computeSkyline(dt, operators, operators.GetUpperBound(0));
 
 
 
@@ -151,151 +90,66 @@ namespace prefSQL.SQLSkyline
             return dtResult;
         }
 
-        private static void computeSkyline(DataTable dt, string[] operators)
+        private DataTable computeSkyline(DataTable dt, string[] operators, int dim)
         {
             //Von diesen Punkten Skyline berechnen
-            DataTableReader sqlReader = dt.CreateDataReader();
+            //DataTableReader sqlReader = dt.CreateDataReader();
 
-            //compute first median for some dimension
-            int computeMedianPrice = (int)dt.Rows[dt.Rows.Count / 2][0];
-
-
-            ArrayList list1 = new ArrayList();
-            ArrayList list2 = new ArrayList();
-
-            //divide input intwo 2 partitions
-            while (sqlReader.Read())
+            if(dt.Rows.Count <= 25)
             {
-
-                int[] recordInt = new int[operators.GetUpperBound(0) + 1];
-                for (int iCol = 0; iCol <= recordInt.GetUpperBound(0); iCol++)
-                {
-                    //Only the real columns (skyline columns are not output fields)
-                    recordInt[iCol] = sqlReader.GetInt32(iCol);
-                }
-
-
-                if ((int)sqlReader[0] < computeMedianPrice)
-                {
-                    list1.Add(recordInt);
-                }
-                else
-                {
-                    list2.Add(recordInt);
-                }
+                return dt;
             }
 
-            //wieder median berechnen von listen
-
-
-
-            //ArrayList Skyline1 = computeSkyline(list1);
-            //ArrayList Skyline2 = computeSkyline(list2);
-
-
-
-            return; // list;
-        }
-
-
-        private static void median(ArrayList left, ArrayList right, ref ArrayList[] data)
-        {
             //compute first median for some dimension
-            int[] recordInt = (int[])data.GetValue(data.GetUpperBound(0) / 2);
-            int computeMedianPrice = recordInt[0];
+            int pivot = getMedian(dt, dim);
+            DataTable list1 = dt.Clone();
+            DataTable list2 = dt.Clone();
 
 
             //divide input intwo 2 partitions
-            for (int i = 0; i < data.GetUpperBound(0); i++)
+            partition(dt, dim, pivot, ref list1, ref list2);
+            
+
+            //Rekursiv aufrufen
+            DataTable Skyline1 = computeSkyline(list1, operators, dim);
+            DataTable Skyline2 = computeSkyline(list2, operators, dim);
+
+
+            DataTable dtMerge = mergeBasic(Skyline1, Skyline2, operators, operators.GetUpperBound(0));
+            Skyline1.Rows.Add(dtMerge.Rows);
+
+            return Skyline1 ;
+        }
+
+
+        private static void partition(DataTable dt, int dim, int pivot, ref DataTable list1, ref DataTable list2)
+        {
+            //divide input intwo 2 partitions
+            for (int iRow = 0; iRow < dt.Rows.Count; iRow++)
             {
-                if (recordInt[0] < computeMedianPrice)
+                if ((int)dt.Rows[iRow][dim] <= pivot)
                 {
-                    left.Add(data.GetValue(i));
+                    list1.ImportRow(dt.Rows[iRow]);
                 }
                 else
                 {
-                    right.Add(data.GetValue(i));
+                    list2.ImportRow(dt.Rows[iRow]);
                 }
             }
-
-
-            median(left, right, ref data);
-
-
-            /*if (left < right)
-            {
-                int teiler = teile(links, rechts, ref daten);
-                median(links, teiler - 1, ref daten);
-                median(teiler + 1, rechts, ref daten);
-            }*/
-        }
-
-        private static int teile(int links, int rechts, ref int[] daten)
-        {
-            return 1;
         }
 
 
-
-
-        private static int GetMedian(int[] sourceNumbers)
-        {
-            //Framework 2.0 version of this method. there is an easier way in F4        
-            if (sourceNumbers == null || sourceNumbers.Length == 0)
-                return 0;
-
-            //make sure the list is sorted, but use a new array
-            double[] sortedPNumbers = (double[])sourceNumbers.Clone();
-            sourceNumbers.CopyTo(sortedPNumbers, 0);
-            Array.Sort(sortedPNumbers);
-
-            //get the median
-            int size = sortedPNumbers.Length;
-            int mid = size / 2;
-            int median = (size % 2 != 0) ? (int)sortedPNumbers[mid] : ((int)sortedPNumbers[mid] + (int)sortedPNumbers[mid - 1]) / 2;
-            return median;
-        }
-
-
-        private static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, SqlDataRecord record)
-        {
-
-            //Erste Spalte ist die ID
-            int[] recordInt = new int[operators.GetUpperBound(0) + 1];
-
-
-
-            for (int iCol = 0; iCol < sqlReader.FieldCount; iCol++)
-            {
-                //Only the real columns (skyline columns are not output fields)
-                if (iCol <= operators.GetUpperBound(0))
-                {
-                    recordInt[iCol] = sqlReader.GetInt32(iCol);
-                }
-                else
-                {
-                    record.SetValue(iCol - (operators.GetUpperBound(0) + 1), sqlReader[iCol]);
-                }
-
-
-            }
-
-
-            resultCollection.Add(recordInt);
-        }
-
-
-        private static bool compare(DataTableReader sqlReader, int[] result)
+        private bool isSmaller(DataRow row1, DataRow row2, string[] operators)
         {
             bool greaterThan = false;
 
-            for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
+            for (int iCol = 0; iCol <= operators.GetUpperBound(0); iCol++)
             {
-                if (sqlReader.GetInt32(iCol) < result[iCol])
+                if ((int)row1[iCol] < (int)row2[iCol])
                 {
                     return false;
                 }
-                else if (sqlReader.GetInt32(iCol) > result[iCol])
+                else if ((int)row1[iCol] > (int)row2[iCol])
                 {
                     greaterThan = true;
                 }
@@ -311,7 +165,89 @@ namespace prefSQL.SQLSkyline
 
 
         }
-        
+
+        private DataTable mergeBasic(DataTable s1, DataTable s2, string[] operators, int dim)
+        {
+            DataTable dtSkyline = s1.Clone();
+            if(s1.Rows.Count == 1)
+            {
+                DataRow p = s1.Rows[0];
+                for(int i = 1; i < s2.Rows.Count; i++)
+                {
+                    DataRow q = s2.Rows[i];
+                    if (isSmaller(q, p, operators))
+                    {
+                        dtSkyline.ImportRow(q);
+                    }
+                }
+
+            }
+            else if(s2.Rows.Count == 1)
+            {
+                //dtSkyline = s2;
+                DataRow p = s2.Rows[0];
+                for (int i = 1; i < s1.Rows.Count; i++)
+                {
+                    DataRow q = s2.Rows[i];
+                    if (isSmaller(q, p, operators))
+                    {
+                        dtSkyline.ImportRow(q);
+                    }
+                }
+            }
+            else if(operators.GetUpperBound(0) == 2)
+            {
+                //Nur 2 Dimensionen
+            }
+            else
+            {
+                int pivot = getMedian(s2, dim - 1);
+                DataTable s11 = s1.Clone();
+                DataTable s12 = s1.Clone();
+                DataTable s21 = s1.Clone();
+                DataTable s22 = s1.Clone();
+                partition(s1, dim - 1, pivot, ref s11, ref s12);
+                partition(s2, dim - 1, pivot, ref s21, ref s22);
+                
+                DataTable r1 = mergeBasic(s11, s21, operators, dim);
+                DataTable r2 = mergeBasic(s12, s22, operators, dim); ;
+                DataTable r3 = mergeBasic(s11, r2, operators, dim - 1); ;
+                dtSkyline.Merge(r1);
+                dtSkyline.Merge(r3);
+            }
+
+
+            return dtSkyline;
+        }
+
+
+        private static int getMedian(DataTable dt, int dim)
+        {
+            //Framework 2.0 version of this method. there is an easier way in F4        
+            if (dt == null || dt.Rows.Count == 0)
+                return 0;
+
+            int[] sourceNumbers = new int[dt.Rows.Count];
+            //generate list of integers of this dimension
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                sourceNumbers[i] = (int)dt.Rows[i][dim];
+            }
+
+
+            //make sure the list is sorted, but use a new array
+            int[] sortedPNumbers = (int[])sourceNumbers.Clone();
+            sourceNumbers.CopyTo(sortedPNumbers, 0);
+            Array.Sort(sortedPNumbers);
+
+            //get the median
+            int size = sortedPNumbers.Length;
+            int mid = size / 2;
+            int median = (size % 2 != 0) ? (int)sortedPNumbers[mid] : ((int)sortedPNumbers[mid] + (int)sortedPNumbers[mid - 1]) / 2;
+            return median;
+        }
+
+
 
     }
 }

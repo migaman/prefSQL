@@ -83,10 +83,10 @@ namespace Utility
                     "LEFT OUTER JOIN Makes ON t1.make_id = Makes.id " +
                     "LEFT OUTER JOIN Models ON t1.model_id = Models.id " +*/
                     //"SKYLINE OF t1.price LOW 1000, t1.mileage LOW";
-                    //"SKYLINE OF t1.price LOW, t1.mileage LOW ";
+                    "SKYLINE OF t1.price LOW, t1.mileage LOW ";
                     //"WHERE (t1.price = 2400 OR t1.price = 900) " +
                     //"WHERE (t1.price < 5000) " + 
-                    "SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber', 'rot', 'schwarz', 'gelb'} >> OTHERS INCOMPARABLE) " +
+                    //"SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber', 'rot', 'schwarz', 'gelb'} >> OTHERS INCOMPARABLE) " +
                     //"SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000";
                     //", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +
                     //", t1.doors HIGH, t1.seats HIGH 2, t1.cylinders HIGH, t1.gears HIGH ";
@@ -111,7 +111,7 @@ namespace Utility
                 //"SKYLINE OF LOW cars.price AND HIGH colors.name {'rot' >> OTHERS}";
                 //"SKYLINE OF LOW cars.price AND HIGH colors.name {'pink' >> 'rot' == 'schwarz'}";
                 //"SKYLINE OF LOW cars.price AND HIGH colors.name {'pink' >> {'rot', 'schwarz'} >> 'beige' >> OTHERS}";
-                "ORDER BY t1.title ";
+                //"ORDER BY t1.title ";
                 //"SKYLINE OF HIGH colors.name {'gelb' >> OTHERS >> 'grau'} AND HIGH fuels.name {'Benzin' >> OTHERS >> 'Diesel'} AND LOW cars.price ";
                 //"SKYLINE OF colors.name DISFAVOUR 'rot' ";
 
@@ -124,10 +124,11 @@ namespace Utility
 
                 SQLCommon parser = new SQLCommon();
                 //parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
-                parser.SkylineType = SQLCommon.Algorithm.BNLSort;
+                //parser.SkylineType = SQLCommon.Algorithm.BNLSort;
                 //parser.SkylineType = SQLCommon.Algorithm.Hexagon;
                 //parser.SkylineType = SQLCommon.Algorithm.MultipleBNL;
-                parser.ShowSkylineAttributes = true;
+                parser.SkylineType = SQLCommon.Algorithm.DQ;
+                //parser.ShowSkylineAttributes = true;
                 parser.SkylineUpToLevel = 1;
                 
 

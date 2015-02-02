@@ -112,6 +112,11 @@ namespace prefSQL.SQLParser
                     prefSQL.SQLSkyline.SP_SkylineBNLSortLevel skyline = new SQLSkyline.SP_SkylineBNLSortLevel();
                     dt = skyline.getSkylineTable(str1, str2, ConnectionString);
                 }
+                else if (algorithm == SQLCommon.Algorithm.DQ)
+                {
+                    prefSQL.SQLSkyline.SP_SkylineDQ skyline = new SQLSkyline.SP_SkylineDQ();
+                    dt = skyline.getSkylineTable(str1, str2, ConnectionString);
+                }
                 else if (algorithm == SQLCommon.Algorithm.Hexagon)
                 {
                     prefSQL.SQLSkyline.SP_SkylineHexagon skyline = new SQLSkyline.SP_SkylineHexagon();

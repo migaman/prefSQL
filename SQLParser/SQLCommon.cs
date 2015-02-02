@@ -33,7 +33,7 @@ namespace prefSQL.SQLParser
             //BNLLevel,               //Block nested loops (does not support incomparable)
             BNLSort,                //Block nested loops with presort
             BNLSortLevel,           //Block nested loops with presort (does not support incomparable)
-            //DQ,                     //Divide and Conquer
+            DQ,                     //Divide and Conquer
             Hexagon,                //Hexagon Augsburg 
             HexagonLevel,           //Hexagon Augsburg (does not support incomparable)
             MultipleBNL,             //Multiple Skyline calculation (define levels with SkylineUptoLevel variable)
@@ -162,7 +162,7 @@ namespace prefSQL.SQLParser
                             strNewSQL += strWHERE;
                             strNewSQL += strOrderBy;
                         }
-                        else if (_SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.BNLSortLevel || _SkylineType == Algorithm.MultipleBNL)
+                        else if (_SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.BNLSortLevel || _SkylineType == Algorithm.MultipleBNL ||_SkylineType == Algorithm.DQ)
                         {
                             string strOperators = "";
                             string strAttributesSkyline = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
@@ -189,6 +189,10 @@ namespace prefSQL.SQLParser
                             else if (_SkylineType == Algorithm.MultipleBNL)
                             {
                                 strNewSQL = "EXEC dbo.SP_MultipleSkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + _SkylineUpToLevel; 
+                            }
+                            else if (_SkylineType == Algorithm.DQ)
+                            {
+                                strNewSQL = "EXEC dbo.SP_SkylineDQ '" + strFirstSQL + "', '" + strOperators + "',";
                             }
                             
                         }
