@@ -38,7 +38,8 @@ namespace prefSQL.SQLSkyline
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
             DataTable dtResult = new DataTable();
-            
+            DataTable dtSkyline = new DataTable();
+
             SqlConnection connection = null;
             if (isIndependent == false)
                 connection = new SqlConnection(Helper.cnnStringSQLCLR);
@@ -57,9 +58,40 @@ namespace prefSQL.SQLSkyline
                 SqlDataAdapter dap = new SqlDataAdapter(strQuery.ToString(), connection);
                 DataTable dt = new DataTable();
                 dap.Fill(dt);
- 
 
-                dtResult = computeSkyline(dt, operators, operators.GetUpperBound(0));
+
+                dtSkyline = computeSkyline(dt, operators, operators.GetUpperBound(0));
+
+
+                if (isIndependent == false)
+                {
+                    // Build our record schema 
+
+                    List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, ref dtResult);
+                    SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
+                    SqlContext.Pipe.SendResultsStart(record);
+
+                    //foreach (SqlDataRecord recSkyline in btg[iItem])
+                    foreach (DataRow row in dtSkyline.Rows)
+                    {
+                        for (int i = 0; i < dtSkyline.Columns.Count; i++)
+                        {
+                            //Only the real columns (skyline columns are not output fields)
+                            if (i > operators.GetUpperBound(0))
+                            {
+                                record.SetValue(i - (operators.GetUpperBound(0) + 1), row[i]);
+                            }
+                        }
+
+                        SqlContext.Pipe.SendResultsRow(record);
+                    }
+
+                    SqlContext.Pipe.SendResultsEnd();
+
+
+
+
+                }
 
 
 
@@ -87,7 +119,7 @@ namespace prefSQL.SQLSkyline
                 if (connection != null)
                     connection.Close();
             }
-            return dtResult;
+            return dtSkyline;
         }
 
         private DataTable computeSkyline(DataTable dt, string[] operators, int dim)
@@ -95,7 +127,7 @@ namespace prefSQL.SQLSkyline
             //Von diesen Punkten Skyline berechnen
             //DataTableReader sqlReader = dt.CreateDataReader();
 
-            if(dt.Rows.Count <= 25)
+            if(dt.Rows.Count == 1)
             {
                 return dt;
             }
@@ -116,7 +148,13 @@ namespace prefSQL.SQLSkyline
 
 
             DataTable dtMerge = mergeBasic(Skyline1, Skyline2, operators, operators.GetUpperBound(0));
-            Skyline1.Rows.Add(dtMerge.Rows);
+            if (dtMerge.Rows.Count > 0)
+            {
+                foreach(DataRow row in dtMerge.Rows)
+                {
+                    Skyline1.ImportRow(row);
+                }
+            }
 
             return Skyline1 ;
         }
@@ -139,7 +177,7 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        private bool isSmaller(DataRow row1, DataRow row2, string[] operators)
+        private bool isBigger(DataRow row1, DataRow row2, string[] operators)
         {
             bool greaterThan = false;
 
@@ -175,7 +213,7 @@ namespace prefSQL.SQLSkyline
                 for(int i = 1; i < s2.Rows.Count; i++)
                 {
                     DataRow q = s2.Rows[i];
-                    if (isSmaller(q, p, operators))
+                    if (isBigger(p,q, operators))
                     {
                         dtSkyline.ImportRow(q);
                     }
@@ -188,16 +226,26 @@ namespace prefSQL.SQLSkyline
                 DataRow p = s2.Rows[0];
                 for (int i = 1; i < s1.Rows.Count; i++)
                 {
-                    DataRow q = s2.Rows[i];
-                    if (isSmaller(q, p, operators))
+                    DataRow q = s1.Rows[i];
+                    if (isBigger(p, q, operators))
                     {
                         dtSkyline.ImportRow(q);
                     }
                 }
             }
-            else if(operators.GetUpperBound(0) == 2)
+            else if(operators.GetUpperBound(0) == 1)
             {
                 //Nur 2 Dimensionen
+                //DataRow min = min(s1);
+                DataRow min = s1.Rows[0];
+                for(int i = 1; i < s2.Rows.Count; i++)
+                {
+                    DataRow q = s2.Rows[i];
+                    if(isBigger(q, min, operators) == false)
+                    {
+                        dtSkyline.ImportRow(q);
+                    }
+                }
             }
             else
             {
