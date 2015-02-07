@@ -236,14 +236,19 @@ namespace prefSQL.SQLSkyline
                 for(int i = 0; i < s2.Rows.Count; i++)
                 {
                     DataRow q = s2.Rows[i];
-                    //if (isBetterInLeastOneDim(q, p, operators))
-                    //{
-                    if((int)q[dim-1] < (int)p[dim-1])
+
+
+                    for (int iDim = dim - 1; iDim >= 0; iDim--)
                     {
-                        dtSkyline.ImportRow(q);
-                    }
-                        
-                    //}
+                        //if (isBetterInLeastOneDim(q, p, operators))
+                        //{
+                        if ((int)q[iDim] < (int)p[iDim])
+                        {
+                            dtSkyline.ImportRow(q);
+                            break;
+                        }
+                    }  
+                    
                 }
 
             }
