@@ -115,7 +115,22 @@ namespace prefSQL.SQLParser
                 else if (algorithm == SQLCommon.Algorithm.DQ)
                 {
                     prefSQL.SQLSkyline.SP_SkylineDQ skyline = new SQLSkyline.SP_SkylineDQ();
-                    dt = skyline.getSkylineTable(str1, str2, ConnectionString);
+
+                    //Default stack size is 1MB (1024000) --> Increase to 8MB
+                    var thread = new Thread(
+                        () =>
+                        {
+                            dt = skyline.getSkylineTable(str1, str2, ConnectionString);
+                        }, 8000000);
+
+
+                    thread.Start();
+
+                    //Join method to block the current thread  until the object's thread terminates.
+                    thread.Join();
+                    
+                    
+                    
                 }
                 else if (algorithm == SQLCommon.Algorithm.Hexagon)
                 {

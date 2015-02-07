@@ -192,7 +192,7 @@ namespace prefSQL.SQLParser
                             }
                             else if (_SkylineType == Algorithm.DQ)
                             {
-                                strNewSQL = "EXEC dbo.SP_SkylineDQ '" + strFirstSQL + "', '" + strOperators + "',";
+                                strNewSQL = "EXEC dbo.SP_SkylineDQ '" + strFirstSQL + "', '" + strOperators + "'";
                             }
                             
                         }

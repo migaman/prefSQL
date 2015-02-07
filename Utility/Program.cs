@@ -67,7 +67,7 @@ namespace Utility
 
                 //string strPrefSQL = "SELECT cars.id, cars.title, colors.name, fuels.name FROM cars " +
                 //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name, mileage FROM cars " +
-                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage FROM cars_small t1 " +
+                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t1.enginesize FROM cars_small t1 " +
                     //string strPrefSQL = "SELECT cars.id, cars.Price, cars.mileage FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage, cars.horsepower, cars.enginesize, cars.registration, cars.consumption, cars.doors, colors.name, fuels.name FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, colors.name AS colourname, fuels.name AS fuelname, cars.price FROM cars " +
@@ -82,9 +82,9 @@ namespace Utility
                     "LEFT OUTER JOIN Efficiencies ON t1.efficiency_id = Efficiencies.id " +
                     "LEFT OUTER JOIN Makes ON t1.make_id = Makes.id " +
                     "LEFT OUTER JOIN Models ON t1.model_id = Models.id " +*/
-                    "WHERE (t1.price = 2400 OR t1.price = 900) " +
-                    //"WHERE (t1.price < 5000) " + 
-                    "SKYLINE OF t1.price LOW, t1.mileage LOW ";
+                    //"WHERE (t1.price < 16000) " +
+                    "WHERE (t1.price < 2000) " + 
+                    "SKYLINE OF t1.price LOW, t1.mileage LOW, t1.enginesize HIGH ";
                     //"SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber', 'rot', 'schwarz', 'gelb'} >> OTHERS INCOMPARABLE) " +
                     //"SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000";
                     //", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +

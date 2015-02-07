@@ -60,7 +60,7 @@ namespace prefSQL.SQLSkyline
                 dap.Fill(dt);
 
 
-                dtSkyline = computeSkyline(dt, operators, operators.GetUpperBound(0));
+                dtSkyline = computeSkyline(dt, operators, operators.GetUpperBound(0), false);
 
 
                 if (isIndependent == false)
@@ -122,14 +122,48 @@ namespace prefSQL.SQLSkyline
             return dtSkyline;
         }
 
-        private DataTable computeSkyline(DataTable dt, string[] operators, int dim)
+        private DataTable computeSkyline(DataTable dt, string[] operators, int dim, bool stopRecursion)
         {
             //Von diesen Punkten Skyline berechnen
             //DataTableReader sqlReader = dt.CreateDataReader();
 
-            if(dt.Rows.Count == 1)
-            {
+            if (dt.Rows.Count == 0)
                 return dt;
+
+            //as long as all elements have the same integer
+            bool isSplittable = false;
+            int value = (int)dt.Rows[0][dim];
+            for (int i = 1; i < dt.Rows.Count; i++)
+            {
+                if((int)dt.Rows[i][dim] != value)
+                {
+                    isSplittable = true;
+                    break;
+                }
+                
+                
+            }
+
+            if(isSplittable == false || stopRecursion == true)
+            {
+                if(dt.Rows.Count == 1)
+                {
+                    return dt;
+                }
+                else
+                {
+                    //in dieser dimension nicht weiter splittbar --> versuchen in einer dimension tiefer zu splitten
+                    if (dim > 0) 
+                    {
+                        return computeSkyline(dt, operators, dim - 1, false);
+                    }    
+                    else
+                    {
+                        //alle in skyline, keine weitere trennung möglich
+                        return dt;
+                    }
+                }
+                
             }
 
             //compute first median for some dimension
@@ -140,11 +174,25 @@ namespace prefSQL.SQLSkyline
 
             //divide input intwo 2 partitions
             partition(dt, dim, pivot, ref list1, ref list2);
-            
+
+            //Wenn der Median keine klare Trennung mehr bringt Objekt auch zurückgeben
+            bool bStop1 = false;
+            bool bStop2 = false;
+            if (list1.Rows.Count == 0)
+            {
+                bStop1 = true;
+            }
+            if (list2.Rows.Count == 0)
+            {
+                bStop2 = true;
+            }
+
+
+
 
             //Rekursiv aufrufen
-            DataTable Skyline1 = computeSkyline(list1, operators, dim);
-            DataTable Skyline2 = computeSkyline(list2, operators, dim);
+            DataTable Skyline1 = computeSkyline(list1, operators, dim, bStop2);
+            DataTable Skyline2 = computeSkyline(list2, operators, dim, bStop1);
 
 
             DataTable dtMerge = mergeBasic(Skyline1, Skyline2, operators, operators.GetUpperBound(0));
@@ -177,32 +225,7 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        private bool isBigger(DataRow row1, DataRow row2, string[] operators)
-        {
-            bool greaterThan = false;
-
-            for (int iCol = 0; iCol <= operators.GetUpperBound(0); iCol++)
-            {
-                if ((int)row1[iCol] < (int)row2[iCol])
-                {
-                    return false;
-                }
-                else if ((int)row1[iCol] > (int)row2[iCol])
-                {
-                    greaterThan = true;
-                }
-            }
-
-
-            //all equal and at least one must be greater than
-            //if (equalTo == true && greaterThan == true)
-            if (greaterThan == true)
-                return true;
-            else
-                return false;
-
-
-        }
+        
 
         private DataTable mergeBasic(DataTable s1, DataTable s2, string[] operators, int dim)
         {
@@ -210,41 +233,59 @@ namespace prefSQL.SQLSkyline
             if(s1.Rows.Count == 1)
             {
                 DataRow p = s1.Rows[0];
-                for(int i = 1; i < s2.Rows.Count; i++)
+                for(int i = 0; i < s2.Rows.Count; i++)
                 {
                     DataRow q = s2.Rows[i];
-                    if (isBigger(p,q, operators))
+                    //if (isBetterInLeastOneDim(q, p, operators))
+                    //{
+                    if((int)q[dim-1] < (int)p[dim-1])
                     {
                         dtSkyline.ImportRow(q);
                     }
+                        
+                    //}
                 }
 
             }
             else if(s2.Rows.Count == 1)
             {
-                //dtSkyline = s2;
+                dtSkyline.ImportRow(s2.Rows[0]);
                 DataRow p = s2.Rows[0];
-                for (int i = 1; i < s1.Rows.Count; i++)
+                for (int i = 0; i < s1.Rows.Count; i++)
                 {
                     DataRow q = s1.Rows[i];
-                    if (isBigger(p, q, operators))
+                    //if (isBetter(q, p, operators))
+                    //{
+                    if ((int)q[dim-1] <= (int)p[dim-1])
                     {
-                        dtSkyline.ImportRow(q);
+                        dtSkyline.Rows.Clear();
+                        break;
                     }
+                    //}
                 }
             }
             else if(operators.GetUpperBound(0) == 1)
             {
                 //Nur 2 Dimensionen
                 //DataRow min = min(s1);
-                DataRow min = s1.Rows[0];
-                for(int i = 1; i < s2.Rows.Count; i++)
+                int min = (int)s1.Rows[0][dim-1];
+                for (int i = 1; i < s1.Rows.Count; i++)
+                {
+                    if ((int)s1.Rows[i][dim - 1] < min)
+                        min = (int)s1.Rows[i][dim - 1];
+                }
+
+                for(int i = 0; i < s2.Rows.Count; i++)
                 {
                     DataRow q = s2.Rows[i];
-                    if(isBigger(q, min, operators) == false)
+                    //if(isBetterInLeastOneDim(q, min, operators))
+                    //{
+                    if((int)q[dim-1] < min)
                     {
                         dtSkyline.ImportRow(q);
                     }
+                        
+                    //}
                 }
             }
             else
