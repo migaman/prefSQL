@@ -155,7 +155,7 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        public static bool compareDifferentIncomparable(DataTableReader sqlReader, string[] operators, long[] result, string[] stringResult)
+        public static bool compareDifferentIncomparable(DataTableReader sqlReader, string[] operators, long?[] result, string[] stringResult)
         {
             bool greaterThan = false;
 
@@ -165,8 +165,47 @@ namespace prefSQL.SQLSkyline
                 //Compare only LOW attributes
                 if (op.Equals("LOW"))
                 {
-                    long value = sqlReader.GetInt32(iCol);
-                    int comparison = compareValue(result[iCol], value);
+                    long value = 0; // sqlReader.GetInt32(iCol);
+                    long tmpValue = 0; // (long)result[iCol];
+                    int comparison = 0; // compareValue(tmpValue, value);
+
+
+                    //check if value is incomparable
+                    if (sqlReader.IsDBNull(iCol) == true)
+                    {
+                        //check if value is incomparable
+                        if (result[iCol] == null)
+                        {
+                            //borh values are null --> compare text
+                            //return false;
+                            comparison = 1;
+                        }
+
+                        else
+                        {
+                            tmpValue = (long)result[iCol];
+                            comparison = compareValue(value, tmpValue);
+                        }
+
+
+                    }
+                    else
+                    {
+                        //
+                        value = sqlReader.GetInt32(iCol);
+                        //check if value is incomparable
+                        if (result[iCol] == null)
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            tmpValue = (long)result[iCol];
+                        }
+                        comparison = compareValue(value, tmpValue);
+                    }
+
+
 
                     if (comparison >= 1)
                     {

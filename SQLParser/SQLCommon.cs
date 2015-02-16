@@ -29,8 +29,8 @@ namespace prefSQL.SQLParser
         public enum Algorithm
         {
             NativeSQL,              //Works with ANSI-SQL syntax
-            //BNL,                    //Block nested loops
-            //BNLLevel,               //Block nested loops (does not support incomparable)
+            BNL,                    //Block nested loops
+            BNLLevel,               //Block nested loops (does not support incomparable)
             BNLSort,                //Block nested loops with presort
             BNLSortLevel,           //Block nested loops with presort (does not support incomparable)
             DQ,                     //Divide and Conquer
@@ -162,7 +162,7 @@ namespace prefSQL.SQLParser
                             strNewSQL += strWHERE;
                             strNewSQL += strOrderBy;
                         }
-                        else if (_SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.BNLSortLevel || _SkylineType == Algorithm.MultipleBNL ||_SkylineType == Algorithm.DQ)
+                        else if (_SkylineType == Algorithm.BNL || _SkylineType == Algorithm.BNLLevel || _SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.BNLSortLevel || _SkylineType == Algorithm.MultipleBNL ||_SkylineType == Algorithm.DQ)
                         {
                             string strOperators = "";
                             string strAttributesSkyline = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
@@ -178,7 +178,15 @@ namespace prefSQL.SQLParser
                             //Quote quotes because it is a parameter of the stored procedure
                             strFirstSQL = strFirstSQL.Replace("'", "''");
 
-                            if (_SkylineType == Algorithm.BNLSort)
+                            if (_SkylineType == Algorithm.BNL)
+                            {
+                                strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "'";
+                            }
+                            else if (_SkylineType == Algorithm.BNLLevel)
+                            {
+                                strNewSQL = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "'";
+                            }
+                            else if (_SkylineType == Algorithm.BNLSort)
                             {
                                 strNewSQL = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "'";
                             }
@@ -209,12 +217,14 @@ namespace prefSQL.SQLParser
                             strFirstSQL = strFirstSQL.Replace("'", "''");
 
                             //Quote quotes because it is a parameter of the stored procedure
-                            string strHexagon = buildSELECTHexagon(prefSQL, strNewSQL);
+                            string strSelectDistinctIncomparable = "";
+                            string strHexagon = buildSELECTMaxHexagon(prefSQL, strNewSQL, ref strSelectDistinctIncomparable);
+                            
                             strHexagon = strHexagon.Replace("'", "''");
 
                             if (_SkylineType == Algorithm.Hexagon)
                             {
-                                strNewSQL = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "'";
+                                strNewSQL = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "', '" + strSelectDistinctIncomparable + "'";
                             }
                             else if (_SkylineType == Algorithm.HexagonLevel)
                             {
@@ -266,10 +276,17 @@ namespace prefSQL.SQLParser
                 if (model.Skyline[iChild].Comparable == false && model.Skyline[iChild].AmountOfIncomparables > 0)
                 {
                     strSQL += ", " + model.Skyline[iChild].HexagonIncomparable;
-                    //CASE WHEN  colors.name IN ('blau') THEN '001' WHEN colors.name IN ('silber') THEN '010' ELSE '100' END AS RankColorNew
-                    for (int iIncomparable = 1; iIncomparable < model.Skyline[iChild].AmountOfIncomparables; iIncomparable++)
+                    if (model.Skyline[iChild].AmountOfIncomparables == 99)
                     {
-                        strOperators += "INCOMPARABLE;";
+                        strOperators += "CALCULATEINCOMPARABLE;";
+                    }
+                    else
+                    {
+                        //CASE WHEN  colors.name IN ('blau') THEN '001' WHEN colors.name IN ('silber') THEN '010' ELSE '100' END AS RankColorNew
+                        //for (int iIncomparable = 1; iIncomparable < model.Skyline[iChild].AmountOfIncomparables; iIncomparable++)
+                        //{
+                            strOperators += "INCOMPARABLE;";
+                        //}
                     }
                 }
             }
@@ -290,7 +307,7 @@ namespace prefSQL.SQLParser
         /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
         /// <param name="strOperators">Returns the operators</param>
         /// <returns>TODO</returns>
-        private string buildSELECTHexagon(PrefSQLModel model, string strPreSQL)
+        private string buildSELECTMaxHexagon(PrefSQLModel model, string strPreSQL, ref string strDistinctSelect)
         {
             string strSQL = "";
             string strMaxSQL = "";
@@ -308,10 +325,20 @@ namespace prefSQL.SQLParser
                 if (model.Skyline[iChild].Comparable == false && model.Skyline[iChild].AmountOfIncomparables > 0)
                 {
                     strMaxSQL += "+1";
-                    for (int iIncomparable = 1; iIncomparable < model.Skyline[iChild].AmountOfIncomparables; iIncomparable++)
+                    //99 means OTHER INCOMPARABLE --> not clear at the moment how many distinct values exists
+                    if (model.Skyline[iChild].AmountOfIncomparables == 99)
                     {
-                        strMaxSQL += ", 1";
+                        strMaxSQL += "CALCULATEINCOMPARABLE";
+                        strDistinctSelect = model.Skyline[iChild].SelectDistinctIncomparable;
                     }
+                    else
+                    {
+                        for (int iIncomparable = 1; iIncomparable < model.Skyline[iChild].AmountOfIncomparables; iIncomparable++)
+                        {
+                            strMaxSQL += ", 1";
+                        }
+                    }
+                    
                     
                 }
             }

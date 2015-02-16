@@ -78,5 +78,7 @@
     <Compile Include="SP_MultipleSkylineBNL.cs" />
     <Compile Include="SP_MultipleSkylineBNLLevel.cs" />
     <Compile Include="SP_SkylineHexagonLevel.cs" />
+    <Compile Include="SP_SkylineBNL.cs" />
+    <Compile Include="SP_SkylineBNLLevel.cs" />
   </ItemGroup>
 </Project>

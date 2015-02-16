@@ -24,6 +24,7 @@ namespace prefSQL.SQLParser
             string str1 = "";
             string str2 = "";
             string str3 = "";
+            string str4 = "";
 
             if (algorithm != SQLCommon.Algorithm.NativeSQL)
             {
@@ -67,18 +68,55 @@ namespace prefSQL.SQLParser
                 iPosEnd += 3;
 
 
-                str1 = strPrefSQL.Substring(iPosStart, iPosMiddle - iPosStart - 4);
-                str2 = strPrefSQL.Substring(iPosMiddle, iPosEnd - iPosMiddle - 4);
-                str3 = "";
-                //if (iPosEnd < strPrefSQL.Length - 10)
+
+                
                 if (iPosEnd < strPrefSQL.Length)
                 {
-                    str3 = strPrefSQL.Substring(iPosEnd).TrimEnd('\'');
-                    //str3 = strPrefSQL.Substring(iPosEnd, strPrefSQL.Length - iPosEnd - 10).TrimEnd('\'');
+                    //3th parameter
+                    int iPosEndEnd = iPosEnd;
+                    bEnd = false;
+                    while (bEnd == false)
+                    {
+                        iPosEndEnd = iPosEndEnd + strPrefSQL.Substring(iPosEndEnd).IndexOf("'") + 1;
+                        if (iPosEndEnd == strPrefSQL.Length)
+                            break; //Kein 3.Parameter
+                        if (!strPrefSQL.Substring(iPosEndEnd, 1).Equals("'"))
+                        {
+                            bEnd = true;
+                        }
+                        else
+                        {
+                            iPosEndEnd++;
+                        }
+                        //Prüfen ob es kein doppeltes Hochkomma ist
+                    }
+                    iPosEndEnd += 3;
+
+                    str1 = strPrefSQL.Substring(iPosStart, iPosMiddle - iPosStart - 4);
+                    str2 = strPrefSQL.Substring(iPosMiddle, iPosEnd - iPosMiddle - 4);
+                    str3 = strPrefSQL.Substring(iPosEnd, iPosEndEnd - iPosEnd - 4);
+
+                    if (iPosEndEnd < strPrefSQL.Length)
+                    {
+                        str4 = strPrefSQL.Substring(iPosEndEnd).TrimEnd('\'');
+                    }
                 }
+                else
+                {
+                    str1 = strPrefSQL.Substring(iPosStart, iPosMiddle - iPosStart - 4);
+                    str2 = strPrefSQL.Substring(iPosMiddle, iPosEnd - iPosMiddle - 4);
+                    if (iPosEnd < strPrefSQL.Length)
+                    {
+                        str3 = strPrefSQL.Substring(iPosEnd).TrimEnd('\'');
+                    }
+                }
+               
+
+
                 str1 = str1.Replace("''", "'").Trim('\'');
                 str2 = str2.Replace("''", "'").Trim('\'');
                 str3 = str3.Replace("''", "'").Trim('\'');
+                str4 = str4.Replace("''", "'").Trim('\'');
 
             }
 
@@ -91,7 +129,7 @@ namespace prefSQL.SQLParser
                 System.Data.SqlTypes.SqlString strSQL1 = str1;
                 System.Data.SqlTypes.SqlString strSQL2 = str2;
                 System.Data.SqlTypes.SqlString strSQL3 = str3;
-                /*if (algorithm == SQLCommon.Algorithm.BNL)
+                if (algorithm == SQLCommon.Algorithm.BNL)
                 {
                     prefSQL.SQLSkyline.SP_SkylineBNL skyline = new SQLSkyline.SP_SkylineBNL();
                     dt = skyline.getSkylineTable(str1, str2, ConnectionString);
@@ -101,7 +139,7 @@ namespace prefSQL.SQLParser
                     prefSQL.SQLSkyline.SP_SkylineBNLLevel skyline = new SQLSkyline.SP_SkylineBNLLevel();
                     dt = skyline.getSkylineTable(str1, str2, ConnectionString);
                 }
-                else */
+                else
                 if (algorithm == SQLCommon.Algorithm.BNLSort)
                 {
                     prefSQL.SQLSkyline.SP_SkylineBNLSort skyline = new SQLSkyline.SP_SkylineBNLSort();
@@ -134,6 +172,7 @@ namespace prefSQL.SQLParser
                 }
                 else if (algorithm == SQLCommon.Algorithm.Hexagon)
                 {
+
                     prefSQL.SQLSkyline.SP_SkylineHexagon skyline = new SQLSkyline.SP_SkylineHexagon();
                     //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
 
@@ -141,7 +180,7 @@ namespace prefSQL.SQLParser
                     var thread = new Thread(
                         () =>
                         {
-                            dt = skyline.getSkylineTable(str1, str2, str3, ConnectionString);
+                            dt = skyline.getSkylineTable(str1, str2, str3, ConnectionString, str4);
                         }, 8000000);
 
                     

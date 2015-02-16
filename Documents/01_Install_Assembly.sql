@@ -64,14 +64,14 @@ IF EXISTS(SELECT * FROM sys.assemblies WHERE name = 'SQLSkyline')
 CREATE ASSEMBLY SQLSkyline FROM @ASSEMBLY_PATH
 GO
 
-/*--Create SP for BNL (with Incomparable)
+--Create SP for BNL (with Incomparable)
 CREATE PROCEDURE SP_SkylineBNL (@Name nvarchar(4000), @Operators nvarchar(200))
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineBNL].getSkyline;
 GO
 --Create SP for BNL Levelized (without incomparable)
 CREATE PROCEDURE SP_SkylineBNLLevel (@Name nvarchar(4000), @Operators nvarchar(200))
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineBNLLevel].getSkyline;
-GO*/
+GO
 --Create SP for BNLSort (with Incomparable)
 CREATE PROCEDURE SP_SkylineBNLSort (@Name nvarchar(4000), @Operators nvarchar(200))
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineBNLSort].getSkyline;

@@ -17,29 +17,20 @@ namespace prefSQL.SQLSkyline
     public class SP_SkylineHexagon
     {        
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineHexagon")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlString strQueryConstruction)
+        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlString strQueryConstruction, SqlString strSelectIncomparable)
         {
             SP_SkylineHexagon skyline = new SP_SkylineHexagon();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), strQueryConstruction.ToString(), false, "");
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), strQueryConstruction.ToString(), false, "", strSelectIncomparable.ToString());
         }
 
         
-        public DataTable getSkylineTable(String strQuery, String strOperators, String strQueryConstruction, String strConnection)
+        public DataTable getSkylineTable(String strQuery, String strOperators, String strQueryConstruction, String strConnection, string strSelectIncomparable)
         {
-            return getSkylineTable(strQuery, strOperators, strQueryConstruction, true, strConnection);
+            return getSkylineTable(strQuery, strOperators, strQueryConstruction, true, strConnection, strSelectIncomparable);
         }
 
-        private DataTable getSkylineTable(string strQuery, string strOperators, string strQueryConstruction, bool isIndependent, string strConnection)
+        private DataTable getSkylineTable(string strQuery, string strOperators, string strQueryConstruction, bool isIndependent, string strConnection, string strSelectIncomparable)
         {
-            //strQueryConstruction = "SELECT  MAX(Rankprice), MAX(Rankcolorsname)+1,1,1 FROM (SELECT  DENSE_RANK() over (ORDER BY t1.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY CASE WHEN colors.name IN ('blau','silber', 'schwarz') THEN 0 ELSE 100 END ASC)-1 AS Rankcolorsname FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 10990  or t1.price = 17900) ) MyQuery";
-            //strQueryConstruction = "SELECT  MAX(Rankprice), MAX(Rankcolorsname)+1,1,1 FROM (SELECT  DENSE_RANK() over (ORDER BY t1.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY CASE WHEN colors.name IN ('blau','silber', 'schwarz') THEN 0 ELSE 100 END ASC)-1 AS Rankcolorsname FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 10990  or t1.price = 17900) ) MyQuery";
-            //strQueryConstruction = "SELECT  MAX(Rankprice), MAX(Rankcolorsname)+1,1 FROM (SELECT  DENSE_RANK() over (ORDER BY t1.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY CASE WHEN colors.name IN ('blau','silber') THEN 0 ELSE 100 END ASC)-1 AS Rankcolorsname FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID ) MyQuery";
-            //strQueryConstruction = "SELECT  MAX(Rankprice), MAX(Rankcolorsname)+1,1,1 FROM (SELECT  DENSE_RANK() over (ORDER BY t1.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY CASE WHEN colors.name IN ('blau','silber','rot') THEN 0 ELSE 100 END ASC)-1 AS Rankcolorsname FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID) MyQuery";
-            //strOperators += ";INCOMPARABLE";
-            //strOperators += ";INCOMPARABLE";
-            //strQuery = "SELECT  DENSE_RANK() over (ORDER BY t1.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY CASE WHEN colors.name IN ('blau','silber','schwarz') THEN 0 ELSE 100 END ASC)-1 AS Rankcolorsname , CASE WHEN  colors.name IN ('blau') THEN '001' WHEN colors.name IN ('silber') THEN '010' ELSE '100' END AS RankColorNew, t1.id, t1.title, t1.price, t1.mileage, colors.name , t1.price AS SkylineAttributeprice, CASE WHEN colors.name IN ('blau','silber', 'schwarz') THEN 0 ELSE 100 END AS SkylineAttributename FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID  WHERE (t1.price = 2400 OR t1.price = 10990 or t1.price = 17900)";
-            //strQuery = "SELECT  DENSE_RANK() over (ORDER BY t1.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY CASE WHEN colors.name IN ('blau','silber','rot') THEN 0 ELSE 100 END ASC)-1 AS Rankcolorsname , CASE WHEN  colors.name IN ('blau') THEN '001' WHEN colors.name IN ('silber') THEN '010' ELSE '001' END AS RankColorNew, t1.id, t1.title, t1.price, t1.mileage, colors.name , t1.price AS SkylineAttributeprice, CASE WHEN colors.name IN ('blau','silber','rot') THEN 0 ELSE 100 END AS SkylineAttributename FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID";
-
             ArrayList[] btg = null;
             int[] next = null;
             int[] prev = null;
@@ -55,10 +46,66 @@ namespace prefSQL.SQLSkyline
                 connection = new SqlConnection(strConnection);
 
             String strSQL = strQuery.ToString();
+
+
+            if (!strSelectIncomparable.Equals(""))
+            {
+                //Check amount of incomparables
+                connection.Open();
+
+                int posOfFROM = 0;
+                posOfFROM = strSQL.IndexOf("FROM");
+                string strSQLIncomparable = "SELECT DISTINCT " + strSelectIncomparable + " " + strSQL.Substring(posOfFROM);
+                //strSQLIncomparable = "SELECT DISTINCT colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE colors.name IN ('blau', 'silber', 'rot', 'pink')";
+
+                SqlDataAdapter dap = new SqlDataAdapter(strSQLIncomparable, connection);
+                DataTable dt = new DataTable();
+                dap.Fill(dt);
+
+                
+                //Create hexagon single value statement for incomparable tuples
+                string strHexagonIncomparable = "CASE ";
+                string strHexagonFieldName = "colors.name";
+                int amountOfIncomparable = 0;
+                string strMaxSQL = "";
+                string strAddOperators = "";
+                int iIndexRow = 0;
+                foreach (DataRow row in dt.Rows)
+                {
+                    string strCategory = (string)row[0];
+                    if(!strCategory.Equals("undefined"))
+                    {
+                        string strBitPattern = new String('0', dt.Rows.Count - 1);
+                        strBitPattern = strBitPattern.Substring(0, amountOfIncomparable) + "1" + strBitPattern.Substring(amountOfIncomparable + 1);
+                        strHexagonIncomparable += " WHEN " + strHexagonFieldName + " = '" + strCategory.Replace("(", "").Replace(")", "") + "' THEN '" + strBitPattern + "'";
+                        amountOfIncomparable++;
+                        strMaxSQL += ", 1";
+                        if (iIndexRow > 0)
+                        {
+                            strAddOperators += "INCOMPARABLE;";
+                        }
+                        iIndexRow++;
+                    }
+                    
+                }
+                strAddOperators = strAddOperators.TrimEnd(';');
+                string strBitPatternFull = new String('1', amountOfIncomparable); // string of 20 spaces;
+                strHexagonIncomparable += " ELSE '" + strBitPatternFull + "' END AS HexagonIncomparable" + strHexagonFieldName.Replace(".", "");
+                
+
+                //Manipulate construction sql
+                strSQL = strSQL.Replace("CALCULATEINCOMPARABLE", strHexagonIncomparable);
+                strQueryConstruction = strQueryConstruction.Replace("CALCULATEINCOMPARABLE", strMaxSQL);
+                strOperators = strOperators.Replace("CALCULATEINCOMPARABLE", strAddOperators);
+
+                if (connection != null)
+                    connection.Close();
+
+            }
+
             string[] operators = strOperators.ToString().Split(';');
             int amountOfPreferences = operators.GetUpperBound(0) + 1;
 
-            
             
 
             try

@@ -9,6 +9,30 @@ namespace prefSQL.SQLParser.Models
     class AttributeModel
     {
 
+        public AttributeModel(string strColumnExpression, string strOperator, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumnName, string strExpression, string strRankHexagon, string strOrderBy, bool isCategory, string columnName, string strHexagonIncomparable, int amountIncomparable, string strSelectDistinctIncomparable)
+        {
+            ColumnExpression = strColumnExpression;                 //Column expression                 (i.e. CASE WHEN colors.name = 'türkis' THEN 0 WHEN colors.name = 'gelb' THEN 100 ELSE 200 END)
+            InnerColumnExpression = strInnerColumnExpression;       //Inner column expression           (i.e CASE WHEN colors_INNER.name = 'türkis' THEN 0 WHEN colors_INNER.name = 'gelb' THEN 100 ELSE 200 END)
+            Op = strOperator;                                       //Operator                          (<, >)
+            FullColumnName = strFullColumnName;                     //Used for the additional OR with text values (i.e. OR colors_INNER.name = colors.name)
+            InnerColumnName = strInnerColumnName;                   //Dito
+            Comparable = isComparable;                              //Check if at least one value is incomparable
+            IncomparableAttribute = strIncomporableAttribute;       //Attribute that returns the textvalue if the value is incomparable
+
+            Expression = strExpression;
+            RankColumnName = strRankColumnName;
+            RankHexagon = strRankHexagon;
+            HexagonIncomparable = strHexagonIncomparable;
+
+            OrderBy = strOrderBy;
+            IsCategory = isCategory;
+            ColumnName = columnName;
+
+            AmountOfIncomparables = amountIncomparable;
+
+            SelectDistinctIncomparable = strSelectDistinctIncomparable;
+        }
+
         public AttributeModel(string strColumnExpression, string strOperator, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumnName, string strExpression, string strRankHexagon, string strOrderBy, bool isCategory, string columnName, string strHexagonIncomparable, int amountIncomparable)
         {
             ColumnExpression = strColumnExpression;                 //Column expression                 (i.e. CASE WHEN colors.name = 'türkis' THEN 0 WHEN colors.name = 'gelb' THEN 100 ELSE 200 END)
@@ -29,6 +53,8 @@ namespace prefSQL.SQLParser.Models
             ColumnName = columnName;
 
             AmountOfIncomparables = amountIncomparable;
+
+            SelectDistinctIncomparable = "";
         }
 
         public int AmountOfIncomparables { get; set; }
@@ -59,5 +85,7 @@ namespace prefSQL.SQLParser.Models
         public bool IsCategory { get; set; }
 
         public string ColumnName { get; set; }
+
+        public string SelectDistinctIncomparable { get; set; }
     }
 }
