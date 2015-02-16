@@ -219,7 +219,8 @@ namespace prefSQL.SQLParser
                             //Quote quotes because it is a parameter of the stored procedure
                             string strSelectDistinctIncomparable = "";
                             string strHexagon = buildSELECTMaxHexagon(prefSQL, strNewSQL, ref strSelectDistinctIncomparable);
-                            
+                            strSelectDistinctIncomparable = strSelectDistinctIncomparable.Replace("'", "''");
+
                             strHexagon = strHexagon.Replace("'", "''");
 
                             if (_SkylineType == Algorithm.Hexagon)
@@ -324,7 +325,7 @@ namespace prefSQL.SQLParser
                 //Add additional columns if attribute is incomparable
                 if (model.Skyline[iChild].Comparable == false && model.Skyline[iChild].AmountOfIncomparables > 0)
                 {
-                    strMaxSQL += "+1";
+                    //strMaxSQL += "+1";
                     //99 means OTHER INCOMPARABLE --> not clear at the moment how many distinct values exists
                     if (model.Skyline[iChild].AmountOfIncomparables == 99)
                     {

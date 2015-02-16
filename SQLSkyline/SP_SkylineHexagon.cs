@@ -89,12 +89,38 @@ namespace prefSQL.SQLSkyline
                     
                 }
                 strAddOperators = strAddOperators.TrimEnd(';');
-                string strBitPatternFull = new String('1', amountOfIncomparable); // string of 20 spaces;
-                strHexagonIncomparable += " ELSE '" + strBitPatternFull + "' END AS HexagonIncomparable" + strHexagonFieldName.Replace(".", "");
-                
+                /*
+                string strCategory2 = "schwarz";
+                string strBitPattern2 = "00";
+                strHexagonIncomparable += " WHEN " + strHexagonFieldName + " = '" + strCategory2.Replace("(", "").Replace(")", "") + "' THEN '" + strBitPattern2 + "'";
+                strCategory2 = "grau";
+                strBitPattern2 = "11";
+                strHexagonIncomparable += " WHEN " + strHexagonFieldName + " = '" + strCategory2.Replace("(", "").Replace(")", "") + "' THEN '" + strBitPattern2 + "'";
+                */
+                //string strBitPatternFull = new String('1', amountOfIncomparable); // string of 20 spaces;
+                string strBitPatternFull = new String('0', amountOfIncomparable); // string of 20 spaces;
+                strHexagonIncomparable += " ELSE '" + "xxx" + "' END AS HexagonIncomparable" + strHexagonFieldName.Replace(".", "");
+
+
+                string strAddSQL = "";
+                iIndexRow = 0;
+                foreach (DataRow row in dt.Rows)
+                {
+                    string strCategory = (string)row[0];
+                    if (!strCategory.Equals("undefined"))
+                    {
+                        
+                            strAddSQL += strHexagonIncomparable + iIndexRow + ",";
+
+                        iIndexRow++;
+                    }
+
+                }
+                strAddSQL = strAddSQL.TrimEnd(',');
+
 
                 //Manipulate construction sql
-                strSQL = strSQL.Replace("CALCULATEINCOMPARABLE", strHexagonIncomparable);
+                strSQL = strSQL.Replace("CALCULATEINCOMPARABLE", strAddSQL);
                 strQueryConstruction = strQueryConstruction.Replace("CALCULATEINCOMPARABLE", strMaxSQL);
                 strOperators = strOperators.Replace("CALCULATEINCOMPARABLE", strAddOperators);
 
@@ -362,9 +388,22 @@ namespace prefSQL.SQLSkyline
                         {
                             //Incomparable field is always the next one
                             String strValue = sqlReader.GetString(iCol+1);
-                            for (int iValue = 0; iValue < strValue.Length; iValue++)
+                            if (strValue.Substring(0, 1).Equals("x"))
                             {
-                                tuple[iCol + iValue] = long.Parse(strValue.Substring(iValue, 1));
+                                //current level is ok, but add zeros
+                                for (int iValue = 1; iValue < strValue.Length; iValue++)
+                                {
+                                    tuple[iCol + iValue] = 0;
+                                }
+                                
+                            }
+                            else
+                            {
+                                //Overwrite current level value with new one
+                                for (int iValue = 0; iValue < strValue.Length; iValue++)
+                                {
+                                    tuple[iCol + iValue] = long.Parse(strValue.Substring(iValue, 1));
+                                }
                             }
                             //tuple[iCol + 1] = long.Parse(strValue.Substring(1, 1));
                             //tuple[iCol + 2] = long.Parse(strValue.Substring(2, 1));
