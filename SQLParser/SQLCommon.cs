@@ -285,10 +285,10 @@ namespace prefSQL.SQLParser
                     else
                     {
                         //CASE WHEN  colors.name IN ('blau') THEN '001' WHEN colors.name IN ('silber') THEN '010' ELSE '100' END AS RankColorNew
-                        //for (int iIncomparable = 1; iIncomparable < model.Skyline[iChild].AmountOfIncomparables; iIncomparable++)
-                        //{
+                        for (int iIncomparable = 1; iIncomparable < model.Skyline[iChild].AmountOfIncomparables; iIncomparable++)
+                        {
                             strOperators += "INCOMPARABLE;";
-                        //}
+                        }
                     }
                 }
             }
@@ -336,6 +336,7 @@ namespace prefSQL.SQLParser
                     }
                     else
                     {
+                        strMaxSQL += "+1";
                         for (int iIncomparable = 1; iIncomparable < model.Skyline[iChild].AmountOfIncomparables; iIncomparable++)
                         {
                             strMaxSQL += ", 1";

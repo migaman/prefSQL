@@ -234,8 +234,9 @@ namespace prefSQL.SQLParser
                                 strHexagonIncomparable += " WHEN " + strTable + "." + strColumnName + " = " + strCategory.Replace("(", "").Replace(")", "") + " THEN '" + strBitPattern + "'";
                                 amountOfIncomparable++;
                             }
-                            string strBitPatternFull = new String('1', amountOfIncomparable); // string of 20 spaces;
+                            string strBitPatternFull = new String('x', amountOfIncomparable); // string of 20 spaces;
                             strHexagonIncomparable += " ELSE '" + strBitPatternFull + "' END AS HexagonIncomparable" + strSingleColumn.Replace(".", "");
+                            //strHexagonIncomparable += " ELSE '" + "" + "' END AS HexagonIncomparable" + strSingleColumn.Replace(".", "");
                             
                         }
                         else

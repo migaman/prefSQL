@@ -91,8 +91,8 @@ namespace prefSQL.SQLSkyline
                 }
                 strAddOperators = strAddOperators.TrimEnd(';');
                 
-                string strBitPatternFull = new String('0', amountOfIncomparable); // string of 20 spaces;
-                strHexagonIncomparable += " ELSE '" + "xxx" + "' END AS HexagonIncomparable" + strHexagonFieldName.Replace(".", "");
+                string strBitPatternFull = new String('x', amountOfIncomparable); // string of 20 spaces;
+                strHexagonIncomparable += " ELSE '" + strBitPatternFull + "' END AS HexagonIncomparable" + strHexagonFieldName.Replace(".", "");
 
 
                 string strAddSQL = "";

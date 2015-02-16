@@ -105,7 +105,11 @@ namespace Utility
 
 
                 strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 9000 SKYLINE OF t1.price LOW, colors.name ('schwarz' >> OTHERS INCOMPARABLE >> 'grau')";
-                //strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE colors.name IN ('schwarz', 'blau', 'silber', 'rot', 'grau') SKYLINE OF t1.price LOW, colors.name ('schwarz' >> {'blau', 'silber', 'rot'} >> 'grau')";
+                strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name (OTHERS INCOMPARABLE >> 'blau' >> 'rot')";
+                strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE colors.name IN ('schwarz', 'blau', 'silber', 'rot', 'grau') SKYLINE OF t1.price LOW, colors.name ('schwarz' >> {'blau', 'silber', 'rot'} >> 'grau')";
+                strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 900) SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber'})";
+                strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
+
                 Debug.WriteLine(strPrefSQL);
                 Debug.WriteLine("--------------------------------------------");
 
