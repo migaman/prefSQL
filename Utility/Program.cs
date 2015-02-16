@@ -103,8 +103,8 @@ namespace Utility
 
                 //"ORDER BY t1.title ";
 
-                
-                strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 2800 AND colors.name IN ('schwarz', 'blau', 'silber', 'rot', 'pink', 'grau', 'gelb') SKYLINE OF t1.price LOW, colors.name ('schwarz' >> OTHERS INCOMPARABLE >> 'grau')";
+
+                strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 9000 SKYLINE OF t1.price LOW, colors.name ('schwarz' >> OTHERS INCOMPARABLE >> 'grau')";
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE colors.name IN ('schwarz', 'blau', 'silber', 'rot', 'grau') SKYLINE OF t1.price LOW, colors.name ('schwarz' >> {'blau', 'silber', 'rot'} >> 'grau')";
                 Debug.WriteLine(strPrefSQL);
                 Debug.WriteLine("--------------------------------------------");

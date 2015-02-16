@@ -160,7 +160,8 @@ namespace prefSQL.SQLParser
             string strRankHexagon = "";
             string strHexagonIncomparable = "";
             int amountOfIncomparable = 0;
-            string strSelectDistinctIncomparable = "";
+            //string strSelectDistinctIncomparable = "";
+            //string strSelectDistinctElse = "";
 
             //It is a text --> Text text must be converted in a given sortorder
 
@@ -181,6 +182,7 @@ namespace prefSQL.SQLParser
             string strIncomporableAttribute = "";
             string strIncomporableAttributeELSE = "";
             bool bComparable = true;
+            int weightHexagonIncomparable = 0;
 
             //Define sort order value for each attribute
             int iWeight = 0;
@@ -199,21 +201,9 @@ namespace prefSQL.SQLParser
                         strSQLInnerELSE = " ELSE " + (iWeight + 1);
                         strIncomporableAttributeELSE = " ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
                         bComparable = false;
-
                         amountOfIncomparable = 99; //set a certain amount
                         strHexagonIncomparable = "CALCULATEINCOMPARABLE";
-                        strSelectDistinctIncomparable = "CASE ";
-                        foreach (String strCategory in strTemp)
-                        {
-                            if (!strCategory.Equals(">>") && !strCategory.Equals("<<") && !strCategory.Equals("OTHERSINCOMPARABLE"))
-                            {
-                                strSelectDistinctIncomparable += "WHEN " + strTable + "." + strColumnName + " = " + strCategory + " THEN 'undefined' ";
-                            }
-                            
-                        }
-                        strSelectDistinctIncomparable += " ELSE " + strTable + "." + strColumnName + " END";
-                        
-                        
+                        weightHexagonIncomparable = iWeight / 100;              
                         
                         break;
                     case "OTHERSEQUAL":
@@ -280,6 +270,7 @@ namespace prefSQL.SQLParser
             strSQL = "CASE" + strSQLOrderBy + strSQLELSE + " END";
             strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLInnerELSE + " END";
             strIncomporableAttribute = "CASE" + strSQLIncomparableAttribute + strIncomporableAttributeELSE + " END";
+            //strSelectDistinctIncomparable = "CASE" + strSelectDistinctIncomparable + strSelectDistinctElse + " END";
             strColumnExpression = strSQL;
             //Categories are always sorted ASCENDING
             strSQL += " ASC";
@@ -289,7 +280,7 @@ namespace prefSQL.SQLParser
             strRankHexagon = "DENSE_RANK()" + " over (ORDER BY " + strSQL + ")-1 AS Rank" + strSingleColumn.Replace(".", "");
             //strHexagonIncomparable = "CASE WHEN  colors.name IN ('blau') THEN '001' WHEN colors.name IN ('silber') THEN '100' WHEN colors.name IN ('rot') THEN '010' ELSE '111' END AS RankColorNew";
             //Add the preference to the list               
-            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, strSingleColumn.Replace(".", ""), strRankColumn, strRankHexagon, strSQL, true, strColumnName, strHexagonIncomparable, amountOfIncomparable, strSelectDistinctIncomparable));
+            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, strSingleColumn.Replace(".", ""), strRankColumn, strRankHexagon, strSQL, true, strColumnName, strHexagonIncomparable, amountOfIncomparable, weightHexagonIncomparable));
 
 
 

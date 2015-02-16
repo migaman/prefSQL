@@ -25,6 +25,7 @@ namespace prefSQL.SQLParser
             string str2 = "";
             string str3 = "";
             string str4 = "";
+            int i5 = 0;
 
             if (algorithm != SQLCommon.Algorithm.NativeSQL)
             {
@@ -98,7 +99,9 @@ namespace prefSQL.SQLParser
 
                     if (iPosEndEnd < strPrefSQL.Length)
                     {
-                        str4 = strPrefSQL.Substring(iPosEndEnd).TrimEnd('\'');
+                        int iPosComma = strPrefSQL.LastIndexOf(",");
+                        str4 = strPrefSQL.Substring(iPosEndEnd, iPosComma-iPosEndEnd).TrimEnd('\'');
+                        i5 = int.Parse(strPrefSQL.Substring(iPosComma+1));
                     }
                 }
                 else
@@ -180,7 +183,7 @@ namespace prefSQL.SQLParser
                     var thread = new Thread(
                         () =>
                         {
-                            dt = skyline.getSkylineTable(str1, str2, str3, ConnectionString, str4);
+                            dt = skyline.getSkylineTable(str1, str2, str3, ConnectionString, str4, i5);
                         }, 8000000);
 
                     

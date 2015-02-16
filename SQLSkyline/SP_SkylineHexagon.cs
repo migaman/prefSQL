@@ -17,19 +17,19 @@ namespace prefSQL.SQLSkyline
     public class SP_SkylineHexagon
     {        
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineHexagon")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlString strQueryConstruction, SqlString strSelectIncomparable)
+        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlString strQueryConstruction, SqlString strSelectIncomparable, int weightHexagonIncomparable)
         {
             SP_SkylineHexagon skyline = new SP_SkylineHexagon();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), strQueryConstruction.ToString(), false, "", strSelectIncomparable.ToString());
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), strQueryConstruction.ToString(), false, "", strSelectIncomparable.ToString(), weightHexagonIncomparable);
         }
 
-        
-        public DataTable getSkylineTable(String strQuery, String strOperators, String strQueryConstruction, String strConnection, string strSelectIncomparable)
+
+        public DataTable getSkylineTable(String strQuery, String strOperators, String strQueryConstruction, String strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
         {
-            return getSkylineTable(strQuery, strOperators, strQueryConstruction, true, strConnection, strSelectIncomparable);
+            return getSkylineTable(strQuery, strOperators, strQueryConstruction, true, strConnection, strSelectIncomparable, weightHexagonIncomparable);
         }
 
-        private DataTable getSkylineTable(string strQuery, string strOperators, string strQueryConstruction, bool isIndependent, string strConnection, string strSelectIncomparable)
+        private DataTable getSkylineTable(string strQuery, string strOperators, string strQueryConstruction, bool isIndependent, string strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
         {
             ArrayList[] btg = null;
             int[] next = null;
@@ -73,15 +73,16 @@ namespace prefSQL.SQLSkyline
                 foreach (DataRow row in dt.Rows)
                 {
                     string strCategory = (string)row[0];
-                    if(!strCategory.Equals("undefined"))
+                    if (!strCategory.Equals(""))
                     {
                         string strBitPattern = new String('0', dt.Rows.Count - 1);
                         strBitPattern = strBitPattern.Substring(0, amountOfIncomparable) + "1" + strBitPattern.Substring(amountOfIncomparable + 1);
                         strHexagonIncomparable += " WHEN " + strHexagonFieldName + " = '" + strCategory.Replace("(", "").Replace(")", "") + "' THEN '" + strBitPattern + "'";
                         amountOfIncomparable++;
-                        strMaxSQL += ", 1";
+                        
                         if (iIndexRow > 0)
                         {
+                            strMaxSQL += ", 1";
                             strAddOperators += "INCOMPARABLE;";
                         }
                         iIndexRow++;
@@ -89,15 +90,7 @@ namespace prefSQL.SQLSkyline
                     
                 }
                 strAddOperators = strAddOperators.TrimEnd(';');
-                /*
-                string strCategory2 = "schwarz";
-                string strBitPattern2 = "00";
-                strHexagonIncomparable += " WHEN " + strHexagonFieldName + " = '" + strCategory2.Replace("(", "").Replace(")", "") + "' THEN '" + strBitPattern2 + "'";
-                strCategory2 = "grau";
-                strBitPattern2 = "11";
-                strHexagonIncomparable += " WHEN " + strHexagonFieldName + " = '" + strCategory2.Replace("(", "").Replace(")", "") + "' THEN '" + strBitPattern2 + "'";
-                */
-                //string strBitPatternFull = new String('1', amountOfIncomparable); // string of 20 spaces;
+                
                 string strBitPatternFull = new String('0', amountOfIncomparable); // string of 20 spaces;
                 strHexagonIncomparable += " ELSE '" + "xxx" + "' END AS HexagonIncomparable" + strHexagonFieldName.Replace(".", "");
 
@@ -107,11 +100,12 @@ namespace prefSQL.SQLSkyline
                 foreach (DataRow row in dt.Rows)
                 {
                     string strCategory = (string)row[0];
-                    if (!strCategory.Equals("undefined"))
+                    if (!strCategory.Equals(""))
                     {
-                        
+                        if (iIndexRow > 0)
+                        {
                             strAddSQL += strHexagonIncomparable + iIndexRow + ",";
-
+                        }
                         iIndexRow++;
                     }
 
@@ -162,7 +156,7 @@ namespace prefSQL.SQLSkyline
                 //Read all records only once. (SqlDataReader works forward only!!)
                 while (sqlReader.Read())
                 {
-                    add(sqlReader, amountOfPreferences, operators, ref btg, ref weight, ref maxID);
+                    add(sqlReader, amountOfPreferences, operators, ref btg, ref weight, ref maxID, weightHexagonIncomparable);
                 }
                 sqlReader.Close();
                 
@@ -367,7 +361,7 @@ namespace prefSQL.SQLSkyline
             }
         }
 
-        private static void add(DataTableReader sqlReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID) //add tuple
+        private static void add(DataTableReader sqlReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable) //add tuple
         {
             ArrayList al = new ArrayList();
 
@@ -390,10 +384,18 @@ namespace prefSQL.SQLSkyline
                             String strValue = sqlReader.GetString(iCol+1);
                             if (strValue.Substring(0, 1).Equals("x"))
                             {
-                                //current level is ok, but add zeros
+                                //current level is ok, but add zeros if before incomparables, otherwise fill with ones
                                 for (int iValue = 1; iValue < strValue.Length; iValue++)
                                 {
-                                    tuple[iCol + iValue] = 0;
+                                    if (tuple[iCol] <= weightHexagonIncomparable)
+                                    {
+                                        tuple[iCol + iValue] = 0; //diese sind besser als die unvergleichbaren
+                                    }
+                                    else
+                                    {
+                                        tuple[iCol + iValue] = 1; //diese sind schlechter als die unvergleichbaren
+                                    }
+                                    
                                 }
                                 
                             }

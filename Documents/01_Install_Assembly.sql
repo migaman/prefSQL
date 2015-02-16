@@ -85,7 +85,7 @@ CREATE PROCEDURE SP_SkylineDQ (@Name nvarchar(4000), @Operators nvarchar(200))
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineDQ].getSkyline;
 GO
 --Create SP for Hexagon
-CREATE PROCEDURE SP_SkylineHexagon (@Name nvarchar(4000), @Operators nvarchar(200), @Construction nvarchar(4000), @DistinctIncomparable nvarchar(4000))
+CREATE PROCEDURE SP_SkylineHexagon (@Name nvarchar(4000), @Operators nvarchar(200), @Construction nvarchar(4000), @DistinctIncomparable nvarchar(4000), @DistinctLevelIncomparable int)
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineHexagon].getSkyline;
 GO
 --Create SP for Hexagon Level

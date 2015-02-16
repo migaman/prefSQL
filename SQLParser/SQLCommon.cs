@@ -218,14 +218,15 @@ namespace prefSQL.SQLParser
 
                             //Quote quotes because it is a parameter of the stored procedure
                             string strSelectDistinctIncomparable = "";
-                            string strHexagon = buildSELECTMaxHexagon(prefSQL, strNewSQL, ref strSelectDistinctIncomparable);
+                            int weightHexagonIncomparable = 0;
+                            string strHexagon = buildSELECTMaxHexagon(prefSQL, strNewSQL, ref strSelectDistinctIncomparable, ref weightHexagonIncomparable);
                             strSelectDistinctIncomparable = strSelectDistinctIncomparable.Replace("'", "''");
 
                             strHexagon = strHexagon.Replace("'", "''");
 
                             if (_SkylineType == Algorithm.Hexagon)
                             {
-                                strNewSQL = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "', '" + strSelectDistinctIncomparable + "'";
+                                strNewSQL = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "', '" + strSelectDistinctIncomparable + "'," + weightHexagonIncomparable;
                             }
                             else if (_SkylineType == Algorithm.HexagonLevel)
                             {
@@ -308,7 +309,7 @@ namespace prefSQL.SQLParser
         /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
         /// <param name="strOperators">Returns the operators</param>
         /// <returns>TODO</returns>
-        private string buildSELECTMaxHexagon(PrefSQLModel model, string strPreSQL, ref string strDistinctSelect)
+        private string buildSELECTMaxHexagon(PrefSQLModel model, string strPreSQL, ref string strDistinctSelect, ref int weight)
         {
             string strSQL = "";
             string strMaxSQL = "";
@@ -330,7 +331,8 @@ namespace prefSQL.SQLParser
                     if (model.Skyline[iChild].AmountOfIncomparables == 99)
                     {
                         strMaxSQL += "CALCULATEINCOMPARABLE";
-                        strDistinctSelect = model.Skyline[iChild].SelectDistinctIncomparable;
+                        strDistinctSelect = model.Skyline[iChild].IncomparableAttribute;
+                        weight = model.Skyline[iChild].WeightHexagonIncomparable;
                     }
                     else
                     {
