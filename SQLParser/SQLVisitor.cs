@@ -14,11 +14,11 @@ namespace prefSQL.SQLParser
     class SQLVisitor : SQLBaseVisitor<PrefSQLModel>
     {
         private Dictionary<string, string> tables = new Dictionary<string, string>();
-        private bool includesTOP = false;
-        private const string InnerTableSuffix = "_INNER"; //Table suffix for the inner query
-        private const string RankingFunction = "ROW_NUMBER()";
-        private PrefSQLModel model;
-        private bool isNative;
+        private bool includesTOP = false;                       //If SQL statement contains the "TOP" keyword it will be set to true
+        private const string InnerTableSuffix = "_INNER";       //Table suffix for the inner query
+        private const string RankingFunction = "ROW_NUMBER()";  //Default Ranking function
+        private PrefSQLModel model;                             //Preference SQL Model, contains i.e. the skyline attributes
+        private bool isNative;                                  //True if the skyline algorithm is native                 
 
         public bool IsNative
         {
@@ -33,13 +33,22 @@ namespace prefSQL.SQLParser
             set { model = value; }
         }
 
-        
+        /// <summary>
+        /// Normal ORDER BY clause
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override PrefSQLModel VisitOrderByDefault(SQLParser.OrderByDefaultContext context)
         {
             model.Ordering = SQLCommon.Ordering.AsIs;
             return base.VisitOrderByDefault(context);
         }
 
+        /// <summary>
+        /// Order BY clause with prefSQL keywords (SUMRANK or BESTRANK)
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override PrefSQLModel VisitOrderBySpecial(SQLParser.OrderBySpecialContext context)
         {
             SQLCommon.Ordering ordering = SQLCommon.Ordering.AsIs;
@@ -57,6 +66,11 @@ namespace prefSQL.SQLParser
         }
 
 
+        /// <summary>
+        /// ORDER BY clause with syntactic sugar of prefSQL
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override PrefSQLModel VisitOrderbyCategory(SQLParser.OrderbyCategoryContext context)
         {
             string strSQL = "";
@@ -65,8 +79,8 @@ namespace prefSQL.SQLParser
 
             //Build CASE ORDER with arguments
             string strExpr = context.exprCategory().GetText();
-            strColumnName = getColumn(context.GetChild(0));
-            strTable = getTable(context.GetChild(0));
+            strColumnName = getColumnName(context.GetChild(0));
+            strTable = getTableName(context.GetChild(0));
             string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split signs are == and >>
             string strSQLOrderBy = "";
             string strSQLELSE = "";
@@ -123,7 +137,11 @@ namespace prefSQL.SQLParser
         }
 
 
-
+        /// <summary>
+        /// Adds the table name and alias for each table in the query
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override PrefSQLModel VisitTable_or_subquery(SQLParser.Table_or_subqueryContext context)
         {
             string strTable = context.GetChild(0).GetText();
@@ -141,6 +159,11 @@ namespace prefSQL.SQLParser
             return base.VisitTable_or_subquery(context);
         }
 
+        /// <summary>
+        /// Set a boolean variable if query contains TOP keyword
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override PrefSQLModel VisitTop_keyword(SQLParser.Top_keywordContext context)
         {
             includesTOP = true;
@@ -148,11 +171,16 @@ namespace prefSQL.SQLParser
         }
 
         
-
+        /// <summary>
+        /// Handles a categorical preference
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override PrefSQLModel VisitPreferenceCategory(SQLParser.PreferenceCategoryContext context)
         {
-            string strSQL = "";
+            //It is a text --> Text text must be converted in a given sortorder
             PrefSQLModel pref = new PrefSQLModel();
+            string strSQL = "";
             string strColumnName = "";
             string strTable = "";
             string strOperator = "";
@@ -160,24 +188,20 @@ namespace prefSQL.SQLParser
             string strRankHexagon = "";
             string strHexagonIncomparable = "";
             int amountOfIncomparable = 0;
-            //string strSelectDistinctIncomparable = "";
-            //string strSelectDistinctElse = "";
-
-            //It is a text --> Text text must be converted in a given sortorder
 
             //Build CASE ORDER with arguments
             string strExpr = context.exprCategory().GetText();
             string strColumnExpression = "";
-            strColumnName = getColumn(context.GetChild(0));
-            strTable = getTable(context.GetChild(0));
+            strColumnName = getColumnName(context.GetChild(0));
+            strTable = getTableName(context.GetChild(0));
             string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split signs are == and >>
             string strSQLOrderBy = "";
             string strSQLELSE = "";
             string strSQLInnerELSE = "";
             string strSQLInnerOrderBy = "";
             string strInnerColumn = "";
-            string strSingleColumn = strTable + "." + getColumn(context.GetChild(0));
-            string strInnerSingleColumn = strTable + InnerTableSuffix + "." + getColumn(context.GetChild(0));
+            string strSingleColumn = strTable + "." + getColumnName(context.GetChild(0));
+            string strInnerSingleColumn = strTable + InnerTableSuffix + "." + getColumnName(context.GetChild(0));
             string strSQLIncomparableAttribute = "";
             string strIncomporableAttribute = "";
             string strIncomporableAttributeELSE = "";
@@ -292,6 +316,11 @@ namespace prefSQL.SQLParser
             return pref;
         }
 
+        /// <summary>
+        /// Handles a numerical/date HIGH/LOW preference
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override PrefSQLModel VisitPreferenceLOWHIGH(SQLParser.PreferenceLOWHIGHContext context)
         {
             string strSQL = "";
@@ -312,8 +341,8 @@ namespace prefSQL.SQLParser
             string strIncomporableAttribute = "";
             
             //Separate Column and Table
-            strColumnName = getColumn(context.GetChild(0));
-            strTable = getTable(context.GetChild(0));
+            strColumnName = getColumnName(context.GetChild(0));
+            strTable = getTableName(context.GetChild(0));
             strFullColumnName = strTable + "." + strColumnName;
             
             if (context.ChildCount == 4)
@@ -403,7 +432,11 @@ namespace prefSQL.SQLParser
 
         }
 
-
+        /// <summary>
+        /// Combines multiple pareto preferences (each preference is equivalent)
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override PrefSQLModel VisitExprAnd(SQLParser.ExprAndContext context)
         {
             //And was used --> visit left and right node
@@ -425,7 +458,11 @@ namespace prefSQL.SQLParser
         }
 
         
-
+        /// <summary>
+        /// Handles around preferences
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override PrefSQLModel VisitPreferenceAROUND(SQLParser.PreferenceAROUNDContext context)
         {
             string strSQL = "";
@@ -439,8 +476,8 @@ namespace prefSQL.SQLParser
 
             //Query Keywords AROUND, FAVOUR and DISFAVOUR, after that create an ORDER BY of it
 
-            strColumn = getColumn(context.GetChild(0));
-            strTable = getTable(context.GetChild(0));
+            strColumn = getColumnName(context.GetChild(0));
+            strTable = getTableName(context.GetChild(0));
 
             switch (context.op.Type)
             {
@@ -504,8 +541,12 @@ namespace prefSQL.SQLParser
 
 
 
-
-        private string getColumn(IParseTree tree)
+        /// <summary>
+        /// Returns the column name from the parse tree object
+        /// </summary>
+        /// <param name="tree"></param>
+        /// <returns></returns>
+        private string getColumnName(IParseTree tree)
         {
             if (tree.ChildCount == 1)
             {
@@ -519,8 +560,12 @@ namespace prefSQL.SQLParser
             }
         }
 
-
-        private string getTable(IParseTree tree)
+        /// <summary>
+        /// Returns the table name from the parse tree object
+        /// </summary>
+        /// <param name="tree"></param>
+        /// <returns></returns>
+        private string getTableName(IParseTree tree)
         {
             if (tree.ChildCount == 1)
             {

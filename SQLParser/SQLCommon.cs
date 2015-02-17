@@ -36,7 +36,7 @@ namespace prefSQL.SQLParser
             DQ,                     //Divide and Conquer
             Hexagon,                //Hexagon Augsburg 
             HexagonLevel,           //Hexagon Augsburg (does not support incomparable)
-            MultipleBNL,             //Multiple Skyline calculation (define levels with SkylineUptoLevel variable)
+            MultipleBNL,            //Multiple Skyline calculation (define levels with SkylineUptoLevel variable)
             MultipleBNLLevel        //Multiple Skyline calculation (define levels with SkylineUptoLevel variable, does not support incomparable)
         };
 

@@ -11,8 +11,12 @@ namespace prefSQL.SQLParser
     //internal class
     class SQLCriterion
     {
-
-        //Create the WHERE-Clause from the preferene model
+        /// <summary>
+        /// Create the WHERE-Clause according to the preference model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="strPreSQL"></param>
+        /// <returns></returns>
         public string getCriterionClause(PrefSQLModel model, string strPreSQL)
         {
             string strSQL = "";
@@ -41,11 +45,13 @@ namespace prefSQL.SQLParser
         }
 
 
-        /**
-         *  Build the WHERE Clause to implement a Skyline
-         * 
-         * 
-         * */
+
+        /// <summary>
+        /// Build the WHERE Clause to implement a Skyline
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="strPreSQL"></param>
+        /// <returns></returns>
         private string getCriterionSkylineClause(PrefSQLModel model, string strPreSQL)
         {
             string strWhereEqual = "";
