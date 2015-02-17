@@ -14,22 +14,39 @@ namespace prefSQL.SQLParser
     //internal class
     class Helper
     {
-        public String DriverString { get; set;} 
+        /// <summary>
+        /// Driver-String, i.e. System.Data.SqlClient
+        /// </summary>
+        public String DriverString { get; set; }  
+        /// <summary>
+        /// Connectionstring, i.e. Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True
+        /// </summary>
         public String ConnectionString { get; set; }
 
-
+        /// <summary>
+        /// Returns a datatable with the tuples from the SQL statement
+        /// The sql will be resolved into pieces, in order to call the Skyline algorithms without MSSQL CLR
+        /// </summary>
+        /// <param name="strPrefSQL"></param>
+        /// <param name="algorithm"></param>
+        /// <param name="upToLevel"></param>
+        /// <returns></returns>
         public DataTable getResults(String strPrefSQL, SQLCommon.Algorithm algorithm, int upToLevel)
         {
             DataTable dt = new DataTable();
             string str1 = "";
             string str2 = "";
             string str3 = "";
-            string str4 = "";
-            int i5 = 0;
+            string str4 = "";   //4th parameter (only for hexagon)
+            int i5 = 0;         //5th parameter (only for hexagon)
 
+            //Native SQL algorithm is already a valid SQL statement
             if (algorithm != SQLCommon.Algorithm.NativeSQL)
             {
-                //First parameter
+                //All other algorithms are developed as stored procedures
+                //Resolve now each parameter from this SP calls to single pieces
+
+                //1st parameter
                 int iPosStart = strPrefSQL.IndexOf("'") + 1;
                 int iPosMiddle = iPosStart;
                 bool bEnd = false;
@@ -44,11 +61,11 @@ namespace prefSQL.SQLParser
                     {
                         iPosMiddle++;
                     }
-                    //Prüfen ob es kein doppeltes Hochkomma ist
+                    //Check that it is not a double apostrophe
                 }
                 iPosMiddle += 3;
 
-                //Second parameter
+                //2nd parameter
                 int iPosEnd = iPosMiddle;
                 bEnd = false;
                 while (bEnd == false)
@@ -64,13 +81,13 @@ namespace prefSQL.SQLParser
                     {
                         iPosEnd++;
                     }
-                    //Prüfen ob es kein doppeltes Hochkomma ist
+                    //Check that it is not a double apostrophe
                 }
                 iPosEnd += 3;
 
 
 
-                
+                //Check if it has more than 3 parameters
                 if (iPosEnd < strPrefSQL.Length)
                 {
                     //3th parameter
@@ -89,7 +106,7 @@ namespace prefSQL.SQLParser
                         {
                             iPosEndEnd++;
                         }
-                        //Prüfen ob es kein doppeltes Hochkomma ist
+                        //Check that it is not a double apostrophe
                     }
                     iPosEndEnd += 3;
 
@@ -99,6 +116,7 @@ namespace prefSQL.SQLParser
 
                     if (iPosEndEnd < strPrefSQL.Length)
                     {
+                        //Hexagon algorithm has 5 parameters
                         int iPosComma = strPrefSQL.LastIndexOf(",");
                         str4 = strPrefSQL.Substring(iPosEndEnd, iPosComma-iPosEndEnd).TrimEnd('\'');
                         i5 = int.Parse(strPrefSQL.Substring(iPosComma+1));
@@ -157,7 +175,8 @@ namespace prefSQL.SQLParser
                 {
                     prefSQL.SQLSkyline.SP_SkylineDQ skyline = new SQLSkyline.SP_SkylineDQ();
 
-                    //Default stack size is 1MB (1024000) --> Increase to 8MB
+                    //D&Q algorithm neads a higher stack (much recursions). Therefore start it with a new thread
+                    //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
                     var thread = new Thread(
                         () =>
                         {
@@ -177,9 +196,9 @@ namespace prefSQL.SQLParser
                 {
 
                     prefSQL.SQLSkyline.SP_SkylineHexagon skyline = new SQLSkyline.SP_SkylineHexagon();
+                    
                     //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
-
-                    //Default stack size is 1MB (1024000) --> Increase to 8MB
+                    //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
                     var thread = new Thread(
                         () =>
                         {
@@ -198,7 +217,7 @@ namespace prefSQL.SQLParser
                     prefSQL.SQLSkyline.SP_SkylineHexagonLevel skyline = new SQLSkyline.SP_SkylineHexagonLevel();
                     //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
 
-                    //Default stack size is 1MB (1024000) --> Increase to 8MB
+                    //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
                     var thread = new Thread(
                         () =>
                         {
@@ -222,8 +241,7 @@ namespace prefSQL.SQLParser
                     //Native SQL
 
                     //Generic database provider
-                    // create the provider factory from the namespace provider
-                    // you could create any other provider factory.. for Oracle, MySql, etc...
+                    //Create the provider factory from the namespace provider, you could create any other provider factory.. for Oracle, MySql, etc...
                     DbProviderFactory factory = DbProviderFactories.GetFactory(DriverString);
 
                     // use the factory object to create Data access objects.
@@ -245,11 +263,8 @@ namespace prefSQL.SQLParser
             }
 
 
-
             sw.Stop();
-
-            Console.WriteLine("Elapsed={0}", sw.Elapsed);
-
+            System.Diagnostics.Debug.WriteLine("Elapsed={0}", sw.Elapsed);
             return dt;
         }
 

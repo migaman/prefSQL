@@ -79,8 +79,8 @@ namespace Utility
             }
 
 
-            sw.Stop();            
-            Console.WriteLine("Elapsed={0}", sw.Elapsed);
+            sw.Stop();
+            System.Diagnostics.Debug.WriteLine("Elapsed={0}", sw.Elapsed);
 
 
         }
