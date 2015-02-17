@@ -73,7 +73,7 @@ namespace prefSQL.SQLSkyline
                     if (resultCollection.Count == 0)
                     {
                         //first record is always added to collection
-                        Helper.addToWindowIncomparable(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isIndependent, ref dtResult);
+                        Helper.addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isIndependent, ref dtResult);
                     }
                     else
                     {
@@ -86,7 +86,7 @@ namespace prefSQL.SQLSkyline
                             string[] strResult = (string[])resultstringCollection[i];
 
                             //Dominanz
-                            if (Helper.compareIncomparable(sqlReader, operators, result, strResult) == true)
+                            if (Helper.isTupleDominated(sqlReader, operators, result, strResult) == true)
                             {
                                 //New point is dominated. No further testing necessary
                                 isDominated = true;
@@ -98,7 +98,7 @@ namespace prefSQL.SQLSkyline
                         }
                         if (isDominated == false)
                         {
-                            Helper.addToWindowIncomparable(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isIndependent, ref dtResult);
+                            Helper.addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, isIndependent, ref dtResult);
                         }
 
                     }

@@ -109,7 +109,7 @@ namespace prefSQL.SQLSkyline
                                     long[] result = (long[])resultCollection[i];
 
                                     //Dominanz
-                                    if (Helper.compare(sqlReader, operators, result) == true)
+                                    if (Helper.isTupleDominated(sqlReader, operators, result) == true)
                                     {
                                         //Dominated in this level. Next level
                                         isDominated = true;

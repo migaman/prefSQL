@@ -111,7 +111,7 @@ namespace prefSQL.SQLSkyline
                                     string[] strResult = (string[])resultstringCollection[i];
 
                                     //Dominanz
-                                    if (Helper.compareIncomparable(sqlReader, operators, result, strResult) == true)
+                                    if (Helper.isTupleDominated(sqlReader, operators, result, strResult) == true)
                                     {
                                         //Dominated in this level. Next level
                                         isDominated = true;
