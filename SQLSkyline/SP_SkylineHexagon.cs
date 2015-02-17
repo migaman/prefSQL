@@ -75,16 +75,17 @@ namespace prefSQL.SQLSkyline
                     string strCategory = (string)row[0];
                     if (!strCategory.Equals(""))
                     {
+                        //string strBitPattern = new String('0', dt.Rows.Count - 1);
                         string strBitPattern = new String('0', dt.Rows.Count - 1);
                         strBitPattern = strBitPattern.Substring(0, amountOfIncomparable) + "1" + strBitPattern.Substring(amountOfIncomparable + 1);
                         strHexagonIncomparable += " WHEN " + strHexagonFieldName + " = '" + strCategory.Replace("(", "").Replace(")", "") + "' THEN '" + strBitPattern + "'";
                         amountOfIncomparable++;
                         
-                        if (iIndexRow > 0)
-                        {
+                        //if (iIndexRow > 0)
+                        //{
                             strMaxSQL += ", 1";
                             strAddOperators += "INCOMPARABLE;";
-                        }
+                        //}
                         iIndexRow++;
                     }
                     
@@ -102,10 +103,10 @@ namespace prefSQL.SQLSkyline
                     string strCategory = (string)row[0];
                     if (!strCategory.Equals(""))
                     {
-                        if (iIndexRow > 0)
-                        {
+                        //if (iIndexRow > 0)
+                        //{
                             strAddSQL += strHexagonIncomparable + iIndexRow + ",";
-                        }
+                        //}
                         iIndexRow++;
                     }
 
@@ -385,15 +386,15 @@ namespace prefSQL.SQLSkyline
                             if (strValue.Substring(0, 1).Equals("x"))
                             {
                                 //current level is ok, but add zeros if before incomparables, otherwise fill with ones
-                                for (int iValue = 1; iValue < strValue.Length; iValue++)
+                                for (int iValue = 0; iValue < strValue.Length; iValue++)
                                 {
                                     if (tuple[iCol] <= weightHexagonIncomparable)
                                     {
-                                        tuple[iCol + iValue] = 0; //diese sind besser als die unvergleichbaren
+                                        tuple[iCol + 1 + iValue] = 0; //diese sind besser als die unvergleichbaren
                                     }
                                     else
                                     {
-                                        tuple[iCol + iValue] = 1; //diese sind schlechter als die unvergleichbaren
+                                        tuple[iCol + 1 + iValue] = 1; //diese sind schlechter als die unvergleichbaren
                                     }
                                     
                                 }
@@ -404,7 +405,7 @@ namespace prefSQL.SQLSkyline
                                 //Overwrite current level value with new one
                                 for (int iValue = 0; iValue < strValue.Length; iValue++)
                                 {
-                                    tuple[iCol + iValue] = long.Parse(strValue.Substring(iValue, 1));
+                                    tuple[iCol + 1 + iValue] = long.Parse(strValue.Substring(iValue, 1));
                                 }
                             }
                             //tuple[iCol + 1] = long.Parse(strValue.Substring(1, 1));

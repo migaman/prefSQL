@@ -15,61 +15,60 @@ namespace prefSQL.SQLParserTest
 
         /**
          * This test checks if the algorithms return the same amount of tupels for different prefSQL statements
-         * At the moment it contains the BNL and nativeSQL algorithm. It is intendend to add the hexagon as soon
-         * as it work with incomparable tuples
+         * At the moment it contains the BNL, nativeSQL and Hexagon algorithm. It is intendend to add the D&Q as soon
+         * as it works
          * 
          * */
-
         [TestMethod]
         public void TestSKYLINEAmountOfTupels()
         {
+            //TODO: Add D&Q algorithm as soon as it works
+
             string[] strPrefSQL = new string[12];
 
-            //3 Attribute ohne Kategorien
-            strPrefSQL[0] = "SELECT * FROM cars_small t1 SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH";
-            //Mit Steps vergleichbar ohne Kategorien
-            strPrefSQL[1] = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
+            //1 numerical preference
+            strPrefSQL[0] = "SELECT t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price LOW";
+            //3 numerical preferences
+            strPrefSQL[1] = "SELECT * FROM cars_small t1 SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH";
+            //6 numerical preferences with EQUAL STEPS
+            strPrefSQL[2] = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
                 "SKYLINE OF cars_small.price LOW 3000 EQUAL, cars_small.mileage LOW 20000 EQUAL, cars_small.horsepower HIGH 20 EQUAL, cars_small.enginesize HIGH 1000 EQUAL, cars_small.consumption LOW 15 EQUAL, cars_small.doors HIGH ";
 
             
-            
-            //Mit Kategorie und vergleichbar am ende
-            strPrefSQL[2] = "SELECT t1.id, t1.title AS AutoTitel, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS EQUAL)";
-            //Mit Kategorie und vergleichbar zu beginn
-            strPrefSQL[3] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name (OTHERS EQUAL >> 'blau')";
-            //Mit Kategorie und vergleichbar in der Mitte
-            strPrefSQL[4] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> OTHERS EQUAL >> 'blau')";
+            //OTHERS EQUAL at the end
+            strPrefSQL[3] = "SELECT t1.id, t1.title AS AutoTitel, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS EQUAL)";
+            //OTHERS EQUAL at the beginning
+            strPrefSQL[4] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name (OTHERS EQUAL >> 'blau')";
+            //OTHERS EQUAL in the middle
+            strPrefSQL[5] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> OTHERS EQUAL >> 'blau')";
 
             
-            //Mit Kategorie und bestimmte (2) Unvergleichbar
-            strPrefSQL[5] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 900) SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber'})";
-            //Mit Kategorie und bestimmte (5) Unvergleichbare besser als etwas anderes
-            strPrefSQL[6] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 900) SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber', 'schwarz', 'rot', 'pink'} >> 'grau')";
-            //Mit Kategorie und bestimmte (4) Unvergleichbare in der Mitte
-            strPrefSQL[7] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 900) SKYLINE OF t1.price LOW, colors.name ('schwarz' >> {'blau', 'silber', 'rot', 'pink'} >> 'grau')";
+            //2 FIXED INCOMPARABLE values
+            strPrefSQL[6] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 900) SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber'})";
+            //5 FIXED INCOMPARABLE values better than another value
+            strPrefSQL[7] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 900) SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber', 'schwarz', 'rot', 'pink'} >> 'grau')";
+            //4 FIXED INCOMPARABLE values in the middle
+            strPrefSQL[8] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 900) SKYLINE OF t1.price LOW, colors.name ('schwarz' >> {'blau', 'silber', 'rot', 'pink'} >> 'grau')";
 
+            //OTHERS INCOMPARABLE at the end
+            strPrefSQL[9] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
+            //OTHERS INCOMPARABLE at the beginning
+            strPrefSQL[10] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name (OTHERS INCOMPARABLE >> 'blau' >> 'rot')";
+            //OTHERS INCOMPARABLE in the middle
+            strPrefSQL[11] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >>  OTHERS INCOMPARABLE >> 'blau')";
             
-            //Mit Kategorie und unvergleichbar am ende
-            strPrefSQL[8] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
-            //TODO: Die nächsten beiden gehen noch nicht mit Hexagon-Algo!!
-            //Mit Kategorie und unvergleichbar zu beginn
-            strPrefSQL[9] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name (OTHERS INCOMPARABLE >> 'blau' >> 'rot')";
+            //TODO: Does not work with Hexagon so far
+            //WITHOUT OTHERS --> This means that tuples with other values are assumed to be incomparable
+            //strPrefSQL[12] = "SELECT c.id AS ID FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
             
-            //Mit Kategorie und unvergleichbar in der Mitte
-            strPrefSQL[10] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >>  OTHERS INCOMPARABLE >> 'blau')";
-            
-            //TODO: der nächste geht noch nicht mit dem Hexagon
-            //Mit Kategorie ohne OTHERS --> Das heisst beim rest wird unvergleichbar angenommen
-            strPrefSQL[11] = "SELECT c.id AS ID FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
-            
-            //TODO: geht beim BNL und Hexagon noch nicht
-            //Mit Steps unvergleichar ohne Kategorien
-            /*strPrefSQL[12] = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
+            //TODO: Does not work with BNL and Hexagon
+            //Numerical preferences with INCOMPARABLE STEPS
+            /*strPrefSQL[13] = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
                 "SKYLINE OF cars_small.price LOW 3000 INCOMPARABLE, cars_small.mileage LOW 20000 EQUAL, cars_small.horsepower HIGH 20 EQUAL, cars_small.enginesize HIGH 1000 EQUAL, cars_small.consumption LOW 15 EQUAL, cars_small.doors HIGH ";
             */
 
             
-            //TODO: Add hexagon as soon as it works with incomparable tuples
+            
             for (int i = 0; i <= strPrefSQL.GetUpperBound(0); i++)
             {
 
@@ -155,93 +154,13 @@ namespace prefSQL.SQLParserTest
                 }
 
 
+                //Check tuples (every algorithm should deliver the same amount of tuples)
                 Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNLSort, 0, "Amount of tupels does not match");
                 Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNL, 0, "Amount of tupels does not match");
-                //Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsHexagon, 0, "Amount of tupels does not match");
+                Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsHexagon, 0, "Amount of tupels does not match");
             }
         }
 
-        /**
-         * If only one skyline attribute is available --> Show all records for each algorithm
-         * 
-         */
-        [TestMethod]
-        public void TestSKYLINEOneAttribute()
-        {
-            string sqlAll = "SELECT COUNT(*) FROM cars_small";
-            string strPrefSQL = "SELECT c.id AS ID FROM Cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF b.name ('Bus' >> 'Kleinwagen')";
-
-
-            SQLCommon common = new SQLCommon();
-            common.SkylineType = SQLCommon.Algorithm.NativeSQL;
-            string sqlNative = common.parsePreferenceSQL(strPrefSQL);
-            common.SkylineType = SQLCommon.Algorithm.BNLSort;
-            string sqlBNL = common.parsePreferenceSQL(strPrefSQL);
-
-
-            int amountOfTupels = 0;
-            int amountOfTupelsBNL = 0;
-            int amountOfTupelsSQL = 0;
-
-            SqlConnection cnnSQL = new SqlConnection(strConnection);
-            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
-            try
-            {
-                cnnSQL.Open();
-
-
-                //All
-                SqlCommand sqlCommand = new SqlCommand(sqlAll, cnnSQL);
-                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupels = sqlReader.GetInt32(0);
-                        break;
-                    }
-                }
-                sqlReader.Close();
-
-                //Native
-                sqlCommand = new SqlCommand(sqlNative, cnnSQL);
-                sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsSQL++;
-                    }
-                }
-                sqlReader.Close();
-
-                //BNL
-                sqlCommand = new SqlCommand(sqlBNL, cnnSQL);
-                sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsBNL++;
-                    }
-                }
-                sqlReader.Close();
-
-
-                cnnSQL.Close();
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail("Connection failed:" + ex.Message);
-            }
-
-
-            Assert.AreEqual(amountOfTupels, amountOfTupelsSQL, 0, "Amount of tupels does not match");
-            Assert.AreEqual(amountOfTupels, amountOfTupelsBNL, 0, "Amount of tupels does not match");
-        }
 
 
         [TestMethod]
@@ -249,9 +168,7 @@ namespace prefSQL.SQLParserTest
         {
             string strSQL = "SELECT t1.id, t1.price, t1.mileage FROM cars_small t1 ";
             string strPreferences = " SKYLINE OF t1.price LOW, t1.mileage LOW";
-            //string strPreferences = " SKYLINE OF t1.price LOW 60000, t1.horsepower HIGH 80";
             SQLCommon common = new SQLCommon();
-            
 
             SqlConnection cnnSQL = new SqlConnection(strConnection);
             cnnSQL.InfoMessage += cnnSQL_InfoMessage;

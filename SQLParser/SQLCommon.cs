@@ -67,6 +67,15 @@ namespace prefSQL.SQLParser
             set { _SkylineUpToLevel = value; }
         }
 
+        /// <summary>
+        /// Parse a prefSQL Query and return the result as a DataTable. Additional attribute to set the maximum SkylineLevel for the Multiple Skyline Algorithm
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="driverString"></param>
+        /// <param name="strPrefSQL"></param>
+        /// <param name="algorithm"></param>
+        /// <param name="upToLevel"></param>
+        /// <returns>Returns a DataTable with the requested values</returns>
         public DataTable parseAndExeutePrefSQL(string connectionString, string driverString, String strPrefSQL, SQLCommon.Algorithm algorithm, int upToLevel)
         {
             string strSQL = parsePreferenceSQL(strPrefSQL);
@@ -77,6 +86,14 @@ namespace prefSQL.SQLParser
             return helper.getResults(strSQL, algorithm, upToLevel);
         }
 
+        /// <summary>
+        /// Parse a prefSQL Query and return the result as a DataTable
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="DriverString"></param>
+        /// <param name="strPrefSQL"></param>
+        /// <param name="algorithm"></param>
+        /// <returns>Returns a DataTable with the requested values</returns>
         public DataTable parseAndExeutePrefSQL(string connectionString, string DriverString, String strPrefSQL, SQLCommon.Algorithm algorithm)
         {
             //No maximum Level defined. Set max level to 3
@@ -92,9 +109,10 @@ namespace prefSQL.SQLParser
             SQLLexer sqlLexer = new SQLLexer(inputStream);
             CommonTokenStream commonTokenStream = new CommonTokenStream(sqlLexer);
             SQLParser parser = new SQLParser(commonTokenStream);
-            string strNewSQL = "";
             SQLSort sqlSort = new SQLSort();
             SQLCriterion sqlCriterion = new SQLCriterion();
+            string strSQLReturn = ""; //The SQL-Query that is built on the basis of the prefSQL 
+
 
             try
             {
@@ -116,18 +134,20 @@ namespace prefSQL.SQLParser
                 //Check if parse was successful and query contains PrefSQL syntax
                 if (prefSQL != null && strInput.IndexOf(SkylineOf) > 0)
                 {
-                    //All Syntax before Skyline-Clause
-                    strNewSQL = strInput.Substring(0, strInput.IndexOf(SkylineOf) - 1);
+                    //Add all Syntax before the Skyline-Clause
+                    strSQLReturn = strInput.Substring(0, strInput.IndexOf(SkylineOf) - 1);
 
                     if (prefSQL.HasSkyline == true)
                     {
-                        //Add Skyline Attributes to select list
+                        //Add Skyline Attributes to select list. This option is i.e. useful to create a dominance graph.
+                        //With help of the skyline values it is easier to create this graph
                         if (_ShowSkylineAttributes == true)
                         {
-                            string strPreferences = getPreferenceAttributes(prefSQL, strNewSQL);
-                            string strSQLBeforeFrom = strNewSQL.Substring(0, strNewSQL.IndexOf("FROM"));
-                            string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
-                            strNewSQL = strSQLBeforeFrom + strPreferences + " " + strSQLAfterFrom;
+                            //Add the attributes to the existing SELECT clause
+                            string strSQLSelectClause = getSelectClauseForSkylineAttributes(prefSQL);
+                            string strSQLBeforeFrom = strSQLReturn.Substring(0, strSQLReturn.IndexOf("FROM"));
+                            string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM"));
+                            strSQLReturn = strSQLBeforeFrom + strSQLSelectClause + " " + strSQLAfterFrom;
                             
                         }
 
@@ -155,20 +175,21 @@ namespace prefSQL.SQLParser
                             }
                         }
 
-
+                        
+                        //Now create the query depending on the Skyline algorithm
                         if (_SkylineType == Algorithm.NativeSQL)
                         {
-                            string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strNewSQL);
-                            strNewSQL += strWHERE;
-                            strNewSQL += strOrderBy;
+                            string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strSQLReturn);
+                            strSQLReturn += strWHERE;
+                            strSQLReturn += strOrderBy;
                         }
-                        else if (_SkylineType == Algorithm.BNL || _SkylineType == Algorithm.BNLLevel || _SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.BNLSortLevel || _SkylineType == Algorithm.MultipleBNL ||_SkylineType == Algorithm.DQ)
+                        else if (_SkylineType == Algorithm.BNL || _SkylineType == Algorithm.BNLLevel || _SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.BNLSortLevel || _SkylineType == Algorithm.MultipleBNL || _SkylineType == Algorithm.DQ)
                         {
                             string strOperators = "";
-                            string strAttributesSkyline = buildPreferencesBNL(prefSQL, strNewSQL, ref strOperators);
+                            string strAttributesSkyline = buildPreferencesBNL(prefSQL, ref strOperators);
                             //Without SELECT 
-                            string strAttributesOutput = ", " + strNewSQL.Substring(7, strNewSQL.IndexOf("FROM") - 7);
-                            string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
+                            string strAttributesOutput = ", " + strSQLReturn.Substring(7, strSQLReturn.IndexOf("FROM") - 7);
+                            string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM"));
 
                             string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
                             //Sortieren according to preferences (otherwise the algorithm would not work)
@@ -180,37 +201,37 @@ namespace prefSQL.SQLParser
 
                             if (_SkylineType == Algorithm.BNL)
                             {
-                                strNewSQL = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "'";
+                                strSQLReturn = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "'";
                             }
                             else if (_SkylineType == Algorithm.BNLLevel)
                             {
-                                strNewSQL = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "'";
+                                strSQLReturn = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "'";
                             }
                             else if (_SkylineType == Algorithm.BNLSort)
                             {
-                                strNewSQL = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "'";
+                                strSQLReturn = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "'";
                             }
                             else if (_SkylineType == Algorithm.BNLSortLevel)
                             {
-                                strNewSQL = "EXEC dbo.SP_SkylineBNLSortLevel '" + strFirstSQL + "', '" + strOperators + "'";
+                                strSQLReturn = "EXEC dbo.SP_SkylineBNLSortLevel '" + strFirstSQL + "', '" + strOperators + "'";
                             }
                             else if (_SkylineType == Algorithm.MultipleBNL)
                             {
-                                strNewSQL = "EXEC dbo.SP_MultipleSkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + _SkylineUpToLevel; 
+                                strSQLReturn = "EXEC dbo.SP_MultipleSkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + _SkylineUpToLevel;
                             }
                             else if (_SkylineType == Algorithm.DQ)
                             {
-                                strNewSQL = "EXEC dbo.SP_SkylineDQ '" + strFirstSQL + "', '" + strOperators + "'";
+                                strSQLReturn = "EXEC dbo.SP_SkylineDQ '" + strFirstSQL + "', '" + strOperators + "'";
                             }
-                            
+
                         }
                         else if (_SkylineType == Algorithm.Hexagon || _SkylineType == Algorithm.HexagonLevel)
                         {
                             string strOperators = "";
-                            string strAttributesSkyline = buildSELECTHexagon(prefSQL, strNewSQL, ref strOperators);
+                            string strAttributesSkyline = buildSELECTHexagon(prefSQL, strSQLReturn, ref strOperators);
                             //Without SELECT 
-                            string strAttributesOutput = ", " + strNewSQL.Substring(7, strNewSQL.IndexOf("FROM") - 7);
-                            string strSQLAfterFrom = strNewSQL.Substring(strNewSQL.IndexOf("FROM"));
+                            string strAttributesOutput = ", " + strSQLReturn.Substring(7, strSQLReturn.IndexOf("FROM") - 7);
+                            string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM"));
 
                             //Quote quotes because it is a parameter of the stored procedure
                             string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
@@ -219,28 +240,27 @@ namespace prefSQL.SQLParser
                             //Quote quotes because it is a parameter of the stored procedure
                             string strSelectDistinctIncomparable = "";
                             int weightHexagonIncomparable = 0;
-                            string strHexagon = buildSELECTMaxHexagon(prefSQL, strNewSQL, ref strSelectDistinctIncomparable, ref weightHexagonIncomparable);
+                            string strHexagon = buildSELECTMaxHexagon(prefSQL, strSQLReturn, ref strSelectDistinctIncomparable, ref weightHexagonIncomparable);
                             strSelectDistinctIncomparable = strSelectDistinctIncomparable.Replace("'", "''");
 
                             strHexagon = strHexagon.Replace("'", "''");
 
                             if (_SkylineType == Algorithm.Hexagon)
                             {
-                                strNewSQL = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "', '" + strSelectDistinctIncomparable + "'," + weightHexagonIncomparable;
+                                strSQLReturn = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "', '" + strSelectDistinctIncomparable + "'," + weightHexagonIncomparable;
                             }
                             else if (_SkylineType == Algorithm.HexagonLevel)
                             {
-                                strNewSQL = "EXEC dbo.SP_SkylineHexagonLevel '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "'";
+                                strSQLReturn = "EXEC dbo.SP_SkylineHexagonLevel '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "'";
                             }
 
                         }
                     }
-
                 }
                 else
                 {
                     //Query does not contain a preference --> return original query
-                    strNewSQL = strInput;
+                    strSQLReturn = strInput;
                 }
             }
 
@@ -250,7 +270,7 @@ namespace prefSQL.SQLParser
                 /// <exception cref="Exception">This is exception is thrown because the String is not a valid PrefSQL Query</exception>
                 throw new Exception(e.Message);
             }
-            return strNewSQL;
+            return strSQLReturn;
 
         }
 
@@ -264,8 +284,6 @@ namespace prefSQL.SQLParser
         private string buildSELECTHexagon(PrefSQLModel model, string strPreSQL, ref string strOperators)
         {
             strOperators = "";
-
-
             string strSQL = "";
 
             //Add a RankColumn for each PRIORITIZE preference
@@ -285,7 +303,7 @@ namespace prefSQL.SQLParser
                     else
                     {
                         //CASE WHEN  colors.name IN ('blau') THEN '001' WHEN colors.name IN ('silber') THEN '010' ELSE '100' END AS RankColorNew
-                        for (int iIncomparable = 1; iIncomparable < model.Skyline[iChild].AmountOfIncomparables; iIncomparable++)
+                        for (int iIncomparable = 0; iIncomparable < model.Skyline[iChild].AmountOfIncomparables; iIncomparable++)
                         {
                             strOperators += "INCOMPARABLE;";
                         }
@@ -294,8 +312,6 @@ namespace prefSQL.SQLParser
             }
 
             //Add the ranked column before the FROM keyword
-            //posOfFROM = strPreSQL.IndexOf("FROM");
-            //strSQL = strPreSQL.Substring(0, posOfFROM - 1) + strSQL + strPreSQL.Substring(posOfFROM - 1);
             strSQL = strSQL.TrimStart(',');
             strOperators = strOperators.TrimEnd(';');
 
@@ -337,7 +353,7 @@ namespace prefSQL.SQLParser
                     else
                     {
                         strMaxSQL += "+1";
-                        for (int iIncomparable = 1; iIncomparable < model.Skyline[iChild].AmountOfIncomparables; iIncomparable++)
+                        for (int iIncomparable = 0; iIncomparable < model.Skyline[iChild].AmountOfIncomparables; iIncomparable++)
                         {
                             strMaxSQL += ", 1";
                         }
@@ -364,9 +380,8 @@ namespace prefSQL.SQLParser
         /// Therefore HIGH preferences are multiplied with -1 
         /// </remarks>
         /// <param name="model">model of parsed Preference SQL Statement</param>
-        /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
         /// <returns>Return the extended SQL Statement</returns>
-        private string getPreferenceAttributes(PrefSQLModel model, string strPreSQL)
+        private string getSelectClauseForSkylineAttributes(PrefSQLModel model)
         {
             string strSQL = "";
 
@@ -376,7 +391,6 @@ namespace prefSQL.SQLParser
                 //Build the where clause with each column in the skyline
                 for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
                 {
-                    //
                     if (model.Skyline[iChild].Op.Equals("<"))
                     {
                         strSQL += ", " + model.Skyline[iChild].ColumnExpression + " AS SkylineAttribute" + model.Skyline[iChild].ColumnName;
@@ -399,7 +413,7 @@ namespace prefSQL.SQLParser
         /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
         /// <param name="strOperators">Returns the operators</param>
         /// <returns>TODO</returns>
-        private string buildPreferencesBNL(PrefSQLModel model, string strPreSQL, ref string strOperators)
+        private string buildPreferencesBNL(PrefSQLModel model, ref string strOperators)
         {
             string strSQL = "";
             strOperators = "";
@@ -410,22 +424,17 @@ namespace prefSQL.SQLParser
                 //Build the where clause with each column in the skyline
                 for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
                 {
-                    string op = "";
                     if (model.Skyline[iChild].Op.Equals("<"))
                     {
-                        op = "LOW";
                         strSQL += ", " + model.Skyline[iChild].ColumnExpression + " AS SkylineAttribute" + iChild;
                     }
                     else
                     {
-                        op = "LOW";
-                        //Trick: Convert HIGH attributes in negative values
+                        //Trick: Convert HIGH attributes in negative values (leads to better performance)
                         strSQL += ", " + model.Skyline[iChild].ColumnExpression + "*-1 AS SkylineAttribute" + iChild;
 
                     }
-                    strOperators += op + ";";
-
-
+                    strOperators += "LOW;";
 
                     //Incomparable field --> Add string field
                     if (model.Skyline[iChild].Comparable == false)
@@ -433,8 +442,6 @@ namespace prefSQL.SQLParser
                         strSQL += ", " + model.Skyline[iChild].IncomparableAttribute;
                         strOperators += "INCOMPARABLE" + ";";
                     }
-
-
                 }
             }
 
