@@ -29,15 +29,15 @@ namespace prefSQL.SQLParser
         public enum Algorithm
         {
             NativeSQL,              //Works with ANSI-SQL syntax
-            BNL,                    //Block nested loops
+            BNL,                    //Block nested loops (supports incomparable tuples)
             BNLLevel,               //Block nested loops (does not support incomparable)
-            BNLSort,                //Block nested loops with presort
+            BNLSort,                //Block nested loops with presort (supports incomparable tuples)
             BNLSortLevel,           //Block nested loops with presort (does not support incomparable)
             DQ,                     //Divide and Conquer
-            Hexagon,                //Hexagon Augsburg 
+            Hexagon,                //Hexagon Augsburg (supports incomparable tuples)
             HexagonLevel,           //Hexagon Augsburg (does not support incomparable)
-            MultipleBNL,            //Multiple Skyline calculation (define levels with SkylineUptoLevel variable)
-            MultipleBNLLevel        //Multiple Skyline calculation (define levels with SkylineUptoLevel variable, does not support incomparable)
+            MultipleBNL,            //Multiple Skyline (define levels with SkylineUptoLevel variable)
+            MultipleBNLLevel        //Multiple Skyline (define levels with SkylineUptoLevel variable, does not support incomparable)
         };
 
         public enum Ordering
@@ -68,7 +68,7 @@ namespace prefSQL.SQLParser
         }
 
         /// <summary>
-        /// Parse a prefSQL Query and return the result as a DataTable. Additional attribute to set the maximum SkylineLevel for the Multiple Skyline Algorithm
+        /// Parse a prefSQL Query and return the result as a DataTable.
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="driverString"></param>
@@ -76,29 +76,16 @@ namespace prefSQL.SQLParser
         /// <param name="algorithm"></param>
         /// <param name="upToLevel"></param>
         /// <returns>Returns a DataTable with the requested values</returns>
-        public DataTable parseAndExeutePrefSQL(string connectionString, string driverString, String strPrefSQL, SQLCommon.Algorithm algorithm, int upToLevel)
+        public DataTable parseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSQL)
         {
             string strSQL = parsePreferenceSQL(strPrefSQL);
             Debug.WriteLine(strSQL);
             Helper helper = new Helper();
             helper.ConnectionString = connectionString;
             helper.DriverString = driverString;
-            return helper.getResults(strSQL, algorithm, upToLevel);
+            return helper.getResults(strSQL, _SkylineType, _SkylineUpToLevel);
         }
 
-        /// <summary>
-        /// Parse a prefSQL Query and return the result as a DataTable
-        /// </summary>
-        /// <param name="connectionString"></param>
-        /// <param name="DriverString"></param>
-        /// <param name="strPrefSQL"></param>
-        /// <param name="algorithm"></param>
-        /// <returns>Returns a DataTable with the requested values</returns>
-        public DataTable parseAndExeutePrefSQL(string connectionString, string DriverString, String strPrefSQL, SQLCommon.Algorithm algorithm)
-        {
-            //No maximum Level defined. Set max level to 3
-            return parseAndExeutePrefSQL(connectionString, DriverString, strPrefSQL, algorithm, 3);
-        }
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
         /// <param name="strInput">Preference SQL Statement</param>

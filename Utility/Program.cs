@@ -129,7 +129,7 @@ namespace Utility
                 //string strSQL = parser.parsePreferenceSQL(strPrefSQL);
                 //Debug.WriteLine(strSQL);
 
-                DataTable dt = parser.parseAndExeutePrefSQL(cnnStringLocalhost, driver, strPrefSQL, parser.SkylineType, parser.SkylineUpToLevel);
+                DataTable dt = parser.parseAndExecutePrefSQL(cnnStringLocalhost, driver, strPrefSQL);
                 System.Diagnostics.Debug.WriteLine(dt.Rows.Count);
 
 
