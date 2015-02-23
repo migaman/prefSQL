@@ -31,7 +31,7 @@ namespace prefSQL.SQLParser
         /// <param name="algorithm"></param>
         /// <param name="upToLevel"></param>
         /// <returns></returns>
-        public DataTable getResults(String strPrefSQL, SQLCommon.Algorithm algorithm, int upToLevel)
+        public DataTable getResults(String strPrefSQL, SQLCommon.Algorithm algorithm, int upToLevel, bool withIncomparable)
         {
             DataTable dt = new DataTable();
             string str1 = "";
@@ -41,6 +41,11 @@ namespace prefSQL.SQLParser
             int i5 = 0;         //5th parameter (only for hexagon)
 
             //Native SQL algorithm is already a valid SQL statement
+            if(strPrefSQL.StartsWith("SELECT"))
+            {
+                //If query doesn't need skyline calculation (i.e. query without preference clause) --> set algorithm to nativeSQL
+                algorithm = SQLCommon.Algorithm.NativeSQL;
+            }
             if (algorithm != SQLCommon.Algorithm.NativeSQL)
             {
                 //All other algorithms are developed as stored procedures
@@ -152,24 +157,32 @@ namespace prefSQL.SQLParser
                 System.Data.SqlTypes.SqlString strSQL3 = str3;
                 if (algorithm == SQLCommon.Algorithm.BNL)
                 {
-                    prefSQL.SQLSkyline.SP_SkylineBNL skyline = new SQLSkyline.SP_SkylineBNL();
-                    dt = skyline.getSkylineTable(str1, str2, ConnectionString);
+                    if(withIncomparable == true)
+                    {
+                        prefSQL.SQLSkyline.SP_SkylineBNL skyline = new SQLSkyline.SP_SkylineBNL();
+                        dt = skyline.getSkylineTable(str1, str2, ConnectionString);
+                    }
+                    else
+                    {
+                        prefSQL.SQLSkyline.SP_SkylineBNLLevel skyline = new SQLSkyline.SP_SkylineBNLLevel();
+                        dt = skyline.getSkylineTable(str1, str2, ConnectionString);
+                    }
                 }
-                else if (algorithm == SQLCommon.Algorithm.BNLLevel)
-                {
-                    prefSQL.SQLSkyline.SP_SkylineBNLLevel skyline = new SQLSkyline.SP_SkylineBNLLevel();
-                    dt = skyline.getSkylineTable(str1, str2, ConnectionString);
-                }
+                
                 else
                 if (algorithm == SQLCommon.Algorithm.BNLSort)
                 {
-                    prefSQL.SQLSkyline.SP_SkylineBNLSort skyline = new SQLSkyline.SP_SkylineBNLSort();
-                    dt = skyline.getSkylineTable(str1, str2, ConnectionString);
-                }
-                else if (algorithm == SQLCommon.Algorithm.BNLSortLevel)
-                {
-                    prefSQL.SQLSkyline.SP_SkylineBNLSortLevel skyline = new SQLSkyline.SP_SkylineBNLSortLevel();
-                    dt = skyline.getSkylineTable(str1, str2, ConnectionString);
+                    if (withIncomparable == true)
+                    {
+                        prefSQL.SQLSkyline.SP_SkylineBNLSort skyline = new SQLSkyline.SP_SkylineBNLSort();
+                        dt = skyline.getSkylineTable(str1, str2, ConnectionString);
+                    }
+                    else
+                    {
+                        prefSQL.SQLSkyline.SP_SkylineBNLSortLevel skyline = new SQLSkyline.SP_SkylineBNLSortLevel();
+                        dt = skyline.getSkylineTable(str1, str2, ConnectionString);
+                    }
+                    
                 }
                 else if (algorithm == SQLCommon.Algorithm.DQ)
                 {
@@ -194,41 +207,42 @@ namespace prefSQL.SQLParser
                 }
                 else if (algorithm == SQLCommon.Algorithm.Hexagon)
                 {
+                    if (withIncomparable == true)
+                    {
+                        prefSQL.SQLSkyline.SP_SkylineHexagon skyline = new SQLSkyline.SP_SkylineHexagon();
 
-                    prefSQL.SQLSkyline.SP_SkylineHexagon skyline = new SQLSkyline.SP_SkylineHexagon();
-                    
-                    //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
-                    //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
-                    var thread = new Thread(
-                        () =>
-                        {
-                            dt = skyline.getSkylineTable(str1, str2, str3, ConnectionString, str4, i5);
-                        }, 8000000);
-
-                    
-                    thread.Start();
-
-                    //Join method to block the current thread  until the object's thread terminates.
-                    thread.Join();
-
-                }
-                else if (algorithm == SQLCommon.Algorithm.HexagonLevel)
-                {
-                    prefSQL.SQLSkyline.SP_SkylineHexagonLevel skyline = new SQLSkyline.SP_SkylineHexagonLevel();
-                    //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
-
-                    //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
-                    var thread = new Thread(
-                        () =>
-                        {
-                            dt = skyline.getSkylineTable(str1, str2, str3, ConnectionString);
-                        }, 8000000);
+                        //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
+                        //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
+                        var thread = new Thread(
+                            () =>
+                            {
+                                dt = skyline.getSkylineTable(str1, str2, str3, ConnectionString, str4, i5);
+                            }, 8000000);
 
 
-                    thread.Start();
+                        thread.Start();
 
-                    //Join method to block the current thread  until the object's thread terminates.
-                    thread.Join();
+                        //Join method to block the current thread  until the object's thread terminates.
+                        thread.Join();
+                    }
+                    else
+                    {
+                        prefSQL.SQLSkyline.SP_SkylineHexagonLevel skyline = new SQLSkyline.SP_SkylineHexagonLevel();
+                        //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
+
+                        //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
+                        var thread = new Thread(
+                            () =>
+                            {
+                                dt = skyline.getSkylineTable(str1, str2, str3, ConnectionString);
+                            }, 8000000);
+
+
+                        thread.Start();
+
+                        //Join method to block the current thread  until the object's thread terminates.
+                        thread.Join();
+                    }
 
                 }
                 else if (algorithm == SQLCommon.Algorithm.MultipleBNL)

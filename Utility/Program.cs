@@ -11,6 +11,7 @@ using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
 using System.Threading;
 using System.Data.Common;
+using System.Windows.Forms;
 
 namespace Utility
 {
@@ -45,12 +46,10 @@ namespace Utility
             prg.Run();
             
             
-            /*
-            FrmSQLParser form = new FrmSQLParser();
-            form.Show();
-            */
+            
+            //Application.Run(new FrmSQLParser());
+            
         }
-
 
 
         public void Run()
@@ -85,7 +84,7 @@ namespace Utility
                     //"WHERE (t1.price < 16000) " +
                     //"WHERE (t1.price < 4000) " + 
                     "SKYLINE OF t1.price LOW, t1.mileage LOW ";
-                    //"SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber', 'rot', 'schwarz', 'gelb'} >> OTHERS INCOMPARABLE) " +
+                    //"SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber', 'rot', 'schwarz', 'gelb'} >> OTHERS INCOMPARABLE) ";
                     //"SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000";
                     //", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +
                     //", t1.doors HIGH, t1.seats HIGH 2, t1.cylinders HIGH, t1.gears HIGH ";
@@ -109,21 +108,22 @@ namespace Utility
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE colors.name IN ('schwarz', 'blau', 'silber', 'rot', 'grau') SKYLINE OF t1.price LOW, colors.name ('schwarz' >> {'blau', 'silber', 'rot'} >> 'grau')";
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 900) SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber'})";
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
-                strPrefSQL = "SELECT c.id AS ID, c.title, c.price, b.name FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
-                strPrefSQL = "SELECT c.id AS ID FROM Cars_small c SKYLINE OF c.price LOW";
+                //strPrefSQL = "SELECT c.id AS ID, c.title, c.price, b.name FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
+                //strPrefSQL = "SELECT c.id AS ID FROM Cars_small c SKYLINE OF c.price LOW";
+                strPrefSQL = "SELECT cars.id, cars.title, cars.Price FROM cars";
 
                 Debug.WriteLine(strPrefSQL);
                 Debug.WriteLine("--------------------------------------------");
 
                 SQLCommon parser = new SQLCommon();
-                parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
-                //parser.SkylineType = SQLCommon.Algorithm.BNL;
+                //parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
+                parser.SkylineType = SQLCommon.Algorithm.BNL;
                 //parser.SkylineType = SQLCommon.Algorithm.BNLSort;
                 //parser.SkylineType = SQLCommon.Algorithm.Hexagon;
                 //parser.SkylineType = SQLCommon.Algorithm.MultipleBNL;
                 //parser.SkylineType = SQLCommon.Algorithm.DQ;
                 //parser.ShowSkylineAttributes = true;
-                parser.SkylineUpToLevel = 1;
+                //parser.SkylineUpToLevel = 1;
                 
 
                 //string strSQL = parser.parsePreferenceSQL(strPrefSQL);

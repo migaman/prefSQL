@@ -29,15 +29,11 @@ namespace prefSQL.SQLParser
         public enum Algorithm
         {
             NativeSQL,              //Works with ANSI-SQL syntax
-            BNL,                    //Block nested loops (supports incomparable tuples)
-            BNLLevel,               //Block nested loops (does not support incomparable)
-            BNLSort,                //Block nested loops with presort (supports incomparable tuples)
-            BNLSortLevel,           //Block nested loops with presort (does not support incomparable)
+            BNL,                    //Block nested loops
+            BNLSort,                //Block nested loops with presort
             DQ,                     //Divide and Conquer
-            Hexagon,                //Hexagon Augsburg (supports incomparable tuples)
-            HexagonLevel,           //Hexagon Augsburg (does not support incomparable)
-            MultipleBNL,            //Multiple Skyline (define levels with SkylineUptoLevel variable)
-            MultipleBNLLevel        //Multiple Skyline (define levels with SkylineUptoLevel variable, does not support incomparable)
+            Hexagon,                //Hexagon Augsburg
+            MultipleBNL,            //Multiple Skyline
         };
 
         public enum Ordering
@@ -78,19 +74,30 @@ namespace prefSQL.SQLParser
         /// <returns>Returns a DataTable with the requested values</returns>
         public DataTable parseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSQL)
         {
-            string strSQL = parsePreferenceSQL(strPrefSQL);
+            bool withIncomparable = false;
+            string strSQL = parsePreferenceSQL(strPrefSQL, ref withIncomparable);
             Debug.WriteLine(strSQL);
             Helper helper = new Helper();
             helper.ConnectionString = connectionString;
             helper.DriverString = driverString;
-            return helper.getResults(strSQL, _SkylineType, _SkylineUpToLevel);
+            return helper.getResults(strSQL, _SkylineType, _SkylineUpToLevel, withIncomparable);
+        }
+
+        /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
+        /// <param name="strInput">Preference SQL Statement</param>
+        /// <returns>Return the ANSI SQL Statement</returns>
+        public string parsePreferenceSQL(string strInput)
+        {
+            bool withIncomparable = false;
+            string strSQL = parsePreferenceSQL(strInput, ref withIncomparable);
+            return strSQL;
         }
 
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
         /// <param name="strInput">Preference SQL Statement</param>
         /// <returns>Return the ANSI SQL Statement</returns>
-        public string parsePreferenceSQL(string strInput)
+        private string parsePreferenceSQL(string strInput, ref bool withIncomparable)
         {
             AntlrInputStream inputStream = new AntlrInputStream(strInput);
             SQLLexer sqlLexer = new SQLLexer(inputStream);
@@ -116,11 +123,14 @@ namespace prefSQL.SQLParser
                 visitor.IsNative = _SkylineType == Algorithm.NativeSQL;
                 visitor.Visit(tree);
                 PrefSQLModel prefSQL = visitor.Model;
-
+                
                 
                 //Check if parse was successful and query contains PrefSQL syntax
                 if (prefSQL != null && strInput.IndexOf(SkylineOf) > 0)
                 {
+                    //Mark as incomparable if needed (to choose the correct algorithm)
+                    withIncomparable = prefSQL.WithIncomparable;
+
                     //Add all Syntax before the Skyline-Clause
                     strSQLReturn = strInput.Substring(0, strInput.IndexOf(SkylineOf) - 1);
 
@@ -170,7 +180,7 @@ namespace prefSQL.SQLParser
                             strSQLReturn += strWHERE;
                             strSQLReturn += strOrderBy;
                         }
-                        else if (_SkylineType == Algorithm.BNL || _SkylineType == Algorithm.BNLLevel || _SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.BNLSortLevel || _SkylineType == Algorithm.MultipleBNL || _SkylineType == Algorithm.DQ)
+                        else if (_SkylineType == Algorithm.BNL || _SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.MultipleBNL || _SkylineType == Algorithm.DQ)
                         {
                             string strOperators = "";
                             string strAttributesSkyline = buildPreferencesBNL(prefSQL, ref strOperators);
@@ -188,19 +198,25 @@ namespace prefSQL.SQLParser
 
                             if (_SkylineType == Algorithm.BNL)
                             {
-                                strSQLReturn = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "'";
-                            }
-                            else if (_SkylineType == Algorithm.BNLLevel)
-                            {
-                                strSQLReturn = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "'";
+                                if (prefSQL.WithIncomparable == true)
+                                {
+                                    strSQLReturn = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "'";
+                                }
+                                else
+                                {
+                                    strSQLReturn = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "'";
+                                }
                             }
                             else if (_SkylineType == Algorithm.BNLSort)
                             {
-                                strSQLReturn = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "'";
-                            }
-                            else if (_SkylineType == Algorithm.BNLSortLevel)
-                            {
-                                strSQLReturn = "EXEC dbo.SP_SkylineBNLSortLevel '" + strFirstSQL + "', '" + strOperators + "'";
+                                if (prefSQL.WithIncomparable == true)
+                                {
+                                    strSQLReturn = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "'";
+                                }
+                                else
+                                {
+                                    strSQLReturn = "EXEC dbo.SP_SkylineBNLSortLevel '" + strFirstSQL + "', '" + strOperators + "'";
+                                }
                             }
                             else if (_SkylineType == Algorithm.MultipleBNL)
                             {
@@ -212,7 +228,7 @@ namespace prefSQL.SQLParser
                             }
 
                         }
-                        else if (_SkylineType == Algorithm.Hexagon || _SkylineType == Algorithm.HexagonLevel)
+                        else if (_SkylineType == Algorithm.Hexagon)
                         {
                             string strOperators = "";
                             string strAttributesSkyline = buildSELECTHexagon(prefSQL, strSQLReturn, ref strOperators);
@@ -232,11 +248,11 @@ namespace prefSQL.SQLParser
 
                             strHexagon = strHexagon.Replace("'", "''");
 
-                            if (_SkylineType == Algorithm.Hexagon)
+                            if (prefSQL.WithIncomparable == true)
                             {
                                 strSQLReturn = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "', '" + strSelectDistinctIncomparable + "'," + weightHexagonIncomparable;
                             }
-                            else if (_SkylineType == Algorithm.HexagonLevel)
+                            else
                             {
                                 strSQLReturn = "EXEC dbo.SP_SkylineHexagonLevel '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "'";
                             }
@@ -257,6 +273,7 @@ namespace prefSQL.SQLParser
                 /// <exception cref="Exception">This is exception is thrown because the String is not a valid PrefSQL Query</exception>
                 throw new Exception(e.Message);
             }
+            
             return strSQLReturn;
 
         }

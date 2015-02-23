@@ -30,9 +30,9 @@ namespace prefSQL.SQLParserTest
         [TestMethod]
         public void TestWithoutPreference()
         {
-            string strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars";
+            string strPrefSQL = "SELECT cars.id, cars.title, cars.Price FROM cars";
 
-            string expected = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars";
+            string expected = "SELECT cars.id, cars.title, cars.Price FROM cars";
             SQLCommon common = new SQLCommon();
             string actual = common.parsePreferenceSQL(strPrefSQL);
 

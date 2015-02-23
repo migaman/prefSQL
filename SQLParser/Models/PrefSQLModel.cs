@@ -15,6 +15,13 @@ namespace prefSQL.SQLParser.Models
         private Dictionary<string, string> _tables = new Dictionary<string, string>();  //the tablename and its alias
         private bool _hasSkyline = false;                                               //if the query needs a skyline clause
         private SQLCommon.Ordering _ordering = SQLCommon.Ordering.AsIs;
+        private bool _withIncomparable = false;                                           //variable if check for incomparable tuples is needed
+
+        public bool WithIncomparable
+        {
+            get { return _withIncomparable; }
+            set { _withIncomparable = value; }
+        }
 
         public SQLCommon.Ordering Ordering
         {

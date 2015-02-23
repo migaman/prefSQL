@@ -19,6 +19,8 @@ namespace prefSQL.SQLParser
         private const string RankingFunction = "ROW_NUMBER()";  //Default Ranking function
         private PrefSQLModel model;                             //Preference SQL Model, contains i.e. the skyline attributes
         private bool isNative;                                  //True if the skyline algorithm is native                 
+        private bool withIncomparable = false;                  //True if the query must check for incomparable tuples
+
 
         public bool IsNative
         {
@@ -227,8 +229,8 @@ namespace prefSQL.SQLParser
                         bComparable = false;
                         amountOfIncomparable = 99; //set a certain amount
                         strHexagonIncomparable = "CALCULATEINCOMPARABLE";
-                        weightHexagonIncomparable = iWeight / 100;              
-                        
+                        weightHexagonIncomparable = iWeight / 100;
+                        withIncomparable = true;
                         break;
                     case "OTHERSEQUAL":
                         //Special word OTHERS EQUAL = all other attributes are defined with this order by value
@@ -260,8 +262,7 @@ namespace prefSQL.SQLParser
                             }
                             string strBitPatternFull = new String('x', amountOfIncomparable); // string of 20 spaces;
                             strHexagonIncomparable += " ELSE '" + strBitPatternFull + "' END AS HexagonIncomparable" + strSingleColumn.Replace(".", "");
-                            //strHexagonIncomparable += " ELSE '" + "" + "' END AS HexagonIncomparable" + strSingleColumn.Replace(".", "");
-                            
+                            withIncomparable = true; //the values inside the bracket are incomparable
                         }
                         else
                         {
@@ -312,6 +313,7 @@ namespace prefSQL.SQLParser
             //pref.OrderBySkyline.Add(strSQL);
             pref.Tables = tables;
             pref.HasSkyline = true;
+            pref.WithIncomparable = withIncomparable;
             model = pref;
             return pref;
         }
@@ -362,6 +364,7 @@ namespace prefSQL.SQLParser
                 {
                     isLevelStepEqual = false;
                     bComparable = false;
+                    withIncomparable = true;
                 }
                 
             }
@@ -426,6 +429,7 @@ namespace prefSQL.SQLParser
             pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", bComparable, strIncomporableAttribute, strColumnName, strRankColumn, strRankHexagon, strSQL, false, strColumnName, "", 0));
             pref.HasSkyline = true;
             pref.Tables = tables;
+            pref.WithIncomparable = withIncomparable;
             model = pref;
             return pref;
 
@@ -450,6 +454,7 @@ namespace prefSQL.SQLParser
             pref.Tables = tables;
             pref.HasTop = includesTOP;
             pref.HasSkyline = true;
+            pref.WithIncomparable = withIncomparable;
             model = pref;
             return pref;
 
@@ -533,6 +538,7 @@ namespace prefSQL.SQLParser
             //Add the preference to the list               
             pref.Tables = tables;
             pref.HasSkyline = true;
+            pref.WithIncomparable = withIncomparable;
             model = pref;
 
             return pref;
