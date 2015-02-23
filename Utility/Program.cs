@@ -108,6 +108,19 @@ namespace Utility
                     "LEFT OUTER JOIN colors co ON c.color_id = co.ID " +
                     "SKYLINE OF c.price AROUND 10000 ";
 
+
+
+                strPrefSQL = "SELECT TOP 5 " +
+                                "c.id AS ID, c.title AS Name, c.Price, co.Name AS Color, b.Name AS Body, c.reference " +
+                            "FROM Cars_small c " +
+                                "LEFT OUTER JOIN colors co ON c.color_id = co.ID " +
+                                "LEFT OUTER JOIN bodies b ON c.body_id = b.ID " +
+                            "SKYLINE OF " +
+                                "c.price AROUND 10000, " +
+	                            "co.name ('rot' >> OTHERS EQUAL) " +
+	                            //"b.name ('Bus' >> 'Kleinwagen') " +
+                            "ORDER BY BEST_RANK()";
+
                 /*
                 strPrefSQL = "SELECT TOP 5 " +
                     "c.id AS ID, c.title AS Name, c.Price, co.Name_EN AS Color, b.Name_EN AS Body, c.reference  " +

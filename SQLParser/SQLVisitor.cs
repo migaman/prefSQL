@@ -479,6 +479,9 @@ namespace prefSQL.SQLParser
             string strTable = "";
             string strOperator = "";
             string strInnerColumnExpression = "";
+            string strRankColumn = "";
+            string strRankHexagon = "";
+            string strSingleColumn = strTable + "." + getColumnName(context.GetChild(0));
 
             //Query Keywords AROUND, FAVOUR and DISFAVOUR, after that create an ORDER BY of it
 
@@ -507,7 +510,10 @@ namespace prefSQL.SQLParser
                     }
                     strOperator = "<";
 
-                    pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", true, "", "", "", "", strSQL, false, strColumn, "", 0));
+                    strRankColumn = RankingFunction + " over (ORDER BY " + strSQL + ")";
+                    strRankHexagon = "DENSE_RANK()" + " over (ORDER BY " + strSQL + ")-1 AS Rank" + strSingleColumn.Replace(".", "");
+
+                    pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", true, "", "", strRankColumn, strRankHexagon, strSQL, false, strColumn, "", 0));
 
                     break;
 

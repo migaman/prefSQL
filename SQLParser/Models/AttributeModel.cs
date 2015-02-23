@@ -19,7 +19,7 @@ namespace prefSQL.SQLParser.Models
             Comparable = isComparable;                              //Check if at least one value is incomparable
             IncomparableAttribute = strIncomporableAttribute;       //Attribute that returns the textvalue if the value is incomparable
 
-            Expression = strExpression;
+            Expression = strExpression;                             
             RankColumnName = strRankColumnName;
             RankHexagon = strRankHexagon;
             HexagonIncomparable = strHexagonIncomparable;
