@@ -66,7 +66,7 @@ namespace Utility
 
                 //string strPrefSQL = "SELECT cars.id, cars.title, colors.name, fuels.name FROM cars " +
                 //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name, mileage FROM cars " +
-                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t1.enginesize FROM cars_small t1 " +
+                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name FROM cars_small t1 " +
                     //string strPrefSQL = "SELECT cars.id, cars.Price, cars.mileage FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage, cars.horsepower, cars.enginesize, cars.registration, cars.consumption, cars.doors, colors.name, fuels.name FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, colors.name AS colourname, fuels.name AS fuelname, cars.price FROM cars " +
@@ -83,7 +83,8 @@ namespace Utility
                     "LEFT OUTER JOIN Models ON t1.model_id = Models.id " +*/
                     //"WHERE (t1.price < 16000) " +
                     //"WHERE (t1.price < 4000) " + 
-                    "SKYLINE OF t1.price LOW, t1.mileage LOW ";
+                    //"SKYLINE OF t1.price LOW, t1.mileage LOW ";
+                    "SKYLINE OF t1.price LOW, colors.name ('blau' >> OTHERS EQUAL)";
                     //"SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber', 'rot', 'schwarz', 'gelb'} >> OTHERS INCOMPARABLE) ";
                     //"SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000";
                     //", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +
@@ -102,7 +103,21 @@ namespace Utility
 
                 //"ORDER BY t1.title ";
 
+                strPrefSQL = "SELECT TOP 5 c.id AS ID, c.title AS Name " +
+                    "FROM Cars_small c " +
+                    "LEFT OUTER JOIN colors co ON c.color_id = co.ID " +
+                    "SKYLINE OF c.price AROUND 10000 ";
 
+                /*
+                strPrefSQL = "SELECT TOP 5 " +
+                    "c.id AS ID, c.title AS Name, c.Price, co.Name_EN AS Color, b.Name_EN AS Body, c.reference  " +
+                    "FROM  " +
+                    "Cars_small c " +
+                    "LEFT OUTER JOIN colors co ON c.color_id = co.ID " +
+                    "LEFT OUTER JOIN bodies b ON c.body_id = b.ID " +
+                    "SKYLINE OF  c.Price LOW  ORDER BY BEST_RANK()";
+                */
+                    //"ORDER BY BEST_RANK()";
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 9000 SKYLINE OF t1.price LOW, colors.name ('schwarz' >> OTHERS INCOMPARABLE >> 'grau')";
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name (OTHERS INCOMPARABLE >> 'blau' >> 'rot')";
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE colors.name IN ('schwarz', 'blau', 'silber', 'rot', 'grau') SKYLINE OF t1.price LOW, colors.name ('schwarz' >> {'blau', 'silber', 'rot'} >> 'grau')";
@@ -110,20 +125,20 @@ namespace Utility
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
                 //strPrefSQL = "SELECT c.id AS ID, c.title, c.price, b.name FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
                 //strPrefSQL = "SELECT c.id AS ID FROM Cars_small c SKYLINE OF c.price LOW";
-                strPrefSQL = "SELECT cars.id, cars.title, cars.Price FROM cars";
+                //strPrefSQL = "SELECT cars.id, cars.title, cars.Price FROM cars";
 
                 Debug.WriteLine(strPrefSQL);
                 Debug.WriteLine("--------------------------------------------");
 
                 SQLCommon parser = new SQLCommon();
-                //parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
-                parser.SkylineType = SQLCommon.Algorithm.BNL;
+                parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
+                //parser.SkylineType = SQLCommon.Algorithm.BNL;
                 //parser.SkylineType = SQLCommon.Algorithm.BNLSort;
                 //parser.SkylineType = SQLCommon.Algorithm.Hexagon;
                 //parser.SkylineType = SQLCommon.Algorithm.MultipleBNL;
                 //parser.SkylineType = SQLCommon.Algorithm.DQ;
                 //parser.ShowSkylineAttributes = true;
-                //parser.SkylineUpToLevel = 1;
+                //parser.SkylineUpToLevel = 3;
                 
 
                 //string strSQL = parser.parsePreferenceSQL(strPrefSQL);

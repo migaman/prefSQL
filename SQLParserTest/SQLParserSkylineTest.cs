@@ -290,7 +290,7 @@ namespace prefSQL.SQLParserTest
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH";
 
-            string expected = "SELECT * , cars.price AS SkylineAttributeprice, cars.mileage AS SkylineAttributemileage, cars.horsepower*-1 AS SkylineAttributehorsepower FROM cars WHERE NOT EXISTS(SELECT * , cars_INNER.price AS SkylineAttributeprice, cars_INNER.mileage AS SkylineAttributemileage, cars_INNER.horsepower*-1 AS SkylineAttributehorsepower FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) )";
+            string expected = "SELECT * , cars.price AS SkylineAttributecars_price, cars.mileage AS SkylineAttributecars_mileage, cars.horsepower*-1 AS SkylineAttributecars_horsepower FROM cars WHERE NOT EXISTS(SELECT * , cars_INNER.price AS SkylineAttributecars_price, cars_INNER.mileage AS SkylineAttributecars_mileage, cars_INNER.horsepower*-1 AS SkylineAttributecars_horsepower FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) )";
             SQLCommon common = new SQLCommon();
             common.ShowSkylineAttributes = true;
             string actual = common.parsePreferenceSQL(strPrefSQL);

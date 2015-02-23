@@ -382,6 +382,8 @@ namespace prefSQL.SQLParser
         /// <remarks>
         /// For the reason that comparing the values is easier, smaller values are always better than higher.
         /// Therefore HIGH preferences are multiplied with -1 
+        /// Every preference gets 2 output values. the 1st declares the level, the second the exact value if an additional comparison
+        /// is needed, because of incomparability
         /// </remarks>
         /// <param name="model">model of parsed Preference SQL Statement</param>
         /// <returns>Return the extended SQL Statement</returns>
@@ -395,14 +397,22 @@ namespace prefSQL.SQLParser
                 //Build the where clause with each column in the skyline
                 for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
                 {
+                    string strFullColumnName = model.Skyline[iChild].FullColumnName.Replace(".", "_");
+                    string strIncomparable = "";
                     if (model.Skyline[iChild].Op.Equals("<"))
                     {
-                        strSQL += ", " + model.Skyline[iChild].ColumnExpression + " AS SkylineAttribute" + model.Skyline[iChild].ColumnName;
+                        strSQL += ", " + model.Skyline[iChild].ColumnExpression + " AS SkylineAttribute" + strFullColumnName;
                     }
                     else
                     {
                         //Multiply HIGH preferences with -1 --> small values are always better than high 
-                        strSQL += ", " + model.Skyline[iChild].ColumnExpression + "*-1 AS SkylineAttribute" + model.Skyline[iChild].ColumnName;
+                        strSQL += ", " + model.Skyline[iChild].ColumnExpression + "*-1 AS SkylineAttribute" + strFullColumnName;
+                    }
+
+                    //Incomparable field --> Add string field
+                    if (model.Skyline[iChild].Comparable == false)
+                    {
+                        strSQL += ", " + model.Skyline[iChild].IncomparableAttribute + " AS SkylineAttributeIncomparable" + strFullColumnName;
                     }
 
                 }

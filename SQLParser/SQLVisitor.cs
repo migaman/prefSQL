@@ -426,7 +426,7 @@ namespace prefSQL.SQLParser
 
 
             //Add the preference to the list               
-            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", bComparable, strIncomporableAttribute, strColumnName, strRankColumn, strRankHexagon, strSQL, false, strColumnName, "", 0));
+            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, strFullColumnName, "", bComparable, strIncomporableAttribute, strColumnName, strRankColumn, strRankHexagon, strSQL, false, strColumnName, "", 0));
             pref.HasSkyline = true;
             pref.Tables = tables;
             pref.WithIncomparable = withIncomparable;
@@ -474,6 +474,7 @@ namespace prefSQL.SQLParser
             PrefSQLModel pref = new PrefSQLModel();
 
             string strColumn = "";
+            string strFullColumnName = "";
             string strColumnExpression = "";
             string strTable = "";
             string strOperator = "";
@@ -483,6 +484,7 @@ namespace prefSQL.SQLParser
 
             strColumn = getColumnName(context.GetChild(0));
             strTable = getTableName(context.GetChild(0));
+            strFullColumnName = strTable + "." + strColumn;
 
             switch (context.op.Type)
             {
@@ -494,13 +496,14 @@ namespace prefSQL.SQLParser
                     {
                         strSQL = "ABS(DISTANCE(" + context.GetChild(0).GetText() + ", \"" + context .GetChild(2).GetChild(1).GetText() + "," + context.GetChild(2).GetChild(3).GetText() + "\")) ASC";
                         strColumnExpression = "ABS(DISTANCE(" + context.GetChild(0).GetText() + ", \"" + context.GetChild(2).GetChild(1).GetText() + "," + context.GetChild(2).GetChild(3).GetText() + "\"))";
-                        strInnerColumnExpression = strColumnExpression.Replace(strTable, strTable + InnerTableSuffix);
+                        strInnerColumnExpression = strColumnExpression.Replace(strFullColumnName, strTable + InnerTableSuffix + "." + strColumn);
                     }
                     else
                     {
                         strSQL = "ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ") ASC";
                         strColumnExpression = "ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ")";
-                        strInnerColumnExpression = strColumnExpression.Replace(strTable, strTable + InnerTableSuffix);
+                        //Ganzer Spaltenname ersetzen, ansonsten gibt es durcheinander (z.B. ALIAS für Tabelle ist c, und Attributname ist price)
+                        strInnerColumnExpression = strColumnExpression.Replace(strFullColumnName, strTable + InnerTableSuffix + "." + strColumn);
                     }
                     strOperator = "<";
 
@@ -512,7 +515,7 @@ namespace prefSQL.SQLParser
                     //Value should be as close as possible to a given string value
                     strSQL = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END ASC";
                     strColumnExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
-                    strInnerColumnExpression = strColumnExpression.Replace(strTable, strTable + InnerTableSuffix);
+                    strInnerColumnExpression = strColumnExpression.Replace(strFullColumnName, strTable + InnerTableSuffix + "." + strColumn);
                     strOperator = "<";
 
                     pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", true, "", "", "", "", strSQL, false, strColumn, "", 0));
@@ -523,11 +526,11 @@ namespace prefSQL.SQLParser
                     //Value should be as far away as possible to a given string value
                     strSQL = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END DESC";
                     strColumnExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
-                    strInnerColumnExpression = strColumnExpression.Replace(strTable, strTable + InnerTableSuffix);
+                    strInnerColumnExpression = strColumnExpression.Replace(strFullColumnName, strTable + InnerTableSuffix + "." + strColumn);
                     strOperator = ">";
 
 
-                    pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, "", "", true, "", "", "", "", strSQL, false, strColumn, "", 0));
+                    pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, strFullColumnName, "", true, "", "", "", "", strSQL, false, strColumn, "", 0));
 
                     break;
 
