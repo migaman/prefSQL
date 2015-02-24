@@ -14,7 +14,8 @@ namespace prefSQL.SQLParser
     class SQLVisitor : SQLBaseVisitor<PrefSQLModel>
     {
         private Dictionary<string, string> tables = new Dictionary<string, string>();
-        private bool includesTOP = false;                       //If SQL statement contains the "TOP" keyword it will be set to true
+        private bool hasTOPClause = false;                       //If SQL statement contains the "TOP" keyword it will be set to true
+        private int numberOfRecords = 0;                        //Number of records from the TOP Clause
         private const string InnerTableSuffix = "_INNER";       //Table suffix for the inner query
         private const string RankingFunction = "ROW_NUMBER()";  //Default Ranking function
         private PrefSQLModel model;                             //Preference SQL Model, contains i.e. the skyline attributes
@@ -153,7 +154,8 @@ namespace prefSQL.SQLParser
         /// <returns></returns>
         public override PrefSQLModel VisitTop_keyword(SQLParser.Top_keywordContext context)
         {
-            includesTOP = true;
+            hasTOPClause = true;
+            numberOfRecords = int.Parse(context.GetChild(1).GetText());
             return base.VisitTop_keyword(context);
         }
 
@@ -444,7 +446,6 @@ namespace prefSQL.SQLParser
                     {
                         strSQL = "ABS(DISTANCE(" + context.GetChild(0).GetText() + ", \"" + context .GetChild(2).GetChild(1).GetText() + "," + context.GetChild(2).GetChild(3).GetText() + "\")) ASC";
                         strColumnExpression = "ABS(DISTANCE(" + context.GetChild(0).GetText() + ", \"" + context.GetChild(2).GetChild(1).GetText() + "," + context.GetChild(2).GetChild(3).GetText() + "\"))";
-
                         strInnerColumnExpression = "ABS(DISTANCE(" + getTableName(context.GetChild(0)) + InnerTableSuffix + "." + getColumnName(context.GetChild(0)) + ", \"" + context.GetChild(2).GetChild(1).GetText() + "," + context.GetChild(2).GetChild(3).GetText() + "\"))";
                     }
                     else
@@ -460,8 +461,7 @@ namespace prefSQL.SQLParser
                     //Value should be as close as possible to a given string value
                     strSQL = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END ASC";
                     strColumnExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
-                    strColumnExpression = "CASE WHEN " + getTableName(context.GetChild(0)) + InnerTableSuffix + "." + getColumnName(context.GetChild(0)) + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
-                    
+                    strInnerColumnExpression = "CASE WHEN " + getTableName(context.GetChild(0)) + InnerTableSuffix + "." + getColumnName(context.GetChild(0)) + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
                     strOperator = "<";
                     break;
 
@@ -469,7 +469,7 @@ namespace prefSQL.SQLParser
                     //Value should be as far away as possible to a given string value
                     strSQL = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END DESC";
                     strColumnExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
-                    strColumnExpression = "CASE WHEN " + getTableName(context.GetChild(0)) + InnerTableSuffix + "." + getColumnName(context.GetChild(0)) + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
+                    strInnerColumnExpression = "CASE WHEN " + getTableName(context.GetChild(0)) + InnerTableSuffix + "." + getColumnName(context.GetChild(0)) + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
                     strOperator = ">";
                     break;
             }
@@ -507,7 +507,8 @@ namespace prefSQL.SQLParser
             pref.Skyline.AddRange(left.Skyline);
             pref.Skyline.AddRange(right.Skyline);
             pref.Tables = tables;
-            pref.HasTop = includesTOP;
+            pref.HasTop = hasTOPClause;
+            pref.NumberOfRecords = numberOfRecords;
             pref.HasSkyline = true;
             pref.WithIncomparable = withIncomparable;
             model = pref;

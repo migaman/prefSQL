@@ -57,6 +57,10 @@ namespace prefSQL.SQLParserTest
             //OTHERS INCOMPARABLE in the middle
             strPrefSQL[11] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >>  OTHERS INCOMPARABLE >> 'blau')";
             
+            //Preference with TOP Keyword
+            //3 numerical preferences with TOP Keyword
+            //strPrefSQL[12] = "SELECT TOP 5 t1.title FROM cars_small t1 SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH";
+
             //TODO: Does not work with Hexagon so far
             //WITHOUT OTHERS --> This means that tuples with other values are assumed to be incomparable
             //strPrefSQL[12] = "SELECT c.id AS ID FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";

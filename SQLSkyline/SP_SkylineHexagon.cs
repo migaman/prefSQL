@@ -17,19 +17,19 @@ namespace prefSQL.SQLSkyline
     public class SP_SkylineHexagon
     {        
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineHexagon")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlString strQueryConstruction, SqlString strSelectIncomparable, int weightHexagonIncomparable)
+        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlString strQueryConstruction, SqlString strSelectIncomparable, int weightHexagonIncomparable)
         {
             SP_SkylineHexagon skyline = new SP_SkylineHexagon();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), strQueryConstruction.ToString(), false, "", strSelectIncomparable.ToString(), weightHexagonIncomparable);
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, strQueryConstruction.ToString(), false, "", strSelectIncomparable.ToString(), weightHexagonIncomparable);
         }
 
 
-        public DataTable getSkylineTable(String strQuery, String strOperators, String strQueryConstruction, String strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
+        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strQueryConstruction, String strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
         {
-            return getSkylineTable(strQuery, strOperators, strQueryConstruction, true, strConnection, strSelectIncomparable, weightHexagonIncomparable);
+            return getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, true, strConnection, strSelectIncomparable, weightHexagonIncomparable);
         }
 
-        private DataTable getSkylineTable(string strQuery, string strOperators, string strQueryConstruction, bool isIndependent, string strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
+        private DataTable getSkylineTable(string strQuery, string strOperators, int numberOfRecords, string strQueryConstruction, bool isIndependent, string strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
         {
             ArrayList[] btg = null;
             int[] next = null;

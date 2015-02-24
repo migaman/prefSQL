@@ -19,22 +19,22 @@ namespace prefSQL.SQLSkyline
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_MultipleSkylineBNLLevel")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 upToLevel)
+        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 upToLevel)
         {
             int up = upToLevel.Value;
             SP_MultipleSkylineBNLLevel skyline = new SP_MultipleSkylineBNLLevel();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), false, "", up);
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, "", up);
 
         }
 
 
-        public DataTable getSkylineTable(String strQuery, String strOperators, String strConnection, int upToLevel)
+        public DataTable getSkylineTable(String strQuery, String strOperators, String strConnection, int numberOfRecords, int upToLevel)
         {
-            return getSkylineTable(strQuery, strOperators, true, strConnection, upToLevel);
+            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, upToLevel);
         }
 
 
-        private DataTable getSkylineTable(String strQuery, String strOperators, bool isIndependent, string strConnection, int upToLevel)
+        private DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, int upToLevel)
         {
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');

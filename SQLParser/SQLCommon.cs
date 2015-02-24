@@ -80,7 +80,7 @@ namespace prefSQL.SQLParser
             Helper helper = new Helper();
             helper.ConnectionString = connectionString;
             helper.DriverString = driverString;
-            return helper.getResults(strSQL, _SkylineType, _SkylineUpToLevel, withIncomparable);
+            return helper.getResults(strSQL, _SkylineType, withIncomparable);
         }
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
@@ -185,13 +185,35 @@ namespace prefSQL.SQLParser
                             string strOperators = "";
                             string strAttributesSkyline = buildPreferencesBNL(prefSQL, ref strOperators);
                             //Without SELECT 
+
+                            //Check if SQL contains TOP Keywords
+                            if (prefSQL.HasTop == true)
+                            {
+                                //Remove Top Keyword in inner clause
+                                int iPosTop = strSQLReturn.IndexOf("TOP");
+                                int iPosTopEnd = strSQLReturn.Substring(iPosTop + 3).TrimStart().IndexOf(" ");
+                                string strSQLAfterTOP = strSQLReturn.Substring(iPosTop + 3).TrimStart();
+                                strSQLReturn = strSQLReturn.Substring(0, iPosTop) + strSQLAfterTOP.Substring(iPosTopEnd + 1);
+                            }
+
+
                             string strAttributesOutput = ", " + strSQLReturn.Substring(7, strSQLReturn.IndexOf("FROM") - 7);
                             string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM"));
 
                             string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
-                            //Sortieren according to preferences (otherwise the algorithm would not work)
-                            string strOrderByAttributes = sqlSort.getSortClause(prefSQL, SQLCommon.Ordering.AttributePosition);
-                            strFirstSQL += strOrderByAttributes;
+                            //sort according to preferences (otherwise the algorithm would not work)
+                            if (_SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.MultipleBNL)
+                            {
+                                string strOrderByAttributes = sqlSort.getSortClause(prefSQL, SQLCommon.Ordering.AttributePosition);
+                                strFirstSQL += strOrderByAttributes;
+                            }
+                            else
+                            {
+                                //usual sort clause
+                                strFirstSQL += strOrderBy;
+                            }
+                            
+                            
 
                             //Quote quotes because it is a parameter of the stored procedure
                             strFirstSQL = strFirstSQL.Replace("'", "''");
@@ -200,31 +222,31 @@ namespace prefSQL.SQLParser
                             {
                                 if (prefSQL.WithIncomparable == true)
                                 {
-                                    strSQLReturn = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "'";
+                                    strSQLReturn = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + prefSQL.NumberOfRecords;
                                 }
                                 else
                                 {
-                                    strSQLReturn = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "'";
+                                    strSQLReturn = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "', " + prefSQL.NumberOfRecords;
                                 }
                             }
                             else if (_SkylineType == Algorithm.BNLSort)
                             {
                                 if (prefSQL.WithIncomparable == true)
                                 {
-                                    strSQLReturn = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "'";
+                                    strSQLReturn = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "', " + prefSQL.NumberOfRecords;
                                 }
                                 else
                                 {
-                                    strSQLReturn = "EXEC dbo.SP_SkylineBNLSortLevel '" + strFirstSQL + "', '" + strOperators + "'";
+                                    strSQLReturn = "EXEC dbo.SP_SkylineBNLSortLevel '" + strFirstSQL + "', '" + strOperators + "', " + prefSQL.NumberOfRecords;
                                 }
                             }
                             else if (_SkylineType == Algorithm.MultipleBNL)
                             {
-                                strSQLReturn = "EXEC dbo.SP_MultipleSkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + _SkylineUpToLevel;
+                                strSQLReturn = "EXEC dbo.SP_MultipleSkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + prefSQL.NumberOfRecords + ", " + _SkylineUpToLevel;
                             }
                             else if (_SkylineType == Algorithm.DQ)
                             {
-                                strSQLReturn = "EXEC dbo.SP_SkylineDQ '" + strFirstSQL + "', '" + strOperators + "'";
+                                strSQLReturn = "EXEC dbo.SP_SkylineDQ '" + strFirstSQL + "', '" + strOperators + "'," + prefSQL.NumberOfRecords;
                             }
 
                         }
@@ -233,6 +255,18 @@ namespace prefSQL.SQLParser
                             string strOperators = "";
                             string strAttributesSkyline = buildSELECTHexagon(prefSQL, strSQLReturn, ref strOperators);
                             //Without SELECT 
+
+                            //Check if SQL contains TOP Keywords
+                            if (prefSQL.HasTop == true)
+                            {
+                                //Remove Top Keyword in inner clause
+                                int iPosTop = strSQLReturn.IndexOf("TOP");
+                                int iPosTopEnd = strSQLReturn.Substring(iPosTop + 3).TrimStart().IndexOf(" ");
+                                string strSQLAfterTOP = strSQLReturn.Substring(iPosTop + 3).TrimStart();
+                                strSQLReturn = strSQLReturn.Substring(0, iPosTop) + strSQLAfterTOP.Substring(iPosTopEnd + 1);
+                            }
+
+
                             string strAttributesOutput = ", " + strSQLReturn.Substring(7, strSQLReturn.IndexOf("FROM") - 7);
                             string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM"));
 
@@ -250,11 +284,11 @@ namespace prefSQL.SQLParser
 
                             if (prefSQL.WithIncomparable == true)
                             {
-                                strSQLReturn = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "', '" + strSelectDistinctIncomparable + "'," + weightHexagonIncomparable;
+                                strSQLReturn = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', " + prefSQL.NumberOfRecords + ", '" + strHexagon + "', '" + strSelectDistinctIncomparable + "'," + weightHexagonIncomparable;
                             }
                             else
                             {
-                                strSQLReturn = "EXEC dbo.SP_SkylineHexagonLevel '" + strFirstSQL + "', '" + strOperators + "', '" + strHexagon + "'";
+                                strSQLReturn = "EXEC dbo.SP_SkylineHexagonLevel '" + strFirstSQL + "', '" + strOperators + "', " + prefSQL.NumberOfRecords  + ", '" + strHexagon + "'";
                             }
 
                         }
@@ -398,7 +432,6 @@ namespace prefSQL.SQLParser
                 for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
                 {
                     string strFullColumnName = model.Skyline[iChild].FullColumnName.Replace(".", "_");
-                    string strIncomparable = "";
                     if (model.Skyline[iChild].Op.Equals("<"))
                     {
                         strSQL += ", " + model.Skyline[iChild].ColumnExpression + " AS SkylineAttribute" + strFullColumnName;

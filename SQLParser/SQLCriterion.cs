@@ -138,7 +138,7 @@ namespace prefSQL.SQLParser
             //Check if SQL contains TOP Keywords
             if (model.HasTop == true)
             {
-                //Remove Top Keyword
+                //Remove Top Keyword in inner clause
                 int iPosTop = strPreSQL.IndexOf("TOP");
                 int iPosTopEnd = strPreSQL.Substring(iPosTop + 3).TrimStart().IndexOf(" ");
                 string strSQLAfterTOP = strPreSQL.Substring(iPosTop + 3).TrimStart();

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace prefSQL.SQLParser
 {
@@ -23,22 +24,26 @@ namespace prefSQL.SQLParser
         /// </summary>
         public String ConnectionString { get; set; }
 
+
+
+
         /// <summary>
         /// Returns a datatable with the tuples from the SQL statement
         /// The sql will be resolved into pieces, in order to call the Skyline algorithms without MSSQL CLR
         /// </summary>
         /// <param name="strPrefSQL"></param>
         /// <param name="algorithm"></param>
-        /// <param name="upToLevel"></param>
         /// <returns></returns>
-        public DataTable getResults(String strPrefSQL, SQLCommon.Algorithm algorithm, int upToLevel, bool withIncomparable)
+        public DataTable getResults(String strPrefSQL, SQLCommon.Algorithm algorithm, bool withIncomparable)
         {
             DataTable dt = new DataTable();
-            string str1 = "";
-            string str2 = "";
-            string str3 = "";
-            string str4 = "";   //4th parameter (only for hexagon)
-            int i5 = 0;         //5th parameter (only for hexagon)
+            
+            //Default Parameter
+            string strQuery = "";
+            string strOperators = "";
+            int numberOfRecords = 0;
+            string[] parameter = null;
+            
 
             //Native SQL algorithm is already a valid SQL statement
             if(strPrefSQL.StartsWith("SELECT"))
@@ -48,102 +53,20 @@ namespace prefSQL.SQLParser
             }
             if (algorithm != SQLCommon.Algorithm.NativeSQL)
             {
+                //Store Parameters in Array (Take care to single quotes inside parameters)
+                int iPosStart = strPrefSQL.IndexOf("'");
+                String strtmp = strPrefSQL.Substring(iPosStart);
+                parameter = Regex.Split(strtmp, ",(?=(?:[^']*'[^']*')*[^']*$)");
+
                 //All other algorithms are developed as stored procedures
                 //Resolve now each parameter from this SP calls to single pieces
 
-                //1st parameter
-                int iPosStart = strPrefSQL.IndexOf("'") + 1;
-                int iPosMiddle = iPosStart;
-                bool bEnd = false;
-                while (bEnd == false)
-                {
-                    iPosMiddle = iPosMiddle + strPrefSQL.Substring(iPosMiddle).IndexOf("'") + 1;
-                    if (!strPrefSQL.Substring(iPosMiddle, 1).Equals("'"))
-                    {
-                        bEnd = true;
-                    }
-                    else
-                    {
-                        iPosMiddle++;
-                    }
-                    //Check that it is not a double apostrophe
-                }
-                iPosMiddle += 3;
-
-                //2nd parameter
-                int iPosEnd = iPosMiddle;
-                bEnd = false;
-                while (bEnd == false)
-                {
-                    iPosEnd = iPosEnd + strPrefSQL.Substring(iPosEnd).IndexOf("'") + 1;
-                    if (iPosEnd == strPrefSQL.Length)
-                        break; //Kein 3.Parameter
-                    if (!strPrefSQL.Substring(iPosEnd, 1).Equals("'"))
-                    {
-                        bEnd = true;
-                    }
-                    else
-                    {
-                        iPosEnd++;
-                    }
-                    //Check that it is not a double apostrophe
-                }
-                iPosEnd += 3;
-
-
-
-                //Check if it has more than 3 parameters
-                if (iPosEnd < strPrefSQL.Length)
-                {
-                    //3th parameter
-                    int iPosEndEnd = iPosEnd;
-                    bEnd = false;
-                    while (bEnd == false)
-                    {
-                        iPosEndEnd = iPosEndEnd + strPrefSQL.Substring(iPosEndEnd).IndexOf("'") + 1;
-                        if (iPosEndEnd == strPrefSQL.Length)
-                            break; //Kein 3.Parameter
-                        if (!strPrefSQL.Substring(iPosEndEnd, 1).Equals("'"))
-                        {
-                            bEnd = true;
-                        }
-                        else
-                        {
-                            iPosEndEnd++;
-                        }
-                        //Check that it is not a double apostrophe
-                    }
-                    iPosEndEnd += 3;
-
-                    str1 = strPrefSQL.Substring(iPosStart, iPosMiddle - iPosStart - 4);
-                    str2 = strPrefSQL.Substring(iPosMiddle, iPosEnd - iPosMiddle - 4);
-                    str3 = strPrefSQL.Substring(iPosEnd, iPosEndEnd - iPosEnd - 4);
-
-                    if (iPosEndEnd < strPrefSQL.Length)
-                    {
-                        //Hexagon algorithm has 5 parameters
-                        int iPosComma = strPrefSQL.LastIndexOf(",");
-                        str4 = strPrefSQL.Substring(iPosEndEnd, iPosComma-iPosEndEnd).TrimEnd('\'');
-                        i5 = int.Parse(strPrefSQL.Substring(iPosComma+1));
-                    }
-                }
-                else
-                {
-                    str1 = strPrefSQL.Substring(iPosStart, iPosMiddle - iPosStart - 4);
-                    str2 = strPrefSQL.Substring(iPosMiddle, iPosEnd - iPosMiddle - 4);
-                    if (iPosEnd < strPrefSQL.Length)
-                    {
-                        str3 = strPrefSQL.Substring(iPosEnd).TrimEnd('\'');
-                    }
-                }
-               
-
-
-                str1 = str1.Replace("''", "'").Trim('\'');
-                str2 = str2.Replace("''", "'").Trim('\'');
-                str3 = str3.Replace("''", "'").Trim('\'');
-                str4 = str4.Replace("''", "'").Trim('\'');
-
+                //Default parameter
+                strQuery = parameter[0].Trim();
+                strOperators = parameter[1].Trim();
+                numberOfRecords = int.Parse(parameter[2].Trim());
+                strQuery = strQuery.Replace("''", "'").Trim('\'');
+                strOperators = strOperators.Replace("''", "'").Trim('\'');
             }
 
             Stopwatch sw = new Stopwatch();
@@ -152,20 +75,18 @@ namespace prefSQL.SQLParser
 
             try
             {
-                System.Data.SqlTypes.SqlString strSQL1 = str1;
-                System.Data.SqlTypes.SqlString strSQL2 = str2;
-                System.Data.SqlTypes.SqlString strSQL3 = str3;
+                
                 if (algorithm == SQLCommon.Algorithm.BNL)
                 {
                     if(withIncomparable == true)
                     {
                         prefSQL.SQLSkyline.SP_SkylineBNL skyline = new SQLSkyline.SP_SkylineBNL();
-                        dt = skyline.getSkylineTable(str1, str2, ConnectionString);
+                        dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, ConnectionString);
                     }
                     else
                     {
                         prefSQL.SQLSkyline.SP_SkylineBNLLevel skyline = new SQLSkyline.SP_SkylineBNLLevel();
-                        dt = skyline.getSkylineTable(str1, str2, ConnectionString);
+                        dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, ConnectionString);
                     }
                 }
                 
@@ -175,12 +96,12 @@ namespace prefSQL.SQLParser
                     if (withIncomparable == true)
                     {
                         prefSQL.SQLSkyline.SP_SkylineBNLSort skyline = new SQLSkyline.SP_SkylineBNLSort();
-                        dt = skyline.getSkylineTable(str1, str2, ConnectionString);
+                        dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, ConnectionString);
                     }
                     else
                     {
                         prefSQL.SQLSkyline.SP_SkylineBNLSortLevel skyline = new SQLSkyline.SP_SkylineBNLSortLevel();
-                        dt = skyline.getSkylineTable(str1, str2, ConnectionString);
+                        dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, ConnectionString);
                     }
                     
                 }
@@ -193,7 +114,7 @@ namespace prefSQL.SQLParser
                     var thread = new Thread(
                         () =>
                         {
-                            dt = skyline.getSkylineTable(str1, str2, ConnectionString);
+                            dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, ConnectionString);
                         }, 8000000);
 
 
@@ -210,13 +131,16 @@ namespace prefSQL.SQLParser
                     if (withIncomparable == true)
                     {
                         prefSQL.SQLSkyline.SP_SkylineHexagon skyline = new SQLSkyline.SP_SkylineHexagon();
+                        string strQueryConstruction = parameter[3].Trim().Replace("''", "'").Trim('\'');
+                        String strHexagonSelectIncomparable = parameter[4].Trim().Replace("''", "'").Trim('\'');
+                        int weightHexagonIncomparable = int.Parse(parameter[5].Trim());
 
                         //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
                         //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
                         var thread = new Thread(
                             () =>
                             {
-                                dt = skyline.getSkylineTable(str1, str2, str3, ConnectionString, str4, i5);
+                                dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, ConnectionString, strHexagonSelectIncomparable, weightHexagonIncomparable);
                             }, 8000000);
 
 
@@ -228,13 +152,15 @@ namespace prefSQL.SQLParser
                     else
                     {
                         prefSQL.SQLSkyline.SP_SkylineHexagonLevel skyline = new SQLSkyline.SP_SkylineHexagonLevel();
+                        string strQueryConstruction = parameter[3].Trim().Replace("''", "'").Trim('\'');
+                        
                         //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
 
                         //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
                         var thread = new Thread(
                             () =>
                             {
-                                dt = skyline.getSkylineTable(str1, str2, str3, ConnectionString);
+                                dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, ConnectionString, strQueryConstruction);
                             }, 8000000);
 
 
@@ -247,8 +173,17 @@ namespace prefSQL.SQLParser
                 }
                 else if (algorithm == SQLCommon.Algorithm.MultipleBNL)
                 {
-                    prefSQL.SQLSkyline.SP_MultipleSkylineBNL skyline = new SQLSkyline.SP_MultipleSkylineBNL();
-                    dt = skyline.getSkylineTable(str1, str2, ConnectionString, upToLevel);
+                    if (withIncomparable == true)
+                    {
+                        prefSQL.SQLSkyline.SP_MultipleSkylineBNL skyline = new SQLSkyline.SP_MultipleSkylineBNL();
+                        dt = skyline.getSkylineTable(strQuery, strOperators, ConnectionString, numberOfRecords, int.Parse(parameter[3]));
+                    }
+                    else
+                    {
+                        prefSQL.SQLSkyline.SP_MultipleSkylineBNLLevel skyline = new SQLSkyline.SP_MultipleSkylineBNLLevel();
+                        dt = skyline.getSkylineTable(strQuery, strOperators, ConnectionString, numberOfRecords, int.Parse(parameter[3]));
+                    }
+                    
                 }
                 else if (algorithm == SQLCommon.Algorithm.NativeSQL)
                 {

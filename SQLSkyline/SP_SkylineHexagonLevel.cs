@@ -17,19 +17,19 @@ namespace prefSQL.SQLSkyline
     public class SP_SkylineHexagonLevel
     {
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineHexagonLevel")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlString strQueryConstruction)
+        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlString strQueryConstruction)
         {
             SP_SkylineHexagonLevel skyline = new SP_SkylineHexagonLevel();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), strQueryConstruction.ToString(), false, "");
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, strQueryConstruction.ToString(), false, "");
         }
 
 
-        public DataTable getSkylineTable(String strQuery, String strOperators, String strQueryConstruction, String strConnection)
+        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection, String strQueryConstruction)
         {
-            return getSkylineTable(strQuery, strOperators, strQueryConstruction, true, strConnection);
+            return getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, true, strConnection);
         }
 
-        private DataTable getSkylineTable(string strQuery, string strOperators, string strQueryConstruction, bool isIndependent, string strConnection)
+        private DataTable getSkylineTable(string strQuery, string strOperators, int numberOfRecords, string strQueryConstruction, bool isIndependent, string strConnection)
         {
             ArrayList[] btg = null;
             int[] next = null;

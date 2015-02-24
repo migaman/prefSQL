@@ -21,19 +21,19 @@ namespace prefSQL.SQLSkyline
     public class SP_SkylineDQ
     {
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineDQ")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators)
+        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
         {
             SP_SkylineDQ skyline = new SP_SkylineDQ();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), false, "");
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, "");
         }
 
-        public DataTable getSkylineTable(String strQuery, String strOperators, String strConnection)
+        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection)
         {
-            return getSkylineTable(strQuery, strOperators, true, strConnection);
+            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection);
         }
 
 
-        private DataTable getSkylineTable(String strQuery, String strOperators, bool isIndependent, string strConnection)
+        private DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection)
         {
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');

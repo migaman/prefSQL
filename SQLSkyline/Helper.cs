@@ -253,7 +253,7 @@ namespace prefSQL.SQLSkyline
         }
 
         /// <summary>
-        /// Same function as doesTupleDominate, but values are interchanged
+        /// Same function as isTupleDominate, but values are interchanged
         /// </summary>
         /// <param name="sqlReader"></param>
         /// <param name="operators"></param>
@@ -299,6 +299,7 @@ namespace prefSQL.SQLSkyline
                     {
                         //
                         value = sqlReader.GetInt32(iCol);
+
                         //check if value is incomparable
                         if (result[iCol] == null)
                         {
@@ -308,7 +309,11 @@ namespace prefSQL.SQLSkyline
                         {
                             tmpValue = (long)result[iCol];
                         }
-                        comparison = compareValue(value, tmpValue);
+
+                        
+                        
+                        //interchange values for comparison
+                        comparison = compareValue(tmpValue, value);
                     }
 
 

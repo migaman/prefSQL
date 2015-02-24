@@ -19,18 +19,18 @@ namespace prefSQL.SQLSkyline
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineBNL")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators)
+        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
         {
             SP_SkylineBNL skyline = new SP_SkylineBNL();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), false, "");
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, "");
         }
 
-        public DataTable getSkylineTable(String strQuery, String strOperators, String strConnection)
+        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection)
         {
-            return getSkylineTable(strQuery, strOperators, true, strConnection);
+            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection);
         }
 
-        private DataTable getSkylineTable(String strQuery, String strOperators, bool isIndependent, string strConnection)
+        private DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection)
         {
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
