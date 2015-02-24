@@ -116,29 +116,10 @@ namespace Utility
                                 "LEFT OUTER JOIN colors co ON c.color_id = co.ID " +
                                 "LEFT OUTER JOIN bodies b ON c.body_id = b.ID " +
                             "SKYLINE OF " +
-                                "c.price AROUND 10000, " +
-	                            "co.name ('rot' >> OTHERS EQUAL) " +
+                                "c.price AROUND 10000 " +
+	                            //"co.name ('rot' >> OTHERS EQUAL), " +
 	                            //"b.name ('Bus' >> 'Kleinwagen') " +
-                            "ORDER BY BEST_RANK()";
-
-                /*
-                strPrefSQL = "SELECT TOP 5 " +
-                    "c.id AS ID, c.title AS Name, c.Price, co.Name_EN AS Color, b.Name_EN AS Body, c.reference  " +
-                    "FROM  " +
-                    "Cars_small c " +
-                    "LEFT OUTER JOIN colors co ON c.color_id = co.ID " +
-                    "LEFT OUTER JOIN bodies b ON c.body_id = b.ID " +
-                    "SKYLINE OF  c.Price LOW  ORDER BY BEST_RANK()";
-                */
-                    //"ORDER BY BEST_RANK()";
-                //strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 9000 SKYLINE OF t1.price LOW, colors.name ('schwarz' >> OTHERS INCOMPARABLE >> 'grau')";
-                //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name (OTHERS INCOMPARABLE >> 'blau' >> 'rot')";
-                //strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE colors.name IN ('schwarz', 'blau', 'silber', 'rot', 'grau') SKYLINE OF t1.price LOW, colors.name ('schwarz' >> {'blau', 'silber', 'rot'} >> 'grau')";
-                //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 900) SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber'})";
-                //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
-                //strPrefSQL = "SELECT c.id AS ID, c.title, c.price, b.name FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
-                //strPrefSQL = "SELECT c.id AS ID FROM Cars_small c SKYLINE OF c.price LOW";
-                //strPrefSQL = "SELECT cars.id, cars.title, cars.Price FROM cars";
+                            "ORDER BY SUM_RANK()";
 
                 Debug.WriteLine(strPrefSQL);
                 Debug.WriteLine("--------------------------------------------");
@@ -152,7 +133,6 @@ namespace Utility
                 //parser.SkylineType = SQLCommon.Algorithm.DQ;
                 //parser.ShowSkylineAttributes = true;
                 //parser.SkylineUpToLevel = 3;
-                
 
                 //string strSQL = parser.parsePreferenceSQL(strPrefSQL);
                 //Debug.WriteLine(strSQL);

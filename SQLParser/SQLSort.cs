@@ -110,6 +110,11 @@ namespace prefSQL.SQLParser
 
             for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
+                if (model.Skyline.Count == 1)
+                {
+                    //special case if totally only one preference
+                    strSQL += "WHEN 1=1 THEN " + model.Skyline[iChild].Expression + " ";
+                }
                 if (iChild == model.Skyline.Count - 1)
                 {
                     //Last record only needs ELSE
