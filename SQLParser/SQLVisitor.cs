@@ -269,6 +269,7 @@ namespace prefSQL.SQLParser
             {
                 strIncomporableAttributeELSE = " ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
                 bComparable = false;
+                withIncomparable = true;
             }
             
             strSQL = "CASE" + strSQLOrderBy + strSQLELSE + " END";
