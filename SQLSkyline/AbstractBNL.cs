@@ -1,0 +1,137 @@
+//------------------------------------------------------------------------------
+// <copyright file="CSSqlClassFile.cs" company="Microsoft">
+//     Copyright (c) Microsoft Corporation.  All rights reserved.
+// </copyright>
+//------------------------------------------------------------------------------
+using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Data.SqlTypes;
+using Microsoft.SqlServer.Server;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace prefSQL.SQLSkyline
+{
+    public abstract class AbstractBNL
+    {
+        public virtual DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection)
+        {
+            ArrayList resultCollection = new ArrayList();
+            ArrayList resultstringCollection = new ArrayList();
+            string[] operators = strOperators.ToString().Split(';');
+            DataTable dtResult = new DataTable();
+
+            SqlConnection connection = null;
+            if (isIndependent == false)
+                connection = new SqlConnection(Helper.cnnStringSQLCLR);
+            else
+                connection = new SqlConnection(strConnection);
+
+            try
+            {
+                //Some checks
+                if (strQuery.ToString().Length == Helper.MaxSize)
+                {
+                    throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
+                }
+                connection.Open();
+
+                SqlDataAdapter dap = new SqlDataAdapter(strQuery.ToString(), connection);
+                DataTable dt = new DataTable();
+                dap.Fill(dt);
+
+
+                // Build our record schema 
+                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, ref dtResult);
+                SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
+
+
+
+                //Read all records only once. (SqlDataReader works forward only!!)
+                DataTableReader sqlReader = dt.CreateDataReader();
+                while (sqlReader.Read())
+                {
+                    //Check if window list is empty
+                    if (resultCollection.Count == 0)
+                    {
+                        // Build our SqlDataRecord and start the results 
+                        addtoWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, true, ref dtResult);
+                    }
+                    else
+                    {
+                        bool isDominated = false;
+
+                        //check if record is dominated (compare against the records in the window)
+                        for (int i = resultCollection.Count - 1; i >= 0; i--)
+                        {
+                            if (tupleDomination(ref resultCollection, ref resultstringCollection, sqlReader, operators, ref dtResult, i) == true) 
+                            {
+                                isDominated = true;
+                                break;
+                            }
+                        }
+                        if (isDominated == false)
+                        {
+                            addtoWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, true, ref dtResult);
+                        }
+
+                    }
+                }
+
+                sqlReader.Close();
+
+                //Remove certain amount of rows if query contains TOP Keyword
+                Helper.getAmountOfTuples(dtResult, numberOfRecords);
+
+                if (isIndependent == false)
+                {
+                    //Send results to client
+                    SqlContext.Pipe.SendResultsStart(record);
+
+                    //foreach (SqlDataRecord recSkyline in btg[iItem])
+                    foreach (DataRow recSkyline in dtResult.Rows)
+                    {
+                        for (int i = 0; i < recSkyline.Table.Columns.Count; i++)
+                        {
+                            record.SetValue(i, recSkyline[i]);
+                        }
+                        SqlContext.Pipe.SendResultsRow(record);
+                    }
+                    SqlContext.Pipe.SendResultsEnd();
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                //Pack Errormessage in a SQL and return the result
+                string strError = "Fehler in SP_SkylineBNL: ";
+                strError += ex.Message;
+
+                if (isIndependent == true)
+                {
+                    System.Diagnostics.Debug.WriteLine(strError);
+
+                }
+                else
+                {
+                    SqlContext.Pipe.Send(strError);
+                }
+
+            }
+            finally
+            {
+                if (connection != null)
+                    connection.Close();
+            }
+            return dtResult;
+        }
+
+        public abstract bool tupleDomination(ref ArrayList resultCollection, ref ArrayList resultstringCollection, DataTableReader sqlReader, string[] operators, ref DataTable dtResult, int i);
+
+        public abstract void addtoWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, ref DataTable dtResult);
+
+        
+    }
+}
