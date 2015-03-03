@@ -12,6 +12,7 @@ using Microsoft.SqlServer.Server;
 using System.Threading;
 using System.Data.Common;
 using System.Windows.Forms;
+using prefSQL.SQLSkyline;
 
 namespace Utility
 {
@@ -114,14 +115,14 @@ namespace Utility
                 Debug.WriteLine("--------------------------------------------");
 
                 SQLCommon parser = new SQLCommon();
-                //parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
-                parser.SkylineType = SQLCommon.Algorithm.BNL;
-                //parser.SkylineType = SQLCommon.Algorithm.BNLSort;
-                //parser.SkylineType = SQLCommon.Algorithm.Hexagon;
-                //parser.SkylineType = SQLCommon.Algorithm.MultipleBNL;
-                parser.SkylineType = SQLCommon.Algorithm.DQ;
-                //parser.ShowSkylineAttributes = true;
-                parser.SkylineUpToLevel = 1;
+                parser.SkylineType = new SkylineSQL();
+                parser.SkylineType = new SkylineBNL();
+                parser.SkylineType = new SkylineBNLSort();
+                parser.SkylineType = new SkylineHexagon();
+                //parser.SkylineType = new MultipleSkylineBNL();
+                //parser.SkylineType = new SkylineDQ();
+                parser.ShowSkylineAttributes = true;
+                parser.SkylineUpToLevel = 3;
 
                 //string strSQL = parser.parsePreferenceSQL(strPrefSQL);
                 //Debug.WriteLine(strSQL);

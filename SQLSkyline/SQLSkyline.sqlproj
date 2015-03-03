@@ -80,5 +80,12 @@
     <Compile Include="SP_SkylineHexagonLevel.cs" />
     <Compile Include="SP_SkylineBNL.cs" />
     <Compile Include="SP_SkylineBNLLevel.cs" />
+    <Compile Include="SkylineStrategy.cs" />
+    <Compile Include="MultipleSkylineBNL.cs" />
+    <Compile Include="SkylineBNL.cs" />
+    <Compile Include="SkylineBNLSort.cs" />
+    <Compile Include="SkylineDQ.cs" />
+    <Compile Include="SkylineHexagon.cs" />
+    <Compile Include="SkylineSQL.cs" />
   </ItemGroup>
 </Project>

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using prefSQL.SQLParser;
 using System.Diagnostics;
+using prefSQL.SQLSkyline;
 
 namespace Utility
 {
@@ -43,17 +44,16 @@ namespace Utility
             SQLCommon parser = new SQLCommon();
             if(this.optSQL.Checked == true)
             {
-                parser.SkylineType = SQLCommon.Algorithm.NativeSQL;
+                parser.SkylineType = new SkylineSQL();
             }
             else if (this.optBNL.Checked == true)
             {
-                parser.SkylineType = SQLCommon.Algorithm.BNLSort;
+                parser.SkylineType = new SkylineBNLSort();
             }
             else if (this.optHexagon.Checked == true)
             {
-                parser.SkylineType = SQLCommon.Algorithm.Hexagon;
+                parser.SkylineType = new SkylineHexagon();
             }
-            
 
             DataTable dt = parser.parseAndExecutePrefSQL(cnnStringLocalhost, driver, this.txtPrefSQL.Text);
             System.Diagnostics.Debug.WriteLine(dt.Rows.Count);

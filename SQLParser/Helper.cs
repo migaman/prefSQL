@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using prefSQL.SQLSkyline;
 
 namespace prefSQL.SQLParser
 {
@@ -34,10 +35,9 @@ namespace prefSQL.SQLParser
         /// <param name="strPrefSQL"></param>
         /// <param name="algorithm"></param>
         /// <returns></returns>
-        public DataTable getResults(String strPrefSQL, SQLCommon.Algorithm algorithm, bool withIncomparable)
+        public DataTable getResults(String strPrefSQL, SkylineStrategy strategy, bool withIncomparable)
         {
             DataTable dt = new DataTable();
-            
             //Default Parameter
             string strQuery = "";
             string strOperators = "";
@@ -46,13 +46,15 @@ namespace prefSQL.SQLParser
             
 
             //Native SQL algorithm is already a valid SQL statement
-            if(strPrefSQL.StartsWith("SELECT"))
+            if (strPrefSQL.StartsWith("SELECT"))
             {
                 //If query doesn't need skyline calculation (i.e. query without preference clause) --> set algorithm to nativeSQL
-                algorithm = SQLCommon.Algorithm.NativeSQL;
+                strategy = new SkylineSQL();
             }
-            if (algorithm != SQLCommon.Algorithm.NativeSQL)
+            else
             {
+                //if (strategy != SQLCommon.Algorithm.NativeSQL)
+                //{
                 //Store Parameters in Array (Take care to single quotes inside parameters)
                 int iPosStart = strPrefSQL.IndexOf("'");
                 String strtmp = strPrefSQL.Substring(iPosStart);
@@ -67,6 +69,7 @@ namespace prefSQL.SQLParser
                 numberOfRecords = int.Parse(parameter[2].Trim());
                 strQuery = strQuery.Replace("''", "'").Trim('\'');
                 strOperators = strOperators.Replace("''", "'").Trim('\'');
+                //}
             }
 
             Stopwatch sw = new Stopwatch();
@@ -75,117 +78,7 @@ namespace prefSQL.SQLParser
 
             try
             {
-                
-                if (algorithm == SQLCommon.Algorithm.BNL)
-                {
-                    if(withIncomparable == true)
-                    {
-                        prefSQL.SQLSkyline.SP_SkylineBNL skyline = new SQLSkyline.SP_SkylineBNL();
-                        dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, ConnectionString);
-                    }
-                    else
-                    {
-                        prefSQL.SQLSkyline.SP_SkylineBNLLevel skyline = new SQLSkyline.SP_SkylineBNLLevel();
-                        dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, ConnectionString);
-                    }
-                }
-                
-                else
-                if (algorithm == SQLCommon.Algorithm.BNLSort)
-                {
-                    if (withIncomparable == true)
-                    {
-                        prefSQL.SQLSkyline.SP_SkylineBNLSort skyline = new SQLSkyline.SP_SkylineBNLSort();
-                        dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, ConnectionString);
-                    }
-                    else
-                    {
-                        prefSQL.SQLSkyline.SP_SkylineBNLSortLevel skyline = new SQLSkyline.SP_SkylineBNLSortLevel();
-                        dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, ConnectionString);
-                    }
-                    
-                }
-                else if (algorithm == SQLCommon.Algorithm.DQ)
-                {
-                    prefSQL.SQLSkyline.SP_SkylineDQ skyline = new SQLSkyline.SP_SkylineDQ();
-
-                    //D&Q algorithm neads a higher stack (much recursions). Therefore start it with a new thread
-                    //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
-                    var thread = new Thread(
-                        () =>
-                        {
-                            dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, ConnectionString);
-                        }, 8000000);
-
-
-                    thread.Start();
-
-                    //Join method to block the current thread  until the object's thread terminates.
-                    thread.Join();
-                    
-                    
-                    
-                }
-                else if (algorithm == SQLCommon.Algorithm.Hexagon)
-                {
-                    if (withIncomparable == true)
-                    {
-                        prefSQL.SQLSkyline.SP_SkylineHexagon skyline = new SQLSkyline.SP_SkylineHexagon();
-                        string strQueryConstruction = parameter[3].Trim().Replace("''", "'").Trim('\'');
-                        String strHexagonSelectIncomparable = parameter[4].Trim().Replace("''", "'").Trim('\'');
-                        int weightHexagonIncomparable = int.Parse(parameter[5].Trim());
-
-                        //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
-                        //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
-                        var thread = new Thread(
-                            () =>
-                            {
-                                dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, ConnectionString, strHexagonSelectIncomparable, weightHexagonIncomparable);
-                            }, 8000000);
-
-
-                        thread.Start();
-
-                        //Join method to block the current thread  until the object's thread terminates.
-                        thread.Join();
-                    }
-                    else
-                    {
-                        prefSQL.SQLSkyline.SP_SkylineHexagonLevel skyline = new SQLSkyline.SP_SkylineHexagonLevel();
-                        string strQueryConstruction = parameter[3].Trim().Replace("''", "'").Trim('\'');
-                        
-                        //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
-
-                        //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
-                        var thread = new Thread(
-                            () =>
-                            {
-                                dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, ConnectionString, strQueryConstruction);
-                            }, 8000000);
-
-
-                        thread.Start();
-
-                        //Join method to block the current thread  until the object's thread terminates.
-                        thread.Join();
-                    }
-
-                }
-                else if (algorithm == SQLCommon.Algorithm.MultipleBNL)
-                {
-                    if (withIncomparable == true)
-                    {
-                        prefSQL.SQLSkyline.SP_MultipleSkylineBNL skyline = new SQLSkyline.SP_MultipleSkylineBNL();
-                        dt = skyline.getSkylineTable(strQuery, strOperators, ConnectionString, numberOfRecords, int.Parse(parameter[3]));
-                    }
-                    else
-                    {
-                        prefSQL.SQLSkyline.SP_MultipleSkylineBNLLevel skyline = new SQLSkyline.SP_MultipleSkylineBNLLevel();
-                        dt = skyline.getSkylineTable(strQuery, strOperators, ConnectionString, numberOfRecords, int.Parse(parameter[3]));
-                    }
-                    
-                }
-                else if (algorithm == SQLCommon.Algorithm.NativeSQL)
+                if (strategy.isNative())
                 {
                     //Native SQL
 
@@ -203,6 +96,10 @@ namespace prefSQL.SQLParser
                     DbDataAdapter db = factory.CreateDataAdapter();
                     db.SelectCommand = command;
                     db.Fill(dt);
+                }
+                else 
+                {
+                    dt = strategy.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords, withIncomparable, parameter);    
                 }
 
             }

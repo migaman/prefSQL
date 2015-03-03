@@ -10,6 +10,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
+using prefSQL.SQLSkyline;
 
 namespace Utility
 {
@@ -25,7 +26,7 @@ namespace Utility
             Barra
         };
 
-        public void GeneratePerformanceQueries(SQLCommon.Algorithm algorithmType, bool doExecute, PreferenceSet set)
+        public void GeneratePerformanceQueries(SkylineStrategy strategy, bool doExecute, PreferenceSet set)
         {
             //Use the correct line, depending on how incomparable items should be compared
             string[] preferences;
@@ -136,7 +137,7 @@ namespace Utility
 
                 //Convert to real SQL
                 SQLCommon parser = new SQLCommon();
-                parser.SkylineType = algorithmType; // SQLCommon.Algorithm.NativeSQL;
+                parser.SkylineType = strategy; // SQLCommon.Algorithm.NativeSQL;
                 strSQL = parser.parsePreferenceSQL(strSQL);
 
                 if (doExecute == true)
@@ -235,7 +236,7 @@ namespace Utility
                 strFiletype = ".sql";
             }
             //create filename
-            strFileName = path + "Performance_" + set.ToString() + "_" + algorithmType.ToString()   + strFiletype;
+            strFileName = path + "Performance_" + set.ToString() + "_" + strategy.ToString()   + strFiletype;
             
             StreamWriter outfile = new StreamWriter(strFileName);
             outfile.Write(sb.ToString());

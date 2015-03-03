@@ -9,6 +9,7 @@ using Antlr4.Runtime.Tree.Pattern;
 using prefSQL.SQLParser.Models;
 using System.Diagnostics;
 using System.Data;
+using prefSQL.SQLSkyline;
 
 namespace prefSQL.SQLParser
 {
@@ -22,10 +23,11 @@ namespace prefSQL.SQLParser
     public class SQLCommon
     {
         private const string SkylineOf = "SKYLINE OF";
-        private Algorithm _SkylineType = Algorithm.NativeSQL;   //Defines with which Algorithm the Skyline should be calculated
-        private bool _ShowSkylineAttributes = false;            //Defines if the skyline attributes should be added to the SELECT list
-        private int _SkylineUpToLevel = 3;                      //Defines the maximum level that should be returned for the multiple skyline algorithnmm
+        private SkylineStrategy _SkylineType = new SkylineSQL();    //Defines with which Algorithm the Skyline should be calculated
+        private bool _ShowSkylineAttributes = false;                //Defines if the skyline attributes should be added to the SELECT list
+        private int _SkylineUpToLevel = 3;                          //Defines the maximum level that should be returned for the multiple skyline algorithnmm
 
+        /*
         public enum Algorithm
         {
             NativeSQL,              //Works with ANSI-SQL syntax
@@ -34,7 +36,7 @@ namespace prefSQL.SQLParser
             DQ,                     //Divide and Conquer
             Hexagon,                //Hexagon Augsburg
             MultipleBNL,            //Multiple Skyline
-        };
+        };*/
 
         public enum Ordering
         {
@@ -51,7 +53,7 @@ namespace prefSQL.SQLParser
             set { _ShowSkylineAttributes = value; }
         }
 
-        public Algorithm SkylineType
+        public SkylineStrategy SkylineType
         {
             get { return _SkylineType; }
             set { _SkylineType = value; }
@@ -120,7 +122,7 @@ namespace prefSQL.SQLParser
 
                 //Visit parsetree (PrefSQL model is built during the visit of the parse tree)
                 SQLVisitor visitor = new SQLVisitor();
-                visitor.IsNative = _SkylineType == Algorithm.NativeSQL;
+                visitor.IsNative = _SkylineType.isNative();
                 visitor.Visit(tree);
                 PrefSQLModel prefSQL = visitor.Model;
                 
@@ -143,8 +145,8 @@ namespace prefSQL.SQLParser
                             //Add the attributes to the existing SELECT clause
                             string strSQLSelectClause = getSelectClauseForSkylineAttributes(prefSQL);
                             string strSQLBeforeFrom = strSQLReturn.Substring(0, strSQLReturn.IndexOf("FROM"));
-                            string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM"));
-                            strSQLReturn = strSQLBeforeFrom + strSQLSelectClause + " " + strSQLAfterFrom;
+                            string strSQLAfterFromShow = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM"));
+                            strSQLReturn = strSQLBeforeFrom + strSQLSelectClause + " " + strSQLAfterFromShow;
                             
                         }
 
@@ -172,126 +174,67 @@ namespace prefSQL.SQLParser
                             }
                         }
 
+
+                        ////////////////////////////////////////////
+                        //attributes used for native sql algorithm
+                        string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strSQLReturn);
+                        
+                        ////////////////////////////////////////////
+                        //attributes used for other algorithms
+                        string strOperators = "";
+                        string strAttributesSkyline = buildPreferencesBNL(prefSQL, ref strOperators);
+                        //Without SELECT 
+
+                        //Remove TOP keyword, expect for the native SQL algorithm
+                        if (prefSQL.HasTop == true && SkylineType.isNative() == false)
+                        {
+                            //Remove Top Keyword in inner clause
+                            int iPosTop = strSQLReturn.IndexOf("TOP");
+                            int iPosTopEnd = strSQLReturn.Substring(iPosTop + 3).TrimStart().IndexOf(" ");
+                            string strSQLAfterTOP = strSQLReturn.Substring(iPosTop + 3).TrimStart();
+                            strSQLReturn = strSQLReturn.Substring(0, iPosTop) + strSQLAfterTOP.Substring(iPosTopEnd + 1);
+                        }
+
+
+                        string strAttributesOutput = ", " + strSQLReturn.Substring(7, strSQLReturn.IndexOf("FROM") - 7);
+                        string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM"));
+
+                        string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
+
+                        string strOrderByAttributes = sqlSort.getSortClause(prefSQL, SQLCommon.Ordering.AttributePosition);
+
+
+                        ////////////////////////////////////////////
+                        //attributes used for hexagon
+                        string[] additionalParameters = new string[5];
+
+                        string strOperatorsHexagon = "";
+                        string strAttributesSkylineHexagon = buildSELECTHexagon(prefSQL, strSQLReturn, ref strOperatorsHexagon);
+                        //Without SELECT 
+
+                        
+                        //Quote quotes because it is a parameter of the stored procedure
+                        string strFirstSQLHexagon = "SELECT " + strAttributesSkylineHexagon + " " + strAttributesOutput + strSQLAfterFrom;
+                        strFirstSQLHexagon = strFirstSQLHexagon.Replace("'", "''");
+
+                        //Quote quotes because it is a parameter of the stored procedure
+                        string strSelectDistinctIncomparable = "";
+                        int weightHexagonIncomparable = 0;
+                        string strHexagon = buildSELECTMaxHexagon(prefSQL, strSQLReturn, ref strSelectDistinctIncomparable, ref weightHexagonIncomparable);
+                        strSelectDistinctIncomparable = strSelectDistinctIncomparable.Replace("'", "''");
+                        strHexagon = strHexagon.Replace("'", "''");
+
+                        additionalParameters[0] = strFirstSQLHexagon;
+                        additionalParameters[1] = strOperatorsHexagon;
+                        additionalParameters[2] = strHexagon;
+                        additionalParameters[3] = strSelectDistinctIncomparable;
+                        additionalParameters[4] = weightHexagonIncomparable.ToString();
+
+                        
                         
                         //Now create the query depending on the Skyline algorithm
-                        if (_SkylineType == Algorithm.NativeSQL)
-                        {
-                            string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strSQLReturn);
-                            strSQLReturn += strWHERE;
-                            strSQLReturn += strOrderBy;
-                        }
-                        else if (_SkylineType == Algorithm.BNL || _SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.MultipleBNL || _SkylineType == Algorithm.DQ)
-                        {
-                            string strOperators = "";
-                            string strAttributesSkyline = buildPreferencesBNL(prefSQL, ref strOperators);
-                            //Without SELECT 
+                        strSQLReturn = _SkylineType.getStoredProcedureCommand(strSQLReturn, strWHERE, strOrderBy, prefSQL.NumberOfRecords, strFirstSQL, strOperators, _SkylineUpToLevel, prefSQL.WithIncomparable, strOrderByAttributes, additionalParameters);
 
-                            //Check if SQL contains TOP Keywords
-                            if (prefSQL.HasTop == true)
-                            {
-                                //Remove Top Keyword in inner clause
-                                int iPosTop = strSQLReturn.IndexOf("TOP");
-                                int iPosTopEnd = strSQLReturn.Substring(iPosTop + 3).TrimStart().IndexOf(" ");
-                                string strSQLAfterTOP = strSQLReturn.Substring(iPosTop + 3).TrimStart();
-                                strSQLReturn = strSQLReturn.Substring(0, iPosTop) + strSQLAfterTOP.Substring(iPosTopEnd + 1);
-                            }
-
-
-                            string strAttributesOutput = ", " + strSQLReturn.Substring(7, strSQLReturn.IndexOf("FROM") - 7);
-                            string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM"));
-
-                            string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
-                            //sort according to preferences (otherwise the algorithm would not work)
-                            if (_SkylineType == Algorithm.BNLSort || _SkylineType == Algorithm.MultipleBNL)
-                            {
-                                string strOrderByAttributes = sqlSort.getSortClause(prefSQL, SQLCommon.Ordering.AttributePosition);
-                                strFirstSQL += strOrderByAttributes;
-                            }
-                            else
-                            {
-                                //usual sort clause
-                                strFirstSQL += strOrderBy;
-                            }
-                            
-                            
-
-                            //Quote quotes because it is a parameter of the stored procedure
-                            strFirstSQL = strFirstSQL.Replace("'", "''");
-
-                            if (_SkylineType == Algorithm.BNL)
-                            {
-                                if (prefSQL.WithIncomparable == true)
-                                {
-                                    strSQLReturn = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + prefSQL.NumberOfRecords;
-                                }
-                                else
-                                {
-                                    strSQLReturn = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "', " + prefSQL.NumberOfRecords;
-                                }
-                            }
-                            else if (_SkylineType == Algorithm.BNLSort)
-                            {
-                                if (prefSQL.WithIncomparable == true)
-                                {
-                                    strSQLReturn = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "', " + prefSQL.NumberOfRecords;
-                                }
-                                else
-                                {
-                                    strSQLReturn = "EXEC dbo.SP_SkylineBNLSortLevel '" + strFirstSQL + "', '" + strOperators + "', " + prefSQL.NumberOfRecords;
-                                }
-                            }
-                            else if (_SkylineType == Algorithm.MultipleBNL)
-                            {
-                                strSQLReturn = "EXEC dbo.SP_MultipleSkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + prefSQL.NumberOfRecords + ", " + _SkylineUpToLevel;
-                            }
-                            else if (_SkylineType == Algorithm.DQ)
-                            {
-                                strSQLReturn = "EXEC dbo.SP_SkylineDQ '" + strFirstSQL + "', '" + strOperators + "'," + prefSQL.NumberOfRecords;
-                            }
-
-                        }
-                        else if (_SkylineType == Algorithm.Hexagon)
-                        {
-                            string strOperators = "";
-                            string strAttributesSkyline = buildSELECTHexagon(prefSQL, strSQLReturn, ref strOperators);
-                            //Without SELECT 
-
-                            //Check if SQL contains TOP Keywords
-                            if (prefSQL.HasTop == true)
-                            {
-                                //Remove Top Keyword in inner clause
-                                int iPosTop = strSQLReturn.IndexOf("TOP");
-                                int iPosTopEnd = strSQLReturn.Substring(iPosTop + 3).TrimStart().IndexOf(" ");
-                                string strSQLAfterTOP = strSQLReturn.Substring(iPosTop + 3).TrimStart();
-                                strSQLReturn = strSQLReturn.Substring(0, iPosTop) + strSQLAfterTOP.Substring(iPosTopEnd + 1);
-                            }
-
-
-                            string strAttributesOutput = ", " + strSQLReturn.Substring(7, strSQLReturn.IndexOf("FROM") - 7);
-                            string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM"));
-
-                            //Quote quotes because it is a parameter of the stored procedure
-                            string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
-                            strFirstSQL = strFirstSQL.Replace("'", "''");
-
-                            //Quote quotes because it is a parameter of the stored procedure
-                            string strSelectDistinctIncomparable = "";
-                            int weightHexagonIncomparable = 0;
-                            string strHexagon = buildSELECTMaxHexagon(prefSQL, strSQLReturn, ref strSelectDistinctIncomparable, ref weightHexagonIncomparable);
-                            strSelectDistinctIncomparable = strSelectDistinctIncomparable.Replace("'", "''");
-
-                            strHexagon = strHexagon.Replace("'", "''");
-
-                            if (prefSQL.WithIncomparable == true)
-                            {
-                                strSQLReturn = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', " + prefSQL.NumberOfRecords + ", '" + strHexagon + "', '" + strSelectDistinctIncomparable + "'," + weightHexagonIncomparable;
-                            }
-                            else
-                            {
-                                strSQLReturn = "EXEC dbo.SP_SkylineHexagonLevel '" + strFirstSQL + "', '" + strOperators + "', " + prefSQL.NumberOfRecords  + ", '" + strHexagon + "'";
-                            }
-
-                        }
                     }
                 }
                 else

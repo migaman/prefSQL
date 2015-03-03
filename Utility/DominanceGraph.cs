@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using prefSQL.SQLParser;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using prefSQL.SQLSkyline;
 
 namespace Utility
 {
@@ -24,7 +25,7 @@ namespace Utility
             List<int> listIDs = new List<int>();
             bool isSkylineEmpty = false; 
             SQLCommon common = new SQLCommon();
-            common.SkylineType = SQLCommon.Algorithm.NativeSQL;
+            common.SkylineType = new SkylineSQL();
             common.ShowSkylineAttributes = true;
             SqlConnection cnnSQL = new SqlConnection(strConnection);
             string sqlNative = "";

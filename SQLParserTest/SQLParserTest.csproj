@@ -44,6 +44,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.XML" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
@@ -67,6 +68,10 @@
     <ProjectReference Include="..\SQLParser\SQLParser.csproj">
       <Project>{125a1438-e65a-4f43-a9ec-23a7bc7e68d7}</Project>
       <Name>SQLParser</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SQLSkyline\SQLSkyline.sqlproj">
+      <Project>{c0006fb5-527b-4812-8e5c-9b2cba268b59}</Project>
+      <Name>SQLSkyline</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
