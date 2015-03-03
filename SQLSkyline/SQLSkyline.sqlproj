@@ -87,6 +87,8 @@
     <Compile Include="SkylineDQ.cs" />
     <Compile Include="SkylineHexagon.cs" />
     <Compile Include="SkylineSQL.cs" />
-    <Compile Include="AbstractBNL.cs" />
+    <Compile Include="TemplateBNL.cs" />
+    <Compile Include="TemplateDQ.cs" />
+    <Compile Include="TemplateHexagon.cs" />
   </ItemGroup>
 </Project>

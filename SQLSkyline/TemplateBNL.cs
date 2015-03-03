@@ -1,8 +1,3 @@
-//------------------------------------------------------------------------------
-// <copyright file="CSSqlClassFile.cs" company="Microsoft">
-//     Copyright (c) Microsoft Corporation.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
 using System;
 using System.Data;
 using System.Data.SqlClient;
@@ -11,11 +6,19 @@ using Microsoft.SqlServer.Server;
 using System.Collections;
 using System.Collections.Generic;
 
+//Caution: Attention small changes in this code can lead to performance issues, i.e. using a startswith instead of an equal can increase by 10 times
+//Important: Only use equal for comparing text (otherwise performance issues)
 namespace prefSQL.SQLSkyline
 {
-    public abstract class AbstractBNL
+    public abstract class TemplateBNL
     {
-        public virtual DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection)
+
+        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection)
+        {
+            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection);
+        }
+
+        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection)
         {
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
@@ -65,7 +68,7 @@ namespace prefSQL.SQLSkyline
                         //check if record is dominated (compare against the records in the window)
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
                         {
-                            if (tupleDomination(ref resultCollection, ref resultstringCollection, sqlReader, operators, ref dtResult, i) == true) 
+                            if (tupleDomination(ref resultCollection, ref resultstringCollection, sqlReader, operators, ref dtResult, i) == true)
                             {
                                 isDominated = true;
                                 break;
@@ -132,6 +135,5 @@ namespace prefSQL.SQLSkyline
 
         public abstract void addtoWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, ref DataTable dtResult);
 
-        
     }
 }

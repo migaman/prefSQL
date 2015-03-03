@@ -396,7 +396,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="record"></param>
         /// <param name="isFrameworkMode"></param>
         /// <param name="dtResult"></param>
-        public static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, SqlDataRecord record, bool isFrameworkMode, ref DataTable dtResult)
+        public static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, SqlDataRecord record, ref DataTable dtResult)
         {
             //Erste Spalte ist die ID
             long[] recordInt = new long[operators.GetUpperBound(0) + 1];
@@ -416,15 +416,9 @@ namespace prefSQL.SQLSkyline
                 }
             }
 
-            if (isFrameworkMode == true)
-            {
-                dtResult.Rows.Add(row);
-            }
-            else
-            {
-                SqlContext.Pipe.SendResultsRow(record);
-                
-            }
+            
+            dtResult.Rows.Add(row);
+            
             resultCollection.Add(recordInt);
         }
 
@@ -438,7 +432,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="record"></param>
         /// <param name="isFrameworkMode"></param>
         /// <param name="dtResult"></param>
-        public static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, ref DataTable dtResult)
+        public static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlDataRecord record, ref DataTable dtResult)
         {
             //long must be nullable (because of incomparable tupels)
             long?[] recordInt = new long?[operators.GetUpperBound(0) + 1];
@@ -477,14 +471,7 @@ namespace prefSQL.SQLSkyline
                 }
             }
 
-            if (isFrameworkMode == true)
-            {
-                dtResult.Rows.Add(row);
-            }
-            else
-            {
-                SqlContext.Pipe.SendResultsRow(record);
-            }
+            dtResult.Rows.Add(row);
             resultCollection.Add(recordInt);
             resultstringCollection.Add(recordstring);
         }
