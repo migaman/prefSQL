@@ -113,6 +113,9 @@ namespace prefSQL.SQLSkyline
 
                 sqlReader.Close();
 
+                //Remove certain amount of rows if query contains TOP Keyword
+                Helper.getAmountOfTuples(dtResult, numberOfRecords);
+
                 if (isIndependent == false)
                 {
                     //Send results to client

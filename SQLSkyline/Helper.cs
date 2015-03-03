@@ -19,6 +19,25 @@ namespace prefSQL.SQLSkyline
         public const int MaxSize = 4000;
 
         /// <summary>
+        /// Returns the TOP n first tupels of a datatable
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="numberOfRecords"></param>
+        /// <returns></returns>
+        public static DataTable getAmountOfTuples(DataTable dt, int numberOfRecords)
+        {
+            if (numberOfRecords > 0)
+            {
+                for (int i = dt.Rows.Count - 1; i >= numberOfRecords; i--)
+                {
+                    dt.Rows.RemoveAt(i);
+                }
+
+            }
+            return dt;
+        }
+
+        /// <summary>
         /// Adds every output column to a new datatable and creates the structure to return data over MSSQL CLR pipes
         /// </summary>
         /// <param name="dt"></param>
@@ -63,13 +82,14 @@ namespace prefSQL.SQLSkyline
         /// <param name="operators"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public static bool isTupleDominated(DataTableReader sqlReader, string[] operators, long[] result)
+        public static bool isTupleDominated(DataTableReader sqlReader, long[] result)
         {
             bool greaterThan = false;
 
             for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
             {
-                long value = sqlReader.GetInt32(iCol);
+                long value = (int)sqlReader[iCol];
+
                 int comparison = compareValue(value, result[iCol]);
 
                 if (comparison >= 1)
@@ -112,8 +132,7 @@ namespace prefSQL.SQLSkyline
 
             for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
             {
-
-                long value = sqlReader.GetInt32(iCol);
+                long value = (int)sqlReader[iCol];
                 //interchange values for comparison
                 int comparison = compareValue(result[iCol], value);
 
@@ -193,8 +212,7 @@ namespace prefSQL.SQLSkyline
                     }
                     else
                     {
-                        //
-                        value = sqlReader.GetInt32(iCol);
+                        value = (int)sqlReader[iCol];
                         //check if value is incomparable
                         if (result[iCol] == null)
                         {
@@ -221,7 +239,7 @@ namespace prefSQL.SQLSkyline
                             if (iCol + 1 <= result.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
                             {
                                 //string value is always the next field
-                                string strValue = sqlReader.GetString(iCol + 1);
+                                string strValue = (string)sqlReader[iCol + 1];
                                 //If it is not the same string value, the values are incomparable!!
                                 //If two values are comparable the strings will be empty!
                                 if (strValue.Equals("INCOMPARABLE") || !strValue.Equals(stringResult[iCol]))
@@ -298,7 +316,7 @@ namespace prefSQL.SQLSkyline
                     else
                     {
                         //
-                        value = sqlReader.GetInt32(iCol);
+                        value = (int)sqlReader[iCol];
 
                         //check if value is incomparable
                         if (result[iCol] == null)
@@ -332,7 +350,7 @@ namespace prefSQL.SQLSkyline
                             if (iCol + 1 <= result.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
                             {
                                 //string value is always the next field
-                                string strValue = sqlReader.GetString(iCol + 1);
+                                string strValue = (string)sqlReader[iCol + 1];
                                 //If it is not the same string value, the values are incomparable!!
                                 //If two values are comparable the strings will be empty!
                                 if (!strValue.Equals(stringResult[iCol]))
@@ -389,7 +407,7 @@ namespace prefSQL.SQLSkyline
                 //Only the real columns (skyline columns are not output fields)
                 if (iCol <= operators.GetUpperBound(0))
                 {
-                    recordInt[iCol] = sqlReader.GetInt32(iCol);
+                    recordInt[iCol] = (int)sqlReader[iCol];
                 }
                 else
                 {
@@ -438,14 +456,17 @@ namespace prefSQL.SQLSkyline
                         if (sqlReader.IsDBNull(iCol) == true)
                             recordInt[iCol] = null;
                         else
-                            recordInt[iCol] = sqlReader.GetInt32(iCol);
+                        {
+                            recordInt[iCol] = (int)sqlReader[iCol];
+                        }
+                            
                             
 
                         //Check if long value is incomparable
                         if (iCol + 1 <= recordInt.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
                         {
                             //Incomparable field is always the next one
-                            recordstring[iCol] = sqlReader.GetString(iCol + 1);
+                            recordstring[iCol] = (string)sqlReader[iCol + 1];
                         }
                     }
                 }

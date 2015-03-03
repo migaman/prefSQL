@@ -130,7 +130,7 @@ namespace prefSQL.SQLSkyline
             if (dt.Rows.Count == 0)
                 return dt;
 
-            //as long as all elements have the same integer
+            //as long as not all elements have the same integer
             bool isSplittable = false;
             int value = (int)dt.Rows[0][dim];
             for (int i = 1; i < dt.Rows.Count; i++)
@@ -230,10 +230,23 @@ namespace prefSQL.SQLSkyline
         private DataTable mergeBasic(DataTable s1, DataTable s2, string[] operators, int dim)
         {
             DataTable dtSkyline = s1.Clone();
-            if(s1.Rows.Count == 1)
+
+            if (dim == 0)
+            {
+                //No Operation, return only the left list
+            }
+            /*else if (s1.Rows.Count == 0) 
+            {
+                return dtSkyline;
+            }
+            else if (s2.Rows.Count == 0)
+            {
+                return dtSkyline;
+            } */  
+            else if (s1.Rows.Count == 1)
             {
                 DataRow p = s1.Rows[0];
-                for(int i = 0; i < s2.Rows.Count; i++)
+                for (int i = 0; i < s2.Rows.Count; i++)
                 {
                     DataRow q = s2.Rows[i];
 
@@ -247,12 +260,12 @@ namespace prefSQL.SQLSkyline
                             dtSkyline.ImportRow(q);
                             break;
                         }
-                    }  
-                    
+                    }
+
                 }
 
             }
-            else if(s2.Rows.Count == 1)
+            else if (s2.Rows.Count == 1)
             {
                 dtSkyline.ImportRow(s2.Rows[0]);
                 DataRow p = s2.Rows[0];
@@ -261,7 +274,7 @@ namespace prefSQL.SQLSkyline
                     DataRow q = s1.Rows[i];
                     //if (isBetter(q, p, operators))
                     //{
-                    if ((int)q[dim-1] <= (int)p[dim-1])
+                    if ((int)q[dim - 1] <= (int)p[dim - 1])
                     {
                         dtSkyline.Rows.Clear();
                         break;
@@ -269,45 +282,62 @@ namespace prefSQL.SQLSkyline
                     //}
                 }
             }
-            else if(operators.GetUpperBound(0) == 1)
+            else if (operators.GetUpperBound(0) == 1)
             {
                 //Nur 2 Dimensionen
                 //DataRow min = min(s1);
-                int min = (int)s1.Rows[0][dim-1];
+                int min = (int)s1.Rows[0][dim - 1];
                 for (int i = 1; i < s1.Rows.Count; i++)
                 {
                     if ((int)s1.Rows[i][dim - 1] < min)
                         min = (int)s1.Rows[i][dim - 1];
                 }
 
-                for(int i = 0; i < s2.Rows.Count; i++)
+                for (int i = 0; i < s2.Rows.Count; i++)
                 {
                     DataRow q = s2.Rows[i];
                     //if(isBetterInLeastOneDim(q, min, operators))
                     //{
-                    if((int)q[dim-1] < min)
+                    if ((int)q[dim - 1] < min)
                     {
                         dtSkyline.ImportRow(q);
                     }
-                        
+
                     //}
                 }
             }
             else
             {
                 int pivot = getMedian(s2, dim - 1);
+                if (pivot == 0)
+                {
+
+                }
+                Console.Out.WriteLine("Median:" + pivot);
                 DataTable s11 = s1.Clone();
                 DataTable s12 = s1.Clone();
                 DataTable s21 = s1.Clone();
                 DataTable s22 = s1.Clone();
+
+                //Console.Out.WriteLine("s11");
+
                 partition(s1, dim - 1, pivot, ref s11, ref s12);
                 partition(s2, dim - 1, pivot, ref s21, ref s22);
-                
+
+                Console.Out.WriteLine("s12");
+
                 DataTable r1 = mergeBasic(s11, s21, operators, dim);
+
+                Console.Out.WriteLine("s13");
+
                 DataTable r2 = mergeBasic(s12, s22, operators, dim); ;
+                Console.Out.WriteLine("s14");
                 DataTable r3 = mergeBasic(s11, r2, operators, dim - 1); ;
+                Console.Out.WriteLine("s15");
                 dtSkyline.Merge(r1);
+                Console.Out.WriteLine("s16");
                 dtSkyline.Merge(r3);
+                Console.Out.WriteLine("s17");
             }
 
 
@@ -338,6 +368,13 @@ namespace prefSQL.SQLSkyline
             int size = sortedPNumbers.Length;
             int mid = size / 2;
             int median = (size % 2 != 0) ? (int)sortedPNumbers[mid] : ((int)sortedPNumbers[mid] + (int)sortedPNumbers[mid - 1]) / 2;
+
+            Console.Out.WriteLine("Median" + median + ", Dim: " + dim);
+            if (median == 410)
+            {
+
+            }
+
             return median;
         }
 

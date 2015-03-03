@@ -109,7 +109,7 @@ namespace prefSQL.SQLSkyline
                                     long[] result = (long[])resultCollection[i];
 
                                     //Dominanz
-                                    if (Helper.isTupleDominated(sqlReader, operators, result) == true)
+                                    if (Helper.isTupleDominated(sqlReader, result) == true)
                                     {
                                         //Dominated in this level. Next level
                                         isDominated = true;
@@ -188,7 +188,7 @@ namespace prefSQL.SQLSkyline
                 //Only the real columns (skyline columns are not output fields)
                 if (iCol <= operators.GetUpperBound(0))
                 {
-                    recordInt[iCol] = sqlReader.GetInt32(iCol);
+                    recordInt[iCol] = (int)sqlReader[iCol];
                 }
                 else
                 {

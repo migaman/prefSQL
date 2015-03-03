@@ -24,17 +24,17 @@ namespace prefSQL.SQLParserTest
         {
             //TODO: Add D&Q algorithm as soon as it works
 
-            string[] strPrefSQL = new string[12];
+            string[] strPrefSQL = new string[2];
 
             //1 numerical preference
             strPrefSQL[0] = "SELECT t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price LOW";
             //3 numerical preferences
             strPrefSQL[1] = "SELECT * FROM cars_small t1 SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH";
             //6 numerical preferences with EQUAL STEPS
-            strPrefSQL[2] = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
-                "SKYLINE OF cars_small.price LOW 3000 EQUAL, cars_small.mileage LOW 20000 EQUAL, cars_small.horsepower HIGH 20 EQUAL, cars_small.enginesize HIGH 1000 EQUAL, cars_small.consumption LOW 15 EQUAL, cars_small.doors HIGH ";
-
+            //strPrefSQL[2] = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
+              //  "SKYLINE OF cars_small.price LOW 3000 EQUAL, cars_small.mileage LOW 20000 EQUAL, cars_small.horsepower HIGH 20 EQUAL, cars_small.enginesize HIGH 1000 EQUAL, cars_small.consumption LOW 15 EQUAL, cars_small.doors HIGH ";
             
+            /*
             //OTHERS EQUAL at the end
             strPrefSQL[3] = "SELECT t1.id, t1.title AS AutoTitel, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS EQUAL)";
             //OTHERS EQUAL at the beginning
@@ -56,7 +56,7 @@ namespace prefSQL.SQLParserTest
             strPrefSQL[10] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name (OTHERS INCOMPARABLE >> 'blau' >> 'rot')";
             //OTHERS INCOMPARABLE in the middle
             strPrefSQL[11] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >>  OTHERS INCOMPARABLE >> 'blau')";
-            
+            */
             //Preference with TOP Keyword
             //3 numerical preferences with TOP Keyword
             //strPrefSQL[12] = "SELECT TOP 5 t1.title FROM cars_small t1 SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH";
@@ -85,11 +85,14 @@ namespace prefSQL.SQLParserTest
                 string sqlBNLSort = common.parsePreferenceSQL(strPrefSQL[i]);
                 common.SkylineType = SQLCommon.Algorithm.Hexagon;
                 string sqlHexagon = common.parsePreferenceSQL(strPrefSQL[i]);
+                common.SkylineType = SQLCommon.Algorithm.DQ;
+                string sqlDQ = common.parsePreferenceSQL(strPrefSQL[i]);
 
                 int amountOfTupelsBNL = 0;
                 int amountOfTupelsBNLSort = 0;
                 int amountOfTupelsSQL = 0;
                 int amountOfTupelsHexagon = 0;
+                int amountOfTupelsDQ = 0;
 
                 SqlConnection cnnSQL = new SqlConnection(strConnection);
                 cnnSQL.InfoMessage += cnnSQL_InfoMessage;
@@ -150,6 +153,19 @@ namespace prefSQL.SQLParserTest
                     }
                     sqlReader.Close();
 
+                    //D&Q
+                    sqlCommand = new SqlCommand(sqlDQ, cnnSQL);
+                    sqlReader = sqlCommand.ExecuteReader();
+
+                    if (sqlReader.HasRows)
+                    {
+                        while (sqlReader.Read())
+                        {
+                            amountOfTupelsDQ++;
+                        }
+                    }
+                    sqlReader.Close();
+
                     cnnSQL.Close();
                 }
                 catch (Exception ex)
@@ -162,6 +178,7 @@ namespace prefSQL.SQLParserTest
                 Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNLSort, 0, "Amount of tupels does not match");
                 Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNL, 0, "Amount of tupels does not match");
                 Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsHexagon, 0, "Amount of tupels does not match");
+                Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsDQ, 0, "Amount of tupels does not match");
             }
         }
 

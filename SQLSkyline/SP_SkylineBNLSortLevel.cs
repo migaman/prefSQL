@@ -86,7 +86,7 @@ namespace prefSQL.SQLSkyline
                             long[] result = (long[])resultCollection[i];
 
                             //Dominanz
-                            if (Helper.isTupleDominated(sqlReader, operators, result) == true)
+                            if (Helper.isTupleDominated(sqlReader, result) == true)
                             {
                                 //New point is dominated. No further testing necessary
                                 isDominated = true;

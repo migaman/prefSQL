@@ -376,13 +376,13 @@ namespace prefSQL.SQLSkyline
                     //LOW und HIGH Spalte in record abfüllen
                     if (operators[iCol].Equals("LOW"))
                     {
-                        tuple[iCol] = sqlReader.GetInt64(iCol);
+                        tuple[iCol] = (long)sqlReader[iCol];
 
                         //Check if long value is incomparable
                         if (iCol + 1 <= tuple.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
                         {
                             //Incomparable field is always the next one
-                            String strValue = sqlReader.GetString(iCol+1);
+                            String strValue = (string)sqlReader[iCol+1];
                             if (strValue.Substring(0, 1).Equals("x"))
                             {
                                 //current level is ok, but add zeros if before incomparables, otherwise fill with ones
@@ -408,9 +408,6 @@ namespace prefSQL.SQLSkyline
                                     tuple[iCol + 1 + iValue] = long.Parse(strValue.Substring(iValue, 1));
                                 }
                             }
-                            //tuple[iCol + 1] = long.Parse(strValue.Substring(1, 1));
-                            //tuple[iCol + 2] = long.Parse(strValue.Substring(2, 1));
-                            //recordstring[iCol] = sqlReader.GetString(iCol + 1);
                         }
 
                     }

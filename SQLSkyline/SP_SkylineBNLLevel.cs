@@ -81,7 +81,7 @@ namespace prefSQL.SQLSkyline
                             long[] result = (long[])resultCollection[i];
 
                             //Dominanz
-                            if (Helper.isTupleDominated(sqlReader, operators, result) == true)
+                            if (Helper.isTupleDominated(sqlReader, result) == true)
                             {
                                 //New point is dominated. No further testing necessary
                                 isDominated = true;
@@ -109,6 +109,9 @@ namespace prefSQL.SQLSkyline
                 }
 
                 sqlReader.Close();
+
+                //Remove certain amount of rows if query contains TOP Keyword
+                Helper.getAmountOfTuples(dtResult, numberOfRecords);
 
                 if (isIndependent == false)
                 {
