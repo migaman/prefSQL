@@ -258,7 +258,7 @@ namespace prefSQL.SQLParserTest
                 DataTable dtBNLSort = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
                 common.SkylineType = new SkylineHexagon();
                 DataTable dtHexagon = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
-                common.SkylineType = new SkylineDQ();
+                //common.SkylineType = new SkylineDQ();
                 //DataTable dtDQ = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
 
                 

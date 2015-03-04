@@ -76,7 +76,7 @@ namespace prefSQL.SQLSkyline
                 var thread = new Thread(
                     () =>
                     {
-                        dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, strQueryConstruction);
+                        dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, strConnection, "", 0);
                     }, 8000000);
 
 

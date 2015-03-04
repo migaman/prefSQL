@@ -178,7 +178,7 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        private static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlDataRecord record, SqlBoolean isFrameworkMode, int level, ref DataTable dtResult)
+        private void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlDataRecord record, SqlBoolean isFrameworkMode, int level, ref DataTable dtResult)
         {
 
             //Erste Spalte ist die ID

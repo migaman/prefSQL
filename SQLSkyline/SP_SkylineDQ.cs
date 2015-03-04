@@ -208,7 +208,7 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        private static void partition(DataTable dt, int dim, int pivot, ref DataTable list1, ref DataTable list2)
+        private void partition(DataTable dt, int dim, int pivot, ref DataTable list1, ref DataTable list2)
         {
             //divide input intwo 2 partitions
             for (int iRow = 0; iRow < dt.Rows.Count; iRow++)
@@ -345,7 +345,7 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        private static int getMedian(DataTable dt, int dim)
+        private int getMedian(DataTable dt, int dim)
         {
             //Framework 2.0 version of this method. there is an easier way in F4        
             if (dt == null || dt.Rows.Count == 0)
