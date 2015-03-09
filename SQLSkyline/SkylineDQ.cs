@@ -31,19 +31,14 @@ namespace prefSQL.SQLSkyline
 
         public override DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
-            
-            
-            //D&Q algorithm neads a higher stack (much recursions). Therefore start it with a new thread
-            //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
-
             if (hasIncomparable)
             {
-                //SP_SkylineBNLSort skyline = new SP_SkylineBNLSort();
-                //return skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
-                return null;
+                throw new Exception("D&Q does not support incomparale tuples");
             }
             else
             {
+                //D&Q algorithm neads a higher stack (much recursions). Therefore start it with a new thread
+                //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
                 DataTable dt = null;
                 prefSQL.SQLSkyline.SP_SkylineDQ skyline = new SQLSkyline.SP_SkylineDQ();
                 var thread = new Thread(

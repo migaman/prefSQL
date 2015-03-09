@@ -18,9 +18,7 @@ namespace prefSQL.SQLSkyline
             return getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, true, strConnection, strSelectIncomparable, weightHexagonIncomparable);
         }
 
-        public abstract void calculateOperators(ref string strOperators, string strSelectIncomparable, SqlConnection connection, ref string strSQL, ref string strQueryConstruction);
-
-        public DataTable getSkylineTable(string strQuery, string strOperators, int numberOfRecords, string strQueryConstruction, bool isIndependent, string strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
+        protected DataTable getSkylineTable(string strQuery, string strOperators, int numberOfRecords, string strQueryConstruction, bool isIndependent, string strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
         {
             ArrayList[] btg = null;
             int[] next = null;
@@ -278,8 +276,7 @@ namespace prefSQL.SQLSkyline
             }
         }
 
-        public abstract void add(DataTableReader sqlReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable);
-
+        
 
         //Find BestMatchesOnly
         private void findBMO(int amountPreferences, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight)
@@ -384,6 +381,8 @@ namespace prefSQL.SQLSkyline
         }
 
 
+        protected abstract void add(DataTableReader sqlReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable);
 
+        protected abstract void calculateOperators(ref string strOperators, string strSelectIncomparable, SqlConnection connection, ref string strSQL, ref string strQueryConstruction);
     }
 }

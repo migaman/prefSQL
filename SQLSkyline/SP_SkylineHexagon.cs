@@ -24,7 +24,7 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        public override void calculateOperators(ref string strOperators, string strSelectIncomparable, SqlConnection connection, ref string strSQL, ref string strQueryConstruction)
+        protected override void calculateOperators(ref string strOperators, string strSelectIncomparable, SqlConnection connection, ref string strSQL, ref string strQueryConstruction)
         {
             if (!strSelectIncomparable.Equals(""))
             {
@@ -103,7 +103,7 @@ namespace prefSQL.SQLSkyline
             }
         }
 
-        public override void add(DataTableReader sqlReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable) //add tuple
+        protected override void add(DataTableReader sqlReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable) //add tuple
         {
             ArrayList al = new ArrayList();
 
