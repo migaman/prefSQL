@@ -36,8 +36,6 @@ error : UNEXPECTED_CHAR
  ;
 
  
-
-
 sql_stmt_list : ';'* sql_stmt ( ';'+ sql_stmt )* ';'* ;
 
 sql_stmt : ( select_stmt) ;
@@ -49,19 +47,13 @@ select_stmt : select_or_values ( compound_operator select_or_values )*  ( order_
 order_by
 	: K_ORDER K_BY op=(K_SUMRANK|K_BESTRANK) '(' + ')'			#orderBySpecial
 	| K_ORDER K_BY ordering_term ( ',' ordering_term )*	 		#orderByDefault
-	 
- 
-
-
 ;
 
 select_or_values
- : K_SELECT (top_keyword)? ( K_DISTINCT | K_ALL )? result_column ( ',' result_column )*
-   ( K_FROM ( table_or_subquery ( ',' table_or_subquery )* | join_clause ) )?
+ : K_SELECT  ( K_DISTINCT | K_ALL )? (top_keyword)? select_List_Item ( ',' select_List_Item  )*
+   ( K_FROM ( table_List_Item ( ',' table_List_Item )* | join_clause ) )?
    ( K_WHERE expr )?
    ( K_SKYLINE K_OF exprSkyline )?
-   ( K_GROUP K_BY expr ( ',' expr )* ( K_HAVING expr )? )?
- | K_VALUES '(' expr ( ',' expr )* ')' ( ',' '(' expr ( ',' expr )* ')' )*
  ;
 
 type_name : name+ ( '(' signed_number ')' | '(' signed_number ',' signed_number ')' )?
@@ -121,6 +113,7 @@ exprSkyline
  | column_term op=(K_LOW | K_HIGH | K_LOWDATE | K_HIGHDATE)	(signed_number (K_EQUAL | K_INCOMPARABLE))?	#preferenceLOWHIGH
  | column_term ('(' exprCategory ')')																	#preferenceCategory
  | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term)			#preferenceAROUND
+ | exprSkyline K_IS K_MORE K_IMPORTANT K_THAN exprSkyline												#preferenceMoreImportant
 
  ;
 
@@ -152,17 +145,17 @@ exprOwnPreference
 column_term : ( ( database_name '.' )? table_name '.' )? column_name;
 ordering_term : expr ( K_ASC | K_DESC )? ;
 
-result_column : '*' | table_name '.' '*'  | expr ( K_AS? column_alias )?;
+select_List_Item  : '*' | table_name '.' '*'  | expr ( K_AS? column_alias )?;
 
-table_or_subquery
+table_List_Item
  : ( database_name '.' )? table_name ( K_AS? table_alias )?
- | '(' ( table_or_subquery ( ',' table_or_subquery )*
+ | '(' ( table_List_Item ( ',' table_List_Item )*
        | join_clause )
    ')' ( K_AS? table_alias )?
  | '(' select_stmt ')' ( K_AS? table_alias )?
  ;
 
-join_clause : table_or_subquery ( join_operator table_or_subquery join_constraint )* ;
+join_clause : table_List_Item ( join_operator table_List_Item join_constraint )* ;
 
 join_operator: ',' | ( K_LEFT K_OUTER? | K_INNER | K_CROSS )? K_JOIN;
 
@@ -260,6 +253,9 @@ keyword
  | K_SKYLINE
  | K_SUMRANK
  | K_BESTRANK
+ | K_MORE
+ | K_IMPORTANT
+ | K_THAN
  ;
 
 
@@ -271,14 +267,13 @@ database_name : any_name;
 
 table_name : any_name;
 
-
 new_table_name : any_name;
 
 column_name : any_name;
 
 table_alias : any_name;
 
-top_keyword :  K_TOP expr;
+top_keyword :  K_TOP NUMERIC_LITERAL;
 
 any_name : IDENTIFIER 
  | keyword
@@ -378,6 +373,9 @@ K_INCOMPARABLE : I N C O M P A R A B L E;
 K_SKYLINE : S K Y L I N E;
 K_SUMRANK : S U M '_' R A N K;
 K_BESTRANK : B E S T '_' R A N K;
+K_MORE: M O R E;
+K_IMPORTANT: I M P O R T A N T;
+K_THAN: T H A N;
 
 
 
