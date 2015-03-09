@@ -231,6 +231,20 @@ namespace prefSQL.SQLSkyline
                     list2.ImportRow(dt.Rows[iRow]);
                 }
             }
+
+            /*pivot = dt.Rows.Count / 2;
+
+            for (int iRow = 0; iRow < dt.Rows.Count; iRow++)
+            {
+                if (iRow < pivot)
+                {
+                    list1.ImportRow(dt.Rows[iRow]);
+                }
+                else
+                {
+                    list2.ImportRow(dt.Rows[iRow]);
+                }
+            }*/
         }
 
 
@@ -259,7 +273,7 @@ namespace prefSQL.SQLSkyline
             }
             else if (s2.Rows.Count == 0)
             {
-                return s1; // dtSkyline;
+                return dtSkyline; // dtSkyline;
             } 
             else if (s1.Rows.Count == 1)
             {
@@ -289,57 +303,34 @@ namespace prefSQL.SQLSkyline
                 //wenn p von q dominiert weg --> list
 
                 //Add tuple only if is is not dominated from one of the others
-
-                /*DataRow q = s2.Rows[0];
-                bool bFound = false;
-                for (int i = 0; i < s1.Rows.Count; i++)
-                {
-                    if (bFound == true)
-                        break;
-                    DataRow p = s1.Rows[i];
-
-                    for (int iDim = dim - 1; iDim >= 0; iDim--)
-                    {
-                        //if (isBetterInLeastOneDim(q, p, operators))
-                        //{
-                        if ((int)q[iDim] < (int)p[iDim])
-                        {
-                            dtSkyline.ImportRow(q);
-                            bFound = true;
-                            break;
-                        }
-                    }
-
-                }*/
-
-
-
                 dtSkyline.ImportRow(s2.Rows[0]);
                 DataRow q = s2.Rows[0];
                 for (int i = 0; i < s1.Rows.Count; i++)
                 {
                     DataRow p = s1.Rows[i];
-                    bool isDominated = false;
+                    bool doesDominate = false;
 
                     for (int iDim = dim - 1; iDim >= 0; iDim--)
                     {
                         //if (isBetter(q, p, operators))
                         //{
                         //is better in all dimensions
-                        if ((int)q[dim] <= (int)p[dim])
+                        if ((int)q[iDim] <= (int)p[iDim])
                         {
                             //dtSkyline.Rows.Clear();
                             //break;
-                            isDominated = true;
+                            doesDominate = true;
+                            break;
                         }
                         else
                         {
-                            isDominated = false;
-                            break;
+                            doesDominate = false;
+                            //doesDominate = false;
+                            //break;
                         }
                     }
 
-                    if(isDominated == true)
+                    if (doesDominate == false)
                     {
                         dtSkyline.Rows.Clear();
                         break;
@@ -361,44 +352,83 @@ namespace prefSQL.SQLSkyline
                 for (int i = 0; i < s2.Rows.Count; i++)
                 {
                     DataRow q = s2.Rows[i];
-                    //if(isBetterInLeastOneDim(q, min, operators))
-                    //{
                     if ((int)q[dim - 1] < min)
                     {
                         dtSkyline.ImportRow(q);
                     }
-
-                    //}
                 }
             }
             else
             {
-                int pivot = getMedian(s2, dim - 1);
-                Console.Out.WriteLine("Median:" + pivot);
+                int pivot1 = getMedian(s1, dim - 1);
+                //int pivot2 = getMedian(s2, dim - 1);
+                //Console.Out.WriteLine("pivot: " + pivot1);
+                //Console.Out.WriteLine("pivot: " + pivot2);
                 DataTable s11 = s1.Clone();
                 DataTable s12 = s1.Clone();
                 DataTable s21 = s1.Clone();
                 DataTable s22 = s1.Clone();
 
-                //Console.Out.WriteLine("s11");
+                partition(s1, dim - 1, pivot1, ref s11, ref s12);
+                partition(s2, dim - 1, pivot1, ref s21, ref s22);
 
-                partition(s1, dim - 1, pivot, ref s11, ref s12);
-                partition(s2, dim - 1, pivot, ref s21, ref s22);
+                if(s12.Rows.Count == 0 && s22.Rows.Count == 0)
+                {
+                    if(s11.Rows.Count > 1 && s21.Rows.Count > 1)
+                    {
+                        //all elements have same value
+                        //return all elements
+                        //TODO: fix this
 
-                Console.Out.WriteLine("s12");
+                        //compare all from s21 against s11
+
+                        /*for (int i = 0; i < s21.Rows.Count; i++)
+                        {
+                            //Import row
+                            bool isDominated = false;
+                            for(int ii = 0; ii < s11.Rows.Count; ii++)
+                            {
+                                bool isNotDominated = false;
+                                for (int iDim = dim - 1; iDim >= 0; iDim--)
+                                {
+                                    //if (isBetter(q, p, operators))
+                                    //{
+                                    //is better in all dimensions
+                                    if ((int)s21.Rows[i][iDim] < (int)s11.Rows[ii][iDim])
+                                    {
+                                        isNotDominated = true;
+                                        break;
+                                    }
+                                }
+                                if (isNotDominated == false)
+                                {
+                                    isDominated = true;
+                                    break;
+                                }
+                            }
+
+                            if (isDominated == false)
+                            {
+                                dtSkyline.ImportRow(s21.Rows[i]);
+                            }
+                            else
+                            {
+
+                            }
+                            
+                        }*/
+
+                        
+                        dtSkyline.Merge(s2);
+                        return dtSkyline;
+                    }                    
+                }
 
                 DataTable r1 = mergeBasic(s11, s21, operators, dim);
-
-                Console.Out.WriteLine("s13");
-
                 DataTable r2 = mergeBasic(s12, s22, operators, dim); ;
-                Console.Out.WriteLine("s14");
                 DataTable r3 = mergeBasic(s11, r2, operators, dim - 1); ;
-                Console.Out.WriteLine("s15");
                 dtSkyline.Merge(r1);
-                Console.Out.WriteLine("s16");
                 dtSkyline.Merge(r3);
-                Console.Out.WriteLine("s17");
             }
 
 
@@ -431,11 +461,6 @@ namespace prefSQL.SQLSkyline
             int mid = size / 2;
             int median = (size % 2 != 0) ? (int)sortedPNumbers[mid] : ((int)sortedPNumbers[mid] + (int)sortedPNumbers[mid - 1]) / 2;
 
-            Console.Out.WriteLine("Median" + median + ", Dim: " + dim);
-            if (median == 410)
-            {
-
-            }
 
             return median;
         }
