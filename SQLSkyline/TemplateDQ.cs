@@ -7,6 +7,7 @@ using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
 using System.Collections;
 
+
 namespace prefSQL.SQLSkyline
 {
     public class TemplateDQ
@@ -71,10 +72,6 @@ namespace prefSQL.SQLSkyline
                     }
 
                     SqlContext.Pipe.SendResultsEnd();
-
-
-
-
                 }
 
 
@@ -108,47 +105,9 @@ namespace prefSQL.SQLSkyline
 
         private DataTable computeSkyline(DataTable dt, string[] operators, int dim, bool stopRecursion)
         {
-            //Von diesen Punkten Skyline berechnen
-            //DataTableReader sqlReader = dt.CreateDataReader();
-
-            if (dt.Rows.Count == 0)
+            if (dt.Rows.Count <= 1)
                 return dt;
 
-            //as long as not all elements have the same integer
-            /*bool isSplittable = false;
-            int value = (int)dt.Rows[0][dim];
-            for (int i = 1; i < dt.Rows.Count; i++)
-            {
-                if ((int)dt.Rows[i][dim] != value)
-                {
-                    isSplittable = true;
-                    break;
-                }
-
-
-            }
-
-            if (isSplittable == false || stopRecursion == true)
-            {
-                if (dt.Rows.Count == 1)
-                {
-                    return dt;
-                }
-                else
-                {
-                    //in dieser dimension nicht weiter splittbar --> versuchen in einer dimension tiefer zu splitten
-                    if (dim > 0)
-                    {
-                        return computeSkyline(dt, operators, dim - 1, false);
-                    }
-                    else
-                    {
-                        //alle in skyline, keine weitere trennung möglich
-                        return dt;
-                    }
-                }
-
-            }*/
 
             //compute first median for some dimension
             int pivot = getMedian(dt, dim);
@@ -201,6 +160,7 @@ namespace prefSQL.SQLSkyline
 
             //Rekursiv aufrufen
             DataTable Skyline1 = computeSkyline(list1, operators, dim, bStop2);
+            
             DataTable Skyline2 = computeSkyline(list2, operators, dim, bStop1);
 
 
@@ -231,20 +191,6 @@ namespace prefSQL.SQLSkyline
                     list2.ImportRow(dt.Rows[iRow]);
                 }
             }
-
-            /*pivot = dt.Rows.Count / 2;
-
-            for (int iRow = 0; iRow < dt.Rows.Count; iRow++)
-            {
-                if (iRow < pivot)
-                {
-                    list1.ImportRow(dt.Rows[iRow]);
-                }
-                else
-                {
-                    list2.ImportRow(dt.Rows[iRow]);
-                }
-            }*/
         }
 
 
@@ -283,11 +229,8 @@ namespace prefSQL.SQLSkyline
                 {
                     DataRow q = s2.Rows[i];
 
-
                     for (int iDim = dim - 1; iDim >= 0; iDim--)
                     {
-                        //if (isBetterInLeastOneDim(q, p, operators))
-                        //{
                         if ((int)q[iDim] < (int)p[iDim])
                         {
                             dtSkyline.ImportRow(q);
@@ -305,28 +248,24 @@ namespace prefSQL.SQLSkyline
                 //Add tuple only if is is not dominated from one of the others
                 dtSkyline.ImportRow(s2.Rows[0]);
                 DataRow q = s2.Rows[0];
+
                 for (int i = 0; i < s1.Rows.Count; i++)
                 {
                     DataRow p = s1.Rows[i];
                     bool doesDominate = false;
 
-                    for (int iDim = dim - 1; iDim >= 0; iDim--)
+                    for (int iDim = dim- 1; iDim >= 0; iDim--)
                     {
-                        //if (isBetter(q, p, operators))
-                        //{
-                        //is better in all dimensions
-                        if ((int)q[iDim] <= (int)p[iDim])
+                        //Is better in at least one dimension!
+                        //<= is wrong, otherwise tuples with equal values in one dimension are not removed from the skyline
+                        if ((int)q[iDim] < (int)p[iDim])
                         {
-                            //dtSkyline.Rows.Clear();
-                            //break;
                             doesDominate = true;
                             break;
                         }
                         else
                         {
                             doesDominate = false;
-                            //doesDominate = false;
-                            //break;
                         }
                     }
 
@@ -334,6 +273,10 @@ namespace prefSQL.SQLSkyline
                     {
                         dtSkyline.Rows.Clear();
                         break;
+                    }
+                    else
+                    {
+
                     }
                     //}
                 }
@@ -361,9 +304,6 @@ namespace prefSQL.SQLSkyline
             else
             {
                 int pivot1 = getMedian(s1, dim - 1);
-                //int pivot2 = getMedian(s2, dim - 1);
-                //Console.Out.WriteLine("pivot: " + pivot1);
-                //Console.Out.WriteLine("pivot: " + pivot2);
                 DataTable s11 = s1.Clone();
                 DataTable s12 = s1.Clone();
                 DataTable s21 = s1.Clone();
@@ -376,13 +316,10 @@ namespace prefSQL.SQLSkyline
                 {
                     if(s11.Rows.Count > 1 && s21.Rows.Count > 1)
                     {
-                        //all elements have same value
-                        //return all elements
-                        //TODO: fix this
-
+                        //all elements have same value --> compare all tuples against all tuples (BNL-Style)
+                        
                         //compare all from s21 against s11
-
-                        /*for (int i = 0; i < s21.Rows.Count; i++)
+                        for (int i = 0; i < s21.Rows.Count; i++)
                         {
                             //Import row
                             bool isDominated = false;
@@ -391,9 +328,6 @@ namespace prefSQL.SQLSkyline
                                 bool isNotDominated = false;
                                 for (int iDim = dim - 1; iDim >= 0; iDim--)
                                 {
-                                    //if (isBetter(q, p, operators))
-                                    //{
-                                    //is better in all dimensions
                                     if ((int)s21.Rows[i][iDim] < (int)s11.Rows[ii][iDim])
                                     {
                                         isNotDominated = true;
@@ -406,20 +340,13 @@ namespace prefSQL.SQLSkyline
                                     break;
                                 }
                             }
-
                             if (isDominated == false)
                             {
                                 dtSkyline.ImportRow(s21.Rows[i]);
                             }
-                            else
-                            {
+                        }
 
-                            }
-                            
-                        }*/
-
-                        
-                        dtSkyline.Merge(s2);
+                        //dtSkyline.Merge(s2);
                         return dtSkyline;
                     }                    
                 }
@@ -431,9 +358,10 @@ namespace prefSQL.SQLSkyline
                 dtSkyline.Merge(r3);
             }
 
-
-
-            return dtSkyline;
+            if(dtSkyline.Rows.Count > 0)
+                return dtSkyline;
+            else
+                return dtSkyline;
         }
 
 
@@ -443,13 +371,21 @@ namespace prefSQL.SQLSkyline
             if (dt == null || dt.Rows.Count == 0)
                 return 0;
 
-            int[] sourceNumbers = new int[dt.Rows.Count];
-            //generate list of integers of this dimension
+
+            //int[] sourceNumbers = new int[dt.Rows.Count];
+            
+
+
+            HashSet<int> uniqueNumbers = new HashSet<int>();
+            //HashSet is verboten in MS SQL CLR
+            //generate list of unique integers of this dimension
             for (int i = 0; i < dt.Rows.Count; i++)
             {
-                sourceNumbers[i] = (int)dt.Rows[i][dim];
+                //sourceNumbers[i] = (int)dt.Rows[i][dim];
+                uniqueNumbers.Add((int)dt.Rows[i][dim]);
             }
-
+            int[] sourceNumbers = new int[uniqueNumbers.Count];
+            uniqueNumbers.CopyTo(sourceNumbers);
 
             //make sure the list is sorted, but use a new array
             int[] sortedPNumbers = (int[])sourceNumbers.Clone();

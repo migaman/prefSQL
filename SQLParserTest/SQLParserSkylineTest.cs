@@ -258,8 +258,8 @@ namespace prefSQL.SQLParserTest
                 DataTable dtBNLSort = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
                 common.SkylineType = new SkylineHexagon();
                 DataTable dtHexagon = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
-                //common.SkylineType = new SkylineDQ();
-                //DataTable dtDQ = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
+                common.SkylineType = new SkylineDQ();
+                DataTable dtDQ = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
 
                 
 
@@ -267,7 +267,7 @@ namespace prefSQL.SQLParserTest
                 Assert.AreEqual(dtNative.Rows.Count, dtBNL.Rows.Count, 0, "Amount of tupels in query " + i + " do not match");
                 Assert.AreEqual(dtNative.Rows.Count, dtBNLSort.Rows.Count, 0, "Amount of tupels in query " + i + " do not match");
                 Assert.AreEqual(dtNative.Rows.Count, dtHexagon.Rows.Count, 0, "Amount of tupels in query " + i + " do not match");
-                //Assert.AreEqual(dtNative.Rows.Count, dtDQ.Rows.Count., 0, "Amount of tupels in query " + i + " do not match");
+                Assert.AreEqual(dtNative.Rows.Count, dtDQ.Rows.Count, 0, "Amount of tupels in query " + i + " do not match");
             }
         }
 

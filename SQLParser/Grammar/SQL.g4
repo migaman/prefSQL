@@ -208,8 +208,6 @@ keyword
  | K_EXISTS
  | K_FROM
  | K_FULL
- | K_GROUP
- | K_HAVING
  | K_IN
  | K_INNER
  | K_INTERSECT
@@ -244,7 +242,6 @@ keyword
  | K_FAVOUR
  | K_HIGH
  | K_LOW
- | K_LOWLEVEL
  | K_HIGHDATE
  | K_LOWDATE
  | K_OTHERS
@@ -328,8 +325,6 @@ K_EXCEPT : E X C E P T;
 K_EXISTS : E X I S T S;
 K_FROM : F R O M;
 K_FULL : F U L L;
-K_GROUP : G R O U P;
-K_HAVING : H A V I N G;
 K_IN : I N;
 K_INNER : I N N E R;
 K_INTERSECT : I N T E R S E C T;
@@ -364,7 +359,6 @@ K_DISFAVOUR : D I S F A V O U R;
 K_FAVOUR : F A V O U R;
 K_HIGH : H I G H;
 K_LOW : L O W;
-K_LOWLEVEL : L O W L E V E L;
 K_HIGHDATE: H I G H D A T E;
 K_LOWDATE : L O W D A T E;
 K_OTHERS : O T H E R S ;

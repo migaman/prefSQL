@@ -130,7 +130,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override PrefSQLModel VisitTable_or_subquery(SQLParser.Table_or_subqueryContext context)
+        public override PrefSQLModel VisitTable_List_Item(SQLParser.Table_List_ItemContext context)
         {
             string strTable = context.GetChild(0).GetText();
             string strTableAlias = "";
@@ -144,7 +144,7 @@ namespace prefSQL.SQLParser
             }
             tables.Add(strTable, strTableAlias);
 
-            return base.VisitTable_or_subquery(context);
+            return base.VisitTable_List_Item(context);
         }
 
         /// <summary>
@@ -157,6 +157,12 @@ namespace prefSQL.SQLParser
             hasTOPClause = true;
             numberOfRecords = int.Parse(context.GetChild(1).GetText());
             return base.VisitTop_keyword(context);
+        }
+
+
+        public override PrefSQLModel VisitPreferenceMoreImportant(SQLParser.PreferenceMoreImportantContext context)
+        {
+            return base.VisitPreferenceMoreImportant(context);
         }
 
         
