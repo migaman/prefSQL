@@ -110,7 +110,7 @@ namespace prefSQL.SQLSkyline
 
 
             //compute first median for some dimension
-            int pivot = getMedian(dt, dim);
+            double pivot = getMedian(dt, dim);
             DataTable list1 = dt.Clone();
             DataTable list2 = dt.Clone();
 
@@ -177,7 +177,7 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        private void partition(DataTable dt, int dim, int pivot, ref DataTable list1, ref DataTable list2)
+        private void partition(DataTable dt, int dim, double pivot, ref DataTable list1, ref DataTable list2)
         {
             //divide input intwo 2 partitions
             for (int iRow = 0; iRow < dt.Rows.Count; iRow++)
@@ -303,7 +303,7 @@ namespace prefSQL.SQLSkyline
             }
             else
             {
-                int pivot1 = getMedian(s1, dim - 1);
+                double pivot1 = getMedian(s1, dim - 1);
                 DataTable s11 = s1.Clone();
                 DataTable s12 = s1.Clone();
                 DataTable s21 = s1.Clone();
@@ -364,8 +364,13 @@ namespace prefSQL.SQLSkyline
                 return dtSkyline;
         }
 
-
-        private int getMedian(DataTable dt, int dim)
+        /// <summary>
+        /// Computes the median of a datatable
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="dim"></param>
+        /// <returns></returns>
+        private double getMedian(DataTable dt, int dim)
         {
             //Framework 2.0 version of this method. there is an easier way in F4        
             if (dt == null || dt.Rows.Count == 0)
@@ -373,7 +378,7 @@ namespace prefSQL.SQLSkyline
 
 
             //int[] sourceNumbers = new int[dt.Rows.Count];
-            
+
 
 
             HashSet<int> uniqueNumbers = new HashSet<int>();
@@ -395,7 +400,10 @@ namespace prefSQL.SQLSkyline
             //get the median
             int size = sortedPNumbers.Length;
             int mid = size / 2;
-            int median = (size % 2 != 0) ? (int)sortedPNumbers[mid] : ((int)sortedPNumbers[mid] + (int)sortedPNumbers[mid - 1]) / 2;
+
+            //compute the double value because if one element is 1 and the other 2, otherwise the tuples are not splitted
+
+            double median = (size % 2 != 0) ? (int)sortedPNumbers[mid] : (double)(((int)sortedPNumbers[mid] + (int)sortedPNumbers[mid - 1])) / 2;
 
 
             return median;
