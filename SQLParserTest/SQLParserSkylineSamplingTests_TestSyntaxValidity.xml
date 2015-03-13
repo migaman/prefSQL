@@ -1,0 +1,46 @@
+<TestData>
+  <TestDataRow>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price), (cs.mileage)</skylineSampleSQL>
+    <result>Succeed</result>
+  </TestDataRow>
+  <TestDataRow>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY</skylineSampleSQL>
+    <result>Fail</result>
+  </TestDataRow>
+  <TestDataRow>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price)</skylineSampleSQL>
+    <result>Succeed</result>
+  </TestDataRow>
+  <TestDataRow>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY cs.price</skylineSampleSQL>
+    <result>Fail</result>
+  </TestDataRow>
+  <TestDataRow>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY cs.price, cs.mileage</skylineSampleSQL>
+    <result>Fail</result>
+  </TestDataRow>
+  <TestDataRow>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price), cs.mileage</skylineSampleSQL>
+    <result>Fail</result>
+  </TestDataRow>
+  <TestDataRow>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY cs.price, (cs.mileage)</skylineSampleSQL>
+    <result>Fail</result>
+  </TestDataRow>
+  <TestDataRow>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price), (cs.mileage), (cs.horsepower)</skylineSampleSQL>
+    <result>Fail</result>
+  </TestDataRow>
+  <TestDataRow>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price, cs.mileage)</skylineSampleSQL>
+    <result>Succeed</result>
+  </TestDataRow>
+  <TestDataRow>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price,)</skylineSampleSQL>
+    <result>Fail</result>
+  </TestDataRow>
+  <TestDataRow>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price, cs.mileage, cs.horsepower)</skylineSampleSQL>
+    <result>Fail</result>
+  </TestDataRow>
+</TestData>
