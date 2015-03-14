@@ -21,35 +21,34 @@ namespace prefSQL.SQLParserTest
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineSamplingTests_TestSyntaxValidity.xml", "TestDataRow", DataAccessMethod.Sequential), DeploymentItem("SQLParserSkylineSamplingTests_TestSyntaxValidity.xml")]
         public void TestSyntaxValidity()
         {
+            var hasExceptionBeenRaised = false;
             var skylineSampleSQL = testContextInstance.DataRow["skylineSampleSQL"].ToString();
-            Console.WriteLine(skylineSampleSQL);
             var isExpectingException = testContextInstance.DataRow["result"].ToString() == "Fail" ? true : false;
+
+            Console.WriteLine(skylineSampleSQL);
             Console.WriteLine(isExpectingException);
+            
             var common = new SQLCommon();
             common.SkylineType = new SkylineSQL();
+
+            Exception exceptionRaised = null;
             try
             {
                 common.parsePreferenceSQL(skylineSampleSQL);
-                if (isExpectingException)
-                {
-                    Assert.Fail("Syntactically incorrect SQL Query should have thrown an Exception.");
-                }
             }
-            catch (AssertFailedException) { throw; }
             catch (Exception exception)
             {
-                if (!isExpectingException)
-                {
-                    Assert.Fail(String.Format("{0} - {1}", "Syntactically correct SQL Query should not have thrown an Exception.", exception.Message));
-                }
+                exceptionRaised = exception;
+                hasExceptionBeenRaised = true;
             }
-        }
 
-        [TestMethod]
-        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.CSV", "files.csv", "files#csv", DataAccessMethod.Sequential)]
-        public void TestAsd(string asd)
-        {
-
+            if (hasExceptionBeenRaised && !isExpectingException)
+            {
+                Assert.Fail(String.Format("{0} - {1}", "Syntactically correct SQL Query should not have thrown an Exception.", exceptionRaised.Message));
+            } else if (!hasExceptionBeenRaised && isExpectingException)
+            {
+                  Assert.Fail("Syntactically incorrect SQL Query should have thrown an Exception.");
+            } 
         }
     }
 }
