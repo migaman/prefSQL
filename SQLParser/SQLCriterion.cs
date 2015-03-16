@@ -97,8 +97,8 @@ namespace prefSQL.SQLParser
 
                 strWhereEqual = strWhereEqual.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumnExpression);
                 strWhereBetter = strWhereBetter.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumnExpression);
-                strWhereEqual = strWhereEqual.Replace("{column}", model.Skyline[iChild].ColumnExpression);
-                strWhereBetter = strWhereBetter.Replace("{column}", model.Skyline[iChild].ColumnExpression);
+                strWhereEqual = strWhereEqual.Replace("{column}", model.Skyline[iChild].Expression);
+                strWhereBetter = strWhereBetter.Replace("{column}", model.Skyline[iChild].Expression);
 
                 //Falls Text-Spalte ein zusätzliches OR einbauen für den Vergleich Farbe = Farbe
                 if (needsTextORClause == true)

@@ -88,7 +88,7 @@ namespace prefSQL.SQLSkyline
 
             for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
             {
-                long value = (int)sqlReader[iCol];
+                long value = (long)sqlReader[iCol];
 
                 int comparison = compareValue(value, result[iCol]);
 
@@ -132,7 +132,7 @@ namespace prefSQL.SQLSkyline
 
             for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
             {
-                long value = (int)sqlReader[iCol];
+                long value = (long)sqlReader[iCol];
                 //interchange values for comparison
                 int comparison = compareValue(result[iCol], value);
 
@@ -212,7 +212,7 @@ namespace prefSQL.SQLSkyline
                     }
                     else
                     {
-                        value = (int)sqlReader[iCol];
+                        value = (long)sqlReader[iCol];
                         //check if value is incomparable
                         if (result[iCol] == null)
                         {
@@ -316,7 +316,7 @@ namespace prefSQL.SQLSkyline
                     else
                     {
                         //
-                        value = (int)sqlReader[iCol];
+                        value = (long)sqlReader[iCol];
 
                         //check if value is incomparable
                         if (result[iCol] == null)
@@ -407,7 +407,7 @@ namespace prefSQL.SQLSkyline
                 //Only the real columns (skyline columns are not output fields)
                 if (iCol <= operators.GetUpperBound(0))
                 {
-                    recordInt[iCol] = (int)sqlReader[iCol];
+                    recordInt[iCol] = (long)sqlReader[iCol];
                 }
                 else
                 {
@@ -451,7 +451,7 @@ namespace prefSQL.SQLSkyline
                             recordInt[iCol] = null;
                         else
                         {
-                            recordInt[iCol] = (int)sqlReader[iCol];
+                            recordInt[iCol] = (long)sqlReader[iCol];
                         }
                             
                             

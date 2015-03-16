@@ -188,7 +188,7 @@ namespace prefSQL.SQLSkyline
                 //Only the real columns (skyline columns are not output fields)
                 if (iCol <= operators.GetUpperBound(0))
                 {
-                    recordInt[iCol] = (int)sqlReader[iCol];
+                    recordInt[iCol] = (long)sqlReader[iCol];
                 }
                 else
                 {

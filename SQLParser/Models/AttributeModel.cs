@@ -9,7 +9,7 @@ namespace prefSQL.SQLParser.Models
     class AttributeModel
     {
 
-        public AttributeModel(string strColumnExpression, string strOperator, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumnName, string strExpression, string strRankHexagon, string strOrderBy, bool isCategory, string columnName, string strHexagonIncomparable, int amountIncomparable, int weightHexagonIncomparable)
+        public AttributeModel(string strColumnExpression, string strOperator, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumnName, string strRankColumn, string strRankHexagon, string strOrderBy, bool isCategory, string columnName, string strHexagonIncomparable, int amountIncomparable, int weightHexagonIncomparable, string strExpression)
         {
             ColumnExpression = strColumnExpression;                 //Column expression                 (i.e. CASE WHEN colors.name = 'türkis' THEN 0 WHEN colors.name = 'gelb' THEN 100 ELSE 200 END)
             InnerColumnExpression = strInnerColumnExpression;       //Inner column expression           (i.e CASE WHEN colors_INNER.name = 'türkis' THEN 0 WHEN colors_INNER.name = 'gelb' THEN 100 ELSE 200 END)
@@ -19,7 +19,9 @@ namespace prefSQL.SQLParser.Models
             Comparable = isComparable;                              //Check if at least one value is incomparable
             IncomparableAttribute = strIncomporableAttribute;       //Attribute that returns the textvalue if the value is incomparable
 
-            Expression = strExpression;                             
+            Expression = strExpression;                             //
+
+            RankColumn = strRankColumn;                             
             RankColumnName = strRankColumnName;
             RankHexagon = strRankHexagon;
             HexagonIncomparable = strHexagonIncomparable;
@@ -32,11 +34,12 @@ namespace prefSQL.SQLParser.Models
             WeightHexagonIncomparable = weightHexagonIncomparable;
         }
 
-        public AttributeModel(string strColumnExpression, string strOperator, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumnName, string strExpression, string strRankHexagon, string strOrderBy, bool isCategory, string columnName, string strHexagonIncomparable, int amountIncomparable)
-            : this(strColumnExpression, strOperator, strInnerColumnExpression, strFullColumnName, strInnerColumnName, isComparable, strIncomporableAttribute, strRankColumnName, strExpression, strRankHexagon, strOrderBy, isCategory, columnName, strHexagonIncomparable, amountIncomparable, 0)
+        public AttributeModel(string strColumnExpression, string strOperator, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumnName, string strRankColumn, string strRankHexagon, string strOrderBy, bool isCategory, string columnName, string strHexagonIncomparable, int amountIncomparable, string strExpression)
+            : this(strColumnExpression, strOperator, strInnerColumnExpression, strFullColumnName, strInnerColumnName, isComparable, strIncomporableAttribute, strRankColumnName, strRankColumn, strRankHexagon, strOrderBy, isCategory, columnName, strHexagonIncomparable, amountIncomparable, 0, strExpression)
         {
         }
 
+        public string Expression { get; set; }
 
         public int AmountOfIncomparables { get; set; }
         public string FullColumnName { get; set; }
@@ -55,7 +58,7 @@ namespace prefSQL.SQLParser.Models
         public string IncomparableAttribute { get; set; }
 
         public string RankColumnName { get; set; }
-        public string Expression { get; set; }
+        public string RankColumn { get; set; }
         
         public string RankHexagon { get; set; }
 

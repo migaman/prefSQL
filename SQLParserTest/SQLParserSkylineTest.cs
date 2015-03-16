@@ -269,13 +269,13 @@ namespace prefSQL.SQLParserTest
                 
 
                 //Check tuples (every algorithm should deliver the same amount of tuples)
-                Assert.AreEqual(dtNative.Rows.Count, dtBNL.Rows.Count, 0, "Amount of tupels in query " + i + " do not match");
-                Assert.AreEqual(dtNative.Rows.Count, dtBNLSort.Rows.Count, 0, "Amount of tupels in query " + i + " do not match");
-                Assert.AreEqual(dtNative.Rows.Count, dtHexagon.Rows.Count, 0, "Amount of tupels in query " + i + " do not match");
+                Assert.AreEqual(dtNative.Rows.Count, dtBNL.Rows.Count, 0, "BNL Amount of tupels in query " + i + " do not match");
+                Assert.AreEqual(dtNative.Rows.Count, dtBNLSort.Rows.Count, 0, "BNLSort Amount of tupels in query " + i + " do not match");
+                Assert.AreEqual(dtNative.Rows.Count, dtHexagon.Rows.Count, 0, "Hexagon Amount of tupels in query " + i + " do not match");
                 //D&Q does not work with incomparable tuples
                 if(i < 6)
                 {
-                    Assert.AreEqual(dtNative.Rows.Count, dtDQ.Rows.Count, 0, "Amount of tupels in query " + i + " do not match");
+                    Assert.AreEqual(dtNative.Rows.Count, dtDQ.Rows.Count, 0, "D&Q Amount of tupels in query " + i + " do not match");
                 }
                 
             }
@@ -410,7 +410,7 @@ namespace prefSQL.SQLParserTest
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH";
 
-            string expected = "SELECT * , cars.price AS SkylineAttributecars_price, cars.mileage AS SkylineAttributecars_mileage, cars.horsepower*-1 AS SkylineAttributecars_horsepower FROM cars WHERE NOT EXISTS(SELECT * , cars_INNER.price AS SkylineAttributecars_price, cars_INNER.mileage AS SkylineAttributecars_mileage, cars_INNER.horsepower*-1 AS SkylineAttributecars_horsepower FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) )";
+            string expected = "SELECT * , DENSE_RANK() OVER (ORDER BY cars.price) AS SkylineAttributecars_price, DENSE_RANK() OVER (ORDER BY cars.mileage) AS SkylineAttributecars_mileage, DENSE_RANK() OVER (ORDER BY cars.horsepower)*-1 AS SkylineAttributecars_horsepower FROM cars WHERE NOT EXISTS(SELECT * , DENSE_RANK() OVER (ORDER BY cars_INNER.price) AS SkylineAttributecars_price, DENSE_RANK() OVER (ORDER BY cars_INNER.mileage) AS SkylineAttributecars_mileage, DENSE_RANK() OVER (ORDER BY cars_INNER.horsepower)*-1 AS SkylineAttributecars_horsepower FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) ) ";
             SQLCommon common = new SQLCommon();
             common.ShowSkylineAttributes = true;
             string actual = common.parsePreferenceSQL(strPrefSQL);

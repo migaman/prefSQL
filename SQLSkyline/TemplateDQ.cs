@@ -182,7 +182,7 @@ namespace prefSQL.SQLSkyline
             //divide input intwo 2 partitions
             for (int iRow = 0; iRow < dt.Rows.Count; iRow++)
             {
-                if ((int)dt.Rows[iRow][dim] <= pivot)
+                if ((long)dt.Rows[iRow][dim] <= pivot)
                 {
                     list1.ImportRow(dt.Rows[iRow]);
                 }
@@ -231,7 +231,7 @@ namespace prefSQL.SQLSkyline
 
                     for (int iDim = dim - 1; iDim >= 0; iDim--)
                     {
-                        if ((int)q[iDim] < (int)p[iDim])
+                        if ((long)q[iDim] < (long)p[iDim])
                         {
                             dtSkyline.ImportRow(q);
                             break;
@@ -258,7 +258,7 @@ namespace prefSQL.SQLSkyline
                     {
                         //Is better in at least one dimension!
                         //<= is wrong, otherwise tuples with equal values in one dimension are not removed from the skyline
-                        if ((int)q[iDim] < (int)p[iDim])
+                        if ((long)q[iDim] < (long)p[iDim])
                         {
                             doesDominate = true;
                             break;
@@ -285,17 +285,17 @@ namespace prefSQL.SQLSkyline
             {
                 //Nur 2 Dimensionen
                 //DataRow min = min(s1);
-                int min = (int)s1.Rows[0][dim - 1];
+                long min = (long)s1.Rows[0][dim - 1];
                 for (int i = 1; i < s1.Rows.Count; i++)
                 {
-                    if ((int)s1.Rows[i][dim - 1] < min)
-                        min = (int)s1.Rows[i][dim - 1];
+                    if ((long)s1.Rows[i][dim - 1] < min)
+                        min = (long)s1.Rows[i][dim - 1];
                 }
 
                 for (int i = 0; i < s2.Rows.Count; i++)
                 {
                     DataRow q = s2.Rows[i];
-                    if ((int)q[dim - 1] < min)
+                    if ((long)q[dim - 1] < min)
                     {
                         dtSkyline.ImportRow(q);
                     }
@@ -328,7 +328,7 @@ namespace prefSQL.SQLSkyline
                                 bool isNotDominated = false;
                                 for (int iDim = dim - 1; iDim >= 0; iDim--)
                                 {
-                                    if ((int)s21.Rows[i][iDim] < (int)s11.Rows[ii][iDim])
+                                    if ((long)s21.Rows[i][iDim] < (long)s11.Rows[ii][iDim])
                                     {
                                         isNotDominated = true;
                                         break;
@@ -381,19 +381,18 @@ namespace prefSQL.SQLSkyline
 
 
 
-            HashSet<int> uniqueNumbers = new HashSet<int>();
+            HashSet<long> uniqueNumbers = new HashSet<long>();
             //HashSet is verboten in MS SQL CLR
             //generate list of unique integers of this dimension
             for (int i = 0; i < dt.Rows.Count; i++)
             {
-                //sourceNumbers[i] = (int)dt.Rows[i][dim];
-                uniqueNumbers.Add((int)dt.Rows[i][dim]);
+                uniqueNumbers.Add((long)dt.Rows[i][dim]);
             }
-            int[] sourceNumbers = new int[uniqueNumbers.Count];
+            long[] sourceNumbers = new long[uniqueNumbers.Count];
             uniqueNumbers.CopyTo(sourceNumbers);
 
             //make sure the list is sorted, but use a new array
-            int[] sortedPNumbers = (int[])sourceNumbers.Clone();
+            long[] sortedPNumbers = (long[])sourceNumbers.Clone();
             sourceNumbers.CopyTo(sortedPNumbers, 0);
             Array.Sort(sortedPNumbers);
 
@@ -403,7 +402,7 @@ namespace prefSQL.SQLSkyline
 
             //compute the double value because if one element is 1 and the other 2, otherwise the tuples are not splitted
 
-            double median = (size % 2 != 0) ? (int)sortedPNumbers[mid] : (double)(((int)sortedPNumbers[mid] + (int)sortedPNumbers[mid - 1])) / 2;
+            double median = (size % 2 != 0) ? (long)sortedPNumbers[mid] : (double)(((long)sortedPNumbers[mid] + (long)sortedPNumbers[mid - 1])) / 2;
 
 
             return median;

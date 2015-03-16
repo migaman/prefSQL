@@ -197,7 +197,7 @@ namespace prefSQL.SQLSkyline
                         if (sqlReader.IsDBNull(iCol) == true)
                             recordInt[iCol] = null;
                         else
-                            recordInt[iCol] = (int)sqlReader[iCol];
+                            recordInt[iCol] = (long)sqlReader[iCol];
                         
                         //Check if long value is incomparable
                         if (iCol + 1 <= recordInt.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))

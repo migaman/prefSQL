@@ -89,7 +89,7 @@ namespace prefSQL.SQLParser
                 {
                     strSQL += " + ";
                 }
-                strSQL += model.Skyline[iChild].Expression.Replace("ROW_NUMBER()", "DENSE_RANK()");
+                strSQL += model.Skyline[iChild].RankColumn.Replace("ROW_NUMBER()", "DENSE_RANK()");
 
             }
 
@@ -113,26 +113,26 @@ namespace prefSQL.SQLParser
                 if (model.Skyline.Count == 1)
                 {
                     //special case if totally only one preference
-                    strSQL += "WHEN 1=1 THEN " + model.Skyline[iChild].Expression + " ";
+                    strSQL += "WHEN 1=1 THEN " + model.Skyline[iChild].RankColumn + " ";
                 }
                 if (iChild == model.Skyline.Count - 1)
                 {
                     //Last record only needs ELSE
-                    strSQL += " ELSE " + "" + model.Skyline[iChild].Expression;
+                    strSQL += " ELSE " + "" + model.Skyline[iChild].RankColumn;
                 }
                 else
                 {
                     strSQL += "WHEN ";
-                    strRanking = model.Skyline[iChild].Expression;
+                    strRanking = model.Skyline[iChild].RankColumn;
                     for (int iSubChild = iChild + 1; iSubChild < model.Skyline.Count; iSubChild++)
                     {
-                        strSQL += strRanking + " <=" + model.Skyline[iSubChild].Expression;
+                        strSQL += strRanking + " <=" + model.Skyline[iSubChild].RankColumn;
                         if (iSubChild < model.Skyline.Count - 1)
                         {
                             strSQL += " AND ";
                         }
                     }
-                    strSQL += " THEN " + model.Skyline[iChild].Expression + " ";
+                    strSQL += " THEN " + model.Skyline[iChild].RankColumn + " ";
                 }
                 
             }
