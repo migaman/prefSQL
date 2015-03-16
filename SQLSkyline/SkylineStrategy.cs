@@ -10,6 +10,7 @@ using System.Text;
 
 namespace prefSQL.SQLSkyline
 {
+    
 
     public abstract class SkylineStrategy
     {

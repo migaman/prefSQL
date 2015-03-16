@@ -133,6 +133,7 @@ namespace prefSQL.SQLSkyline
             for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
             {
                 long value = (long)sqlReader[iCol];
+
                 //interchange values for comparison
                 int comparison = compareValue(result[iCol], value);
 

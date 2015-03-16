@@ -296,6 +296,7 @@ namespace prefSQL.SQLParser
             if (strSQLELSE.Equals("") && IsNative == false)
             {
                 strIncomporableAttributeELSE = " ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
+                strSQLELSE = " ELSE 0"; //if no OTHERS is present all other values are on the top level
                 bComparable = false;
                 withIncomparable = true;
             }

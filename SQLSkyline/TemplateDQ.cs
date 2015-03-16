@@ -23,7 +23,6 @@ namespace prefSQL.SQLSkyline
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
             DataTable dtResult = new DataTable();
-            DataTable dtSkyline = new DataTable();
 
             SqlConnection connection = null;
             if (isIndependent == false)
@@ -45,8 +44,10 @@ namespace prefSQL.SQLSkyline
                 dap.Fill(dt);
 
 
-                dtSkyline = computeSkyline(dt, operators, operators.GetUpperBound(0), false);
+                dtResult = computeSkyline(dt, operators, operators.GetUpperBound(0), false);
 
+                //Remove certain amount of rows if query contains TOP Keyword
+                Helper.getAmountOfTuples(dtResult, numberOfRecords);
 
                 if (isIndependent == false)
                 {
@@ -57,9 +58,9 @@ namespace prefSQL.SQLSkyline
                     SqlContext.Pipe.SendResultsStart(record);
 
                     //foreach (SqlDataRecord recSkyline in btg[iItem])
-                    foreach (DataRow row in dtSkyline.Rows)
+                    foreach (DataRow row in dtResult.Rows)
                     {
-                        for (int i = 0; i < dtSkyline.Columns.Count; i++)
+                        for (int i = 0; i < dtResult.Columns.Count; i++)
                         {
                             //Only the real columns (skyline columns are not output fields)
                             if (i > operators.GetUpperBound(0))
@@ -100,7 +101,7 @@ namespace prefSQL.SQLSkyline
                 if (connection != null)
                     connection.Close();
             }
-            return dtSkyline;
+            return dtResult;
         }
 
         private DataTable computeSkyline(DataTable dt, string[] operators, int dim, bool stopRecursion)

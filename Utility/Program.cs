@@ -67,7 +67,7 @@ namespace Utility
 
                 //string strPrefSQL = "SELECT cars.id, cars.title, colors.name, fuels.name FROM cars " +
                 //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name, mileage FROM cars " +
-                string strPrefSQL = "SELECT TOP 5 t1.id, t1.title, t1.price, colors.name, t1.enginesize FROM cars_small t1 " +
+                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name, t1.enginesize FROM cars_small t1 " +
                     //string strPrefSQL = "SELECT cars.id, cars.Price, cars.mileage FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage, cars.horsepower, cars.enginesize, cars.registration, cars.consumption, cars.doors, colors.name, fuels.name FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, colors.name AS colourname, fuels.name AS fuelname, cars.price FROM cars " +
@@ -86,12 +86,14 @@ namespace Utility
                     //"WHERE (t1.price < 4000) " + 
                     //"SKYLINE OF t1.price LOW, t1.mileage LOW ";
                     //"SKYLINE OF t1.price AROUND 10000, colors.name ('pink' >> 'rot' >> 'schwarz' >> OTHERS EQUAL) " +
-                    "SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber', 'rot', 'schwarz', 'gelb'} >> OTHERS INCOMPARABLE) " +
+                    "SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau') ";
                     //"SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000";
                     //", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +
                     //", t1.doors HIGH, t1.seats HIGH 2, t1.cylinders HIGH, t1.gears HIGH ";
-                    "ORDER BY BEST_RANK() ";
+                    //"ORDER BY BEST_RANK() ";
 
+
+                //strPrefSQL = "SELECT c.id AS ID FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
 
                 Debug.WriteLine(strPrefSQL);
                 Debug.WriteLine("--------------------------------------------");
@@ -99,12 +101,12 @@ namespace Utility
                 SQLCommon parser = new SQLCommon();
                 parser.SkylineType = new SkylineSQL();
                 //parser.SkylineType = new SkylineBNL();
-                //parser.SkylineType = new SkylineBNLSort();
+                parser.SkylineType = new SkylineBNLSort();
                 //parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new MultipleSkylineBNL();
                 //parser.SkylineType = new SkylineDQ();
                 //parser.ShowSkylineAttributes = true;
-                //parser.SkylineUpToLevel = 3;
+                //parser.SkylineUpToLevel = 1;
 
                 //string strSQL = parser.parsePreferenceSQL(strPrefSQL);
                 //Debug.WriteLine(strSQL);

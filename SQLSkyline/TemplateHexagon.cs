@@ -81,12 +81,8 @@ namespace prefSQL.SQLSkyline
                 int iItem = 0;
                 //Benötigt viele Zeit im CLR-Modus (Deshalb erst hier und nur einmal initialisieren)
                 SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
-                if (isIndependent == false)
-                {
-                    SqlContext.Pipe.SendResultsStart(record);
-                }
 
-                //Unitl no more nodes are found
+                //Until no more nodes are found
                 while (iItem != -1)
                 {
                     //Add all records of this node
@@ -102,15 +98,7 @@ namespace prefSQL.SQLSkyline
                                 row[i] = recSkyline[i];
                             }
 
-
-                            if (isIndependent == true)
-                            {
-                                dtResult.Rows.Add(row);
-                            }
-                            else
-                            {
-                                SqlContext.Pipe.SendResultsRow(record);
-                            }
+                            dtResult.Rows.Add(row);
                         }
                     }
 
@@ -119,12 +107,26 @@ namespace prefSQL.SQLSkyline
 
                 }
 
+                //Remove certain amount of rows if query contains TOP Keyword
+                Helper.getAmountOfTuples(dtResult, numberOfRecords);
+
+
                 if (isIndependent == false)
                 {
+                    //Send results to client
+                    SqlContext.Pipe.SendResultsStart(record);
+
+                    //foreach (SqlDataRecord recSkyline in btg[iItem])
+                    foreach (DataRow recSkyline in dtResult.Rows)
+                    {
+                        for (int i = 0; i < recSkyline.Table.Columns.Count; i++)
+                        {
+                            record.SetValue(i, recSkyline[i]);
+                        }
+                        SqlContext.Pipe.SendResultsRow(record);
+                    }
                     SqlContext.Pipe.SendResultsEnd();
                 }
-
-
 
             }
             catch (Exception ex)
