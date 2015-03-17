@@ -322,7 +322,77 @@ namespace prefSQL.SQLParser
             return pref;
         }
 
+        public override PrefSQLModel VisitExprRankingAnd(SQLParser.ExprRankingAndContext context)
+        {
+            //And was used --> visit left and right node
+            PrefSQLModel left = Visit(context.exprRanking(0));
+            PrefSQLModel right = Visit(context.exprRanking(1));
 
+            //Add the columns to the preference model
+            PrefSQLModel pref = new PrefSQLModel();
+            pref.Ranking.AddRange(left.Ranking);
+            pref.Ranking.AddRange(right.Ranking);
+            pref.Tables = tables;
+            pref.HasRanking = true;
+            model = pref;
+            return pref;
+        }
+
+        public override PrefSQLModel VisitRankingLOWHIGH(SQLParser.RankingLOWHIGHContext context)
+        {
+            PrefSQLModel pref = new PrefSQLModel();
+            string strColumnName = "";
+            string strFullColumnName = "";
+            string strTable = "";
+            string strTableAlias = ""; ;
+            string strExpression = "";
+            string strSelectExtrema = "";
+            double weight = 0.0;
+            
+
+            //Separate Column and Table
+            strColumnName = getColumnName(context.GetChild(0));
+            strTable = getTableName(context.GetChild(0));
+            strFullColumnName = strTable + "." + strColumnName;
+
+
+            //Keyword LOW or HIGH, build ORDER BY
+            if (context.op.Type == SQLParser.K_LOW || context.op.Type == SQLParser.K_HIGH)
+            {
+                strExpression = strFullColumnName;
+                if (context.op.Type == SQLParser.K_HIGH)
+                {
+                    //Multiply with -1 (every value can be minimized)
+                    strExpression += " * -1";
+                }
+                
+
+                //Search for Table name of alias
+                var myValue = tables.FirstOrDefault(x => x.Value == strTable).Key;
+                if(myValue != null)
+                {
+                    strTableAlias = strTable;
+                    strTable = myValue;
+                }
+
+                weight = double.Parse(context.GetChild(2).GetText());
+                
+
+
+                strSelectExtrema = "SELECT MIN(" + strExpression + "), MAX(" + strExpression + ") FROM " + strTable + " " + strTableAlias;
+            }
+            
+
+
+            //Add the preference to the list               
+            pref.Ranking.Add(new RankingModel(strFullColumnName, strColumnName, strExpression, weight, strSelectExtrema));
+            pref.Tables = tables;
+            pref.HasRanking = true;
+            model = pref;
+            return pref;
+
+            //return base.VisitRankingLOWHIGH(context);
+        }
 
         /// <summary>
         /// Handles a numerical/date HIGH/LOW preference

@@ -26,6 +26,27 @@ namespace prefSQL.SQLParser
         public String ConnectionString { get; set; }
 
 
+        public DataTable executeStatement(String strSQL)
+        {
+            DataTable dt = new DataTable();
+
+            //Generic database provider
+            //Create the provider factory from the namespace provider, you could create any other provider factory.. for Oracle, MySql, etc...
+            DbProviderFactory factory = DbProviderFactories.GetFactory(DriverString);
+
+            // use the factory object to create Data access objects.
+            DbConnection connection = factory.CreateConnection(); // will return the connection object, in this case, SqlConnection ...
+            connection.ConnectionString = ConnectionString;
+
+            connection.Open();
+            DbCommand command = connection.CreateCommand();
+            command.CommandText = strSQL;
+            DbDataAdapter db = factory.CreateDataAdapter();
+            db.SelectCommand = command;
+            db.Fill(dt);
+
+            return dt;
+        }
 
 
         /// <summary>

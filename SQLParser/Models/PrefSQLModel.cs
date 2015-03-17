@@ -12,9 +12,11 @@ namespace prefSQL.SQLParser.Models
         private bool _hasTOP = false;                                                   //if the query has the TOP Keyword
         private int _numberOfRecords = 0;                                               //Number of records that should be returned (0 = all)
         private List<AttributeModel> _skyline = new List<AttributeModel>();             //skyline attributes
+        private List<RankingModel> _ranking = new List<RankingModel>();                 //ranking attributes
         private List<OrderByModel> _orderBy = new List<OrderByModel>();                 //the category order by and the calculated sql
         private Dictionary<string, string> _tables = new Dictionary<string, string>();  //the tablename and its alias
         private bool _hasSkyline = false;                                               //if the query needs a skyline clause
+        private bool _hasRanking = false;                                               //if the query has a RANKING OF clause
         private SQLCommon.Ordering _ordering = SQLCommon.Ordering.AsIs;
         private bool _withIncomparable = false;                                           //variable if check for incomparable tuples is needed
 
@@ -41,6 +43,12 @@ namespace prefSQL.SQLParser.Models
             get { return _hasSkyline; }
             set { _hasSkyline = value; }
         }
+
+        public bool HasRanking
+        {
+            get { return _hasRanking; }
+            set { _hasRanking = value; }
+        }
         
         public bool HasTop
         {
@@ -58,6 +66,12 @@ namespace prefSQL.SQLParser.Models
         {
             set { _skyline = value; }
             get { return _skyline; }
+        }
+
+        public List<RankingModel> Ranking
+        {
+            set { _ranking = value; }
+            get { return _ranking; }
         }
 
         public List<OrderByModel> OrderBy

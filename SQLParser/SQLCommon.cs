@@ -26,6 +26,7 @@ namespace prefSQL.SQLParser
         private SkylineStrategy _SkylineType = new SkylineSQL();    //Defines with which Algorithm the Skyline should be calculated
         private bool _ShowSkylineAttributes = false;                //Defines if the skyline attributes should be added to the SELECT list
         private int _SkylineUpToLevel = 3;                          //Defines the maximum level that should be returned for the multiple skyline algorithnmm
+        Helper helper = new Helper();
 
         /*
         public enum Algorithm
@@ -76,12 +77,14 @@ namespace prefSQL.SQLParser
         /// <returns>Returns a DataTable with the requested values</returns>
         public DataTable parseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSQL)
         {
+            helper.ConnectionString = connectionString;
+            helper.DriverString = driverString;
+
             bool withIncomparable = false;
             string strSQL = parsePreferenceSQL(strPrefSQL, ref withIncomparable);
             Debug.WriteLine(strSQL);
-            Helper helper = new Helper();
-            helper.ConnectionString = connectionString;
-            helper.DriverString = driverString;
+            
+            
             return helper.getResults(strSQL, _SkylineType, withIncomparable);
         }
 
@@ -128,112 +131,161 @@ namespace prefSQL.SQLParser
                 
                 
                 //Check if parse was successful and query contains PrefSQL syntax
-                if (prefSQL != null && strInput.IndexOf(SkylineOf) > 0)
+                if (prefSQL != null) // && strInput.IndexOf(SkylineOf) > 0
                 {
-                    //Mark as incomparable if needed (to choose the correct algorithm)
-                    withIncomparable = prefSQL.WithIncomparable;
-
-                    //Add all Syntax before the Skyline-Clause
-                    strSQLReturn = strInput.Substring(0, strInput.IndexOf(SkylineOf) - 1);
-
                     if (prefSQL.HasSkyline == true)
                     {
-                        //Add Skyline Attributes to select list. This option is i.e. useful to create a dominance graph.
-                        //With help of the skyline values it is easier to create this graph
-                        if (_ShowSkylineAttributes == true)
-                        {
-                            //Add the attributes to the existing SELECT clause
-                            string strSQLSelectClause = getSelectClauseForSkylineAttributes(prefSQL);
-                            string strSQLBeforeFrom = strSQLReturn.Substring(0, strSQLReturn.IndexOf("FROM"));
-                            string strSQLAfterFromShow = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM"));
-                            strSQLReturn = strSQLBeforeFrom + strSQLSelectClause + " " + strSQLAfterFromShow;
-                            
-                        }
+                        //Mark as incomparable if needed (to choose the correct algorithm)
+                        withIncomparable = prefSQL.WithIncomparable;
 
-                        //Add ORDER BY Clause
-                        string strOrderBy = "";
-                        if (strInput.IndexOf("ORDER BY") > 0)
+                        //Add all Syntax before the Skyline-Clause
+                        strSQLReturn = strInput.Substring(0, strInput.IndexOf(SkylineOf) - 1);
+
+                        if (prefSQL.HasSkyline == true)
                         {
-                            if (prefSQL.Ordering == Ordering.AsIs)
+                            //Add Skyline Attributes to select list. This option is i.e. useful to create a dominance graph.
+                            //With help of the skyline values it is easier to create this graph
+                            if (_ShowSkylineAttributes == true)
                             {
-                                string strTmpInput = strInput;
+                                //Add the attributes to the existing SELECT clause
+                                string strSQLSelectClause = getSelectClauseForSkylineAttributes(prefSQL);
+                                string strSQLBeforeFrom = strSQLReturn.Substring(0, strSQLReturn.IndexOf("FROM"));
+                                string strSQLAfterFromShow = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM"));
+                                strSQLReturn = strSQLBeforeFrom + strSQLSelectClause + " " + strSQLAfterFromShow;
 
-                                //Replace category clauses
-                                //Start with latest order by (otherwise substring start, stop position are changed)
-                                for (int iIndex = prefSQL.OrderBy.Count - 1; iIndex >= 0; iIndex--)
+                            }
+
+                            //Add ORDER BY Clause
+                            string strOrderBy = "";
+                            if (strInput.IndexOf("ORDER BY") > 0)
+                            {
+                                if (prefSQL.Ordering == Ordering.AsIs)
                                 {
-                                    OrderByModel model = prefSQL.OrderBy[iIndex];
-                                    strTmpInput = strTmpInput.Substring(0, model.start) + model.text + strTmpInput.Substring(model.stop);
-                                }
+                                    string strTmpInput = strInput;
 
-                                strOrderBy = strTmpInput.Substring(strInput.IndexOf("ORDER BY"));
+                                    //Replace category clauses
+                                    //Start with latest order by (otherwise substring start, stop position are changed)
+                                    for (int iIndex = prefSQL.OrderBy.Count - 1; iIndex >= 0; iIndex--)
+                                    {
+                                        OrderByModel model = prefSQL.OrderBy[iIndex];
+                                        strTmpInput = strTmpInput.Substring(0, model.start) + model.text + strTmpInput.Substring(model.stop);
+                                    }
+
+                                    strOrderBy = strTmpInput.Substring(strInput.IndexOf("ORDER BY"));
+                                }
+                                else
+                                {
+                                    strOrderBy = sqlSort.getSortClause(prefSQL, prefSQL.Ordering); // sqlSort.getSortClause(prefSQL, _OrderType);
+                                }
+                            }
+
+
+                            ////////////////////////////////////////////
+                            //attributes used for native sql algorithm
+                            string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strSQLReturn);
+
+                            ////////////////////////////////////////////
+                            //attributes used for other algorithms
+                            string strOperators = "";
+                            string strAttributesSkyline = buildPreferencesBNL(prefSQL, ref strOperators);
+                            //Without SELECT 
+
+                            //Remove TOP keyword, expect for the native SQL algorithm
+                            if (prefSQL.HasTop == true && SkylineType.isNative() == false)
+                            {
+                                //Remove Top Keyword in inner clause
+                                int iPosTop = strSQLReturn.IndexOf("TOP");
+                                int iPosTopEnd = strSQLReturn.Substring(iPosTop + 3).TrimStart().IndexOf(" ");
+                                string strSQLAfterTOP = strSQLReturn.Substring(iPosTop + 3).TrimStart();
+                                strSQLReturn = strSQLReturn.Substring(0, iPosTop) + strSQLAfterTOP.Substring(iPosTopEnd + 1);
+                            }
+
+
+                            string strAttributesOutput = ", " + strSQLReturn.Substring(7, strSQLReturn.IndexOf("FROM") - 7);
+                            string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM"));
+
+                            string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
+
+                            string strOrderByAttributes = sqlSort.getSortClause(prefSQL, SQLCommon.Ordering.AttributePosition);
+
+
+                            ////////////////////////////////////////////
+                            //attributes used for hexagon
+                            string[] additionalParameters = new string[5];
+
+                            string strOperatorsHexagon = "";
+                            string strAttributesSkylineHexagon = buildSELECTHexagon(prefSQL, strSQLReturn, ref strOperatorsHexagon);
+                            //Without SELECT 
+
+
+                            //Quote quotes because it is a parameter of the stored procedure
+                            string strFirstSQLHexagon = "SELECT " + strAttributesSkylineHexagon + " " + strAttributesOutput + strSQLAfterFrom;
+                            strFirstSQLHexagon = strFirstSQLHexagon.Replace("'", "''");
+
+                            //Quote quotes because it is a parameter of the stored procedure
+                            string strSelectDistinctIncomparable = "";
+                            int weightHexagonIncomparable = 0;
+                            string strHexagon = buildSELECTMaxHexagon(prefSQL, strSQLReturn, ref strSelectDistinctIncomparable, ref weightHexagonIncomparable);
+                            strSelectDistinctIncomparable = strSelectDistinctIncomparable.Replace("'", "''");
+                            strHexagon = strHexagon.Replace("'", "''");
+
+                            additionalParameters[0] = strFirstSQLHexagon;
+                            additionalParameters[1] = strOperatorsHexagon;
+                            additionalParameters[2] = strHexagon;
+                            additionalParameters[3] = strSelectDistinctIncomparable;
+                            additionalParameters[4] = weightHexagonIncomparable.ToString();
+
+
+
+                            //Now create the query depending on the Skyline algorithm
+                            strSQLReturn = _SkylineType.getStoredProcedureCommand(strSQLReturn, strWHERE, strOrderBy, prefSQL.NumberOfRecords, strFirstSQL, strOperators, _SkylineUpToLevel, prefSQL.WithIncomparable, strOrderByAttributes, additionalParameters);
+
+                        }
+                    }
+                    if(prefSQL.HasRanking == true)
+                    {
+
+                        //Add all Syntax before the RANKING OF-Clause
+                        strSQLReturn = strInput.Substring(0, strInput.IndexOf("RANKING OF") - 1);
+
+                        string strOrderBy = "ORDER BY ";
+                        int i = 0;
+                        foreach (RankingModel model in prefSQL.Ranking)
+                        {
+                            i++;
+                            DataTable dt = helper.executeStatement(model.SelectExtrema);
+                            double min = 0;
+                            double max = 0;
+                            
+                            double delta = 0.01;
+
+                            //Do correct unboxing from datatable
+                            if(dt.Columns[0].DataType == typeof(Int32))
+                            {
+                                min = (int)dt.Rows[0][0];
+                                max = (int)dt.Rows[0][1];
+                            }
+
+                            //Create Normalization Formula
+                            //((t1.price - 900.0) / 288100.0) + 0.01 AS Norm1
+                            //Dezimalwert mit minimum 2 nachkommastellen
+
+                            string strMin = string.Format("{0:0.0###########}", min);
+                            string strMax = string.Format("{0:0.0###########}", max);
+
+                            string strNormalization = "(" + model.Weight + " * (((" + model.FullColumnName + " - " + strMin + ") / " + strMax + ") + " + delta + ")) ";
+                            if(i == 1)
+                            {
+                                strOrderBy += strNormalization;
                             }
                             else
                             {
-                                strOrderBy = sqlSort.getSortClause(prefSQL, prefSQL.Ordering); // sqlSort.getSortClause(prefSQL, _OrderType);
+                                strOrderBy += " + " + strNormalization;
                             }
                         }
 
 
-                        ////////////////////////////////////////////
-                        //attributes used for native sql algorithm
-                        string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strSQLReturn);
-                        
-                        ////////////////////////////////////////////
-                        //attributes used for other algorithms
-                        string strOperators = "";
-                        string strAttributesSkyline = buildPreferencesBNL(prefSQL, ref strOperators);
-                        //Without SELECT 
-
-                        //Remove TOP keyword, expect for the native SQL algorithm
-                        if (prefSQL.HasTop == true && SkylineType.isNative() == false)
-                        {
-                            //Remove Top Keyword in inner clause
-                            int iPosTop = strSQLReturn.IndexOf("TOP");
-                            int iPosTopEnd = strSQLReturn.Substring(iPosTop + 3).TrimStart().IndexOf(" ");
-                            string strSQLAfterTOP = strSQLReturn.Substring(iPosTop + 3).TrimStart();
-                            strSQLReturn = strSQLReturn.Substring(0, iPosTop) + strSQLAfterTOP.Substring(iPosTopEnd + 1);
-                        }
-
-
-                        string strAttributesOutput = ", " + strSQLReturn.Substring(7, strSQLReturn.IndexOf("FROM") - 7);
-                        string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM"));
-
-                        string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
-
-                        string strOrderByAttributes = sqlSort.getSortClause(prefSQL, SQLCommon.Ordering.AttributePosition);
-
-
-                        ////////////////////////////////////////////
-                        //attributes used for hexagon
-                        string[] additionalParameters = new string[5];
-
-                        string strOperatorsHexagon = "";
-                        string strAttributesSkylineHexagon = buildSELECTHexagon(prefSQL, strSQLReturn, ref strOperatorsHexagon);
-                        //Without SELECT 
-
-                        
-                        //Quote quotes because it is a parameter of the stored procedure
-                        string strFirstSQLHexagon = "SELECT " + strAttributesSkylineHexagon + " " + strAttributesOutput + strSQLAfterFrom;
-                        strFirstSQLHexagon = strFirstSQLHexagon.Replace("'", "''");
-
-                        //Quote quotes because it is a parameter of the stored procedure
-                        string strSelectDistinctIncomparable = "";
-                        int weightHexagonIncomparable = 0;
-                        string strHexagon = buildSELECTMaxHexagon(prefSQL, strSQLReturn, ref strSelectDistinctIncomparable, ref weightHexagonIncomparable);
-                        strSelectDistinctIncomparable = strSelectDistinctIncomparable.Replace("'", "''");
-                        strHexagon = strHexagon.Replace("'", "''");
-
-                        additionalParameters[0] = strFirstSQLHexagon;
-                        additionalParameters[1] = strOperatorsHexagon;
-                        additionalParameters[2] = strHexagon;
-                        additionalParameters[3] = strSelectDistinctIncomparable;
-                        additionalParameters[4] = weightHexagonIncomparable.ToString();
-
-                        
-                        
-                        //Now create the query depending on the Skyline algorithm
-                        strSQLReturn = _SkylineType.getStoredProcedureCommand(strSQLReturn, strWHERE, strOrderBy, prefSQL.NumberOfRecords, strFirstSQL, strOperators, _SkylineUpToLevel, prefSQL.WithIncomparable, strOrderByAttributes, additionalParameters);
+                        strSQLReturn += " " + strOrderBy;
 
                     }
                 }

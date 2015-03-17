@@ -59,7 +59,7 @@ namespace prefSQL.SQLParserTest
             
             //TODO: Does not work with Hexagon so far
             //WITHOUT OTHERS --> This means that tuples with other values are assumed to be incomparable
-            strPrefSQL[13] = "SELECT c.id AS ID FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
+            //strPrefSQL[13] = "SELECT c.id AS ID FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
 
             //TODO: Does not work with BNL and Hexagon
             //Numerical preferences with INCOMPARABLE STEPS
