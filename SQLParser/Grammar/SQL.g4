@@ -119,6 +119,7 @@ exprSkyline
 
 exprSkylineSample
  : K_SAMPLE K_BY K_RANDOMSUBSETS K_COUNT UNSIGNED_INTEGER_LITERAL K_DIMENSION UNSIGNED_INTEGER_LITERAL  #exprSampleSkyline
+ ;
 
  exprCategory
 	: literal_value																						#opLiteral
@@ -376,10 +377,10 @@ K_BESTRANK : B E S T '_' R A N K;
 K_MORE: M O R E;
 K_IMPORTANT: I M P O R T A N T;
 K_THAN: T H A N;
-K_SAMPLE: S A M P L E
-K_RANDOMSUBSETS: R A N D O M '_' S U B S E T S
-K_COUNT: C O U N T
-K_DIMENSION: D I M E N S I O N
+K_SAMPLE: S A M P L E;
+K_RANDOMSUBSETS: R A N D O M '_' S U B S E T S;
+K_COUNT: C O U N T;
+K_DIMENSION: D I M E N S I O N;
 
 
 
