@@ -93,7 +93,8 @@ namespace Utility
                     //"ORDER BY BEST_RANK() ";
 
                 strPrefSQL = "SELECT cars_small.price, cars_small.mileage FROM cars_small   " +
-                    "RANKING OF cars_small.price AROUND 10000 0.89, cars_small.mileage HIGH 0.01, cars_small.title ('MERCEDES-BENZ SL 500' >> OTHERS EQUAL) 0.1";
+                    "RANKING OF cars_small.price AROUND 10000 0.89, cars_small.mileage HIGH 0.01, cars_small.title ({'MERCEDES-BENZ SL 500', 'VW', 'Skoda'} >> OTHERS EQUAL) 0.1";
+                
 
 
                 //Problem Stefan

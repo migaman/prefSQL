@@ -59,6 +59,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="SQLParserRankingTest.cs" />
     <Compile Include="SQLParserTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SQLParserSortTests.cs" />

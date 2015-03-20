@@ -136,7 +136,7 @@ namespace prefSQL.SQLParser
             }
 
             //Check if SQL contains TOP Keywords
-            if (model.HasTop == true)
+            if (model.NumberOfRecords != 0)
             {
                 //Remove Top Keyword in inner clause
                 int iPosTop = strPreSQL.IndexOf("TOP");

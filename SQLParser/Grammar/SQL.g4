@@ -110,19 +110,19 @@ expr
 
  
 exprSkyline
- : exprSkyline ',' exprSkyline																			#exprAnd   
- | column_term op=(K_LOW | K_HIGH | K_LOWDATE | K_HIGHDATE)	(signed_number (K_EQUAL | K_INCOMPARABLE))?	#preferenceLOWHIGH
- | column_term ('(' exprCategory ')')																	#preferenceCategory
- | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term)			#preferenceAROUND
- | exprSkyline K_IS K_MORE K_IMPORTANT K_THAN exprSkyline												#preferenceMoreImportant
+ : exprSkyline ',' exprSkyline																			#skylineAnd
+ | column_term op=(K_LOW | K_HIGH | K_LOWDATE | K_HIGHDATE)	(signed_number (K_EQUAL | K_INCOMPARABLE))?	#skylinePreferenceLowHigh
+ | column_term ('(' exprCategory ')')																	#skylinePreferenceCategory
+ | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term)			#skylinePreferenceAround
+ | exprSkyline K_IS K_MORE K_IMPORTANT K_THAN exprSkyline												#skylineMoreImportant
  ;
 
 
 exprRanking
- : exprRanking ',' exprRanking																						#exprRankingAnd   
- | column_term op=(K_LOW | K_HIGH)	signed_number																	#rankingLOWHIGH
- | column_term ('(' exprCategory ')') signed_number																	#rankingCategory
- | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term) signed_number		#rankingAROUND
+ : exprRanking ',' exprRanking																						#weightedsumAnd   
+ | column_term op=(K_LOW | K_HIGH) (signed_number (K_EQUAL))?	signed_number										#weightedsumLowHigh
+ | column_term ('(' exprCategory ')') signed_number																	#weightedsumCategory
+ | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term) signed_number		#weightedsumAround
  ;
 
 
