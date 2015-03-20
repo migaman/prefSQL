@@ -22,20 +22,27 @@ namespace prefSQL.SQLParserTest
         public void TestSyntaxValidityOfSyntacticallyCorrectSQLStatements()
         {
             var skylineSampleSQL = testContextInstance.DataRow["skylineSampleSQL"].ToString();
-            Console.WriteLine(skylineSampleSQL);
+            var testComment = testContextInstance.DataRow["comment"].ToString();
+            Debug.WriteLine(testComment);
+            Debug.WriteLine(skylineSampleSQL);
 
             var common = new SQLCommon();
             common.SkylineType = new SkylineSQL();
 
+            string parsedSQL = "";
             try
             {
-                var parsedSQL = common.parsePreferenceSQL(skylineSampleSQL);
-                Console.WriteLine(parsedSQL);
+                parsedSQL = common.parsePreferenceSQL(skylineSampleSQL);
             }
             catch (Exception exception)
             {
                 Assert.Fail(String.Format("{0} - {1}", "Syntactically correct SQL Query should not have thrown an Exception.", exception.Message));
             }
+
+            var parsedSQLExpected = testContextInstance.DataRow["parsePreferenceSQLSkylineSQLExpectedResult"].ToString();
+            Debug.WriteLine(parsedSQL);
+            Debug.WriteLine(parsedSQLExpected);
+            Assert.AreEqual(parsedSQLExpected.Trim(), parsedSQL.Trim(), "SQL not built correctly");
         }
 
         [TestMethod]

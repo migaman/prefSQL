@@ -1,32 +1,46 @@
 <TestData>
   <TestDataRow>
+    <comment>SAMPLE BY clause started but not finished</comment>
     <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY</skylineSampleSQL>
   </TestDataRow>
   <TestDataRow>
+    <comment>SAMPLE BY clause continued illegally</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY 1</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>SAMPLE BY clause continued illegally</comment>
     <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY cs.price</skylineSampleSQL>
   </TestDataRow>
   <TestDataRow>
-    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY cs.price, cs.mileage</skylineSampleSQL>
+    <comment>SAMPLE BY RANDOM_SUBSETS clause started but not finished</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS</skylineSampleSQL>
   </TestDataRow>
   <TestDataRow>
-    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price), cs.mileage</skylineSampleSQL>
+    <comment>SAMPLE BY RANDOM_SUBSETS clause continued illegally</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS 1</skylineSampleSQL>
   </TestDataRow>
   <TestDataRow>
-    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY cs.price, (cs.mileage)</skylineSampleSQL>
+    <comment>SAMPLE BY RANDOM_SUBSETS clause continued illegally</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS cs.price</skylineSampleSQL>
   </TestDataRow>
   <TestDataRow>
-    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price), (cs.mileage), (cs.horsepower)</skylineSampleSQL>
+    <comment>SAMPLE BY RANDOM_SUBSETS COUNT clause started but not finished</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT</skylineSampleSQL>
   </TestDataRow>
   <TestDataRow>
-    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price,)</skylineSampleSQL>
+    <comment>SAMPLE BY RANDOM_SUBSETS COUNT clause started but not finished</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT 1</skylineSampleSQL>
   </TestDataRow>
   <TestDataRow>
-    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price, cs.mileage, cs.horsepower)</skylineSampleSQL>
+    <comment>SAMPLE BY RANDOM_SUBSETS COUNT clause continued illegally</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT cs.price</skylineSampleSQL>
   </TestDataRow>
   <TestDataRow>
-    <skylineSampleSQL>SELECT * FROM cars_small cs SAMPLE BY (cs.price)</skylineSampleSQL>
+    <comment>SAMPLE BY RANDOM_SUBSETS COUNT x DIMENSION clause started but not finished</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT 1 DIMENSION</skylineSampleSQL>
   </TestDataRow>
   <TestDataRow>
-    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF SAMPLE BY (cs.price)</skylineSampleSQL>
+    <comment>SAMPLE BY RANDOM_SUBSETS COUNT x DIMENSION clause continued illegally</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT 1 DIMENSION cs.price</skylineSampleSQL>
   </TestDataRow>
 </TestData>

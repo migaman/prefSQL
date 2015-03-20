@@ -1,14 +1,19 @@
 <TestData>
   <TestDataRow>
-    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price), (cs.mileage)</skylineSampleSQL>
+    <comment>2 samples, each of dimension 1 (e.g., (cs.price), (cs.mileage))</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSET COUNT 2 DIMENSION 1</skylineSampleSQL>
+    <parsePreferenceSQLSkylineSQLExpectedResult>SELECT</parsePreferenceSQLSkylineSQLExpectedResult>
   </TestDataRow>
   <TestDataRow>
-    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price)</skylineSampleSQL>
+    <comment>1 sample of dimension 1 (e.g., (cs.price))</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSET COUNT 1 DIMENSION 1</skylineSampleSQL>
   </TestDataRow>
   <TestDataRow>
-    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price, cs.mileage)</skylineSampleSQL>
+    <comment>1 samples of dimension 2 (e.g., (cs.price, cs.mileage))</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSET COUNT 1 DIMENSION 2</skylineSampleSQL>
   </TestDataRow>
   <TestDataRow>
-    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY (cs.price, cs.mileage), (cs.horsepower, cs.enginesize)</skylineSampleSQL>
+    <comment>2 samples, each of dimension 2 (e.g., (cs.price, cs.mileage), (cs.horsepower, cs.enginesize))</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY RANDOM_SUBSET COUNT 2 DIMENSION 2</skylineSampleSQL>
   </TestDataRow>
 </TestData>
