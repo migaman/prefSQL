@@ -8,7 +8,7 @@ using System.Data;
 namespace prefSQL.SQLParserTest
 {
     [TestClass]
-    public class SqlParserSkylineSamplingTests
+    public class SQLParserSkylineSamplingTests
     {
         private TestContext testContextInstance;
         public TestContext TestContext
