@@ -8,7 +8,7 @@ using System.Data;
 namespace prefSQL.SQLParserTest
 {
     [TestClass]
-    public class SQLParserSkylineSamplingTests
+    public class SqlParserSkylineSamplingTests
     {
         private TestContext testContextInstance;
         public TestContext TestContext
@@ -29,7 +29,7 @@ namespace prefSQL.SQLParserTest
             var common = new SQLCommon();
             common.SkylineType = new SkylineSQL();
 
-            string parsedSQL = "";
+            var parsedSQL = "";
             try
             {
                 parsedSQL = common.parsePreferenceSQL(skylineSampleSQL);
