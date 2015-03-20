@@ -66,5 +66,7 @@ namespace prefSQL.SQLParser.Models
             get { return _orderBy; }
         }
 
+        public int SkylineSampleCount { get; set; }
+        public int SkylineSampleDimension { get; set; }
     }
 }
