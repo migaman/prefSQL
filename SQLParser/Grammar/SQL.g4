@@ -118,7 +118,7 @@ exprSkyline
  ;
 
 exprSkylineSample
- : K_SAMPLE K_BY K_RANDOMSUBSETS K_COUNT NUMERIC_LITERAL K_DIMENSION NUMERIC_LITERAL  #exprSampleSkyline
+ : K_SAMPLE K_BY K_RANDOMSUBSETS K_COUNT NUMERIC_LITERAL K_DIMENSION NUMERIC_LITERAL                    #exprSampleSkyline
  ;
 
  exprCategory

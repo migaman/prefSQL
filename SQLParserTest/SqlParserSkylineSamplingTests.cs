@@ -1,65 +1,57 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using prefSQL.SQLParser;
-using prefSQL.SQLSkyline;
-using System;
-using System.Diagnostics;
-using System.Data;
-
-namespace prefSQL.SQLParserTest
+﻿namespace prefSQL.SQLParserTest
 {
+    using System;
+    using System.Diagnostics;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using SQLParser;
+    using SQLSkyline;
+
     [TestClass]
-    public class SQLParserSkylineSamplingTests
+    public class SqlParserSkylineSamplingTests
     {
-        private TestContext testContextInstance;
-        public TestContext TestContext
-        {
-            get { return testContextInstance; }
-            set { testContextInstance = value; }
-        }
+        public TestContext TestContext { get; set; }
 
         [TestMethod]
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineSamplingTests_CorrectSyntax.xml", "TestDataRow", DataAccessMethod.Sequential), DeploymentItem("SQLParserSkylineSamplingTests_CorrectSyntax.xml")]
-        public void TestSyntaxValidityOfSyntacticallyCorrectSQLStatements()
+        public void TestSyntaxValidityOfSyntacticallyCorrectSqlStatements()
         {
-            var skylineSampleSQL = testContextInstance.DataRow["skylineSampleSQL"].ToString();
-            var testComment = testContextInstance.DataRow["comment"].ToString();
+            var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
+            var testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
-            Debug.WriteLine(skylineSampleSQL);
+            Debug.WriteLine(skylineSampleSql);
 
-            var common = new SQLCommon();
-            common.SkylineType = new SkylineSQL();
+            var common = new SQLCommon { SkylineType = new SkylineSQL() };
 
-            var parsedSQL = "";
+            var parsedSql = string.Empty;
             try
             {
-                parsedSQL = common.parsePreferenceSQL(skylineSampleSQL);
+                parsedSql = common.parsePreferenceSQL(skylineSampleSql);
             }
             catch (Exception exception)
             {
-                Assert.Fail(String.Format("{0} - {1}", "Syntactically correct SQL Query should not have thrown an Exception.", exception.Message));
+                Assert.Fail("{0} - {1}", "Syntactically correct SQL Query should not have thrown an Exception.", exception.Message);
             }
 
-            var parsedSQLExpected = testContextInstance.DataRow["parsePreferenceSQLSkylineSQLExpectedResult"].ToString();
-            Debug.WriteLine(parsedSQL);
-            Debug.WriteLine(parsedSQLExpected);
-            Assert.AreEqual(parsedSQLExpected.Trim(), parsedSQL.Trim(), "SQL not built correctly");
+            var parsedSqlExpected = TestContext.DataRow["parsePreferenceSQLSkylineSQLExpectedResult"].ToString();
+            Debug.WriteLine(parsedSql);
+            Debug.WriteLine(parsedSqlExpected);
+            Assert.AreEqual(parsedSqlExpected.Trim(), parsedSql.Trim(), "SQL not built correctly");
         }
 
         [TestMethod]
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineSamplingTests_IncorrectSyntax.xml", "TestDataRow", DataAccessMethod.Sequential), DeploymentItem("SQLParserSkylineSamplingTests_IncorrectSyntax.xml")]
-        public void TestSyntaxValidityOfSyntacticallyIncorrectSQLStatements()
+        public void TestSyntaxValidityOfSyntacticallyIncorrectSqlStatements()
         {
             var hasExceptionBeenRaised = false;
 
-            var skylineSampleSQL = testContextInstance.DataRow["skylineSampleSQL"].ToString();
-            Console.WriteLine(skylineSampleSQL);
+            var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
+            Console.WriteLine(skylineSampleSql);
 
-            var common = new SQLCommon();
-            common.SkylineType = new SkylineSQL();
+            var common = new SQLCommon { SkylineType = new SkylineSQL() };
 
             try
             {
-                common.parsePreferenceSQL(skylineSampleSQL);
+                common.parsePreferenceSQL(skylineSampleSql);
             }
             catch (Exception)
             {
