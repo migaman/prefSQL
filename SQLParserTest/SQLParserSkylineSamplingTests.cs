@@ -18,37 +18,51 @@ namespace prefSQL.SQLParserTest
         }
 
         [TestMethod]
-        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineSamplingTests_TestSyntaxValidity.xml", "TestDataRow", DataAccessMethod.Sequential), DeploymentItem("SQLParserSkylineSamplingTests_TestSyntaxValidity.xml")]
-        public void TestSyntaxValidity()
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineSamplingTests_CorrectSyntax.xml", "TestDataRow", DataAccessMethod.Sequential), DeploymentItem("SQLParserSkylineSamplingTests_CorrectSyntax.xml")]
+        public void TestSyntaxValidityOfSyntacticallyCorrectSQLStatements()
         {
-            var hasExceptionBeenRaised = false;
             var skylineSampleSQL = testContextInstance.DataRow["skylineSampleSQL"].ToString();
-            var isExpectingException = testContextInstance.DataRow["result"].ToString() == "Fail" ? true : false;
-
             Console.WriteLine(skylineSampleSQL);
-            Console.WriteLine(isExpectingException);
-            
+
             var common = new SQLCommon();
             common.SkylineType = new SkylineSQL();
 
-            Exception exceptionRaised = null;
+            try
+            {
+                var parsedSQL = common.parsePreferenceSQL(skylineSampleSQL);
+                Console.WriteLine(parsedSQL);
+            }
+            catch (Exception exception)
+            {
+                Assert.Fail(String.Format("{0} - {1}", "Syntactically correct SQL Query should not have thrown an Exception.", exception.Message));
+            }
+        }
+
+        [TestMethod]
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineSamplingTests_IncorrectSyntax.xml", "TestDataRow", DataAccessMethod.Sequential), DeploymentItem("SQLParserSkylineSamplingTests_IncorrectSyntax.xml")]
+        public void TestSyntaxValidityOfSyntacticallyIncorrectSQLStatements()
+        {
+            var hasExceptionBeenRaised = false;
+
+            var skylineSampleSQL = testContextInstance.DataRow["skylineSampleSQL"].ToString();
+            Console.WriteLine(skylineSampleSQL);
+
+            var common = new SQLCommon();
+            common.SkylineType = new SkylineSQL();
+
             try
             {
                 common.parsePreferenceSQL(skylineSampleSQL);
             }
-            catch (Exception exception)
+            catch (Exception)
             {
-                exceptionRaised = exception;
                 hasExceptionBeenRaised = true;
             }
 
-            if (hasExceptionBeenRaised && !isExpectingException)
+            if (!hasExceptionBeenRaised)
             {
-                Assert.Fail(String.Format("{0} - {1}", "Syntactically correct SQL Query should not have thrown an Exception.", exceptionRaised.Message));
-            } else if (!hasExceptionBeenRaised && isExpectingException)
-            {
-                  Assert.Fail("Syntactically incorrect SQL Query should have thrown an Exception.");
-            } 
+                Assert.Fail("Syntactically incorrect SQL Query should have thrown an Exception.");
+            }
         }
     }
 }

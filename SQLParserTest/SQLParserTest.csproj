@@ -79,7 +79,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="SQLParserSkylineSamplingTests_TestSyntaxValidity.xml">
+    <Content Include="SQLParserSkylineSamplingTests_IncorrectSyntax.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SQLParserSkylineSamplingTests_CorrectSyntax.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

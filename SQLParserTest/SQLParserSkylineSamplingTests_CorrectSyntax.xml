@@ -1,0 +1,14 @@
+<TestData>
+  <TestDataRow>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price), (cs.mileage)</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price)</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY (cs.price, cs.mileage)</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY (cs.price, cs.mileage), (cs.horsepower, cs.enginesize)</skylineSampleSQL>
+  </TestDataRow>
+</TestData>
