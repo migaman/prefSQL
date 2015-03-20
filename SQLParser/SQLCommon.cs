@@ -248,34 +248,46 @@ namespace prefSQL.SQLParser
                         //Add all Syntax before the RANKING OF-Clause
                         strSQLReturn = strInput.Substring(0, strInput.IndexOf("RANKING OF") - 1);
 
+
+                        //Create  ORDER BY clause with help of the ranking model
                         string strOrderBy = "ORDER BY ";
-                        int i = 0;
+                        bool bFirst = true;
                         foreach (RankingModel model in prefSQL.Ranking)
                         {
-                            i++;
+                            //Read min and max value of the preference
                             DataTable dt = helper.executeStatement(model.SelectExtrema);
                             double min = 0;
                             double max = 0;
-                            
-                            double delta = 0.01;
+                            double delta = 0.00001; //TODO: define DELTA. Check what is a good value
+                            string strMin = "";
+                            string strDividor = "";
 
                             //Do correct unboxing from datatable
                             if(dt.Columns[0].DataType == typeof(Int32))
                             {
                                 min = (int)dt.Rows[0][0];
                                 max = (int)dt.Rows[0][1];
+                                
+                                //Write at least one decimal (in order SQL detects the number as double. Otherwise the result will be int values!!)
+                                strMin = string.Format("{0:0.0###########}", min);
+                                strDividor = string.Format("{0:0.0###########}", max - min);
+                            }
+                            else
+                            {
+                                throw new Exception("New Datatype detected. Please develop unboxing for this first!!");
                             }
 
+                            
                             //Create Normalization Formula
-                            //((t1.price - 900.0) / 288100.0) + 0.01 AS Norm1
-                            //Dezimalwert mit minimum 2 nachkommastellen
+                            //(Weight * (((attributevalue - minvalue) / (maxvalue-minvalue)) + delta))
+                            //For example: 0.2 * ((t1.price - 900.0) / 288100.0) + 0.01 AS Norm1
+                            string strNormalization = "(" + model.Weight + " * (((" + model.Expression + " - " + strMin + ") / " + strDividor + ") + " + delta + ")) ";
+                            
 
-                            string strMin = string.Format("{0:0.0###########}", min);
-                            string strMax = string.Format("{0:0.0###########}", max);
-
-                            string strNormalization = "(" + model.Weight + " * (((" + model.FullColumnName + " - " + strMin + ") / " + strMax + ") + " + delta + ")) ";
-                            if(i == 1)
+                            //Mathematical addition except for the first element
+                            if (bFirst == true)
                             {
+                                bFirst = false;
                                 strOrderBy += strNormalization;
                             }
                             else
@@ -285,6 +297,7 @@ namespace prefSQL.SQLParser
                         }
 
 
+                        //Add the OrderBy caluse to the new SQL Query
                         strSQLReturn += " " + strOrderBy;
 
                     }

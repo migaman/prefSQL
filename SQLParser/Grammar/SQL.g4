@@ -119,8 +119,10 @@ exprSkyline
 
 
 exprRanking
- : exprRanking ',' exprRanking																			#exprRankingAnd   
- | column_term op=(K_LOW | K_HIGH)	signed_number														#rankingLOWHIGH
+ : exprRanking ',' exprRanking																						#exprRankingAnd   
+ | column_term op=(K_LOW | K_HIGH)	signed_number																	#rankingLOWHIGH
+ | column_term ('(' exprCategory ')') signed_number																	#rankingCategory
+ | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term) signed_number		#rankingAROUND
  ;
 
 

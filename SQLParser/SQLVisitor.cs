@@ -349,36 +349,35 @@ namespace prefSQL.SQLParser
             string strSelectExtrema = "";
             double weight = 0.0;
             
-
             //Separate Column and Table
             strColumnName = getColumnName(context.GetChild(0));
             strTable = getTableName(context.GetChild(0));
             strFullColumnName = strTable + "." + strColumnName;
 
-
-            //Keyword LOW or HIGH, build ORDER BY
+            //Keyword LOW or HIGH
             if (context.op.Type == SQLParser.K_LOW || context.op.Type == SQLParser.K_HIGH)
             {
                 strExpression = strFullColumnName;
                 if (context.op.Type == SQLParser.K_HIGH)
                 {
-                    //Multiply with -1 (every value can be minimized)
+                    //Multiply with -1 (result: every value can be minimized!)
                     strExpression += " * -1";
                 }
                 
 
-                //Search for Table name of alias
+                //Search if table name is just an alias
                 var myValue = tables.FirstOrDefault(x => x.Value == strTable).Key;
                 if(myValue != null)
                 {
+                    //Its an alias, replace it with the real table name
                     strTableAlias = strTable;
                     strTable = myValue;
                 }
 
+                //
                 weight = double.Parse(context.GetChild(2).GetText());
                 
-
-
+                //Select Statement to read the extrem values of the preference
                 strSelectExtrema = "SELECT MIN(" + strExpression + "), MAX(" + strExpression + ") FROM " + strTable + " " + strTableAlias;
             }
             
@@ -390,9 +389,159 @@ namespace prefSQL.SQLParser
             pref.HasRanking = true;
             model = pref;
             return pref;
-
-            //return base.VisitRankingLOWHIGH(context);
         }
+
+
+
+        /// <summary>
+        /// Handles a categorical ranking preference
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public override PrefSQLModel VisitRankingCategory(SQLParser.RankingCategoryContext context)
+        {
+            //It is a text --> Text text must be converted in a given sortorder
+            PrefSQLModel pref = new PrefSQLModel();
+            string strColumnName = "";
+            string strFullColumnName = "";
+            string strTable = "";
+            string strExpression = "";
+            string strSelectExtrema = "";
+            double weight = 0.0;
+
+
+            //Build CASE ORDER with arguments
+            string[] strTemp = null;
+            string strSQLOrderBy = "";
+            string strSQLELSE = "";
+
+            //Separate Column and Table
+            strColumnName = getColumnName(context.GetChild(0));
+            strTable = getTableName(context.GetChild(0));
+            strFullColumnName = strTable + "." + strColumnName;
+
+            strExpression = context.exprCategory().GetText();
+            strTemp = Regex.Split(strExpression, @"(==|>>)"); //Split signs are == and >>
+
+            //Define sort order value for each attribute
+            int iWeight = 0;
+            for (int i = 0; i < strTemp.GetLength(0); i++)
+            {
+                switch (strTemp[i])
+                {
+                    case ">>":
+                        iWeight += 1; //Gewicht erhöhen, da >> Operator
+                        break;
+                    case "==":
+                        break;  //Gewicht bleibt gleich da == Operator
+                    case "OTHERSEQUAL":
+                        //Special word OTHERS EQUAL = all other attributes are defined with this order by value
+                        strSQLELSE = " ELSE " + iWeight;
+                        break;
+                    default:
+                        //Check if it contains multiple values
+                        if (strTemp[i].StartsWith("{"))
+                        {
+                            //Multiple values --> construct IN statement
+                            strTemp[i] = strTemp[i].Replace("{", "(").Replace("}", ")");
+                            strSQLOrderBy += " WHEN " + strTable + "." + strColumnName + " IN " + strTemp[i] + " THEN " + iWeight.ToString();
+
+                        }
+                        else
+                        {
+                            //Single value --> construct = statement
+                            strSQLOrderBy += " WHEN " + strTable + "." + strColumnName + " = " + strTemp[i] + " THEN " + iWeight.ToString();
+                        }
+                        break;
+                }
+
+            }
+
+            weight = double.Parse(context.GetChild(4).GetText());
+
+            //Select Statement to read the extrem values of the preference
+            strSelectExtrema = "SELECT 0, " + iWeight.ToString();
+
+            strExpression = "CASE" + strSQLOrderBy + strSQLELSE + " END";
+            
+
+            //Add the ranking to the list               
+            pref.Ranking.Add(new RankingModel(strFullColumnName, strColumnName, strExpression, weight, strSelectExtrema));
+            pref.Tables = tables;
+            pref.HasRanking = true;
+            model = pref;
+            return pref;
+        }
+
+
+
+
+        /// <summary>
+        /// Handles around ranking preferences
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public override PrefSQLModel VisitRankingAROUND(SQLParser.RankingAROUNDContext context)
+        {
+            PrefSQLModel pref = new PrefSQLModel();
+            string strColumnName = "";
+            string strFullColumnName = "";
+            string strTable = "";
+            string strTableAlias = "";
+            string strExpression = "";
+            string strSelectExtrema = "";
+            double weight = 0.0;
+
+            //Separate Column and Table
+            strColumnName = getColumnName(context.GetChild(0));
+            strTable = getTableName(context.GetChild(0));
+            strFullColumnName = strTable + "." + strColumnName;
+
+            switch (context.op.Type)
+            {
+                case SQLParser.K_AROUND:
+
+                    //Value should be as close as possible to a given numeric value
+                    //Check if its a geocoordinate
+                    strExpression = "ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ")";
+                    break;
+                case SQLParser.K_FAVOUR:
+                    //Value should be as close as possible to a given string value
+                    strExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
+                    break;
+
+                case SQLParser.K_DISFAVOUR:
+                    //Value should be as far away as possible to a given string value
+                    strExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
+                    break;
+            }
+
+
+            //Search if table name is just an alias
+            var myValue = tables.FirstOrDefault(x => x.Value == strTable).Key;
+            if (myValue != null)
+            {
+                //Its an alias, replace it with the real table name
+                strTableAlias = strTable;
+                strTable = myValue;
+            }
+
+
+            weight = double.Parse(context.GetChild(3).GetText());
+
+            //Select Statement to read the extrem values of the preference
+            strSelectExtrema = "SELECT MIN(" + strExpression + "), MAX(" + strExpression + ") FROM " + strTable + " " + strTableAlias;
+
+
+
+            //Add the ranking to the list               
+            pref.Ranking.Add(new RankingModel(strFullColumnName, strColumnName, strExpression, weight, strSelectExtrema));
+            pref.Tables = tables;
+            pref.HasRanking = true;
+            model = pref;
+            return pref;
+        }
+
 
         /// <summary>
         /// Handles a numerical/date HIGH/LOW preference
