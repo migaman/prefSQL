@@ -107,10 +107,10 @@ namespace Utility
                 SQLCommon parser = new SQLCommon();
                 //parser.SkylineType = new SkylineSQL();
                 //parser.SkylineType = new SkylineBNL();
-                parser.SkylineType = new SkylineBNLSort();
+                //parser.SkylineType = new SkylineBNLSort();
                 //parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new MultipleSkylineBNL();
-                //parser.SkylineType = new SkylineDQ();
+                parser.SkylineType = new SkylineDQ();
                 //parser.ShowSkylineAttributes = true;
                 //parser.SkylineUpToLevel = 1;
 

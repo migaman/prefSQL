@@ -43,21 +43,21 @@ namespace prefSQL.SQLSkyline
                 DataTable dt = new DataTable();
                 dap.Fill(dt);
 
+                // Build our record schema 
+                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, ref dtResult);
+                SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
+
 
                 dtResult = computeSkyline(dt, operators, operators.GetUpperBound(0), false);
 
                 //Remove certain amount of rows if query contains TOP Keyword
                 Helper.getAmountOfTuples(dtResult, numberOfRecords);
 
+                
                 if (isIndependent == false)
-                {
-                    // Build our record schema 
-
-                    List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, ref dtResult);
-                    SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
+                {                   
                     SqlContext.Pipe.SendResultsStart(record);
 
-                    //foreach (SqlDataRecord recSkyline in btg[iItem])
                     foreach (DataRow row in dtResult.Rows)
                     {
                         for (int i = 0; i < dtResult.Columns.Count; i++)
@@ -380,17 +380,24 @@ namespace prefSQL.SQLSkyline
 
             //int[] sourceNumbers = new int[dt.Rows.Count];
 
+            
 
-
-            HashSet<long> uniqueNumbers = new HashSet<long>();
+            //HashSet<long> uniqueNumbers = new HashSet<long>();
+            //HashSet is not supported with CLR --> use Dictionary and set all values true
+            Dictionary<long, bool> uniqueNumbers = new Dictionary<long, bool>();
             //HashSet is verboten in MS SQL CLR
             //generate list of unique integers of this dimension
             for (int i = 0; i < dt.Rows.Count; i++)
             {
-                uniqueNumbers.Add((long)dt.Rows[i][dim]);
+                if (!uniqueNumbers.ContainsKey((long)dt.Rows[i][dim]))
+                {
+                    uniqueNumbers.Add((long)dt.Rows[i][dim], true);
+                }
+                
+                
             }
             long[] sourceNumbers = new long[uniqueNumbers.Count];
-            uniqueNumbers.CopyTo(sourceNumbers);
+            uniqueNumbers.Keys.CopyTo(sourceNumbers, 0);
 
             //make sure the list is sorted, but use a new array
             long[] sortedPNumbers = (long[])sourceNumbers.Clone();

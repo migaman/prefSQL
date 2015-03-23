@@ -99,14 +99,14 @@ namespace prefSQL.SQLParserTest
                 common.SkylineType = new SkylineHexagon();
                 string sqlHexagon = common.parsePreferenceSQL(strPrefSQL[i]);
                 //D&Q does not run with CLR
-                //common.SkylineType = new SkylineDQ();
-                //string sqlDQ = common.parsePreferenceSQL(strPrefSQL[i]);
+                common.SkylineType = new SkylineDQ();
+                string sqlDQ = common.parsePreferenceSQL(strPrefSQL[i]);
 
                 int amountOfTupelsBNL = 0;
                 int amountOfTupelsBNLSort = 0;
                 int amountOfTupelsSQL = 0;
                 int amountOfTupelsHexagon = 0;
-                //int amountOfTupelsDQ = 0;
+                int amountOfTupelsDQ = 0;
 
                 SqlConnection cnnSQL = new SqlConnection(strConnection);
                 cnnSQL.InfoMessage += cnnSQL_InfoMessage;
@@ -169,7 +169,7 @@ namespace prefSQL.SQLParserTest
 
                     //D&Q
                     //D&Q does not work with incomparable tuples
-                    /*if (i < 6)
+                    if (i < 6)
                     {
 
 
@@ -184,7 +184,7 @@ namespace prefSQL.SQLParserTest
                             }
                         }
                         sqlReader.Close();
-                    }*/
+                    }
 
                     cnnSQL.Close();
                 }
@@ -200,10 +200,10 @@ namespace prefSQL.SQLParserTest
                 Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsHexagon, 0, "Hexagon Amount of tupels in query " + i + "do not match");
 
                 //D&Q does not work with incomparable tuples
-                /*if (i < 6)
+                if (i < 6)
                 {
                     Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsDQ, 0, "Amount of tupels in query " + i + "do not match");
-                }*/
+                }
                 
             }
         }
