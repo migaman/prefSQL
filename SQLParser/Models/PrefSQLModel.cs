@@ -9,14 +9,13 @@ namespace prefSQL.SQLParser.Models
 {
     class PrefSQLModel
     {
-        private bool _hasTOP = false;                                                   //if the query has the TOP Keyword
         private int _numberOfRecords = 0;                                               //Number of records that should be returned (0 = all)
-        private List<AttributeModel> _skyline = new List<AttributeModel>();             //skyline attributes
+        private List<AttributeModel> _skyline = new List<AttributeModel>();             //skyline preference attributes
+        private List<RankingModel> _ranking = new List<RankingModel>();                 //weightedsum preference attributes
         private List<OrderByModel> _orderBy = new List<OrderByModel>();                 //the category order by and the calculated sql
         private Dictionary<string, string> _tables = new Dictionary<string, string>();  //the tablename and its alias
-        private bool _hasSkyline = false;                                               //if the query needs a skyline clause
         private SQLCommon.Ordering _ordering = SQLCommon.Ordering.AsIs;
-        private bool _withIncomparable = false;                                           //variable if check for incomparable tuples is needed
+        private bool _withIncomparable = false;                                         //True if the skyline must be checked for incomparable tuples
 
         public int NumberOfRecords
         {
@@ -36,18 +35,6 @@ namespace prefSQL.SQLParser.Models
             set { _ordering = value;  }
         }
 
-        public bool HasSkyline
-        {
-            get { return _hasSkyline; }
-            set { _hasSkyline = value; }
-        }
-        
-        public bool HasTop
-        {
-            get { return _hasTOP; }
-            set { _hasTOP = value; }
-        }
-
         public Dictionary<string, string> Tables
         {
             get { return _tables; }
@@ -58,6 +45,12 @@ namespace prefSQL.SQLParser.Models
         {
             set { _skyline = value; }
             get { return _skyline; }
+        }
+
+        public List<RankingModel> Ranking
+        {
+            set { _ranking = value; }
+            get { return _ranking; }
         }
 
         public List<OrderByModel> OrderBy

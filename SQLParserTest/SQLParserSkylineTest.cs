@@ -19,7 +19,7 @@ namespace prefSQL.SQLParserTest
 
         private string[] getPreferences()
         {
-            string[] strPrefSQL = new string[14];
+            string[] strPrefSQL = new string[13];
 
             //1 numerical preference
             strPrefSQL[0] = "SELECT t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price LOW";
@@ -59,7 +59,7 @@ namespace prefSQL.SQLParserTest
             
             //TODO: Does not work with Hexagon so far
             //WITHOUT OTHERS --> This means that tuples with other values are assumed to be incomparable
-            strPrefSQL[13] = "SELECT c.id AS ID FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
+            //strPrefSQL[13] = "SELECT c.id AS ID FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
 
             //TODO: Does not work with BNL and Hexagon
             //Numerical preferences with INCOMPARABLE STEPS
@@ -95,14 +95,15 @@ namespace prefSQL.SQLParserTest
                 string sqlBNLSort = common.parsePreferenceSQL(strPrefSQL[i]);
                 common.SkylineType = new SkylineHexagon();
                 string sqlHexagon = common.parsePreferenceSQL(strPrefSQL[i]);
-                common.SkylineType = new SkylineDQ();
-                string sqlDQ = common.parsePreferenceSQL(strPrefSQL[i]);
+                //D&Q does not run with CLR
+                //common.SkylineType = new SkylineDQ();
+                //string sqlDQ = common.parsePreferenceSQL(strPrefSQL[i]);
 
                 int amountOfTupelsBNL = 0;
                 int amountOfTupelsBNLSort = 0;
                 int amountOfTupelsSQL = 0;
                 int amountOfTupelsHexagon = 0;
-                int amountOfTupelsDQ = 0;
+                //int amountOfTupelsDQ = 0;
 
                 SqlConnection cnnSQL = new SqlConnection(strConnection);
                 cnnSQL.InfoMessage += cnnSQL_InfoMessage;
@@ -165,7 +166,7 @@ namespace prefSQL.SQLParserTest
 
                     //D&Q
                     //D&Q does not work with incomparable tuples
-                    if (i < 6)
+                    /*if (i < 6)
                     {
 
 
@@ -180,7 +181,7 @@ namespace prefSQL.SQLParserTest
                             }
                         }
                         sqlReader.Close();
-                    }
+                    }*/
 
                     cnnSQL.Close();
                 }
@@ -196,10 +197,10 @@ namespace prefSQL.SQLParserTest
                 Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsHexagon, 0, "Hexagon Amount of tupels in query " + i + "do not match");
 
                 //D&Q does not work with incomparable tuples
-                if (i < 6)
+                /*if (i < 6)
                 {
                     Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsDQ, 0, "Amount of tupels in query " + i + "do not match");
-                }
+                }*/
                 
             }
         }

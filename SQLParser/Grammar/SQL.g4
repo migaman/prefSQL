@@ -54,6 +54,7 @@ select_or_values
    ( K_FROM ( table_List_Item ( ',' table_List_Item )* | join_clause ) )?
    ( K_WHERE expr )?
    ( K_SKYLINE K_OF exprSkyline )?
+   ( K_RANKING K_OF exprRanking )?
  ;
 
 type_name : name+ ( '(' signed_number ')' | '(' signed_number ',' signed_number ')' )?
@@ -109,12 +110,19 @@ expr
 
  
 exprSkyline
- : exprSkyline ',' exprSkyline																			#exprAnd   
- | column_term op=(K_LOW | K_HIGH | K_LOWDATE | K_HIGHDATE)	(signed_number (K_EQUAL | K_INCOMPARABLE))?	#preferenceLOWHIGH
- | column_term ('(' exprCategory ')')																	#preferenceCategory
- | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term)			#preferenceAROUND
- | exprSkyline K_IS K_MORE K_IMPORTANT K_THAN exprSkyline												#preferenceMoreImportant
+ : exprSkyline ',' exprSkyline																			#skylineAnd
+ | column_term op=(K_LOW | K_HIGH)	(signed_number (K_EQUAL | K_INCOMPARABLE))?	#skylinePreferenceLowHigh
+ | column_term ('(' exprCategory ')')																	#skylinePreferenceCategory
+ | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term)			#skylinePreferenceAround
+ | exprSkyline K_IS K_MORE K_IMPORTANT K_THAN exprSkyline												#skylineMoreImportant
+ ;
 
+
+exprRanking
+ : exprRanking ',' exprRanking																						#weightedsumAnd   
+ | column_term op=(K_LOW | K_HIGH) (signed_number (K_EQUAL))?	signed_number										#weightedsumLowHigh
+ | column_term ('(' exprCategory ')') signed_number																	#weightedsumCategory
+ | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term) signed_number		#weightedsumAround
  ;
 
 
@@ -242,8 +250,6 @@ keyword
  | K_FAVOUR
  | K_HIGH
  | K_LOW
- | K_HIGHDATE
- | K_LOWDATE
  | K_OTHERS
  | K_EQUAL
  | K_INCOMPARABLE
@@ -253,6 +259,7 @@ keyword
  | K_MORE
  | K_IMPORTANT
  | K_THAN
+ | K_RANKING
  ;
 
 
@@ -359,8 +366,6 @@ K_DISFAVOUR : D I S F A V O U R;
 K_FAVOUR : F A V O U R;
 K_HIGH : H I G H;
 K_LOW : L O W;
-K_HIGHDATE: H I G H D A T E;
-K_LOWDATE : L O W D A T E;
 K_OTHERS : O T H E R S ;
 K_EQUAL : E Q U A L;
 K_INCOMPARABLE : I N C O M P A R A B L E;
@@ -370,7 +375,7 @@ K_BESTRANK : B E S T '_' R A N K;
 K_MORE: M O R E;
 K_IMPORTANT: I M P O R T A N T;
 K_THAN: T H A N;
-
+K_RANKING : R A N K I N G;
 
 
  /*

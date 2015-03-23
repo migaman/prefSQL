@@ -75,6 +75,7 @@
     <Compile Include="Models\AttributeModel.cs" />
     <Compile Include="Models\OrderByModel.cs" />
     <Compile Include="Models\PrefSQLModel.cs" />
+    <Compile Include="Models\RankingModel.cs" />
     <Compile Include="SQLCommon.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SQLCriterion.cs" />

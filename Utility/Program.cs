@@ -86,12 +86,26 @@ namespace Utility
                     //"WHERE (t1.price < 4000) " + 
                     //"SKYLINE OF t1.price LOW, t1.mileage LOW ";
                     //"SKYLINE OF t1.price AROUND 10000, colors.name ('pink' >> 'rot' >> 'schwarz' >> OTHERS EQUAL) " +
-                    "SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau') ";
+                    "SKYLINE OF t1.price LOW, t1.mileage LOW ";
                     //"SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000";
                     //", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +
                     //", t1.doors HIGH, t1.seats HIGH 2, t1.cylinders HIGH, t1.gears HIGH ";
                     //"ORDER BY BEST_RANK() ";
 
+                strPrefSQL = "SELECT cars_small.price, cars_small.mileage FROM cars_small   " +
+                    "RANKING OF cars_small.price AROUND 10000 0.89, cars_small.mileage HIGH 0.01, cars_small.title ({'MERCEDES-BENZ SL 500', 'VW', 'Skoda'} >> OTHERS EQUAL) 0.1";
+                
+
+
+                //Problem Stefan
+                strPrefSQL = "SELECT TOP 5 \r\n" +
+                    "c.id AS ID, c.title AS Name, c.Price, co.Name AS Color, b.Name AS Body, c.reference \r\n" +
+                    "FROM Cars_small c  \r\n" +
+                    "LEFT OUTER JOIN colors co ON c.color_id = co.ID \r\n" +
+                    "LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, co.name ('rot' >> OTHERS EQUAL), b.name ('Busdddd' >> 'Kfffleinwagen') ORDER BY BEST_RANK()"; 
+                
+                //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage FROM cars_small t1 " +
+                  //  "SKYLINE OF t1.price LOW, t1.mileage HIGH";
 
                 //strPrefSQL = "SELECT c.id AS ID FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
 
@@ -99,9 +113,9 @@ namespace Utility
                 Debug.WriteLine("--------------------------------------------");
 
                 SQLCommon parser = new SQLCommon();
-                parser.SkylineType = new SkylineSQL();
-                //parser.SkylineType = new SkylineBNL();
-                parser.SkylineType = new SkylineBNLSort();
+                //parser.SkylineType = new SkylineSQL();
+                parser.SkylineType = new SkylineBNL();
+                //parser.SkylineType = new SkylineBNLSort();
                 //parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new MultipleSkylineBNL();
                 //parser.SkylineType = new SkylineDQ();
