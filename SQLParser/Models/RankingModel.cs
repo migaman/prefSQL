@@ -11,11 +11,11 @@ namespace prefSQL.SQLParser.Models
 
         public RankingModel(string strFullColumnName, string strColumnName, string strExpression, double weight, string strSelectExtrema)
         {
-            FullColumnName = strFullColumnName;
-            ColumnName = strColumnName;
-            Expression = strExpression;
-            Weight = weight;
-            SelectExtrema = strSelectExtrema;
+            FullColumnName = strFullColumnName;     //Full Column name (inlcuding table name)
+            ColumnName = strColumnName;             //Column Name (wihtout table name)
+            Expression = strExpression;             //SQL Expression
+            Weight = weight;                        //Weight of prereference
+            SelectExtrema = strSelectExtrema;       //Extremas (min, max) of preference
         }
 
         public string SelectExtrema { get; set; }

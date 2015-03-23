@@ -139,7 +139,7 @@ namespace prefSQL.SQLParser
                         withIncomparable = prefSQL.WithIncomparable;
 
                         //Add all Syntax before the Skyline-Clause
-                        strSQLReturn = strInput.Substring(0, strInput.IndexOf(SkylineOf) - 1);
+                        strSQLReturn = strInput.Substring(0, strInput.IndexOf(SkylineOf) - 1).TrimStart(' ');;
 
                         //Add Skyline Attributes to select list. This option is i.e. useful to create a dominance graph.
                         //With help of the skyline values it is easier to create this graph
@@ -334,7 +334,7 @@ namespace prefSQL.SQLParser
             for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
                 //Replace ROW_NUMBER with Rank, for the reason that multiple tuples can have the same value (i.e. mileage=0)
-                string strRank = model.Skyline[iChild].RankHexagon;
+                string strRank = model.Skyline[iChild].HexagonRank;
                 strSQL += ", " + strRank;
                 strOperators += "LOW" + ";";
                 if (model.Skyline[iChild].Comparable == false && model.Skyline[iChild].AmountOfIncomparables > 0)
@@ -379,9 +379,9 @@ namespace prefSQL.SQLParser
             for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
                 //Replace ROW_NUMBER with Rank, for the reason that multiple tuples can have the same value (i.e. mileage=0)
-                string strRank = model.Skyline[iChild].RankHexagon;
+                string strRank = model.Skyline[iChild].HexagonRank;
                 strSQL += ", " + strRank;
-                strMaxSQL += ", MAX(Rank" + model.Skyline[iChild].RankColumnName + ")";
+                strMaxSQL += ", MAX(Rank" + model.Skyline[iChild].FullColumnName.Replace(".", "") + ")";
                 
                 //Add additional columns if attribute is incomparable
                 if (model.Skyline[iChild].Comparable == false && model.Skyline[iChild].AmountOfIncomparables > 0)
@@ -392,7 +392,7 @@ namespace prefSQL.SQLParser
                     {
                         strMaxSQL += "CALCULATEINCOMPARABLE";
                         strDistinctSelect = model.Skyline[iChild].IncomparableAttribute;
-                        weight = model.Skyline[iChild].WeightHexagonIncomparable;
+                        weight = model.Skyline[iChild].HexagonWeightIncomparable;
                     }
                     else
                     {

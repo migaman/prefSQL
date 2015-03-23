@@ -9,7 +9,7 @@ namespace prefSQL.SQLParser.Models
     class AttributeModel
     {
 
-        public AttributeModel(string strColumnExpression, string strOperator, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumnName, string strRankColumn, string strRankHexagon, string strOrderBy, bool isCategory, string columnName, string strHexagonIncomparable, int amountIncomparable, int weightHexagonIncomparable, string strExpression)
+        public AttributeModel(string strColumnExpression, string strOperator, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumn, string strRankHexagon, string strOrderBy, bool isCategory, string columnName, string strHexagonIncomparable, int amountIncomparable, int weightHexagonIncomparable, string strExpression)
         {
             ColumnExpression = strColumnExpression;                 //Column expression                 (i.e. CASE WHEN colors.name = 'türkis' THEN 0 WHEN colors.name = 'gelb' THEN 100 ELSE 200 END)
             InnerColumnExpression = strInnerColumnExpression;       //Inner column expression           (i.e CASE WHEN colors_INNER.name = 'türkis' THEN 0 WHEN colors_INNER.name = 'gelb' THEN 100 ELSE 200 END)
@@ -21,21 +21,25 @@ namespace prefSQL.SQLParser.Models
 
             Expression = strExpression;                             //
 
-            RankColumn = strRankColumn;                             
-            RankColumnName = strRankColumnName;
-            RankHexagon = strRankHexagon;
-            HexagonIncomparable = strHexagonIncomparable;
+            RankColumn = strRankColumn;
+
+
+            ColumnName = columnName;
 
             OrderBy = strOrderBy;
             IsCategory = isCategory;
-            ColumnName = columnName;
+            
 
             AmountOfIncomparables = amountIncomparable;
-            WeightHexagonIncomparable = weightHexagonIncomparable;
+
+
+            HexagonRank = strRankHexagon;
+            HexagonIncomparable = strHexagonIncomparable;
+            HexagonWeightIncomparable = weightHexagonIncomparable;
         }
 
-        public AttributeModel(string strColumnExpression, string strOperator, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumnName, string strRankColumn, string strRankHexagon, string strOrderBy, bool isCategory, string columnName, string strHexagonIncomparable, int amountIncomparable, string strExpression)
-            : this(strColumnExpression, strOperator, strInnerColumnExpression, strFullColumnName, strInnerColumnName, isComparable, strIncomporableAttribute, strRankColumnName, strRankColumn, strRankHexagon, strOrderBy, isCategory, columnName, strHexagonIncomparable, amountIncomparable, 0, strExpression)
+        public AttributeModel(string strColumnExpression, string strOperator, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankColumn, string strRankHexagon, string strOrderBy, bool isCategory, string columnName, string strHexagonIncomparable, int amountIncomparable, string strExpression)
+            : this(strColumnExpression, strOperator, strInnerColumnExpression, strFullColumnName, strInnerColumnName, isComparable, strIncomporableAttribute, strRankColumn, strRankHexagon, strOrderBy, isCategory, columnName, strHexagonIncomparable, amountIncomparable, 0, strExpression)
         {
         }
 
@@ -57,12 +61,9 @@ namespace prefSQL.SQLParser.Models
 
         public string IncomparableAttribute { get; set; }
 
-        public string RankColumnName { get; set; }
         public string RankColumn { get; set; }
         
-        public string RankHexagon { get; set; }
 
-        public string HexagonIncomparable { get; set; }
 
         public string OrderBy { get; set; }
 
@@ -70,6 +71,10 @@ namespace prefSQL.SQLParser.Models
 
         public string ColumnName { get; set; }
 
-        public int WeightHexagonIncomparable { get; set; }
+        public int HexagonWeightIncomparable { get; set; }
+
+        public string HexagonRank { get; set; }
+
+        public string HexagonIncomparable { get; set; }
     }
 }

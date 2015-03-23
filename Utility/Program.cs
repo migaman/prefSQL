@@ -94,29 +94,21 @@ namespace Utility
 
                 strPrefSQL = "SELECT cars_small.price, cars_small.mileage FROM cars_small   " +
                     "RANKING OF cars_small.price AROUND 10000 0.89, cars_small.mileage HIGH 0.01, cars_small.title ({'MERCEDES-BENZ SL 500', 'VW', 'Skoda'} >> OTHERS EQUAL) 0.1";
+
+
+
+                strPrefSQL = "SELECT t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price LOW";
                 
-
-
-                //Problem Stefan
-                strPrefSQL = "SELECT TOP 5 \r\n" +
-                    "c.id AS ID, c.title AS Name, c.Price, co.Name AS Color, b.Name AS Body, c.reference \r\n" +
-                    "FROM Cars_small c  \r\n" +
-                    "LEFT OUTER JOIN colors co ON c.color_id = co.ID \r\n" +
-                    "LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, co.name ('rot' >> OTHERS EQUAL), b.name ('Busdddd' >> 'Kfffleinwagen') ORDER BY BEST_RANK()"; 
                 
-                //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage FROM cars_small t1 " +
-                  //  "SKYLINE OF t1.price LOW, t1.mileage HIGH";
-
-                //strPrefSQL = "SELECT c.id AS ID FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
 
                 Debug.WriteLine(strPrefSQL);
                 Debug.WriteLine("--------------------------------------------");
 
                 SQLCommon parser = new SQLCommon();
                 //parser.SkylineType = new SkylineSQL();
-                parser.SkylineType = new SkylineBNL();
+                //parser.SkylineType = new SkylineBNL();
                 //parser.SkylineType = new SkylineBNLSort();
-                //parser.SkylineType = new SkylineHexagon();
+                parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new MultipleSkylineBNL();
                 //parser.SkylineType = new SkylineDQ();
                 //parser.ShowSkylineAttributes = true;
