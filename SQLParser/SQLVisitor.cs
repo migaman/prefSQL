@@ -312,6 +312,7 @@ namespace prefSQL.SQLParser
             //Add the preference to the list               
             //pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, strFullColumnName, "", bComparable, strIncomporableAttribute, strColumnName, strRankColumn, strRankHexagon, strSQL, false, strColumnName, "", 0, strExpression));
             pref.Tables = tables;
+            pref.NumberOfRecords = numberOfRecords;
             pref.WithIncomparable = hasIncomparableTuples;
             model = pref;
             return pref;
@@ -403,6 +404,7 @@ namespace prefSQL.SQLParser
 
             //Add the preference to the list               
             pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, strFullColumnName, "", bComparable, strIncomporableAttribute, strColumnName, strRankColumn, strRankHexagon, strSQL, false, strColumnName, "", 0, strExpression));
+            pref.NumberOfRecords = numberOfRecords;
             pref.Tables = tables;
             pref.WithIncomparable = hasIncomparableTuples;
             model = pref;
@@ -539,6 +541,7 @@ namespace prefSQL.SQLParser
             //Add the preference to the list               
             pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, strSingleColumn.Replace(".", ""), strRankColumn, strRankHexagon, strSQL, true, strColumnName, strHexagonIncomparable, amountOfIncomparable, weightHexagonIncomparable, strExpression));
             pref.Tables = tables;
+            pref.NumberOfRecords = numberOfRecords;
             pref.WithIncomparable = hasIncomparableTuples;
             model = pref;
             return pref;
@@ -619,6 +622,7 @@ namespace prefSQL.SQLParser
             //Add the preference to the list               
             pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, strFullColumnName, "", true, "", "", strRankColumn, strRankHexagon, strSQL, false, strColumn, "", 0, strExpression));
             pref.Tables = tables;
+            pref.NumberOfRecords = numberOfRecords;
             pref.WithIncomparable = hasIncomparableTuples;
             model = pref;
             return pref;
