@@ -90,7 +90,7 @@ namespace prefSQL.SQLParser
                 {
                     strSQL += " + ";
                 }
-                strSQL += model.Skyline[iChild].RankColumn.Replace("ROW_NUMBER()", "DENSE_RANK()");
+                strSQL += model.Skyline[iChild].RankExpression;
 
             }
 
@@ -111,29 +111,32 @@ namespace prefSQL.SQLParser
 
             for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
+                string strRankingExpression = model.Skyline[iChild].RankExpression.Replace("DENSE_RANK()", "ROW_NUMBER()");
+
                 if (model.Skyline.Count == 1)
                 {
                     //special case if totally only one preference
-                    strSQL += "WHEN 1=1 THEN " + model.Skyline[iChild].RankColumn + " ";
+                    strSQL += "WHEN 1=1 THEN " + strRankingExpression + " ";
                 }
                 if (iChild == model.Skyline.Count - 1)
                 {
                     //Last record only needs ELSE
-                    strSQL += " ELSE " + "" + model.Skyline[iChild].RankColumn;
+                    strSQL += " ELSE " + "" + strRankingExpression;
                 }
                 else
                 {
                     strSQL += "WHEN ";
-                    strRanking = model.Skyline[iChild].RankColumn;
+                    strRanking = strRankingExpression;
                     for (int iSubChild = iChild + 1; iSubChild < model.Skyline.Count; iSubChild++)
                     {
-                        strSQL += strRanking + " <=" + model.Skyline[iSubChild].RankColumn;
+                        string strSubRanking = model.Skyline[iSubChild].RankExpression.Replace("DENSE_RANK()", "ROW_NUMBER()");
+                        strSQL += strRanking + " <=" + strSubRanking;
                         if (iSubChild < model.Skyline.Count - 1)
                         {
                             strSQL += " AND ";
                         }
                     }
-                    strSQL += " THEN " + model.Skyline[iChild].RankColumn + " ";
+                    strSQL += " THEN " + strRankingExpression + " ";
                 }
                 
             }

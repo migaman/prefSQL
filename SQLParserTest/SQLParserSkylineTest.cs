@@ -24,7 +24,7 @@ namespace prefSQL.SQLParserTest
             //1 numerical preference
             strPrefSQL[0] = "SELECT t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price LOW";
             //3 numerical preferences
-            strPrefSQL[1] = "   SELECT   * FROM cars_small t1 SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH";
+            strPrefSQL[1] = "   SELECT   * FROM cars_small t1 SKYLINE OF t1.price AROUND 10000, t1.mileage LOW, t1.horsepower HIGH";
             //6 numerical preferences with EQUAL STEPS
             strPrefSQL[2] = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
                 "SKYLINE OF cars_small.price LOW 3000 EQUAL, cars_small.mileage LOW 20000 EQUAL, cars_small.horsepower HIGH 20 EQUAL, cars_small.enginesize HIGH 1000 EQUAL, cars_small.consumption LOW 15 EQUAL, cars_small.doors HIGH ";
@@ -388,53 +388,12 @@ namespace prefSQL.SQLParserTest
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH";
 
-            string expected = "SELECT * , DENSE_RANK() OVER (ORDER BY cars.price) AS SkylineAttributecars_price, DENSE_RANK() OVER (ORDER BY cars.mileage) AS SkylineAttributecars_mileage, DENSE_RANK() OVER (ORDER BY cars.horsepower) * -1 AS SkylineAttributecars_horsepower FROM cars WHERE NOT EXISTS(SELECT * , DENSE_RANK() OVER (ORDER BY cars_INNER.price) AS SkylineAttributecars_price, DENSE_RANK() OVER (ORDER BY cars_INNER.mileage) AS SkylineAttributecars_mileage, DENSE_RANK() OVER (ORDER BY cars_INNER.horsepower) * -1 AS SkylineAttributecars_horsepower FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower * -1 <= cars.horsepower * -1 AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower * -1 < cars.horsepower * -1) ) ";
+            string expected = "SELECT * , DENSE_RANK() OVER (ORDER BY cars.price) AS SkylineAttributecars_price, DENSE_RANK() OVER (ORDER BY cars.mileage) AS SkylineAttributecars_mileage, DENSE_RANK() OVER (ORDER BY cars.horsepower * -1) AS SkylineAttributecars_horsepower FROM cars WHERE NOT EXISTS(SELECT * , DENSE_RANK() OVER (ORDER BY cars_INNER.price) AS SkylineAttributecars_price, DENSE_RANK() OVER (ORDER BY cars_INNER.mileage) AS SkylineAttributecars_mileage, DENSE_RANK() OVER (ORDER BY cars_INNER.horsepower * -1) AS SkylineAttributecars_horsepower FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower * -1 <= cars.horsepower * -1 AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower * -1 < cars.horsepower * -1) ) ";
             SQLCommon common = new SQLCommon();
             common.ShowSkylineAttributes = true;
             string actual = common.parsePreferenceSQL(strPrefSQL);
 
             Assert.AreEqual(expected.Trim(), actual.Trim(), true, "SQL not built correctly");
-        }
-
-
-
-        [TestMethod]
-        public void TestSKYLINEBNLDateField()
-        {
-
-            string strPrefSQL = "SELECT cars_small.price,cars_small.mileage,cars_small.registration FROM cars_small SKYLINE OF cars_small.price LOW, cars_small.mileage LOW, cars_small.registration HIGH";
-
-            SQLCommon common = new SQLCommon();
-            common.SkylineType = new SkylineBNLSort();
-            string sqlBNL = common.parsePreferenceSQL(strPrefSQL);
-
-            int amountOfTupelsBNL = 0;
-
-            SqlConnection cnnSQL = new SqlConnection(strConnection);
-            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
-            try
-            {
-                cnnSQL.Open();
-
-                 //BNL
-                SqlCommand sqlCommand = new SqlCommand(sqlBNL, cnnSQL);
-                SqlDataReader  sqlReader = sqlCommand.ExecuteReader();
-
-                if (sqlReader.HasRows)
-                {
-                    while (sqlReader.Read())
-                    {
-                        amountOfTupelsBNL++;
-                    }
-                }
-                cnnSQL.Close();
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail("Connection failed:" + ex.Message);
-            }
-
-            Assert.AreEqual(24, amountOfTupelsBNL, 0, "Amount of tupels does not match");
         }
 
 

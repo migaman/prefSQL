@@ -49,7 +49,7 @@ namespace prefSQL.SQLParserTest
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH ORDER BY BEST_RANK()";
 
-            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower * -1 <= cars.horsepower * -1 AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower * -1 < cars.horsepower * -1) )  ORDER BY CASE WHEN ROW_NUMBER() over (ORDER BY cars.price ASC) <=ROW_NUMBER() over (ORDER BY cars.mileage ASC) AND ROW_NUMBER() over (ORDER BY cars.price ASC) <=ROW_NUMBER() over (ORDER BY cars.horsepower DESC) THEN ROW_NUMBER() over (ORDER BY cars.price ASC) WHEN ROW_NUMBER() over (ORDER BY cars.mileage ASC) <=ROW_NUMBER() over (ORDER BY cars.horsepower DESC) THEN ROW_NUMBER() over (ORDER BY cars.mileage ASC)  ELSE ROW_NUMBER() over (ORDER BY cars.horsepower DESC) END";
+            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower * -1 <= cars.horsepower * -1 AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower * -1 < cars.horsepower * -1) )  ORDER BY CASE WHEN ROW_NUMBER() over (ORDER BY cars.price) <=ROW_NUMBER() over (ORDER BY cars.mileage) AND ROW_NUMBER() over (ORDER BY cars.price) <=ROW_NUMBER() over (ORDER BY cars.horsepower * -1) THEN ROW_NUMBER() over (ORDER BY cars.price) WHEN ROW_NUMBER() over (ORDER BY cars.mileage) <=ROW_NUMBER() over (ORDER BY cars.horsepower * -1) THEN ROW_NUMBER() over (ORDER BY cars.mileage)  ELSE ROW_NUMBER() over (ORDER BY cars.horsepower * -1) END";
             SQLCommon common = new SQLCommon();
             string actual = common.parsePreferenceSQL(strPrefSQL);
 
@@ -67,7 +67,7 @@ namespace prefSQL.SQLParserTest
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH ORDER BY SUM_RANK()";
 
-            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower * -1 <= cars.horsepower * -1 AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower * -1 < cars.horsepower * -1) )  ORDER BY DENSE_RANK() over (ORDER BY cars.price ASC) + DENSE_RANK() over (ORDER BY cars.mileage ASC) + DENSE_RANK() over (ORDER BY cars.horsepower DESC)";
+            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower * -1 <= cars.horsepower * -1 AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower * -1 < cars.horsepower * -1) )  ORDER BY DENSE_RANK() over (ORDER BY cars.price) + DENSE_RANK() over (ORDER BY cars.mileage) + DENSE_RANK() over (ORDER BY cars.horsepower * -1)";
             SQLCommon common = new SQLCommon();
             string actual = common.parsePreferenceSQL(strPrefSQL);
 

@@ -103,7 +103,7 @@ namespace prefSQL.SQLParser
                 //Falls Text-Spalte ein zusätzliches OR einbauen für den Vergleich Farbe = Farbe
                 if (needsTextORClause == true)
                 {
-                    strWhereEqual += " OR " + model.Skyline[iChild].InnerColumnName + " = " + model.Skyline[iChild].FullColumnName;
+                    strWhereEqual += " OR " + model.Skyline[iChild].InnerFullColumnName + " = " + model.Skyline[iChild].FullColumnName;
                     strWhereEqual += ")";
                 }
 
