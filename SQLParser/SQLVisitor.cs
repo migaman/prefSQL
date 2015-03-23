@@ -403,7 +403,7 @@ namespace prefSQL.SQLParser
 
 
             //Add the preference to the list               
-            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, strFullColumnName, "", bComparable, strIncomporableAttribute, strRankColumn, strRankHexagon, strSQL, false, strColumnName, "", 0, strExpression));
+            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, strFullColumnName, "", bComparable, strIncomporableAttribute, strRankColumn, strRankHexagon, strSQL, false, "", 0, strExpression));
             pref.NumberOfRecords = numberOfRecords;
             pref.Tables = tables;
             pref.WithIncomparable = hasIncomparableTuples;
@@ -544,7 +544,7 @@ namespace prefSQL.SQLParser
 
 
             //Add the preference to the list               
-            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, strRankColumn, strRankHexagon, strSQL, true, strColumnName, strHexagonIncomparable, amountOfIncomparable, weightHexagonIncomparable, strExpression));
+            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, strRankColumn, strRankHexagon, strSQL, true, strHexagonIncomparable, amountOfIncomparable, weightHexagonIncomparable, strExpression));
             pref.Tables = tables;
             pref.NumberOfRecords = numberOfRecords;
             pref.WithIncomparable = hasIncomparableTuples;
@@ -562,7 +562,7 @@ namespace prefSQL.SQLParser
             string strSQL = "";
             PrefSQLModel pref = new PrefSQLModel();
 
-            string strColumn = "";
+            string strColumnName = "";
             string strFullColumnName = "";
             string strColumnExpression = "";
             string strTable = "";
@@ -574,9 +574,9 @@ namespace prefSQL.SQLParser
             string strExpression = "";
 
             //Separate Column and Table
-            strColumn = getColumnName(context.GetChild(0));
+            strColumnName = getColumnName(context.GetChild(0));
             strTable = getTableName(context.GetChild(0));
-            strFullColumnName = strTable + "." + strColumn;
+            strFullColumnName = strTable + "." + strColumnName;
 
             switch (context.op.Type)
             {
@@ -626,7 +626,7 @@ namespace prefSQL.SQLParser
             
 
             //Add the preference to the list               
-            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, strFullColumnName, "", true, "", strRankColumn, strRankHexagon, strSQL, false, strColumn, "", 0, strExpression));
+            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, strFullColumnName, "", true, "", strRankColumn, strRankHexagon, strSQL, false, "", 0, strExpression));
             pref.Tables = tables;
             pref.NumberOfRecords = numberOfRecords;
             pref.WithIncomparable = hasIncomparableTuples;
@@ -659,7 +659,7 @@ namespace prefSQL.SQLParser
             string strSkyline = "DENSE_RANK()" + " OVER (ORDER BY " + strSortOrder + ")";
 
             left.Skyline[0].ColumnExpression = strSkyline;
-            left.Skyline[0].ColumnName = strColumnALIAS;
+            //left.Skyline[0].ColumnName = strColumnALIAS;
             left.Skyline[0].Comparable = left.Skyline[0].Comparable && right.Skyline[0].Comparable;
 
             //Add the columns to the preference model
