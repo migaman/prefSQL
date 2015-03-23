@@ -65,7 +65,8 @@ namespace prefSQL.SQLParser
                 {
                     strSQL += ", ";
                 }
-                strSQL += model.Skyline[iChild].OrderBy.ToString();
+                //strSQL += model.Skyline[iChild].OrderBy.ToString();
+                strSQL += model.Skyline[iChild].Expression.ToString();
             }
             return strSQL;
         }

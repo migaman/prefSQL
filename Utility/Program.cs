@@ -97,7 +97,7 @@ namespace Utility
 
 
 
-                strPrefSQL = "    SELECT TOP 5 t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price HIGH, t1.title ('MERCEDES-BENZ SL 500' >> OTHERS EQUAL)";
+                strPrefSQL = "SELECT TOP 5 t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price HIGH, t1.title ('MERCEDES-BENZ SL 500' >> OTHERS EQUAL)";
                 
                 
 
