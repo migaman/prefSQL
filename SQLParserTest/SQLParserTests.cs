@@ -70,7 +70,7 @@ namespace prefSQL.SQLParserTest
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.horsepower HIGH";
 
-            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.horsepower > cars.horsepower) ) ";
+            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.horsepower * -1 <= cars.horsepower * -1 AND ( cars_INNER.horsepower * -1 < cars.horsepower * -1) ) ";
             SQLCommon common = new SQLCommon();
             string actual = common.parsePreferenceSQL(strPrefSQL);
 
@@ -125,7 +125,7 @@ namespace prefSQL.SQLParserTest
         {
             string strPrefSQL = "SELECT * FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF colors.name DISFAVOUR 'rot'";
 
-            string expected = "SELECT * FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT * FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE CASE WHEN colors_INNER.name = 'rot' THEN 1 ELSE 2 END >= CASE WHEN colors.name = 'rot' THEN 1 ELSE 2 END AND ( CASE WHEN colors_INNER.name = 'rot' THEN 1 ELSE 2 END > CASE WHEN colors.name = 'rot' THEN 1 ELSE 2 END) ) ";
+            string expected = "SELECT * FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT * FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE CASE WHEN colors_INNER.name = 'rot' THEN 1 ELSE 2 END * -1 <= CASE WHEN colors.name = 'rot' THEN 1 ELSE 2 END * -1 AND ( CASE WHEN colors_INNER.name = 'rot' THEN 1 ELSE 2 END * -1 < CASE WHEN colors.name = 'rot' THEN 1 ELSE 2 END * -1) ) ";
             SQLCommon common = new SQLCommon();
             string actual = common.parsePreferenceSQL(strPrefSQL);
 

@@ -384,7 +384,7 @@ namespace prefSQL.SQLParserTest
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH";
 
-            string expected = "SELECT * , DENSE_RANK() OVER (ORDER BY cars.price) AS SkylineAttributecars_price, DENSE_RANK() OVER (ORDER BY cars.mileage) AS SkylineAttributecars_mileage, DENSE_RANK() OVER (ORDER BY cars.horsepower)*-1 AS SkylineAttributecars_horsepower FROM cars WHERE NOT EXISTS(SELECT * , DENSE_RANK() OVER (ORDER BY cars_INNER.price) AS SkylineAttributecars_price, DENSE_RANK() OVER (ORDER BY cars_INNER.mileage) AS SkylineAttributecars_mileage, DENSE_RANK() OVER (ORDER BY cars_INNER.horsepower)*-1 AS SkylineAttributecars_horsepower FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) ) ";
+            string expected = "SELECT * , DENSE_RANK() OVER (ORDER BY cars.price) AS SkylineAttributecars_price, DENSE_RANK() OVER (ORDER BY cars.mileage) AS SkylineAttributecars_mileage, DENSE_RANK() OVER (ORDER BY cars.horsepower) * -1 AS SkylineAttributecars_horsepower FROM cars WHERE NOT EXISTS(SELECT * , DENSE_RANK() OVER (ORDER BY cars_INNER.price) AS SkylineAttributecars_price, DENSE_RANK() OVER (ORDER BY cars_INNER.mileage) AS SkylineAttributecars_mileage, DENSE_RANK() OVER (ORDER BY cars_INNER.horsepower) * -1 AS SkylineAttributecars_horsepower FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower * -1 <= cars.horsepower * -1 AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower * -1 < cars.horsepower * -1) ) ";
             SQLCommon common = new SQLCommon();
             common.ShowSkylineAttributes = true;
             string actual = common.parsePreferenceSQL(strPrefSQL);
@@ -456,20 +456,6 @@ namespace prefSQL.SQLParserTest
             string strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF cars.price LOW, colors.name FAVOUR 'rot'";
 
             string expected = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.Price, colors_INNER.Name FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE cars_INNER.price <= cars.price AND CASE WHEN colors_INNER.name = 'rot' THEN 1 ELSE 2 END <= CASE WHEN colors.name = 'rot' THEN 1 ELSE 2 END AND ( cars_INNER.price < cars.price OR CASE WHEN colors_INNER.name = 'rot' THEN 1 ELSE 2 END < CASE WHEN colors.name = 'rot' THEN 1 ELSE 2 END) )";
-            SQLCommon common = new SQLCommon();
-            string actual = common.parsePreferenceSQL(strPrefSQL);
-
-            // assert
-
-            Assert.AreEqual(expected.Trim(), actual.Trim(), true, "SQL not built correctly");
-        }
-
-        [TestMethod]
-        public void TestSKYLINEDisfavourGruen()
-        {
-            string strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF cars.price LOW, colors.name DISFAVOUR 'grün'";
-
-            string expected = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.Price, colors_INNER.Name FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE cars_INNER.price <= cars.price AND CASE WHEN colors_INNER.name = 'grün' THEN 1 ELSE 2 END >= CASE WHEN colors.name = 'grün' THEN 1 ELSE 2 END AND ( cars_INNER.price < cars.price OR CASE WHEN colors_INNER.name = 'grün' THEN 1 ELSE 2 END > CASE WHEN colors.name = 'grün' THEN 1 ELSE 2 END) )";
             SQLCommon common = new SQLCommon();
             string actual = common.parsePreferenceSQL(strPrefSQL);
 
@@ -650,7 +636,7 @@ namespace prefSQL.SQLParserTest
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH ORDER BY price ASC, mileage ASC, horsepower DESC";
 
-            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower) ) ORDER BY price ASC, mileage ASC, horsepower DESC";
+            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower * -1 <= cars.horsepower * -1 AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower * -1 < cars.horsepower * -1) ) ORDER BY price ASC, mileage ASC, horsepower DESC";
             SQLCommon common = new SQLCommon();
             string actual = common.parsePreferenceSQL(strPrefSQL);
 
@@ -662,23 +648,6 @@ namespace prefSQL.SQLParserTest
 
         }
 
-
-        [TestMethod]
-        public void TestSKYLINE6Dimensions()
-        {
-            string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH, cars.enginesize HIGH, cars.registration HIGH, cars.consumption LOW ORDER BY price ASC, mileage ASC, horsepower DESC, enginesize DESC, registration DESC, consumption ASC";
-
-            string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower >= cars.horsepower AND cars_INNER.enginesize >= cars.enginesize AND cars_INNER.registration >= cars.registration AND cars_INNER.consumption <= cars.consumption AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower > cars.horsepower OR cars_INNER.enginesize > cars.enginesize OR cars_INNER.registration > cars.registration OR cars_INNER.consumption < cars.consumption) ) ORDER BY price ASC, mileage ASC, horsepower DESC, enginesize DESC, registration DESC, consumption ASC";
-            SQLCommon common = new SQLCommon();
-            string actual = common.parsePreferenceSQL(strPrefSQL);
-
-            // assert
-
-            Assert.AreEqual(expected.Trim(), actual.Trim(), true, "SQL not built correctly");
-
-
-
-        }
 
 
 

@@ -334,7 +334,7 @@ namespace prefSQL.SQLParser
             string strInnerColumnExpression = "";
             string strFullColumnName = "";
             string strTable = "";
-            string strOperator = "";
+            //string strOperator = "";
             string strRankColumn = "";
             string strRankHexagon = "";
             string strLevelStep = "";
@@ -343,6 +343,7 @@ namespace prefSQL.SQLParser
             string strExpression = "";
             bool bComparable = true;
             string strIncomporableAttribute = "";
+            string strOpposite = "";
             
             //Separate Column and Table
             strColumnName = getColumnName(context.GetChild(0));
@@ -375,26 +376,26 @@ namespace prefSQL.SQLParser
             {
                 string strSortOrder = "ASC";
                 string strLevelAdditionaly = strLevelAdd;
-                strOperator = "<";
                 if (context.op.Type == SQLParser.K_HIGH)
                 {
                     strSortOrder = "DESC";
-                    strOperator = ">";
                     strLevelAdditionaly = strLevelMinus;
+                    //Multiply with -1 (result: every value can be minimized!)
+                    strOpposite = " * -1";
                 }
                 strSQL = strColumnName + strLevelStep + " " + strSortOrder;
                 strRankHexagon = "DENSE_RANK()" + " over (ORDER BY " + strFullColumnName + strLevelStep + " " + strSortOrder + ")-1 AS Rank" + strFullColumnName.Replace(".", "");
                 strRankColumn = RankingFunction + " over (ORDER BY " + strFullColumnName + " " + strSortOrder + ")";
-                strColumnExpression = "DENSE_RANK() OVER (ORDER BY " + strFullColumnName + strLevelStep + ")";
-                strExpression = strFullColumnName + strLevelStep;
+                strColumnExpression = "DENSE_RANK() OVER (ORDER BY " + strFullColumnName + strLevelStep + ")" + strOpposite;
+                strExpression = strFullColumnName + strLevelStep + strOpposite;
                 if (isLevelStepEqual == true)
                 {
-                    strInnerColumnExpression = strTable + InnerTableSuffix + "." + strColumnName + strLevelStep;
+                    strInnerColumnExpression = strTable + InnerTableSuffix + "." + strColumnName + strLevelStep + strOpposite;
                 }
                 else
                 {   
                     //Values from the same step are Incomparable
-                    strInnerColumnExpression = "(" + strTable + InnerTableSuffix + "." + strColumnName + strLevelAdditionaly + ")" + strLevelStep;
+                    strInnerColumnExpression = "(" + strTable + InnerTableSuffix + "." + strColumnName + strLevelAdditionaly + ")" + strLevelStep + strOpposite;
                     strIncomporableAttribute = "'INCOMPARABLE'";
                 }
                 
@@ -403,7 +404,7 @@ namespace prefSQL.SQLParser
 
 
             //Add the preference to the list               
-            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, strFullColumnName, "", bComparable, strIncomporableAttribute, strRankColumn, strRankHexagon, strSQL, false, "", 0, strExpression));
+            pref.Skyline.Add(new AttributeModel(strColumnExpression, strInnerColumnExpression, strFullColumnName, "", bComparable, strIncomporableAttribute, strRankColumn, strRankHexagon, strSQL, false, "", 0, strExpression));
             pref.NumberOfRecords = numberOfRecords;
             pref.Tables = tables;
             pref.WithIncomparable = hasIncomparableTuples;
@@ -425,7 +426,7 @@ namespace prefSQL.SQLParser
             string strSQL = "";
             string strColumnName = "";
             string strTable = "";
-            string strOperator = "";
+            //string strOperator = "";
             string strRankColumn = "";
             string strRankHexagon = "";
             string strHexagonIncomparable = "";
@@ -538,13 +539,12 @@ namespace prefSQL.SQLParser
             //Categories are always sorted ASCENDING
             string strExpression = strSQL;
             strSQL += " ASC";
-            strOperator = "<";
             strRankColumn = RankingFunction + " over (ORDER BY " + strSQL + ")";
             strRankHexagon = "DENSE_RANK()" + " over (ORDER BY " + strSQL + ")-1 AS Rank" + strFullColumnName.Replace(".", "");
 
 
             //Add the preference to the list               
-            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, strRankColumn, strRankHexagon, strSQL, true, strHexagonIncomparable, amountOfIncomparable, weightHexagonIncomparable, strExpression));
+            pref.Skyline.Add(new AttributeModel(strColumnExpression, strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, strRankColumn, strRankHexagon, strSQL, true, strHexagonIncomparable, amountOfIncomparable, weightHexagonIncomparable, strExpression));
             pref.Tables = tables;
             pref.NumberOfRecords = numberOfRecords;
             pref.WithIncomparable = hasIncomparableTuples;
@@ -566,7 +566,7 @@ namespace prefSQL.SQLParser
             string strFullColumnName = "";
             string strColumnExpression = "";
             string strTable = "";
-            string strOperator = "";
+            //string strOperator = "";
             string strInnerColumnExpression = "";
             string strRankColumn = "";
             string strRankHexagon = "";
@@ -583,22 +583,10 @@ namespace prefSQL.SQLParser
                 case SQLParser.K_AROUND:
                     
                     //Value should be as close as possible to a given numeric value
-                    //Check if its a geocoordinate
-                    if (context.GetChild(2).GetType().ToString() == "prefSQL.SQLParser.SQLParser+GeocoordinateContext")
-                    {
-                        strSQL = "ABS(DISTANCE(" + context.GetChild(0).GetText() + ", \"" + context .GetChild(2).GetChild(1).GetText() + "," + context.GetChild(2).GetChild(3).GetText() + "\")) ASC";
-                        strColumnExpression = "ABS(DISTANCE(" + context.GetChild(0).GetText() + ", \"" + context.GetChild(2).GetChild(1).GetText() + "," + context.GetChild(2).GetChild(3).GetText() + "\"))";
-                        strInnerColumnExpression = "ABS(DISTANCE(" + getTableName(context.GetChild(0)) + InnerTableSuffix + "." + getColumnName(context.GetChild(0)) + ", \"" + context.GetChild(2).GetChild(1).GetText() + "," + context.GetChild(2).GetChild(3).GetText() + "\"))";
-                        strExpression = "ABS(DISTANCE(" + context.GetChild(0).GetText() + ", \"" + context.GetChild(2).GetChild(1).GetText() + "," + context.GetChild(2).GetChild(3).GetText() + "\"))";
-                    }
-                    else
-                    {
-                        strSQL = "ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ") ASC";
-                        strColumnExpression = "DENSE_RANK() OVER (ORDER BY ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + "))";
-                        strInnerColumnExpression = "ABS(" + getTableName(context.GetChild(0)) + InnerTableSuffix + "." + getColumnName(context.GetChild(0))  + " - " + context.GetChild(2).GetText() + ")";
-                        strExpression = "ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ")";
-                    }
-                    strOperator = "<";
+                    strSQL = "ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ") ASC";
+                    strColumnExpression = "DENSE_RANK() OVER (ORDER BY ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + "))";
+                    strInnerColumnExpression = "ABS(" + getTableName(context.GetChild(0)) + InnerTableSuffix + "." + getColumnName(context.GetChild(0))  + " - " + context.GetChild(2).GetText() + ")";
+                    strExpression = "ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ")";
                     break;
 
                 case SQLParser.K_FAVOUR:
@@ -606,7 +594,6 @@ namespace prefSQL.SQLParser
                     strSQL = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END ASC";
                     strColumnExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
                     strInnerColumnExpression = "CASE WHEN " + getTableName(context.GetChild(0)) + InnerTableSuffix + "." + getColumnName(context.GetChild(0)) + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
-                    strOperator = "<";
                     strExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
                     break;
 
@@ -614,9 +601,8 @@ namespace prefSQL.SQLParser
                     //Value should be as far away as possible to a given string value
                     strSQL = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END DESC";
                     strColumnExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
-                    strInnerColumnExpression = "CASE WHEN " + getTableName(context.GetChild(0)) + InnerTableSuffix + "." + getColumnName(context.GetChild(0)) + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
-                    strOperator = ">";
-                    strExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
+                    strInnerColumnExpression = "CASE WHEN " + getTableName(context.GetChild(0)) + InnerTableSuffix + "." + getColumnName(context.GetChild(0)) + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END * -1";
+                    strExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END * -1";
                     break;
             }
 
@@ -626,7 +612,7 @@ namespace prefSQL.SQLParser
             
 
             //Add the preference to the list               
-            pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, strFullColumnName, "", true, "", strRankColumn, strRankHexagon, strSQL, false, "", 0, strExpression));
+            pref.Skyline.Add(new AttributeModel(strColumnExpression, strInnerColumnExpression, strFullColumnName, "", true, "", strRankColumn, strRankHexagon, strSQL, false, "", 0, strExpression));
             pref.Tables = tables;
             pref.NumberOfRecords = numberOfRecords;
             pref.WithIncomparable = hasIncomparableTuples;
@@ -658,7 +644,7 @@ namespace prefSQL.SQLParser
             string strColumnALIAS = left.Skyline[0].FullColumnName.Replace(".", "") + right.Skyline[0].FullColumnName.Replace(".", "");
             string strSkyline = "DENSE_RANK()" + " OVER (ORDER BY " + strSortOrder + ")";
 
-            left.Skyline[0].ColumnExpression = strSkyline;
+            //left.Skyline[0].ColumnExpression = strSkyline;
             //left.Skyline[0].ColumnName = strColumnALIAS;
             left.Skyline[0].Comparable = left.Skyline[0].Comparable && right.Skyline[0].Comparable;
 

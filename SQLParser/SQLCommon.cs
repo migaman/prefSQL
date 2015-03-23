@@ -438,15 +438,7 @@ namespace prefSQL.SQLParser
                 for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
                 {
                     string strFullColumnName = model.Skyline[iChild].FullColumnName.Replace(".", "_");
-                    if (model.Skyline[iChild].Op.Equals("<"))
-                    {
-                        strSQL += ", " + model.Skyline[iChild].ColumnExpression + " AS SkylineAttribute" + strFullColumnName;
-                    }
-                    else
-                    {
-                        //Multiply HIGH preferences with -1 --> small values are always better than high 
-                        strSQL += ", " + model.Skyline[iChild].ColumnExpression + "*-1 AS SkylineAttribute" + strFullColumnName;
-                    }
+                    strSQL += ", " + model.Skyline[iChild].RankExpression + " AS SkylineAttribute" + strFullColumnName;
 
                     //Incomparable field --> Add string field
                     if (model.Skyline[iChild].Comparable == false)
@@ -477,16 +469,7 @@ namespace prefSQL.SQLParser
                 //Build the where clause with each column in the skyline
                 for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
                 {
-                    if (model.Skyline[iChild].Op.Equals("<"))
-                    {
-                        strSQL += ", " + model.Skyline[iChild].ColumnExpression + " AS SkylineAttribute" + iChild;
-                    }
-                    else
-                    {
-                        //Trick: Convert HIGH attributes in negative values (leads to better performance)
-                        strSQL += ", " + model.Skyline[iChild].ColumnExpression + "*-1 AS SkylineAttribute" + iChild;
-
-                    }
+                    strSQL += ", " + model.Skyline[iChild].RankExpression + " AS SkylineAttribute" + iChild;
                     strOperators += "LOW;";
 
                     //Incomparable field --> Add string field

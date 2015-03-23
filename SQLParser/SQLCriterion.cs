@@ -77,7 +77,7 @@ namespace prefSQL.SQLParser
                 bool needsTextORClause = false;
 
                 //Competition
-                needsTextORClause = model.Skyline[iChild].IsCategory;
+                needsTextORClause = model.Skyline[iChild].IsCategorical;
 
                 //First child doesn't need an OR/AND
                 if (iChild > 0)
@@ -92,11 +92,11 @@ namespace prefSQL.SQLParser
                     strWhereEqual += "(";
                 }
 
-                strWhereEqual += "{INNERcolumn} " + model.Skyline[iChild].Op + "= {column}";
-                strWhereBetter += "{INNERcolumn} " + model.Skyline[iChild].Op + " {column}";
+                strWhereEqual += "{INNERcolumn} <= {column}";
+                strWhereBetter += "{INNERcolumn} < {column}";
 
-                strWhereEqual = strWhereEqual.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumnExpression);
-                strWhereBetter = strWhereBetter.Replace("{INNERcolumn}", model.Skyline[iChild].InnerColumnExpression);
+                strWhereEqual = strWhereEqual.Replace("{INNERcolumn}", model.Skyline[iChild].InnerExpression);
+                strWhereBetter = strWhereBetter.Replace("{INNERcolumn}", model.Skyline[iChild].InnerExpression);
                 strWhereEqual = strWhereEqual.Replace("{column}", model.Skyline[iChild].Expression);
                 strWhereBetter = strWhereBetter.Replace("{column}", model.Skyline[iChild].Expression);
 
