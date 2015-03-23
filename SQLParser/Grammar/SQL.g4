@@ -111,7 +111,7 @@ expr
  
 exprSkyline
  : exprSkyline ',' exprSkyline																			#skylineAnd
- | column_term op=(K_LOW | K_HIGH | K_LOWDATE | K_HIGHDATE)	(signed_number (K_EQUAL | K_INCOMPARABLE))?	#skylinePreferenceLowHigh
+ | column_term op=(K_LOW | K_HIGH)	(signed_number (K_EQUAL | K_INCOMPARABLE))?	#skylinePreferenceLowHigh
  | column_term ('(' exprCategory ')')																	#skylinePreferenceCategory
  | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term)			#skylinePreferenceAround
  | exprSkyline K_IS K_MORE K_IMPORTANT K_THAN exprSkyline												#skylineMoreImportant
@@ -250,8 +250,6 @@ keyword
  | K_FAVOUR
  | K_HIGH
  | K_LOW
- | K_HIGHDATE
- | K_LOWDATE
  | K_OTHERS
  | K_EQUAL
  | K_INCOMPARABLE
@@ -368,8 +366,6 @@ K_DISFAVOUR : D I S F A V O U R;
 K_FAVOUR : F A V O U R;
 K_HIGH : H I G H;
 K_LOW : L O W;
-K_HIGHDATE: H I G H D A T E;
-K_LOWDATE : L O W D A T E;
 K_OTHERS : O T H E R S ;
 K_EQUAL : E Q U A L;
 K_INCOMPARABLE : I N C O M P A R A B L E;

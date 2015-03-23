@@ -98,12 +98,12 @@ namespace Utility
 
 
                 //Problem Stefan
-                /*strPrefSQL = "SELECT TOP 5 " +
-                    "c.id AS ID, c.title AS Name, c.Price, co.Name AS Color, b.Name AS Body, c.reference " +
-                    "FROM Cars_small c  " + 
-                    "LEFT OUTER JOIN colors co ON c.color_id = co.ID " +
-                    "LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, co.name ('rot' >> OTHERS EQUAL), b.name ('Bus' >> 'Kleinwagen') ORDER BY BEST_RANK()"; 
-                */
+                strPrefSQL = "SELECT TOP 5 \r\n" +
+                    "c.id AS ID, c.title AS Name, c.Price, co.Name AS Color, b.Name AS Body, c.reference \r\n" +
+                    "FROM Cars_small c  \r\n" +
+                    "LEFT OUTER JOIN colors co ON c.color_id = co.ID \r\n" +
+                    "LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, co.name ('rot' >> OTHERS EQUAL), b.name ('Busdddd' >> 'Kfffleinwagen') ORDER BY BEST_RANK()"; 
+                
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage FROM cars_small t1 " +
                   //  "SKYLINE OF t1.price LOW, t1.mileage HIGH";
 
@@ -113,8 +113,8 @@ namespace Utility
                 Debug.WriteLine("--------------------------------------------");
 
                 SQLCommon parser = new SQLCommon();
-                parser.SkylineType = new SkylineSQL();
-                //parser.SkylineType = new SkylineBNL();
+                //parser.SkylineType = new SkylineSQL();
+                parser.SkylineType = new SkylineBNL();
                 //parser.SkylineType = new SkylineBNLSort();
                 //parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new MultipleSkylineBNL();

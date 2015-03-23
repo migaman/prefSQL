@@ -52,7 +52,7 @@ namespace prefSQL.SQLParser
 
 
         /// <summary>
-        /// Adds the table name and alias for each table in the query
+        /// Adds each used table name and its alias in the query to a list
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
@@ -62,10 +62,12 @@ namespace prefSQL.SQLParser
             string strTableAlias = "";
             if (context.ChildCount == 2)
             {
+                //ALIAS introduced without "AS"-Keyword
                 strTableAlias = context.GetChild(1).GetText();
             }
-            else if (context.ChildCount == 3) //ALIAS introduced with "AS"-Keyword
+            else if (context.ChildCount == 3) 
             {
+                //ALIAS introduced with "AS"-Keyword
                 strTableAlias = context.GetChild(2).GetText();
             }
             tables.Add(strTable, strTableAlias);
@@ -74,7 +76,11 @@ namespace prefSQL.SQLParser
         }
 
 
-
+        /// <summary>
+        /// Combines multiple ranking preferences (each preference has its own weight)
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override PrefSQLModel VisitWeightedsumAnd(SQLParser.WeightedsumAndContext context)
         {
             //And was used --> visit left and right node
@@ -90,7 +96,14 @@ namespace prefSQL.SQLParser
             return pref;
         }
 
-
+        /// <summary>
+        /// Base function to handle ranking preferences
+        /// </summary>
+        /// <param name="strColumnName"></param>
+        /// <param name="strTable"></param>
+        /// <param name="strExpression"></param>
+        /// <param name="weight"></param>
+        /// <returns></returns>
         private PrefSQLModel weightedSum(string strColumnName, string strTable, string strExpression, double weight)
         {
             PrefSQLModel pref = new PrefSQLModel();
@@ -99,10 +112,7 @@ namespace prefSQL.SQLParser
             string strFullColumnName = "";
 
             //Separate Column and Table
-            strFullColumnName = strTable + "." + strColumnName;
-
-            //Keyword LOW or HIGH
-            
+            strFullColumnName = strTable + "." + strColumnName;           
 
             //Search if table name is just an alias
             var myValue = tables.FirstOrDefault(x => x.Value == strTable).Key;
@@ -124,6 +134,11 @@ namespace prefSQL.SQLParser
             return pref;
         }
 
+        /// <summary>
+        /// Handles LOW/HIGH ranking preferences
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override PrefSQLModel VisitWeightedsumLowHigh(SQLParser.WeightedsumLowHighContext context)
         {
             //Keyword LOW or HIGH
@@ -256,10 +271,6 @@ namespace prefSQL.SQLParser
 
 
 
-        
-
-
-
 
         /// <summary>
         /// Combines multiple pareto preferences (each preference is equivalent)
@@ -284,8 +295,31 @@ namespace prefSQL.SQLParser
         }
 
 
+
         /// <summary>
-        /// Handles a numerical/date HIGH/LOW preference
+        /// Base function to handle skyline preferences
+        /// </summary>
+        /// <param name="strColumnName"></param>
+        /// <param name="strTable"></param>
+        /// <param name="strExpression"></param>
+        /// <param name="weight"></param>
+        /// <returns></returns>
+        private PrefSQLModel skyline(string strColumnName, string strTable, string strExpression, double weight)
+        {
+            PrefSQLModel pref = new PrefSQLModel();
+            
+
+            //Add the preference to the list               
+            //pref.Skyline.Add(new AttributeModel(strColumnExpression, strOperator, strInnerColumnExpression, strFullColumnName, "", bComparable, strIncomporableAttribute, strColumnName, strRankColumn, strRankHexagon, strSQL, false, strColumnName, "", 0, strExpression));
+            pref.Tables = tables;
+            pref.WithIncomparable = hasIncomparableTuples;
+            model = pref;
+            return pref;
+        }
+
+
+        /// <summary>
+        /// Handles a numerical HIGH/LOW preference
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
@@ -364,25 +398,7 @@ namespace prefSQL.SQLParser
                 }
                 
             }
-            else if (context.op.Type == SQLParser.K_LOWDATE || context.op.Type == SQLParser.K_HIGHDATE)
-            {
-                string strSortOrder = "ASC";
-                 string strLevelAdditionaly = strLevelAdd;
-                strOperator = "<";
-                if (context.op.Type == SQLParser.K_HIGHDATE)
-                {
-                    strSortOrder = "DESC";
-                    strOperator = ">";
-                    strLevelAdditionaly = strLevelMinus;
-                }
-
-                strSQL = strColumnName + " " + strSortOrder;
-                strExpression = "DATEDIFF(minute, '1900-01-01', " + strTable + "." + strColumnName + ") " + strLevelStep;
-                strRankHexagon = "DENSE_RANK()" + " over (ORDER BY DATEDIFF(minute, '1900-01-01', " + strFullColumnName + ") " + strLevelStep + " " + strSortOrder + ")-1 AS Rank" + strColumnName;
-                strRankColumn = RankingFunction + " over (ORDER BY " + strFullColumnName + " " + strSortOrder;
-                strColumnExpression = "DENSE_RANK() OVER (ORDER BY DATEDIFF(minute, '1900-01-01', " + strTable + "." + strColumnName + ") " + strLevelStep + ")";
-                strInnerColumnExpression = "DATEDIFF(minute, '1900-01-01', " + strTable + InnerTableSuffix + "." + strColumnName + ") " + strLevelStep ; 
-            }
+            
 
 
             //Add the preference to the list               
