@@ -37,22 +37,10 @@ namespace prefSQL.SQLSkyline
             }
             else
             {
-                //D&Q algorithm neads a higher stack (much recursions). Therefore start it with a new thread
-                //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
                 DataTable dt = null;
-                prefSQL.SQLSkyline.SP_SkylineDQ skyline = new SQLSkyline.SP_SkylineDQ();
-                var thread = new Thread(
-                () =>
-                {
-                    dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
-                }, 8000000);
-
-                thread.Start();
-
-                //Join method to block the current thread  until the object's thread terminates.
-                thread.Join();
-
-                return dt; // skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+                prefSQL.SQLSkyline.SP_SkylineDQ skyline = new SQLSkyline.SP_SkylineDQ();   
+                dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+                return dt;
             }
 
         }
