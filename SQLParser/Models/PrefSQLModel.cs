@@ -69,5 +69,6 @@ namespace prefSQL.SQLParser.Models
         public int SkylineSampleCount { get; set; }
         public int SkylineSampleDimension { get; set; }
         public bool HasSkylineSample { get; set; }
-    }
+        public string OriginalPreferenceSql { get; set; }
+    }    
 }

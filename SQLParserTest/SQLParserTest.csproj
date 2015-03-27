@@ -59,6 +59,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="SkylineSamplingUtilityTest.cs" />
     <Compile Include="SQLParserRankingTest.cs" />
     <Compile Include="SqlParserSkylineSamplingIntegrationTests.cs" />
     <Compile Include="SqlParserSkylineSamplingTests.cs" />
@@ -81,14 +82,17 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="SQLParserSkylineSamplingTests_OnlyNonDominated.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="SkylineSamplingUtilityTest.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SQLParserSkylineSamplingIntegrationTests.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="SQLParserSkylineSamplingTests_IncorrectSyntax.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="SQLParserSkylineSamplingTests_CorrectSyntax.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <Choose>

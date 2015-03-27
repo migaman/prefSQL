@@ -81,7 +81,7 @@ namespace prefSQL.SQLParser
             helper.DriverString = driverString;
 
             bool withIncomparable = false;
-            string strSQL = parsePreferenceSQL(strPrefSQL, ref withIncomparable);
+            string strSQL = parsePreferenceSQL(strPrefSQL, ref withIncomparable, null);
             Debug.WriteLine(strSQL);
             
             
@@ -94,41 +94,26 @@ namespace prefSQL.SQLParser
         public string parsePreferenceSQL(string strInput)
         {
             bool withIncomparable = false;
-            string strSQL = parsePreferenceSQL(strInput, ref withIncomparable);
+            string strSQL = parsePreferenceSQL(strInput, ref withIncomparable, null);
             return strSQL;
         }
-
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
         /// <param name="strInput">Preference SQL Statement</param>
         /// <returns>Return the ANSI SQL Statement</returns>
-        private string parsePreferenceSQL(string strInput, ref bool withIncomparable)
+        private string parsePreferenceSQL(string strInput, ref bool withIncomparable, PrefSQLModel prefSqlModel)
         {
-            AntlrInputStream inputStream = new AntlrInputStream(strInput);
-            SQLLexer sqlLexer = new SQLLexer(inputStream);
-            CommonTokenStream commonTokenStream = new CommonTokenStream(sqlLexer);
-            SQLParser parser = new SQLParser(commonTokenStream);
-            SQLSort sqlSort = new SQLSort();
-            SQLCriterion sqlCriterion = new SQLCriterion();
+            var sqlSort = new SQLSort();
+            var sqlCriterion = new SQLCriterion();
             string strSQLReturn = ""; //The SQL-Query that is built on the basis of the prefSQL 
-
 
             try
             {
-                //Add error listener to parser (helps to return detailed parser syntax errors)
-                ErrorListener listener = new ErrorListener();
-                parser.AddErrorListener(listener);
-
-                //Parse query
-                IParseTree tree = parser.parse();
-                Debug.WriteLine("Parse Tree: " + tree.ToStringTree(parser));
-
-                //Visit parsetree (PrefSQL model is built during the visit of the parse tree)
-                SQLVisitor visitor = new SQLVisitor();
-                visitor.IsNative = _SkylineType.isNative();
-                visitor.Visit(tree);
-                PrefSQLModel prefSQL = visitor.Model;
-                
+                var prefSQL = prefSqlModel;
+                if (prefSqlModel == null)
+                {
+                    prefSQL = GetPrefSqlModelFromPreferenceSql(strInput);
+                }
                 
                 //Check if parse was successful and query contains PrefSQL syntax
                 if (prefSQL != null) // && strInput.IndexOf(SkylineOf) > 0
@@ -486,8 +471,31 @@ namespace prefSQL.SQLParser
             return strSQL;
         }
 
+        internal PrefSQLModel GetPrefSqlModelFromPreferenceSql(string preferenceSql)
+        {
+            var parser = new SQLParser(new CommonTokenStream(new SQLLexer(new AntlrInputStream(preferenceSql))));
 
+            // An error listener helps to return detailed parser syntax errors
+            var listener = new ErrorListener();
+            parser.AddErrorListener(listener);
 
+            var tree = parser.parse();
+
+            // PrefSQLModel is built during the visit of the parse tree
+            var visitor = new SQLVisitor {IsNative = _SkylineType.isNative()};
+            visitor.Visit(tree);
+            var prefSql = visitor.Model;
+            if (prefSql != null)
+            {
+                prefSql.OriginalPreferenceSql = preferenceSql;
+            }
+            return prefSql;
+        }
+
+        internal string GetAnsiSqlFromPrefSqlModel(PrefSQLModel prefSqlModel)
+        {
+            var withIncomparable = false;
+            return parsePreferenceSQL(prefSqlModel.OriginalPreferenceSql, ref withIncomparable, prefSqlModel);
+        }
     }
 }
-
