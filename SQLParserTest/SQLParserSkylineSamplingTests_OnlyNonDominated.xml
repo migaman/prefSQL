@@ -13,6 +13,6 @@
         <equivalentToSkyline>SELECT * FROM cars_small cs SKYLINE OF cs.mileage LOW</equivalentToSkyline>
       </subspace>
     </useSubspaces>
-    <expectedNumberOfEntireSkylineObjects>6</expectedNumberOfEntireSkylineObjects>    
+    <expectedNumberOfEntireSkylineObjects>6</expectedNumberOfEntireSkylineObjects>
   </TestDataRow>
 </TestData>

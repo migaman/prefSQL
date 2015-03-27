@@ -1,6 +1,5 @@
 ﻿namespace prefSQL.SQLParserTest
 {
-    using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Diagnostics;
@@ -48,7 +47,7 @@
             var testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
             Debug.WriteLine(skylineSampleSql);
-
+            
             var common = new SQLCommon {SkylineType = new SkylineBNL()};
 
             var entireSkyline = common.parseAndExecutePrefSQL(DbConnection, DbProvider, entireSkylineSql);
@@ -57,7 +56,8 @@
             var entireSkylineObjectsIds = GetHashSetOfIdsFromDataTable(entireSkyline);
             var sampleSkylineObjectsIds = GetHashSetOfIdsFromDataTable(sampleSkyline);
 
-            Assert.IsTrue(sampleSkylineObjectsIds.IsSubsetOf(entireSkylineObjectsIds), "Dominated objects contained in Sample Skyline (i.e., objects which are not contained in the entire Skyline).");
+            Assert.IsTrue(sampleSkylineObjectsIds.IsSubsetOf(entireSkylineObjectsIds),
+                "Dominated objects contained in Sample Skyline (i.e., objects which are not contained in the entire Skyline).");
         }
 
         private static HashSet<int> GetHashSetOfIdsFromDataTable(DataTable entireSkyline)
@@ -68,6 +68,6 @@
                 entireSkylineObjectsIds.Add(int.Parse(entireSkylineRow["id"].ToString()));
             }
             return entireSkylineObjectsIds;
-        }     
+        }
     }
 }
