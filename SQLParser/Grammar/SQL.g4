@@ -420,7 +420,6 @@ UNEXPECTED_CHAR : . ;
 
  
 fragment DIGIT : [0-9];
-fragment DIGIT1TO9 : [1-9];
 
 fragment A : [aA];
 fragment B : [bB];
