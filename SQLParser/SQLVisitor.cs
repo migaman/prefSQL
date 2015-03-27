@@ -580,13 +580,6 @@ namespace prefSQL.SQLParser
             }
         }
 
-        public override PrefSQLModel VisitExprSampleSkyline(SQLParser.ExprSampleSkylineContext context)
-        {
-            model.SkylineSampleCount = Int32.Parse(context.GetChild(4).GetText());
-            model.SkylineSampleDimension = Int32.Parse(context.GetChild(6).GetText());
-            return base.VisitExprSampleSkyline(context);
-        }
-
         public bool IsNative
         {
             get { return isNative; }
@@ -598,6 +591,14 @@ namespace prefSQL.SQLParser
         {
             get { return model; }
             set { model = value; }
+        }
+
+        public override PrefSQLModel VisitExprSampleSkyline(SQLParser.ExprSampleSkylineContext context)
+        {
+            model.SkylineSampleCount = Int32.Parse(context.GetChild(4).GetText());
+            model.SkylineSampleDimension = Int32.Parse(context.GetChild(6).GetText());
+            model.HasSkylineSample = true;
+            return base.VisitExprSampleSkyline(context);
         }
 
     }
