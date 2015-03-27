@@ -1,0 +1,90 @@
+<TestData>
+  <TestDataRow>
+    <comment>2 samples, each of dimension 1 (e.g., (cs.price), (cs.mileage))</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT 2 DIMENSION 1</skylineSampleSQL>
+    <parsePreferenceSQLSkylineSQLExpectedResult>
+      <![CDATA[SELECT * FROM cars_small cs WHERE NOT EXISTS(SELECT * FROM cars_small cs_INNER WHERE cs_INNER.price <= cs.price AND cs_INNER.mileage <= cs.mileage AND ( cs_INNER.price < cs.price OR cs_INNER.mileage < cs.mileage) )]]>
+    </parsePreferenceSQLSkylineSQLExpectedResult>
+    <parsePreferenceSQLSkylineBNLExpectedResult>
+      <![CDATA[EXEC dbo.SP_SkylineBNLLevel 'SELECT  DENSE_RANK() OVER (ORDER BY cs.price) AS SkylineAttribute0, DENSE_RANK() OVER (ORDER BY cs.mileage) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW', 0]]>
+    </parsePreferenceSQLSkylineBNLExpectedResult>
+    <parsePreferenceSQLSkylineBNLSortExpectedResult>
+      <![CDATA[EXEC dbo.SP_SkylineBNLSortLevel 'SELECT  DENSE_RANK() OVER (ORDER BY cs.price) AS SkylineAttribute0, DENSE_RANK() OVER (ORDER BY cs.mileage) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY price ASC, mileage ASC', 'LOW;LOW', 0]]>
+    </parsePreferenceSQLSkylineBNLSortExpectedResult>
+    <parsePreferenceSQLSkylineDQExpectedResult>
+      <![CDATA[EXEC dbo.SP_SkylineDQ 'SELECT  DENSE_RANK() OVER (ORDER BY cs.price) AS SkylineAttribute0, DENSE_RANK() OVER (ORDER BY cs.mileage) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW',0]]>
+    </parsePreferenceSQLSkylineDQExpectedResult>
+    <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
+      <![CDATA[EXEC dbo.SP_MultipleSkylineBNL 'SELECT  DENSE_RANK() OVER (ORDER BY cs.price) AS SkylineAttribute0, DENSE_RANK() OVER (ORDER BY cs.mileage) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY price ASC, mileage ASC', 'LOW;LOW', 0, 3]]>
+    </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
+    <parsePreferenceSQLSkylineHexagonExpectedResult>
+      <![CDATA[EXEC dbo.SP_SkylineHexagonLevel 'SELECT  DENSE_RANK() over (ORDER BY cs.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY cs.mileage ASC)-1 AS Rankmileage , * FROM cars_small cs', 'LOW;LOW', 0, 'SELECT  MAX(Rankprice), MAX(Rankmileage) FROM (SELECT  DENSE_RANK() over (ORDER BY cs.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY cs.mileage ASC)-1 AS Rankmileage FROM cars_small cs) MyQuery']]>
+    </parsePreferenceSQLSkylineHexagonExpectedResult>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>1 sample of dimension 1 (e.g., (cs.price))</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT 1 DIMENSION 1</skylineSampleSQL>
+    <parsePreferenceSQLSkylineSQLExpectedResult>
+      <![CDATA[SELECT * FROM cars_small cs WHERE NOT EXISTS(SELECT * FROM cars_small cs_INNER WHERE cs_INNER.price <= cs.price AND cs_INNER.mileage <= cs.mileage AND ( cs_INNER.price < cs.price OR cs_INNER.mileage < cs.mileage) )]]>
+    </parsePreferenceSQLSkylineSQLExpectedResult>
+    <parsePreferenceSQLSkylineBNLExpectedResult>
+      <![CDATA[EXEC dbo.SP_SkylineBNLLevel 'SELECT  DENSE_RANK() OVER (ORDER BY cs.price) AS SkylineAttribute0, DENSE_RANK() OVER (ORDER BY cs.mileage) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW', 0]]>
+    </parsePreferenceSQLSkylineBNLExpectedResult>
+    <parsePreferenceSQLSkylineBNLSortExpectedResult>
+      <![CDATA[EXEC dbo.SP_SkylineBNLSortLevel 'SELECT  DENSE_RANK() OVER (ORDER BY cs.price) AS SkylineAttribute0, DENSE_RANK() OVER (ORDER BY cs.mileage) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY price ASC, mileage ASC', 'LOW;LOW', 0]]>
+    </parsePreferenceSQLSkylineBNLSortExpectedResult>
+    <parsePreferenceSQLSkylineDQExpectedResult>
+      <![CDATA[EXEC dbo.SP_SkylineDQ 'SELECT  DENSE_RANK() OVER (ORDER BY cs.price) AS SkylineAttribute0, DENSE_RANK() OVER (ORDER BY cs.mileage) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW',0]]>
+    </parsePreferenceSQLSkylineDQExpectedResult>
+    <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
+      <![CDATA[EXEC dbo.SP_MultipleSkylineBNL 'SELECT  DENSE_RANK() OVER (ORDER BY cs.price) AS SkylineAttribute0, DENSE_RANK() OVER (ORDER BY cs.mileage) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY price ASC, mileage ASC', 'LOW;LOW', 0, 3]]>
+    </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
+    <parsePreferenceSQLSkylineHexagonExpectedResult>
+      <![CDATA[EXEC dbo.SP_SkylineHexagonLevel 'SELECT  DENSE_RANK() over (ORDER BY cs.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY cs.mileage ASC)-1 AS Rankmileage , * FROM cars_small cs', 'LOW;LOW', 0, 'SELECT  MAX(Rankprice), MAX(Rankmileage) FROM (SELECT  DENSE_RANK() over (ORDER BY cs.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY cs.mileage ASC)-1 AS Rankmileage FROM cars_small cs) MyQuery']]>
+    </parsePreferenceSQLSkylineHexagonExpectedResult>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>1 samples of dimension 2 (e.g., (cs.price, cs.mileage))</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT 1 DIMENSION 2</skylineSampleSQL>
+    <parsePreferenceSQLSkylineSQLExpectedResult>
+      <![CDATA[SELECT * FROM cars_small cs WHERE NOT EXISTS(SELECT * FROM cars_small cs_INNER WHERE cs_INNER.price <= cs.price AND cs_INNER.mileage <= cs.mileage AND ( cs_INNER.price < cs.price OR cs_INNER.mileage < cs.mileage) )]]>
+    </parsePreferenceSQLSkylineSQLExpectedResult>
+    <parsePreferenceSQLSkylineBNLExpectedResult>
+      <![CDATA[EXEC dbo.SP_SkylineBNLLevel 'SELECT  DENSE_RANK() OVER (ORDER BY cs.price) AS SkylineAttribute0, DENSE_RANK() OVER (ORDER BY cs.mileage) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW', 0]]>
+    </parsePreferenceSQLSkylineBNLExpectedResult>
+    <parsePreferenceSQLSkylineBNLSortExpectedResult>
+      <![CDATA[EXEC dbo.SP_SkylineBNLSortLevel 'SELECT  DENSE_RANK() OVER (ORDER BY cs.price) AS SkylineAttribute0, DENSE_RANK() OVER (ORDER BY cs.mileage) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY price ASC, mileage ASC', 'LOW;LOW', 0]]>
+    </parsePreferenceSQLSkylineBNLSortExpectedResult>
+    <parsePreferenceSQLSkylineDQExpectedResult>
+      <![CDATA[EXEC dbo.SP_SkylineDQ 'SELECT  DENSE_RANK() OVER (ORDER BY cs.price) AS SkylineAttribute0, DENSE_RANK() OVER (ORDER BY cs.mileage) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW',0]]>
+    </parsePreferenceSQLSkylineDQExpectedResult>
+    <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
+      <![CDATA[EXEC dbo.SP_MultipleSkylineBNL 'SELECT  DENSE_RANK() OVER (ORDER BY cs.price) AS SkylineAttribute0, DENSE_RANK() OVER (ORDER BY cs.mileage) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY price ASC, mileage ASC', 'LOW;LOW', 0, 3]]>
+    </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
+    <parsePreferenceSQLSkylineHexagonExpectedResult>
+      <![CDATA[EXEC dbo.SP_SkylineHexagonLevel 'SELECT  DENSE_RANK() over (ORDER BY cs.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY cs.mileage ASC)-1 AS Rankmileage , * FROM cars_small cs', 'LOW;LOW', 0, 'SELECT  MAX(Rankprice), MAX(Rankmileage) FROM (SELECT  DENSE_RANK() over (ORDER BY cs.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY cs.mileage ASC)-1 AS Rankmileage FROM cars_small cs) MyQuery']]>
+    </parsePreferenceSQLSkylineHexagonExpectedResult>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>2 samples, each of dimension 2 (e.g., (cs.price, cs.mileage), (cs.horsepower, cs.enginesize))</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY RANDOM_SUBSETS COUNT 2 DIMENSION 2</skylineSampleSQL>
+    <parsePreferenceSQLSkylineSQLExpectedResult>
+      <![CDATA[SELECT * FROM cars_small cs WHERE NOT EXISTS(SELECT * FROM cars_small cs_INNER WHERE cs_INNER.price <= cs.price AND cs_INNER.mileage <= cs.mileage AND cs_INNER.horsepower >= cs.horsepower AND cs_INNER.enginesize >= cs.enginesize AND ( cs_INNER.price < cs.price OR cs_INNER.mileage < cs.mileage OR cs_INNER.horsepower > cs.horsepower OR cs_INNER.enginesize > cs.enginesize) )]]>
+    </parsePreferenceSQLSkylineSQLExpectedResult>
+    <parsePreferenceSQLSkylineBNLExpectedResult>
+      <![CDATA[EXEC dbo.SP_SkylineBNLLevel 'SELECT  DENSE_RANK() OVER (ORDER BY cs.price) AS SkylineAttribute0, DENSE_RANK() OVER (ORDER BY cs.mileage) AS SkylineAttribute1, DENSE_RANK() OVER (ORDER BY cs.horsepower)*-1 AS SkylineAttribute2, DENSE_RANK() OVER (ORDER BY cs.enginesize)*-1 AS SkylineAttribute3 , * FROM cars_small cs', 'LOW;LOW;LOW;LOW', 0]]>
+    </parsePreferenceSQLSkylineBNLExpectedResult>
+    <parsePreferenceSQLSkylineBNLSortExpectedResult>
+      <![CDATA[EXEC dbo.SP_SkylineBNLSortLevel 'SELECT  DENSE_RANK() OVER (ORDER BY cs.price) AS SkylineAttribute0, DENSE_RANK() OVER (ORDER BY cs.mileage) AS SkylineAttribute1, DENSE_RANK() OVER (ORDER BY cs.horsepower)*-1 AS SkylineAttribute2, DENSE_RANK() OVER (ORDER BY cs.enginesize)*-1 AS SkylineAttribute3 , * FROM cars_small cs ORDER BY price ASC, mileage ASC, horsepower DESC, enginesize DESC', 'LOW;LOW;LOW;LOW', 0]]>
+    </parsePreferenceSQLSkylineBNLSortExpectedResult>
+    <parsePreferenceSQLSkylineDQExpectedResult>
+      <![CDATA[EXEC dbo.SP_SkylineDQ 'SELECT  DENSE_RANK() OVER (ORDER BY cs.price) AS SkylineAttribute0, DENSE_RANK() OVER (ORDER BY cs.mileage) AS SkylineAttribute1, DENSE_RANK() OVER (ORDER BY cs.horsepower)*-1 AS SkylineAttribute2, DENSE_RANK() OVER (ORDER BY cs.enginesize)*-1 AS SkylineAttribute3 , * FROM cars_small cs', 'LOW;LOW;LOW;LOW',0]]>
+    </parsePreferenceSQLSkylineDQExpectedResult>
+    <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
+      <![CDATA[EXEC dbo.SP_MultipleSkylineBNL 'SELECT  DENSE_RANK() OVER (ORDER BY cs.price) AS SkylineAttribute0, DENSE_RANK() OVER (ORDER BY cs.mileage) AS SkylineAttribute1, DENSE_RANK() OVER (ORDER BY cs.horsepower)*-1 AS SkylineAttribute2, DENSE_RANK() OVER (ORDER BY cs.enginesize)*-1 AS SkylineAttribute3 , * FROM cars_small cs ORDER BY price ASC, mileage ASC, horsepower DESC, enginesize DESC', 'LOW;LOW;LOW;LOW', 0, 3]]>
+    </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
+    <parsePreferenceSQLSkylineHexagonExpectedResult>
+      <![CDATA[EXEC dbo.SP_SkylineHexagonLevel 'SELECT  DENSE_RANK() over (ORDER BY cs.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY cs.mileage ASC)-1 AS Rankmileage, DENSE_RANK() over (ORDER BY cs.horsepower DESC)-1 AS Rankhorsepower, DENSE_RANK() over (ORDER BY cs.enginesize DESC)-1 AS Rankenginesize , * FROM cars_small cs', 'LOW;LOW;LOW;LOW', 0, 'SELECT  MAX(Rankprice), MAX(Rankmileage), MAX(Rankhorsepower), MAX(Rankenginesize) FROM (SELECT  DENSE_RANK() over (ORDER BY cs.price ASC)-1 AS Rankprice, DENSE_RANK() over (ORDER BY cs.mileage ASC)-1 AS Rankmileage, DENSE_RANK() over (ORDER BY cs.horsepower DESC)-1 AS Rankhorsepower, DENSE_RANK() over (ORDER BY cs.enginesize DESC)-1 AS Rankenginesize FROM cars_small cs) MyQuery']]>
+    </parsePreferenceSQLSkylineHexagonExpectedResult>
+  </TestDataRow>
+</TestData>

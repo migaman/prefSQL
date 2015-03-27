@@ -17,6 +17,13 @@ namespace prefSQL.SQLParser.Models
         private SQLCommon.Ordering _ordering = SQLCommon.Ordering.AsIs;
         private bool _withIncomparable = false;                                         //True if the skyline must be checked for incomparable tuples
 
+        public PrefSQLModel()
+        {
+            SkylineSampleDimension = 0;
+            SkylineSampleCount = 0;
+            HasSkylineSample = false;
+        }
+
         public int NumberOfRecords
         {
             get { return _numberOfRecords; }
@@ -59,5 +66,8 @@ namespace prefSQL.SQLParser.Models
             get { return _orderBy; }
         }
 
+        public int SkylineSampleCount { get; set; }
+        public int SkylineSampleDimension { get; set; }
+        public bool HasSkylineSample { get; set; }
     }
 }
