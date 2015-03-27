@@ -1,0 +1,18 @@
+<TestData>
+  <TestDataRow>
+    <comment>2 samples, each of dimension 1 (e.g., (cs.price), (cs.mileage))</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT 2 DIMENSION 1</skylineSampleSQL>
+    <entireSkylineSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW</entireSkylineSQL>
+    <useSubspaces>
+      <subspace>
+        <dimension>cs.price</dimension>
+        <equivalentToSkyline>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW</equivalentToSkyline>
+      </subspace>
+      <subspace>
+        <dimension>cs.mileage</dimension>
+        <equivalentToSkyline>SELECT * FROM cars_small cs SKYLINE OF cs.mileage LOW</equivalentToSkyline>
+      </subspace>
+    </useSubspaces>
+    <expectedNumberOfEntireSkylineObjects>6</expectedNumberOfEntireSkylineObjects>    
+  </TestDataRow>
+</TestData>
