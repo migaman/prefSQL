@@ -17,8 +17,8 @@
 
         [TestMethod]
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
-            "SQLParserSkylineSamplingTests_OnlyNonDominated.xml", "TestDataRow", DataAccessMethod.Sequential),
-         DeploymentItem("SQLParserSkylineSamplingTests_OnlyNonDominated.xml")]
+            "SQLParserSkylineSamplingIntegrationTests.xml", "TestDataRow", DataAccessMethod.Sequential),
+         DeploymentItem("SQLParserSkylineSamplingIntegrationTests.xml")]
         public void TestNumberOfObjectsWithinEntireSkyline()
         {
             var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
@@ -38,8 +38,8 @@
 
         [TestMethod]
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
-            "SQLParserSkylineSamplingTests_OnlyNonDominated.xml", "TestDataRow", DataAccessMethod.Sequential),
-         DeploymentItem("SQLParserSkylineSamplingTests_OnlyNonDominated.xml")]
+            "SQLParserSkylineSamplingIntegrationTests.xml", "TestDataRow", DataAccessMethod.Sequential),
+         DeploymentItem("SQLParserSkylineSamplingIntegrationTests.xml")]
         public void TestOnlyNonDominatedObjectsWithinSampleSkyline()
         {
             var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
