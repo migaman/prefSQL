@@ -59,7 +59,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="SkylineSamplingUtilityTest.cs" />
+    <Compile Include="SkylineSamplingUtilityTests.cs" />
     <Compile Include="SQLParserRankingTest.cs" />
     <Compile Include="SqlParserSkylineSamplingIntegrationTests.cs" />
     <Compile Include="SqlParserSkylineSamplingTests.cs" />
@@ -82,7 +82,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="SkylineSamplingUtilityTest.xml">
+    <Content Include="SkylineSamplingUtilityTests.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="SQLParserSkylineSamplingIntegrationTests.xml">

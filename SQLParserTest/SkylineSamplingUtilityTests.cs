@@ -1,7 +1,6 @@
 ﻿namespace prefSQL.SQLParserTest
 {
     using System;
-    using System.Data;
     using System.Diagnostics;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using prefSQL.SQLParser;
@@ -9,7 +8,7 @@
     using prefSQL.SQLSkyline;
 
     [TestClass]
-    public class SkylineSamplingUtilityTest
+    public class SkylineSamplingUtilityTests
     {
         public TestContext TestContext { get; set; }
 
@@ -25,9 +24,9 @@
         }
 
         [TestMethod]
-        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SkylineSamplingUtilityTest.xml", "TestDataRow",
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SkylineSamplingUtilityTests.xml", "TestDataRow",
             DataAccessMethod.Sequential),
-         DeploymentItem("SkylineSamplingUtilityTest.xml")]
+         DeploymentItem("SkylineSamplingUtilityTests.xml")]
         public void TestProducedSubspaceQueries()
         {
             var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
