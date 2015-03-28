@@ -51,18 +51,18 @@
             {
                 if (subspaceQueriesReturn.Count >= skylineSampleCount)
                 {
-                    if (AreAllPreferencesAtLeastOnceContainedInSubspaces(ref subspaceQueriesReturn))
+                    if (AreAllPreferencesAtLeastOnceContainedInSubspaces(subspaceQueriesReturn))
                     {
                         done = true;
                     }
                     else
                     {
-                        RemoveOneSubspaceQuery(ref subspaceQueriesReturn);
+                        RemoveOneSubspaceQuery(subspaceQueriesReturn);
                     }
                 }
                 else
                 {
-                    AddOneSubspaceQuery(ref subspaceQueriesReturn);
+                    AddOneSubspaceQuery(subspaceQueriesReturn);
                 }
             }
 
@@ -70,12 +70,12 @@
         }
 
         private bool AreAllPreferencesAtLeastOnceContainedInSubspaces(
-            ref Dictionary<string, List<AttributeModel>> subspaceQueriesReturn)
+            Dictionary<string, List<AttributeModel>> subspaceQueries)
         {
             var preferences = PrefSqlModel.Skyline;
             var preferencesOriginallyContainedInPrefSqlModel = new List<AttributeModel>(preferences);
 
-            foreach (var subspaceQueryAttributes in subspaceQueriesReturn.Values)
+            foreach (var subspaceQueryAttributes in subspaceQueries.Values)
             {
                 preferencesOriginallyContainedInPrefSqlModel.RemoveAll(
                     preference => subspaceQueryAttributes.Contains(preference));
@@ -84,14 +84,14 @@
             return preferencesOriginallyContainedInPrefSqlModel.Count == 0;
         }
 
-        private static void RemoveOneSubspaceQuery(ref Dictionary<string, List<AttributeModel>> subspaceQueriesReturn)
+        private static void RemoveOneSubspaceQuery(Dictionary<string, List<AttributeModel>> subspaceQueries)
         {
-            var subspaceQueriesKeys = new List<string>(subspaceQueriesReturn.Keys);
+            var subspaceQueriesKeys = new List<string>(subspaceQueries.Keys);
             var subspaceQueriesKey = subspaceQueriesKeys[MyRandom.Next(subspaceQueriesKeys.Count)];
-            subspaceQueriesReturn.Remove(subspaceQueriesKey);
+            subspaceQueries.Remove(subspaceQueriesKey);
         }
 
-        private void AddOneSubspaceQuery(ref Dictionary<string, List<AttributeModel>> subspaceQueriesReturn)
+        private void AddOneSubspaceQuery(Dictionary<string, List<AttributeModel>> subspaceQueries)
         {
             var preferences = PrefSqlModel.Skyline;
             var preferencesOriginallyContainedInPrefSqlModel = new List<AttributeModel>(preferences);
@@ -109,11 +109,11 @@
                 }
 
                 ansiSqlFromPrefSqlModel = Common.GetAnsiSqlFromPrefSqlModel(PrefSqlModel);
-            } while (subspaceQueriesReturn.ContainsKey(ansiSqlFromPrefSqlModel));
+            } while (subspaceQueries.ContainsKey(ansiSqlFromPrefSqlModel));
 
             if (ansiSqlFromPrefSqlModel != null)
             {
-                subspaceQueriesReturn.Add(ansiSqlFromPrefSqlModel, new List<AttributeModel>(PrefSqlModel.Skyline));
+                subspaceQueries.Add(ansiSqlFromPrefSqlModel, new List<AttributeModel>(PrefSqlModel.Skyline));
             }
 
             PrefSqlModel.Skyline = new List<AttributeModel>(preferencesOriginallyContainedInPrefSqlModel);
