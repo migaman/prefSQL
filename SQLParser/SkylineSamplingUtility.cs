@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Data;
+    using System.Diagnostics;
     using System.Linq;
     using prefSQL.SQLParser.Models;
 
@@ -140,20 +141,22 @@
 
         private void AddOneSubspace(ISet<HashSet<AttributeModel>> subspaceQueries)
         {
-            List<AttributeModel> allPreferences;
             var skylineSampleDimension = PrefSqlModel.SkylineSampleDimension;
+            HashSet<AttributeModel> subspacePreferencesAsHashSet;
 
             do
             {
-                allPreferences = new List<AttributeModel>(PrefSqlModel.Skyline);
+                var subspacePreferences = new List<AttributeModel>(PrefSqlModel.Skyline);
 
-                while (allPreferences.Count > skylineSampleDimension)
+                while (subspacePreferences.Count > skylineSampleDimension)
                 {
-                    allPreferences.RemoveAt(MyRandom.Next(allPreferences.Count));
+                    subspacePreferences.RemoveAt(MyRandom.Next(subspacePreferences.Count));
                 }
-            } while (subspaceQueries.Contains(new HashSet<AttributeModel>(allPreferences)));
 
-            subspaceQueries.Add(new HashSet<AttributeModel>(allPreferences));
+                subspacePreferencesAsHashSet = new HashSet<AttributeModel>(subspacePreferences);
+            } while (subspaceQueries.Any(element => element.SetEquals(subspacePreferencesAsHashSet)));
+           
+            subspaceQueries.Add(subspacePreferencesAsHashSet);
         }
 
         public DataTable GetSkyline()
