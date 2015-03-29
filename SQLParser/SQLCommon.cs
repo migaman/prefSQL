@@ -26,7 +26,11 @@ namespace prefSQL.SQLParser
         private SkylineStrategy _SkylineType = new SkylineSQL();    //Defines with which Algorithm the Skyline should be calculated
         private bool _ShowSkylineAttributes = false;                //Defines if the skyline attributes should be added to the SELECT list
         private int _SkylineUpToLevel = 3;                          //Defines the maximum level that should be returned for the multiple skyline algorithnmm
-        Helper helper = new Helper();
+        private readonly Helper _helper = new Helper();
+
+        internal Helper Helper {
+            get { return _helper; }
+        }
 
         /*
         public enum Algorithm
@@ -77,15 +81,21 @@ namespace prefSQL.SQLParser
         /// <returns>Returns a DataTable with the requested values</returns>
         public DataTable parseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSQL)
         {
-            helper.ConnectionString = connectionString;
-            helper.DriverString = driverString;
+            _helper.ConnectionString = connectionString;
+            _helper.DriverString = driverString;
+
+            var prefSqlModel = GetPrefSqlModelFromPreferenceSql(strPrefSQL);
+            if (prefSqlModel.HasSkylineSample)
+            {
+                var skylineSamplingUtility = new SkylineSamplingUtility(prefSqlModel, this);
+                return skylineSamplingUtility.GetSkyline();
+            }
 
             bool withIncomparable = false;
-            string strSQL = parsePreferenceSQL(strPrefSQL, ref withIncomparable, null);
+            string strSQL = parsePreferenceSQL(strPrefSQL, ref withIncomparable, prefSqlModel);
             Debug.WriteLine(strSQL);
-            
-            
-            return helper.getResults(strSQL, _SkylineType, withIncomparable);
+
+            return _helper.getResults(strSQL, _SkylineType, withIncomparable);
         }
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
@@ -238,7 +248,7 @@ namespace prefSQL.SQLParser
                         foreach (RankingModel model in prefSQL.Ranking)
                         {
                             //Read min and max value of the preference
-                            DataTable dt = helper.executeStatement(model.SelectExtrema);
+                            DataTable dt = _helper.executeStatement(model.SelectExtrema);
                             double min = 0;
                             double max = 0;
                             double delta = 0.00001; //TODO: define DELTA. Check what is a good value

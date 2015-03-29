@@ -2,6 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
+    using System.Linq;
     using prefSQL.SQLParser.Models;
 
     internal sealed class SkylineSamplingUtility
@@ -9,21 +11,92 @@
         private readonly PrefSQLModel _prefSqlModel;
         private readonly SQLCommon _common;
         private static readonly Random MyRandom = new Random();
+        private HashSet<HashSet<AttributeModel>> _subspaceQueries;
 
-        public SQLCommon Common
+        private SQLCommon Common
         {
             get { return _common; }
         }
 
-        public PrefSQLModel PrefSqlModel
+        private PrefSQLModel PrefSqlModel
         {
             get { return _prefSqlModel; }
+        }
+
+        private HashSet<HashSet<AttributeModel>> Subspaces
+        {
+            get
+            {
+                if (_subspaceQueries == null)
+                {
+                    DetermineSubspaces();
+                }
+                return _subspaceQueries;
+            }
+            set { _subspaceQueries = value; }
+        }
+
+        public HashSet<string> SubspaceQueries
+        {
+            get
+            {
+                var subspaceQueriesReturn = new HashSet<string>();
+
+                foreach (var subspace in Subspaces)
+                {
+                    subspaceQueriesReturn.Add(BuildSubspaceQuery(subspace));
+                }
+
+                return subspaceQueriesReturn;
+            }
         }
 
         public SkylineSamplingUtility(PrefSQLModel prefSqlModel, SQLCommon common)
         {
             _prefSqlModel = prefSqlModel;
             _common = common;
+        }
+
+        private void DetermineSubspaces()
+        {
+            Subspaces = null;
+
+            if (!PrefSqlModel.HasSkylineSample)
+            {
+                Subspaces = new HashSet<HashSet<AttributeModel>>();
+                return;
+            }
+
+            var subspacesReturn = new HashSet<HashSet<AttributeModel>>();
+
+            var skylineSampleCount = PrefSqlModel.SkylineSampleCount;
+
+            var done = false;
+            while (!done)
+            {
+                if (subspacesReturn.Count >= skylineSampleCount)
+                {
+                    if (AreAllPreferencesAtLeastOnceContainedInSubspaces(subspacesReturn))
+                    {
+                        done = true;
+                    }
+                    else
+                    {
+                        RemoveOneSubspace(subspacesReturn);
+                    }
+                }
+                else
+                {
+                    AddOneSubspace(subspacesReturn);
+                }
+            }
+
+            Subspaces = subspacesReturn;
+        }
+
+        public void RedetermineSubspaces()
+        {
+            DetermineSubspaces();
         }
 
         public string GetAnsiSql()
@@ -35,88 +108,80 @@
             throw new System.NotImplementedException();
         }
 
-        public List<string> GetSubspaceQueries()
+        private string BuildSubspaceQuery(IEnumerable<AttributeModel> subspace)
         {
-            if (!PrefSqlModel.HasSkylineSample)
-            {
-                return new List<string>();
-            }
+            var allPreferences = new List<AttributeModel>(PrefSqlModel.Skyline);
 
-            var subspaceQueriesReturn = new Dictionary<string, List<AttributeModel>>();
+            PrefSqlModel.Skyline = subspace.ToList();
+            var ansiSqlFromPrefSqlModel = Common.GetAnsiSqlFromPrefSqlModel(PrefSqlModel);
 
-            var skylineSampleCount = PrefSqlModel.SkylineSampleCount;
+            PrefSqlModel.Skyline = new List<AttributeModel>(allPreferences);
 
-            var done = false;
-            while (!done)
-            {
-                if (subspaceQueriesReturn.Count >= skylineSampleCount)
-                {
-                    if (AreAllPreferencesAtLeastOnceContainedInSubspaces(subspaceQueriesReturn))
-                    {
-                        done = true;
-                    }
-                    else
-                    {
-                        RemoveOneSubspaceQuery(subspaceQueriesReturn);
-                    }
-                }
-                else
-                {
-                    AddOneSubspaceQuery(subspaceQueriesReturn);
-                }
-            }
-
-            return new List<string>(subspaceQueriesReturn.Keys);
+            return ansiSqlFromPrefSqlModel;
         }
 
         private bool AreAllPreferencesAtLeastOnceContainedInSubspaces(
-            Dictionary<string, List<AttributeModel>> subspaceQueries)
+            IEnumerable<HashSet<AttributeModel>> subspaceQueries)
         {
-            var preferences = PrefSqlModel.Skyline;
-            var preferencesOriginallyContainedInPrefSqlModel = new List<AttributeModel>(preferences);
+            var allPreferences = new List<AttributeModel>(PrefSqlModel.Skyline);
 
-            foreach (var subspaceQueryAttributes in subspaceQueries.Values)
+            foreach (var subspaceQueryPreferences in subspaceQueries)
             {
-                preferencesOriginallyContainedInPrefSqlModel.RemoveAll(
-                    preference => subspaceQueryAttributes.Contains(preference));
+                allPreferences.RemoveAll(subspaceQueryPreferences.Contains);
             }
 
-            return preferencesOriginallyContainedInPrefSqlModel.Count == 0;
+            return allPreferences.Count == 0;
         }
 
-        private static void RemoveOneSubspaceQuery(Dictionary<string, List<AttributeModel>> subspaceQueries)
+        private static void RemoveOneSubspace(ICollection<HashSet<AttributeModel>> subspaceQueries)
         {
-            var subspaceQueriesKeys = new List<string>(subspaceQueries.Keys);
-            var subspaceQueriesKey = subspaceQueriesKeys[MyRandom.Next(subspaceQueriesKeys.Count)];
-            subspaceQueries.Remove(subspaceQueriesKey);
+            subspaceQueries.Remove(subspaceQueries.ElementAt(MyRandom.Next(subspaceQueries.Count)));
         }
 
-        private void AddOneSubspaceQuery(Dictionary<string, List<AttributeModel>> subspaceQueries)
+        private void AddOneSubspace(ISet<HashSet<AttributeModel>> subspaceQueries)
         {
-            var preferences = PrefSqlModel.Skyline;
-            var preferencesOriginallyContainedInPrefSqlModel = new List<AttributeModel>(preferences);
+            List<AttributeModel> allPreferences;
             var skylineSampleDimension = PrefSqlModel.SkylineSampleDimension;
-
-            string ansiSqlFromPrefSqlModel;
 
             do
             {
-                PrefSqlModel.Skyline = new List<AttributeModel>(preferencesOriginallyContainedInPrefSqlModel);
+                allPreferences = new List<AttributeModel>(PrefSqlModel.Skyline);
 
-                while (PrefSqlModel.Skyline.Count > skylineSampleDimension)
+                while (allPreferences.Count > skylineSampleDimension)
                 {
-                    PrefSqlModel.Skyline.RemoveAt(MyRandom.Next(PrefSqlModel.Skyline.Count));
+                    allPreferences.RemoveAt(MyRandom.Next(allPreferences.Count));
                 }
+            } while (subspaceQueries.Contains(new HashSet<AttributeModel>(allPreferences)));
 
-                ansiSqlFromPrefSqlModel = Common.GetAnsiSqlFromPrefSqlModel(PrefSqlModel);
-            } while (subspaceQueries.ContainsKey(ansiSqlFromPrefSqlModel));
+            subspaceQueries.Add(new HashSet<AttributeModel>(allPreferences));
+        }
 
-            if (ansiSqlFromPrefSqlModel != null)
+        public DataTable GetSkyline()
+        {
+            var skylineSample = new DataTable();
+
+            foreach (var subspace in Subspaces)
             {
-                subspaceQueries.Add(ansiSqlFromPrefSqlModel, new List<AttributeModel>(PrefSqlModel.Skyline));
+                Common.SkylineType.UseDataTable = null;
+                var subspaceDataTable = Common.Helper.getResults(BuildSubspaceQuery(subspace), Common.SkylineType,
+                    PrefSqlModel.WithIncomparable);
+
+                var subspaceComplement = GetSubspaceComplement(subspace);
+                Common.SkylineType.UseDataTable = subspaceDataTable;
+                var subspaceComplementDataTable = Common.Helper.getResults(BuildSubspaceQuery(subspaceComplement),
+                    Common.SkylineType, PrefSqlModel.WithIncomparable);
+
+                skylineSample.Merge(subspaceComplementDataTable, false, MissingSchemaAction.Add);
             }
 
-            PrefSqlModel.Skyline = new List<AttributeModel>(preferencesOriginallyContainedInPrefSqlModel);
+            return skylineSample;
+        }
+
+        public HashSet<AttributeModel> GetSubspaceComplement(HashSet<AttributeModel> subspace)
+        {
+            var allPreferences = new List<AttributeModel>(PrefSqlModel.Skyline);
+            allPreferences.RemoveAll(subspace.Contains);
+            return new HashSet<AttributeModel>(allPreferences);
         }
     }
 }

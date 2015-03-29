@@ -10,7 +10,6 @@
         <equivalentToSkyline>SELECT * FROM cars_small cs SKYLINE OF cs.mileage LOW</equivalentToSkyline>
       </subspace>
     </useSubspaces>
-    <expectedNumberOfEntireSkylineObjects>6</expectedNumberOfEntireSkylineObjects>
   </TestDataRow>
    <TestDataRow>
     <comment>3 samples, each of dimension 2 (e.g., (cs.price, cs.mileage), (cs.mileage, cs.horsepower), (cs.price, cs.horsepower))</comment>
@@ -26,6 +25,5 @@
         <equivalentToSkyline>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.horsepower HIGH</equivalentToSkyline>
       </subspace>
     </useSubspaces>
-    <expectedNumberOfEntireSkylineObjects>6</expectedNumberOfEntireSkylineObjects>
   </TestDataRow>
 </TestData>

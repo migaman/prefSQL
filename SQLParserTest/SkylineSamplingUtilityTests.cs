@@ -39,7 +39,7 @@
             var prefSqlModel = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSql);
             var subjectUnderTest = new SkylineSamplingUtility(prefSqlModel, common);
 
-            var subspaceQueriesProduced = subjectUnderTest.GetSubspaceQueries();
+            var subspaceQueriesProduced = subjectUnderTest.SubspaceQueries;
             var subspaceQueriesExpected =
                 TestContext.DataRow.GetChildRows("TestDataRow_useSubspaces")[0].GetChildRows("useSubspaces_subspace");
 

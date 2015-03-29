@@ -40,11 +40,13 @@ namespace prefSQL.SQLSkyline
             if (hasIncomparable)
             {
                 SP_SkylineBNL skyline = new SP_SkylineBNL();
+                skyline.UseDataTable = UseDataTable;
                 return skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
             }
             else
             {
                 SP_SkylineBNLLevel skyline = new SP_SkylineBNLLevel();
+                skyline.UseDataTable = UseDataTable;
                 return skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
             }
 

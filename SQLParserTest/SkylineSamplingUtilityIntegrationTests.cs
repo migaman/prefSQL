@@ -8,50 +8,32 @@
     using prefSQL.SQLSkyline;
 
     [TestClass]
-    public class SqlParserSkylineSamplingIntegrationTests
+    public class SkylineSamplingUtilityIntegrationTests
     {
         private const string DbConnection = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
-        private const string DbProvider = "System.Data.SqlClient";
-
+        private const string DbProvider = "System.Data.SqlClient"; 
+        
         public TestContext TestContext { get; set; }
 
         [TestMethod]
-        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
-            "SQLParserSkylineSamplingIntegrationTests.xml", "TestDataRow", DataAccessMethod.Sequential),
-         DeploymentItem("SQLParserSkylineSamplingIntegrationTests.xml")]
-        public void TestNumberOfObjectsWithinEntireSkyline()
-        {
-            var entireSkylineSql = TestContext.DataRow["entireSkylineSQL"].ToString();
-            var testComment = TestContext.DataRow["comment"].ToString();
-            var expectedNumberOfEntireSkylineObjects =
-                int.Parse(TestContext.DataRow["expectedNumberOfEntireSkylineObjects"].ToString());
-            Debug.WriteLine(testComment);
-            Debug.WriteLine(entireSkylineSql);
-
-            var common = new SQLCommon {SkylineType = new SkylineBNL()};
-
-            var skyline = common.parseAndExecutePrefSQL(DbConnection, DbProvider, entireSkylineSql);
-
-            Assert.AreEqual(expectedNumberOfEntireSkylineObjects, skyline.Rows.Count,
-                "Unexpected number of Skyline objects.");
-        }
-
-        [TestMethod]
-        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
-            "SQLParserSkylineSamplingIntegrationTests.xml", "TestDataRow", DataAccessMethod.Sequential),
-         DeploymentItem("SQLParserSkylineSamplingIntegrationTests.xml")]
-        public void TestOnlyNonDominatedObjectsWithinSampleSkyline()
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SkylineSamplingUtilityIntegrationTests.xml",
+            "TestDataRow", DataAccessMethod.Sequential),
+         DeploymentItem("SkylineSamplingUtilityIntegrationTests.xml")]
+        public void TestOnlyNonDominatedObjectsWithinSampleSkylineViaGetSkyline()
         {
             var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
             var entireSkylineSql = TestContext.DataRow["entireSkylineSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
             Debug.WriteLine(skylineSampleSql);
-            
-            var common = new SQLCommon {SkylineType = new SkylineBNL()};
+
+            var common = new SQLCommon { SkylineType = new SkylineBNL() };
+
+            var prefSqlModel = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSql);
+            var subjectUnderTest = new SkylineSamplingUtility(prefSqlModel, common);
 
             var entireSkyline = common.parseAndExecutePrefSQL(DbConnection, DbProvider, entireSkylineSql);
-            var sampleSkyline = common.parseAndExecutePrefSQL(DbConnection, DbProvider, skylineSampleSql);
+            var sampleSkyline = subjectUnderTest.GetSkyline();
 
             var entireSkylineObjectsIds = GetHashSetOfIdsFromDataTable(entireSkyline);
             var sampleSkylineObjectsIds = GetHashSetOfIdsFromDataTable(sampleSkyline);

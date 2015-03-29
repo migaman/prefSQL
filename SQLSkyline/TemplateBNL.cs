@@ -12,6 +12,7 @@ namespace prefSQL.SQLSkyline
 {
     public abstract class TemplateBNL
     {
+        public DataTable UseDataTable { private get; set; }
 
         public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection)
         {
@@ -42,6 +43,10 @@ namespace prefSQL.SQLSkyline
 
                 SqlDataAdapter dap = new SqlDataAdapter(strQuery.ToString(), connection);
                 DataTable dt = new DataTable();
+                if (UseDataTable != null)
+                {
+                    dt = UseDataTable;
+                }
                 dap.Fill(dt);
 
 
