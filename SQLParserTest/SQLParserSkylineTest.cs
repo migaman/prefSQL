@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using prefSQL.SQLSkyline;
 using System.Data;
+using prefSQL.SQLParser.Models;
 
 
 namespace prefSQL.SQLParserTest
@@ -23,56 +24,68 @@ namespace prefSQL.SQLParserTest
 
             //1 numerical preference
             strPrefSQL[0] = "SELECT t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price LOW";
+            
             //3 numerical preferences
             strPrefSQL[1] = "   SELECT   * FROM cars_small t1 SKYLINE OF t1.price AROUND 10000, t1.mileage LOW, t1.horsepower HIGH";
+            
             //6 numerical preferences with EQUAL STEPS
             strPrefSQL[2] = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
                 "SKYLINE OF cars_small.price LOW 3000 EQUAL, cars_small.mileage LOW 20000 EQUAL, cars_small.horsepower HIGH 20 EQUAL, cars_small.enginesize HIGH 1000 EQUAL, cars_small.consumption LOW 15 EQUAL, cars_small.doors HIGH ";
-
+            
 
             //Preference with TOP Keyword
             //1 numerical preferences with TOP Keyword
             strPrefSQL[3] = "  SELECT   TOP   5    t1.title FROM cars_small t1 SKYLINE OF t1.price LOW";
+            
 
             //3 numerical preferences with TOP Keyword
             strPrefSQL[4] = "SELECT TOP 5 t1.title FROM cars_small t1 SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH";
+            
 
             //OTHERS EQUAL at the end
             strPrefSQL[5] = "SELECT t1.id, t1.title AS AutoTitel, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS EQUAL)";
-            //OTHERS EQUAL at the beginning
-            strPrefSQL[6] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name (OTHERS EQUAL >> 'blau')";
-            //OTHERS EQUAL in the middle
-            strPrefSQL[7] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> OTHERS EQUAL >> 'blau')";
-
-            //OTHERS INCOMPARABLE at the end
-            strPrefSQL[8] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price < 3000) SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
-            //OTHERS INCOMPARABLE at the beginning
-            strPrefSQL[9] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price < 3000) SKYLINE OF t1.price LOW, colors.name (OTHERS INCOMPARABLE >> 'blau' >> 'rot')";
-            //OTHERS INCOMPARABLE in the middle
-            strPrefSQL[10] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price < 3000) SKYLINE OF t1.price LOW, colors.name ('rot' >>  OTHERS INCOMPARABLE >> 'blau')";
-
             
 
-            //TODO: Statement without explicit OTHERS INCOMPARABLE do not work with hexagon so far
+            //OTHERS EQUAL at the beginning
+            strPrefSQL[6] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name (OTHERS EQUAL >> 'blau')";
+            
+
+            //OTHERS EQUAL in the middle
+            strPrefSQL[7] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> OTHERS EQUAL >> 'blau')";
+            
+
+            //OTHERS INCOMPARABLE at the end
+            strPrefSQL[8] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
+            
+
+            //OTHERS INCOMPARABLE at the beginning
+            strPrefSQL[9] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name (OTHERS INCOMPARABLE >> 'blau' >> 'rot')";
+            
+
+            //OTHERS INCOMPARABLE in the middle
+            strPrefSQL[10] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >>  OTHERS INCOMPARABLE >> 'blau')";
+            
+
+            //Statement without explicit OTHERS INCOMPARABLE do not work with hexagon (problem: levelling)
             //2 FIXED INCOMPARABLE values
-            /*strPrefSQL[8] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber'})";
+            /*strPrefSQL[11] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber'})";
+            
+
             //5 FIXED INCOMPARABLE values better than another value
-            strPrefSQL[9] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 900) SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber', 'schwarz', 'rot', 'pink'} >> 'grau')";
+            strPrefSQL[12] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 900) SKYLINE OF t1.price LOW, colors.name ({'blau', 'silber', 'schwarz', 'rot', 'pink'} >> 'grau')";
+            
+
             //4 FIXED INCOMPARABLE values in the middle
-            strPrefSQL[10] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 900) SKYLINE OF t1.price LOW, colors.name ('schwarz' >> {'blau', 'silber', 'rot', 'pink'} >> 'grau')";
+            strPrefSQL[13] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 900) SKYLINE OF t1.price LOW, colors.name ('schwarz' >> {'blau', 'silber', 'rot', 'pink'} >> 'grau')";
+            
+            
+            //Preferene with Step Level Incomparable
+            strPrefSQL[14] = "SELECT t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price LOW 1000 INCOMPARABLE, t1.mileage LOW";
             */
-
-            //Preferene with Step Level Equal
-            //strPrefSQL[12] = "SELECT t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price LOW 1000 INCOMPARABLE, t1.mileage LOW";
-
+            //TODO: currentyl doesn't work with BNL --> Fix it
             //WITHOUT OTHERS --> This means that tuples with other values are assumed to be incomparable
-            //strPrefSQL[14] = "SELECT c.id AS ID FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
-
-            //TODO: Does not work with BNL and Hexagon
-            //Numerical preferences with INCOMPARABLE STEPS
-            /*strPrefSQL[15] = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
-                "SKYLINE OF cars_small.price LOW 3000 INCOMPARABLE, cars_small.mileage LOW 20000 EQUAL, cars_small.horsepower HIGH 20 EQUAL, cars_small.enginesize HIGH 1000 EQUAL, cars_small.consumption LOW 15 EQUAL, cars_small.doors HIGH ";
-            */
+            //strPrefSQL[15] = "SELECT c.id AS ID FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
+            
 
 
             return strPrefSQL;
@@ -92,10 +105,11 @@ namespace prefSQL.SQLParserTest
             
             for (int i = 0; i <= strPrefSQL.GetUpperBound(0); i++)
             {
-
+                
                 SQLCommon common = new SQLCommon();
                 common.SkylineType = new SkylineSQL();
                 string sqlNative = common.parsePreferenceSQL(strPrefSQL[i]);
+                PrefSQLModel model = common.QueryModel;
                 common.SkylineType = new SkylineBNL();
                 string sqlBNL = common.parsePreferenceSQL(strPrefSQL[i]);
                 common.SkylineType = new SkylineBNLSort();
@@ -171,12 +185,9 @@ namespace prefSQL.SQLParserTest
                     }
                     sqlReader.Close();
 
-                    //D&Q
-                    //D&Q does not work with incomparable tuples
-                    if (i < 7)
+                    //D&Q (does not work with incomparable tuples)
+                    if(model.WithIncomparable == false)
                     {
-
-
                         sqlCommand = new SqlCommand(sqlDQ, cnnSQL);
                         sqlReader = sqlCommand.ExecuteReader();
 
@@ -201,10 +212,15 @@ namespace prefSQL.SQLParserTest
                 //Check tuples (every algorithm should deliver the same amount of tuples)
                 Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNLSort, 0, "BNLSort Amount of tupels in query " + i + "do not match");
                 Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNL, 0, "BNL Amount of tupels in query " + i + "do not match");
-                Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsHexagon, 0, "Hexagon Amount of tupels in query " + i + "do not match");
+
+                //Hexagon cannot handle Categorical preference that have no explicit OTHERS
+                if (model.ContainsOpenPreference == false)
+                {
+                    Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsHexagon, 0, "Hexagon Amount of tupels in query " + i + "do not match");
+                }
 
                 //D&Q does not work with incomparable tuples
-                if (i < 7)
+                if (model.WithIncomparable == false)
                 {
                     Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsDQ, 0, "Amount of tupels in query " + i + "do not match");
                 }
@@ -230,16 +246,23 @@ namespace prefSQL.SQLParserTest
                 SQLCommon common = new SQLCommon();
                 common.SkylineType = new SkylineSQL();
                 DataTable dtNative = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
+                PrefSQLModel model = common.QueryModel;
                 common.SkylineType = new SkylineBNL();
                 DataTable dtBNL = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
                 common.SkylineType = new SkylineBNLSort();
                 DataTable dtBNLSort = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
-                common.SkylineType = new SkylineHexagon();
-                DataTable dtHexagon = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
+                
+                DataTable dtHexagon = new DataTable();
+                if (model.ContainsOpenPreference == false)
+                {
+                    common.SkylineType = new SkylineHexagon();
+                    dtHexagon = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
+                }
+                
+                
                 DataTable dtDQ = new DataTable();
-
                 //D&Q does not work with incomparable tuples
-                if (i < 7)
+                if (model.WithIncomparable == false)
                 {
                     common.SkylineType = new SkylineDQ();    
                     dtDQ = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
@@ -249,9 +272,14 @@ namespace prefSQL.SQLParserTest
                 //Check tuples (every algorithm should deliver the same amount of tuples)
                 Assert.AreEqual(dtNative.Rows.Count, dtBNL.Rows.Count, 0, "BNL Amount of tupels in query " + i + " do not match");
                 Assert.AreEqual(dtNative.Rows.Count, dtBNLSort.Rows.Count, 0, "BNLSort Amount of tupels in query " + i + " do not match");
-                Assert.AreEqual(dtNative.Rows.Count, dtHexagon.Rows.Count, 0, "Hexagon Amount of tupels in query " + i + " do not match");
+
+                //Hexagon cannot handle Categorical preference that have no explicit OTHERS
+                if (model.ContainsOpenPreference == false)
+                {
+                    Assert.AreEqual(dtNative.Rows.Count, dtHexagon.Rows.Count, 0, "Hexagon Amount of tupels in query " + i + " do not match");
+                }
                 //D&Q does not work with incomparable tuples
-                if(i < 7)
+                if (model.WithIncomparable == false)
                 {
                     Assert.AreEqual(dtNative.Rows.Count, dtDQ.Rows.Count, 0, "D&Q Amount of tupels in query " + i + " do not match");
                 }

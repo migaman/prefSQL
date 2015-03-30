@@ -20,6 +20,7 @@ namespace prefSQL.SQLParser
         private PrefSQLModel model;                             //Preference SQL Model, contains i.e. the skyline attributes
         private bool isNative;                                  //True if the skyline algorithm is native                 
         private bool hasIncomparableTuples = false;             //True if the skyline must be checked for incomparable tuples
+        private bool containsOpenPreference = false;            //True if the skyline contains a categorical preference without an explicit OTHERS statement
 
 
         public bool IsNative
@@ -290,6 +291,7 @@ namespace prefSQL.SQLParser
             pref.Tables = tables;
             pref.NumberOfRecords = numberOfRecords;
             pref.WithIncomparable = hasIncomparableTuples;
+            pref.ContainsOpenPreference = containsOpenPreference;
             model = pref;
             return pref;
         }
@@ -312,6 +314,7 @@ namespace prefSQL.SQLParser
             pref.NumberOfRecords = numberOfRecords;
             pref.Tables = tables;
             pref.WithIncomparable = hasIncomparableTuples;
+            pref.ContainsOpenPreference = containsOpenPreference;
             model = pref;
             return pref;
         }
@@ -362,6 +365,8 @@ namespace prefSQL.SQLParser
                     isLevelStepEqual = false;
                     bComparable = false;
                     hasIncomparableTuples = true;
+                    //Some algorithms cannot handle this incomparable preference --> It is like a categorical preference without explicit OTHERS
+                    containsOpenPreference = true;
                 }
                 
             }
@@ -506,11 +511,17 @@ namespace prefSQL.SQLParser
 
             }
 
+            if (strSQLELSE.Equals(""))
+            {
+                //There is a categorical preference without an OTHER statement!! (Not all algorithms can handle that)
+                containsOpenPreference = true;
+            }
+
             //Add others incomparable clause at the top-level if not OTHERS was specified
             if (strSQLELSE.Equals("") && IsNative == false)
             {
                 strIncomporableAttributeELSE = " ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
-                strSQLELSE = " ELSE 0"; //if no OTHERS is present all other values are on the top level
+                strSQLELSE = " ELSE NULL"; //if no OTHERS is present all other values are on the top level
                 bComparable = false;
                 hasIncomparableTuples = true;
             }
@@ -519,6 +530,7 @@ namespace prefSQL.SQLParser
             strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLInnerELSE + " END";
             strIncomporableAttribute = "CASE" + strSQLIncomparableAttribute + strIncomporableAttributeELSE + " END";
             strColumnExpression = "DENSE_RANK() OVER (ORDER BY " + strExpression + ")";
+
 
             strRankHexagon = "DENSE_RANK()" + " OVER (ORDER BY " + strExpression + ")-1 AS Rank" + strFullColumnName.Replace(".", "");
 
@@ -610,6 +622,7 @@ namespace prefSQL.SQLParser
             pref.Tables = tables;
             pref.NumberOfRecords = numberOfRecords;
             pref.WithIncomparable = hasIncomparableTuples;
+            pref.ContainsOpenPreference = containsOpenPreference;
             model = pref;
             return pref;
         }

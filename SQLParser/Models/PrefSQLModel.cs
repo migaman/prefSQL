@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace prefSQL.SQLParser.Models
 {
-    class PrefSQLModel
+    public class PrefSQLModel
     {
         private int _numberOfRecords = 0;                                               //Number of records that should be returned (0 = all)
         private List<AttributeModel> _skyline = new List<AttributeModel>();             //skyline preference attributes
@@ -16,6 +16,13 @@ namespace prefSQL.SQLParser.Models
         private Dictionary<string, string> _tables = new Dictionary<string, string>();  //the tablename and its alias
         private SQLCommon.Ordering _ordering = SQLCommon.Ordering.AsIs;
         private bool _withIncomparable = false;                                         //True if the skyline must be checked for incomparable tuples
+        private bool _containsOpenPreference = false;                                   //True if the skyline contains a categorical preference without an explicit OTHERS statement
+
+        public bool ContainsOpenPreference
+        {
+            get { return _containsOpenPreference; }
+            set { _containsOpenPreference = value; }
+        }
 
         public int NumberOfRecords
         {
