@@ -49,42 +49,12 @@ namespace prefSQL.SQLSkyline
                 String strHexagonSelectIncomparable = additionalParameters[4].Trim().Replace("''", "'").Trim('\'');
                 int weightHexagonIncomparable = int.Parse(additionalParameters[5].Trim());
                 prefSQL.SQLSkyline.SP_SkylineHexagon skyline = new SQLSkyline.SP_SkylineHexagon();
-                
-
-                //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
-                //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
-                var thread = new Thread(
-                    () =>
-                    {
-                        dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, strConnection, strHexagonSelectIncomparable, weightHexagonIncomparable);
-                    }, 8000000);
-
-
-                thread.Start();
-
-                //Join method to block the current thread  until the object's thread terminates.
-                thread.Join();
+                dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, strConnection, strHexagonSelectIncomparable, weightHexagonIncomparable);
             }
             else
             {
                 prefSQL.SQLSkyline.SP_SkylineHexagonLevel skyline = new SQLSkyline.SP_SkylineHexagonLevel();
-
-                //dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, strConnection, "", 0);
-
-                //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
-
-                //Default stack size is 1MB (1024000) --> Increase to 8MB. Otherwise the program might end in a stackoverflow
-                var thread = new Thread(
-                    () =>
-                    {
-                        dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, strConnection, "", 0);
-                    }, 8000000);
-
-
-                thread.Start();
-
-                //Join method to block the current thread  until the object's thread terminates.
-                thread.Join();
+                dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, strConnection, "", 0);
             }
             return dt;
         }
