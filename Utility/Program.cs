@@ -89,7 +89,7 @@ namespace Utility
                     //"SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.doors HIGH, t1.enginesize HIGH, t1.consumption LOW, t1.seats HIGH, t1.cylinders HIGH " +
                     //", colors.name ('pink' >> 'rot' >> 'schwarz' >> OTHERS EQUAL) ";
 
-                    "SKYLINE OF t1.price LOW, t1.mileage LOW, t1.enginesize HIGH";
+                    "SKYLINE OF t1.price LOW, t1.mileage LOW, t1.enginesize HIGH, t1.horsepower HIGH";
 
                     //"SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000";
                     //", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +
