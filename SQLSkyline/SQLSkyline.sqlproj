@@ -62,6 +62,7 @@
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
   <ItemGroup>
     <Folder Include="Properties" />
+    <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -92,5 +93,6 @@
     <Compile Include="TemplateDQ.cs" />
     <Compile Include="TemplateHexagon.cs" />
     <Compile Include="TemplateS.cs" />
+    <Compile Include="Models\HexagonRemoveModel.cs" />
   </ItemGroup>
 </Project>

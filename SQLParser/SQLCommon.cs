@@ -249,6 +249,11 @@ namespace prefSQL.SQLParser
                     }
                     if(prefSQL.Ranking.Count > 0)
                     {
+                        if(prefSQL.ContainsOpenPreference == true)
+                        {
+                            throw new Exception("WeightedSum cannot handle implicit INCOMPARABLE values. Please add the explicit OTHERS EQUAL to the preference");
+                        }
+
 
                         //Add all Syntax before the RANKING OF-Clause
                         strSQLReturn = strInput.Substring(0, strInput.IndexOf("RANKING OF") - 1);

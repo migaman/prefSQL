@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using prefSQL.SQLSkyline.Models;
 
 namespace prefSQL.SQLSkyline
 {
@@ -312,7 +313,16 @@ namespace prefSQL.SQLSkyline
                             {
                                 if (level[cur + weight[i]] == level[cur] + 1)
                                 {
-                                    remove(cur + weight[i], i, ref btg, ref next, ref prev, ref level, ref weight, 0);
+                                    //(btg, next, prev, level, weight);
+                                    HexagonRemoveModel modelIn = new HexagonRemoveModel(cur + weight[i], i, btg, next, prev, level, weight, 0);
+                                    //remove(cur + weight[i], i, ref btg, ref next, ref prev, ref level, ref weight, 0);
+
+                                    
+                                    HexagonRemoveModel modelOut = modelOut = removeIterative(modelIn);
+                                    btg = modelOut.btg;
+                                    next = modelOut.next;
+                                    prev = modelOut.prev;
+                                    
                                 }
                             }
 
@@ -342,6 +352,169 @@ namespace prefSQL.SQLSkyline
 
         }
 
+        private HexagonRemoveModel removeIterative(HexagonRemoveModel returnModel)
+        {
+            //HexagonRemoveModel first_object = null;
+            int address = 10; // Entry point for each each "call"
+            HexagonRemoveModel tempFac = returnModel;            
+            Stack stack = new Stack();
+
+
+
+            stack.Push(30); //initial return address
+            stack.Push(tempFac);
+            while (stack.Count > 0)
+            {
+                switch (address)
+                {
+                    case 10:
+                    {
+                        // Do something
+                        returnModel = (HexagonRemoveModel)stack.Pop();
+
+                        int id = returnModel.id;
+                        int index = returnModel.index;
+                        ArrayList[] btg = returnModel.btg;
+                        int[] next = returnModel.next;
+                        int[] prev = returnModel.prev;
+                        int[] level = returnModel.level;
+                        int[] weight = returnModel.weight;
+                        int iLoopIndex = returnModel.loopindex;
+                        
+                        //
+                        if(iLoopIndex == 0)
+                        {
+                            //check if the node has already been removed
+                            if (prev[id] == -1)
+                            {
+                                return new HexagonRemoveModel(id, index, btg, next, prev, level, weight, 0);
+                            }
+                            if (next[prev[id]] != id)
+                            {
+                                return new HexagonRemoveModel(id, index, btg, next, prev, level, weight, 0);
+                            }
+                            else
+                            {
+                                //remove the node from next/prev relation
+                                next[prev[id]] = next[id];
+                                if (next[id] != -1)
+                                {
+                                    prev[next[id]] = prev[id];
+                                }
+
+                                //remove tuples in node
+                                btg[id] = null;
+
+                            }
+                        }
+                        else
+                        {
+
+                        }
+
+                        if(id == 4)
+                        {
+
+                        }
+
+
+                        bool bAdd = false;
+                        //if (iLoopIndex < index)
+                         //   bAdd = true;
+
+                        //remove followers
+                        for (int i = iLoopIndex; i <= index; i++)
+                        {
+                            if(i > 0 && iLoopIndex > 0 && id == 4)
+                            {
+
+                            }
+
+                            //bAdd = i != iLoopIndex;
+
+                            // follow the edge for preference i (only if not already on last level)
+                            if (id + weight[i] <= level.GetUpperBound(0) && level[id + weight[i]] == level[id] + 1)
+                            {
+                                //return remove(id + weight[i], i, btg, next, prev, level, weight);
+                                
+                                
+                                //Push current object to stack
+                                returnModel.loopindex = i + 1;  //important: raise loop Index!! new position in position loop!!
+                                returnModel.next = next;
+                                returnModel.prev = prev;
+                                returnModel.btg = btg;
+                                stack.Push(returnModel);
+                                stack.Push(10);
+
+                                //Push new object to stack
+                                HexagonRemoveModel nMinus1 = new HexagonRemoveModel(id + weight[i], i, btg, next, prev, level, weight, 0);
+                                stack.Push(nMinus1);
+                                address = 10; // Make another "call"
+                                bAdd = true;
+                                break;
+                            }
+                        }
+
+                        if (bAdd == false)
+                        {
+                            //Loop erfolgreich beenden --> Nun im Stack zurückgehen und jeweils neues btg, next und prev weitergeben
+                            //The base case
+
+                            address = (int)stack.Pop();
+                            stack.Push(new HexagonRemoveModel(id, index, btg, next, prev, level, weight, iLoopIndex+1));
+
+                            /*
+                            if (iLoopIndex == 0)
+                            {
+                                address = (int)stack.Pop();
+                            }
+                            else
+                            {
+
+                            }
+                            */
+
+                            //if (stack.Count > 1)
+                            //{
+                            //tempFac = (HexagonRemoveModel)stack.Pop();
+                            
+                            /*
+                            returnModel = (HexagonRemoveModel)stack.Pop();
+                            address = (int)stack.Pop();
+                            returnModel.next = next;
+                            returnModel.prev = prev;
+                            returnModel.btg = btg;
+                            stack.Push(returnModel);
+                            */
+
+                            /*}
+                            else
+                            {
+                                stack.Push(returnModel);
+                                address = 30;
+                            }*/
+
+                        }
+                        break;
+                    }
+                    case 20:
+                    { 
+                            // Compute and return
+                            
+
+                            break;
+                    }
+                    case 30:
+                    {
+                        // The final return value
+                        tempFac = (HexagonRemoveModel)stack.Pop();
+                        break;
+                    }
+                }
+
+            }
+            return tempFac; // new HexagonRemoveModel(id, index, btg, next, prev, level, weight);
+        }
 
 
         private void remove(int id, int index, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight, int iRecursionLoop)
@@ -369,10 +542,14 @@ namespace prefSQL.SQLSkyline
 
             }
 
-            int i = 1;
+            if(id == 4)
+            {
+
+            }
+
 
             //remove followers
-            for (i = 0; i <= index; i++)
+            for (int i = 0; i <= index; i++)
             {
                 // follow the edge for preference i (only if not already on last level)
                 if (id + weight[i] <= level.GetUpperBound(0) && level[id + weight[i]] == level[id] + 1)
@@ -380,8 +557,11 @@ namespace prefSQL.SQLSkyline
                     remove(id + weight[i], i, ref btg, ref next, ref prev, ref level, ref weight, ++iRecursionLoop);
                 }
             }
+            return;
         }
 
+
+        
 
         protected abstract void add(DataTableReader sqlReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable);
 

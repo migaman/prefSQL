@@ -67,12 +67,12 @@ namespace Utility
 
                 //string strPrefSQL = "SELECT cars.id, cars.title, colors.name, fuels.name FROM cars " +
                 //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name, mileage FROM cars " +
-                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name, t1.enginesize FROM cars t1 " +
+                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage FROM cars_small t1 WHERE t1.price <= 2700 " +
                     //string strPrefSQL = "SELECT cars.id, cars.Price, cars.mileage FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage, cars.horsepower, cars.enginesize, cars.registration, cars.consumption, cars.doors, colors.name, fuels.name FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, colors.name AS colourname, fuels.name AS fuelname, cars.price FROM cars " +
                     //string strPrefSQL = "SELECT id FROM cars " +
-                    "LEFT OUTER JOIN colors ON t1.color_id = colors.ID " +
+                    //"LEFT OUTER JOIN colors ON t1.color_id = colors.ID " +
                     /*"LEFT OUTER JOIN bodies ON t1.body_id = bodies.ID " +
                     "LEFT OUTER JOIN conditions ON t1.condition_id = conditions.id " +
                     "LEFT OUTER JOIN Transmissions ON t1.transmission_id = Transmissions.id " +
@@ -97,7 +97,9 @@ namespace Utility
                     //"ORDER BY BEST_RANK() ";
 
 
-                strPrefSQL = "SELECT c.id, c.price, b.name FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
+                //strPrefSQL = "SELECT c.id, c.price, b.name FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
+                //strPrefSQL = "SELECT c.id, c.price FROM cars_small c LEFT OUTER JOIN colors cc ON c.color_id = cc.id RANKING OF c.price LOW 0.5, cc.name ('braun' >> 'grün') 0.5";
+                //strPrefSQL = "SELECT c.id, c.price FROM cars_small c LEFT OUTER JOIN colors cc ON c.color_id = cc.id SKYLINE OF c.horsepower HIGH, cc.name ('rot' >> 'blau' >> 'gelb')";
 
                 Debug.WriteLine(strPrefSQL);
                 Debug.WriteLine("--------------------------------------------");
@@ -106,7 +108,7 @@ namespace Utility
                 parser.SkylineType = new SkylineSQL();
                 parser.SkylineType = new SkylineBNL();
                 parser.SkylineType = new SkylineBNLSort();
-                //parser.SkylineType = new SkylineHexagon();
+                parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new MultipleSkylineBNL();
                 //parser.SkylineType = new SkylineDQ();
                 //parser.ShowSkylineAttributes = true;

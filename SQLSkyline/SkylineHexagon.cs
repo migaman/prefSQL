@@ -68,7 +68,8 @@ namespace prefSQL.SQLSkyline
             else
             {
                 prefSQL.SQLSkyline.SP_SkylineHexagonLevel skyline = new SQLSkyline.SP_SkylineHexagonLevel();
-                
+
+                //dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, strConnection, "", 0);
 
                 //Hexagon algorithm neads a higher stack (much recursions). Therefore start it with a new thread
 
