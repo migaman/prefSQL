@@ -19,6 +19,16 @@ namespace prefSQL.SQLSkyline
             return false;
         }
 
+        public override bool supportImplicitPreference()
+        {
+            return false;
+        }
+
+        public override bool supportIncomparable()
+        {
+            return true;
+        }
+
         public override string getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
         {
 

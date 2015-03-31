@@ -87,29 +87,20 @@ namespace prefSQL.SQLParser
             helper.ConnectionString = connectionString;
             helper.DriverString = driverString;
 
-            bool withIncomparable = false;
-            string strSQL = parsePreferenceSQL(strPrefSQL, ref withIncomparable);
+            string strSQL = parsePreferenceSQL(strPrefSQL);
+            PrefSQLModel model = QueryModel;
             Debug.WriteLine(strSQL);
             
             
-            return helper.getResults(strSQL, _SkylineType, withIncomparable);
+            return helper.getResults(strSQL, _SkylineType, model);
         }
+
+
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
         /// <param name="strInput">Preference SQL Statement</param>
         /// <returns>Return the ANSI SQL Statement</returns>
         public string parsePreferenceSQL(string strInput)
-        {
-            bool withIncomparable = false;
-            string strSQL = parsePreferenceSQL(strInput, ref withIncomparable);
-            return strSQL;
-        }
-
-
-        /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
-        /// <param name="strInput">Preference SQL Statement</param>
-        /// <returns>Return the ANSI SQL Statement</returns>
-        private string parsePreferenceSQL(string strInput, ref bool withIncomparable)
         {
             AntlrInputStream inputStream = new AntlrInputStream(strInput);
             SQLLexer sqlLexer = new SQLLexer(inputStream);
@@ -143,7 +134,7 @@ namespace prefSQL.SQLParser
                     if (prefSQL.Skyline.Count > 0)
                     {
                         //Mark as incomparable if needed (to choose the correct algorithm)
-                        withIncomparable = prefSQL.WithIncomparable;
+                        //withIncomparable = prefSQL.WithIncomparable;
 
                         //Add all Syntax before the Skyline-Clause
                         strSQLReturn = strInput.Substring(0, strInput.IndexOf(SkylineOf) - 1).TrimStart(' ');;

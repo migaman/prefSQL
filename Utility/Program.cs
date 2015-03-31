@@ -72,7 +72,7 @@ namespace Utility
                     //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage, cars.horsepower, cars.enginesize, cars.registration, cars.consumption, cars.doors, colors.name, fuels.name FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, colors.name AS colourname, fuels.name AS fuelname, cars.price FROM cars " +
                     //string strPrefSQL = "SELECT id FROM cars " +
-                    //"LEFT OUTER JOIN colors ON t1.color_id = colors.ID " +
+                    "LEFT OUTER JOIN colors ON t1.color_id = colors.ID " +
                     /*"LEFT OUTER JOIN bodies ON t1.body_id = bodies.ID " +
                     "LEFT OUTER JOIN conditions ON t1.condition_id = conditions.id " +
                     "LEFT OUTER JOIN Transmissions ON t1.transmission_id = Transmissions.id " +
@@ -89,7 +89,7 @@ namespace Utility
                     //"SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.doors HIGH, t1.enginesize HIGH, t1.consumption LOW, t1.seats HIGH, t1.cylinders HIGH " +
                     //", colors.name ('pink' >> 'rot' >> 'schwarz' >> OTHERS EQUAL) ";
 
-                    "SKYLINE OF t1.price LOW, t1.mileage LOW, t1.enginesize HIGH, t1.horsepower HIGH";
+                    "SKYLINE OF t1.price LOW, t1.mileage LOW, colors.name ('red' >> 'blau' >> OTHERS INCOMPARABLE) ";
 
                     //"SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000";
                     //", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +
@@ -108,7 +108,7 @@ namespace Utility
                 //parser.SkylineType = new SkylineSQL();
                 //parser.SkylineType = new SkylineBNL();
                 parser.SkylineType = new SkylineBNLSort();
-                parser.SkylineType = new SkylineHexagon();
+                //parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new MultipleSkylineBNL();
                 //parser.SkylineType = new SkylineDQ();
                 //parser.ShowSkylineAttributes = true;
