@@ -379,38 +379,32 @@ namespace prefSQL.SQLSkyline
                         int[] prev = returnModel.prev;
                         int[] level = returnModel.level;
                         int[] weight = returnModel.weight;
-                        int iLoopIndex = returnModel.loopindex;
+                        int iLoopIndex = 0; // returnModel.loopindex;
                         
-                        //
-                        if(iLoopIndex == 0)
+                        
+                        //check if the node has already been removed
+                        if (prev[id] == -1)
                         {
-                            //check if the node has already been removed
-                            if (prev[id] == -1)
-                            {
-                                return new HexagonRemoveModel(id, index, btg, next, prev, level, weight, 0);
-                            }
-                            if (next[prev[id]] != id)
-                            {
-                                return new HexagonRemoveModel(id, index, btg, next, prev, level, weight, 0);
-                            }
-                            else
-                            {
-                                //remove the node from next/prev relation
-                                next[prev[id]] = next[id];
-                                if (next[id] != -1)
-                                {
-                                    prev[next[id]] = prev[id];
-                                }
-
-                                //remove tuples in node
-                                btg[id] = null;
-
-                            }
+                            return new HexagonRemoveModel(id, index, btg, next, prev, level, weight, 0);
+                        }
+                        if (next[prev[id]] != id)
+                        {
+                            return new HexagonRemoveModel(id, index, btg, next, prev, level, weight, 0);
                         }
                         else
                         {
+                            //remove the node from next/prev relation
+                            next[prev[id]] = next[id];
+                            if (next[id] != -1)
+                            {
+                                prev[next[id]] = prev[id];
+                            }
+
+                            //remove tuples in node
+                            btg[id] = null;
 
                         }
+                        
 
                         if(id == 4)
                         {
@@ -423,86 +417,99 @@ namespace prefSQL.SQLSkyline
                          //   bAdd = true;
 
                         //remove followers
-                        for (int i = iLoopIndex; i <= index; i++)
-                        {
-                            if(i > 0 && iLoopIndex > 0 && id == 4)
-                            {
-
-                            }
-
-                            //bAdd = i != iLoopIndex;
-
-                            // follow the edge for preference i (only if not already on last level)
-                            if (id + weight[i] <= level.GetUpperBound(0) && level[id + weight[i]] == level[id] + 1)
-                            {
-                                //return remove(id + weight[i], i, btg, next, prev, level, weight);
+                        // follow the edge for preference i (only if not already on last level)
+                        if (id + weight[0] <= level.GetUpperBound(0) && level[id + weight[0]] == level[id] + 1)
+                        {                               
                                 
-                                
-                                //Push current object to stack
-                                returnModel.loopindex = i + 1;  //important: raise loop Index!! new position in position loop!!
-                                returnModel.next = next;
-                                returnModel.prev = prev;
-                                returnModel.btg = btg;
-                                stack.Push(returnModel);
-                                stack.Push(10);
+                            //Push current object to stack
+                            returnModel.loopindex = 1;  //important: raise loop Index!! new position in position loop!!
+                            returnModel.next = next;
+                            returnModel.prev = prev;
+                            returnModel.btg = btg;
+                            stack.Push(returnModel);
+                            stack.Push(20);
 
-                                //Push new object to stack
-                                HexagonRemoveModel nMinus1 = new HexagonRemoveModel(id + weight[i], i, btg, next, prev, level, weight, 0);
-                                stack.Push(nMinus1);
-                                address = 10; // Make another "call"
-                                bAdd = true;
-                                break;
-                            }
+                            //Push new object to stack
+                            HexagonRemoveModel nMinus1 = new HexagonRemoveModel(id + weight[0], 0, btg, next, prev, level, weight, 0);
+                            stack.Push(nMinus1);
+                            address = 10; // Make another "call"
+                            bAdd = true;
+                            break;
                         }
+                        
 
                         if (bAdd == false)
                         {
-                            //Loop erfolgreich beenden --> Nun im Stack zurückgehen und jeweils neues btg, next und prev weitergeben
+                            //Loop erfolgreich beendet --> Nun im Stack zurückgehen und jeweils neues btg, next und prev weitergeben
                             //The base case
-
-                            address = (int)stack.Pop();
-                            stack.Push(new HexagonRemoveModel(id, index, btg, next, prev, level, weight, iLoopIndex+1));
-
-                            /*
-                            if (iLoopIndex == 0)
-                            {
-                                address = (int)stack.Pop();
-                            }
-                            else
-                            {
-
-                            }
-                            */
-
-                            //if (stack.Count > 1)
-                            //{
-                            //tempFac = (HexagonRemoveModel)stack.Pop();
-                            
-                            /*
-                            returnModel = (HexagonRemoveModel)stack.Pop();
                             address = (int)stack.Pop();
                             returnModel.next = next;
                             returnModel.prev = prev;
                             returnModel.btg = btg;
                             stack.Push(returnModel);
-                            */
-
-                            /*}
-                            else
-                            {
-                                stack.Push(returnModel);
-                                address = 30;
-                            }*/
 
                         }
                         break;
                     }
                     case 20:
                     { 
-                            // Compute and return
-                            
 
-                            break;
+                            // Compute and return
+                        // Do something
+                        tempFac = (HexagonRemoveModel)stack.Pop();
+                        returnModel = (HexagonRemoveModel)stack.Pop();
+                        
+
+                        int id = returnModel.id;
+                        int index = returnModel.index;
+                        ArrayList[] btg = returnModel.btg;
+                        int[] next = returnModel.next;
+                        int[] prev = returnModel.prev;
+                        int[] level = returnModel.level;
+                        int[] weight = returnModel.weight;
+                        int iLoopIndex = returnModel.loopindex;
+
+
+                        bool bAdd2 = false;
+                        //if (iLoopIndex < index)
+                        //   bAdd = true;
+
+                        //remove followers
+                        for (int i = iLoopIndex; i <= index; i++)
+                        {
+                            //bAdd = i != iLoopIndex;
+
+                            // follow the edge for preference i (only if not already on last level)
+                            if (id + weight[i] <= level.GetUpperBound(0) && level[id + weight[i]] == level[id] + 1)
+                            {
+                                //Push current object to stack
+                                returnModel.loopindex = i + 1;  //important: raise loop Index!! new position in position loop!!
+                                returnModel.next = next;
+                                returnModel.prev = prev;
+                                returnModel.btg = btg;
+                                stack.Push(returnModel);
+                                stack.Push(20);
+
+                                //Push new object to stack
+                                HexagonRemoveModel nMinus1 = new HexagonRemoveModel(id + weight[i], i, btg, next, prev, level, weight, 0);
+                                stack.Push(nMinus1);
+                                address = 10; // Make another "call"
+                                bAdd2 = true;
+                                break;
+                            }
+                        }
+
+                        if(bAdd2 == false)
+                        {
+                            //stack.Push();
+                            address = (int)stack.Pop();
+                            returnModel.next = next;
+                            returnModel.prev = prev;
+                            returnModel.btg = btg;
+                            stack.Push(returnModel);
+                        }
+
+                        break;
                     }
                     case 30:
                     {
@@ -539,11 +546,6 @@ namespace prefSQL.SQLSkyline
 
                 //remove tuples in node
                 btg[id] = null;
-
-            }
-
-            if(id == 4)
-            {
 
             }
 
