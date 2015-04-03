@@ -141,22 +141,19 @@
 
         private void AddOneSubspace(ISet<HashSet<AttributeModel>> subspaceQueries)
         {
-            var skylineSampleDimension = PrefSqlModel.SkylineSampleDimension;
-            HashSet<AttributeModel> subspacePreferencesAsHashSet;
+            HashSet<AttributeModel> subspaceQueryCandidate;
 
             do
             {
-                var subspacePreferences = new List<AttributeModel>(PrefSqlModel.Skyline);
+                subspaceQueryCandidate = new HashSet<AttributeModel>();
 
-                while (subspacePreferences.Count > skylineSampleDimension)
+                while (subspaceQueryCandidate.Count < PrefSqlModel.SkylineSampleDimension)
                 {
-                    subspacePreferences.RemoveAt(MyRandom.Next(subspacePreferences.Count));
+                    subspaceQueryCandidate.Add(PrefSqlModel.Skyline[MyRandom.Next(PrefSqlModel.Skyline.Count)]);
                 }
-
-                subspacePreferencesAsHashSet = new HashSet<AttributeModel>(subspacePreferences);
-            } while (subspaceQueries.Any(element => element.SetEquals(subspacePreferencesAsHashSet)));
+            } while (subspaceQueries.Any(element => element.SetEquals(subspaceQueryCandidate)));
            
-            subspaceQueries.Add(subspacePreferencesAsHashSet);
+            subspaceQueries.Add(subspaceQueryCandidate);
         }
 
         public DataTable GetSkyline()
