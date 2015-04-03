@@ -1,0 +1,58 @@
+<TestData>
+  <TestDataRow>
+    <comment>3 samples, each of dimension 1: cannot choose 1 from 2 in order to gain 3 subspaces, max 2 subspaces possible.</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT 3 DIMENSION 1</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>4 samples, each of dimension 2: cannot choose 2 from 3 in order to gain 4 subspaces, max 3 subspaces possible.</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH SAMPLE BY RANDOM_SUBSETS COUNT 4 DIMENSION 2</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>5 samples, each of dimension 2: cannot choose 2 from 3 in order to gain 5 subspaces, max 3 subspaces possible.</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH SAMPLE BY RANDOM_SUBSETS COUNT 5 DIMENSION 2</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>5 samples, each of dimension 1: cannot choose 1 from 3 in order to gain 5 subspaces, max 3 subspaces possible.</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH SAMPLE BY RANDOM_SUBSETS COUNT 5 DIMENSION 1</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>count 0, dimension 0 impossible.</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY RANDOM_SUBSETS COUNT 0 DIMENSION 0</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>count 1, dimension 0 impossible.</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY RANDOM_SUBSETS COUNT 1 DIMENSION 0</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>count 10, dimension 0 impossible.</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY RANDOM_SUBSETS COUNT 10 DIMENSION 0</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>count 0, dimension 1 impossible.</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY RANDOM_SUBSETS COUNT 0 DIMENSION 1</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>count 0, dimension 10 impossible.</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY RANDOM_SUBSETS COUNT 0 DIMENSION 10</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>1 sample of dimension 5: cannot choose 5 from 4 in order to gain 1 subspace, no subspace possible.</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY RANDOM_SUBSETS COUNT 1 DIMENSION 5</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>2 samples, each of dimension 4: cannot choose 4 from 4 in order to gain 2 subspaces, max 1 subspace possible.</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY RANDOM_SUBSETS COUNT 2 DIMENSION 4</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>5 samples, each of dimension 3: cannot choose 3 from 4 in order to gain 5 subspaces, max 4 subspaces possible.</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY RANDOM_SUBSETS COUNT 5 DIMENSION 3</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>7 samples, each of dimension 2: cannot choose 2 from 4 in order to gain 7 subspaces, max 6 subspaces possible.</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY RANDOM_SUBSETS COUNT 7 DIMENSION 2</skylineSampleSQL>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>5 samples, each of dimension 1: cannot choose 1 from 4 in order to gain 5 subspaces, max 4 subspaces possible.</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY RANDOM_SUBSETS COUNT 5 DIMENSION 1</skylineSampleSQL>
+  </TestDataRow>
+</TestData>

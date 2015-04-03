@@ -83,6 +83,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="SkylineSamplingUtilityTests_Incorrect.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="SkylineSamplingUtilityTests.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

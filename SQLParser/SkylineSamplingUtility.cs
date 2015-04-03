@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Data;
-    using System.Diagnostics;
     using System.Linq;
     using prefSQL.SQLParser.Models;
 
@@ -12,7 +11,8 @@
         private readonly PrefSQLModel _prefSqlModel;
         private readonly SQLCommon _common;
         private static readonly Random MyRandom = new Random();
-        private HashSet<HashSet<AttributeModel>> _subspaceQueries;
+        private HashSet<HashSet<AttributeModel>> _subspacs;
+        private HashSet<string> _subspaceQueries;
 
         private SQLCommon Common
         {
@@ -24,32 +24,36 @@
             get { return _prefSqlModel; }
         }
 
-        private HashSet<HashSet<AttributeModel>> Subspaces
+        internal HashSet<HashSet<AttributeModel>> Subspaces
         {
             get
             {
-                if (_subspaceQueries == null)
+                if (_subspacs == null)
                 {
                     DetermineSubspaces();
                 }
-                return _subspaceQueries;
+                return _subspacs;
             }
-            set { _subspaceQueries = value; }
+            private set { _subspacs = value; }
         }
 
         public HashSet<string> SubspaceQueries
         {
             get
             {
-                var subspaceQueriesReturn = new HashSet<string>();
-
-                foreach (var subspace in Subspaces)
+                if (_subspaceQueries == null)
                 {
-                    subspaceQueriesReturn.Add(BuildSubspaceQuery(subspace));
+                    _subspaceQueries = new HashSet<string>();
+
+                    foreach (var subspace in Subspaces)
+                    {
+                        _subspaceQueries.Add(BuildSubspaceQuery(subspace));
+                    }
                 }
 
-                return subspaceQueriesReturn;
+                return _subspaceQueries;
             }
+            private set { _subspaceQueries = value; }
         }
 
         public SkylineSamplingUtility(PrefSQLModel prefSqlModel, SQLCommon common)
@@ -60,6 +64,7 @@
 
         private void DetermineSubspaces()
         {
+            SubspaceQueries = null;
             Subspaces = null;
 
             if (!PrefSqlModel.HasSkylineSample)
@@ -68,14 +73,35 @@
                 return;
             }
 
-            var subspacesReturn = new HashSet<HashSet<AttributeModel>>();
+            var subspacesCount = PrefSqlModel.SkylineSampleCount;
 
-            var skylineSampleCount = PrefSqlModel.SkylineSampleCount;
+            var subspaceDimension = PrefSqlModel.SkylineSampleDimension;
+            var skylinePreferences = PrefSqlModel.Skyline.Count;
+
+            if (subspacesCount*subspaceDimension < skylinePreferences)
+            {
+                throw new Exception(
+                    String.Format(
+                        "Every preference has to be included in at least one subspace. This is not possible, since there are {0} preferences and at most COUNT (= {1}) * DIMENSION (= {2}) = {3} of them are included",
+                        skylinePreferences, subspacesCount, subspaceDimension, subspacesCount*subspaceDimension));
+            }
+
+            var binomialCoefficient = QuickBinomialCoefficient(skylinePreferences, subspaceDimension);
+
+            if (subspacesCount > binomialCoefficient)
+            {
+                throw new Exception(
+                    String.Format(
+                        "Cannot choose {0} from {1} in order to gain {2} subspaces, at most {3} subspaces possible.",
+                        subspaceDimension, skylinePreferences, subspacesCount, binomialCoefficient));
+            }
+
+            var subspacesReturn = new HashSet<HashSet<AttributeModel>>();
 
             var done = false;
             while (!done)
             {
-                if (subspacesReturn.Count >= skylineSampleCount)
+                if (subspacesReturn.Count >= subspacesCount)
                 {
                     if (AreAllPreferencesAtLeastOnceContainedInSubspaces(subspacesReturn))
                     {
@@ -95,9 +121,30 @@
             Subspaces = subspacesReturn;
         }
 
+        /// <summary>
+        ///     calculate binomial coefficient (n choose k).
+        /// </summary>
+        /// <remarks>
+        ///     implemented via a multiplicative formula, see
+        ///     http://en.wikipedia.org/wiki/Binomial_coefficient#Multiplicative_formula
+        /// </remarks>
+        /// <param name="nUpper">choose from set n</param>
+        /// <param name="kLower">choose k elements from set n</param>
+        /// <returns>binomial coefficient from n choose k</returns>
+        private static decimal QuickBinomialCoefficient(int nUpper, int kLower)
+        {
+            var binomialCoefficient = 1;
+            for (var i = 1; i <= kLower; i++)
+            {
+                binomialCoefficient *= nUpper + 1 - i;
+                binomialCoefficient /= i;
+            }
+            return binomialCoefficient;
+        }
+
         public void RedetermineSubspaces()
         {
-            DetermineSubspaces();
+            Subspaces = null;
         }
 
         public string GetAnsiSql()
@@ -152,7 +199,7 @@
                     subspaceQueryCandidate.Add(PrefSqlModel.Skyline[MyRandom.Next(PrefSqlModel.Skyline.Count)]);
                 }
             } while (subspaceQueries.Any(element => element.SetEquals(subspaceQueryCandidate)));
-           
+
             subspaceQueries.Add(subspaceQueryCandidate);
         }
 
