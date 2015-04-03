@@ -797,8 +797,8 @@ namespace prefSQL.SQLParser
 
         public override PrefSQLModel VisitExprSampleSkyline(SQLParser.ExprSampleSkylineContext context)
         {
-            model.SkylineSampleCount = Int32.Parse(context.GetChild(4).GetText());
-            model.SkylineSampleDimension = Int32.Parse(context.GetChild(6).GetText());
+            model.SkylineSampleCount = int.Parse(context.GetChild(4).GetText());
+            model.SkylineSampleDimension = int.Parse(context.GetChild(6).GetText());
             model.HasSkylineSample = true;
             return base.VisitExprSampleSkyline(context);
         }

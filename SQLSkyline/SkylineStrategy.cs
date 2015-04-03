@@ -14,6 +14,8 @@ namespace prefSQL.SQLSkyline
 
     public abstract class SkylineStrategy
     {
+        public DataTable UseDataTable { get; set; }
+
         public abstract DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters);
 
         public abstract String getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters);
