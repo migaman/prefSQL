@@ -19,5 +19,11 @@ namespace prefSQL.SQLSkyline
         public abstract String getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters);
 
         public abstract bool isNative();
+
+        //If the algorithm can hande implicit preferences like 'red' >> 'blau' without an OTHER statement
+        public abstract bool supportImplicitPreference();
+        
+        //If the algorithm supports incomparable values
+        public abstract bool supportIncomparable();
     }
 }

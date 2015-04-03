@@ -27,6 +27,13 @@ namespace prefSQL.SQLParser
         private bool _ShowSkylineAttributes = false;                //Defines if the skyline attributes should be added to the SELECT list
         private int _SkylineUpToLevel = 3;                          //Defines the maximum level that should be returned for the multiple skyline algorithnmm
         Helper helper = new Helper();
+        private PrefSQLModel _queryModel = new PrefSQLModel();
+
+        public PrefSQLModel QueryModel
+        {
+            get { return _queryModel; }
+            set { _queryModel = value; }
+        }
 
         /*
         public enum Algorithm
@@ -80,29 +87,20 @@ namespace prefSQL.SQLParser
             helper.ConnectionString = connectionString;
             helper.DriverString = driverString;
 
-            bool withIncomparable = false;
-            string strSQL = parsePreferenceSQL(strPrefSQL, ref withIncomparable);
+            string strSQL = parsePreferenceSQL(strPrefSQL);
+            PrefSQLModel model = QueryModel;
             Debug.WriteLine(strSQL);
             
             
-            return helper.getResults(strSQL, _SkylineType, withIncomparable);
+            return helper.getResults(strSQL, _SkylineType, model);
         }
+
+
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
         /// <param name="strInput">Preference SQL Statement</param>
         /// <returns>Return the ANSI SQL Statement</returns>
         public string parsePreferenceSQL(string strInput)
-        {
-            bool withIncomparable = false;
-            string strSQL = parsePreferenceSQL(strInput, ref withIncomparable);
-            return strSQL;
-        }
-
-
-        /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
-        /// <param name="strInput">Preference SQL Statement</param>
-        /// <returns>Return the ANSI SQL Statement</returns>
-        private string parsePreferenceSQL(string strInput, ref bool withIncomparable)
         {
             AntlrInputStream inputStream = new AntlrInputStream(strInput);
             SQLLexer sqlLexer = new SQLLexer(inputStream);
@@ -128,7 +126,7 @@ namespace prefSQL.SQLParser
                 visitor.IsNative = _SkylineType.isNative();
                 visitor.Visit(tree);
                 PrefSQLModel prefSQL = visitor.Model;
-                
+                QueryModel = prefSQL;
                 
                 //Check if parse was successful and query contains PrefSQL syntax
                 if (prefSQL != null) // && strInput.IndexOf(SkylineOf) > 0
@@ -136,7 +134,7 @@ namespace prefSQL.SQLParser
                     if (prefSQL.Skyline.Count > 0)
                     {
                         //Mark as incomparable if needed (to choose the correct algorithm)
-                        withIncomparable = prefSQL.WithIncomparable;
+                        //withIncomparable = prefSQL.WithIncomparable;
 
                         //Add all Syntax before the Skyline-Clause
                         strSQLReturn = strInput.Substring(0, strInput.IndexOf(SkylineOf) - 1).TrimStart(' ');;
@@ -242,6 +240,11 @@ namespace prefSQL.SQLParser
                     }
                     if(prefSQL.Ranking.Count > 0)
                     {
+                        if(prefSQL.ContainsOpenPreference == true)
+                        {
+                            throw new Exception("WeightedSum cannot handle implicit INCOMPARABLE values. Please add the explicit OTHERS EQUAL to the preference");
+                        }
+
 
                         //Add all Syntax before the RANKING OF-Clause
                         strSQLReturn = strInput.Substring(0, strInput.IndexOf("RANKING OF") - 1);
@@ -256,7 +259,6 @@ namespace prefSQL.SQLParser
                             DataTable dt = helper.executeStatement(model.SelectExtrema);
                             double min = 0;
                             double max = 0;
-                            double delta = 0.00001; //TODO: define DELTA. Check what is a good value
                             string strMin = "";
                             string strDividor = "";
 
@@ -276,10 +278,10 @@ namespace prefSQL.SQLParser
                             }
 
                             
-                            //Create Normalization Formula
-                            //(Weight * (((attributevalue - minvalue) / (maxvalue-minvalue)) + delta))
+                            //Create Normalization Formula, No Delta is needed
+                            //(Weight * (((attributevalue - minvalue) / (maxvalue-minvalue))))
                             //For example: 0.2 * ((t1.price - 900.0) / 288100.0) + 0.01 AS Norm1
-                            string strNormalization = "(" + model.Weight + " * (((" + model.Expression + " - " + strMin + ") / " + strDividor + ") + " + delta + ")) ";
+                            string strNormalization = "(" + model.Weight + " * (((" + model.Expression + " - " + strMin + ") / " + strDividor + ") ))";
                             
 
                             //Mathematical addition except for the first element

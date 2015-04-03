@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace prefSQL.SQLParser.Models
 {
-    class AttributeModel
+    public class AttributeModel
     {
 
         public AttributeModel(string strRankExpression, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankHexagon, bool isCategory, string strHexagonIncomparable, int amountIncomparable, int weightHexagonIncomparable, string strExpression)

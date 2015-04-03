@@ -18,6 +18,16 @@ namespace prefSQL.SQLSkyline
             return false;
         }
 
+        public override bool supportImplicitPreference()
+        {
+            return false;
+        }
+
+        public override bool supportIncomparable()
+        {
+            return false;
+        }
+
         public override string getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
         {
             //usual sort clause
@@ -31,17 +41,11 @@ namespace prefSQL.SQLSkyline
 
         public override DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
-            if (hasIncomparable)
-            {
-                throw new Exception("D&Q does not support incomparale tuples");
-            }
-            else
-            {
-                DataTable dt = null;
-                prefSQL.SQLSkyline.SP_SkylineDQ skyline = new SQLSkyline.SP_SkylineDQ();   
-                dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
-                return dt;
-            }
+
+            DataTable dt = null;
+            prefSQL.SQLSkyline.SP_SkylineDQ skyline = new SQLSkyline.SP_SkylineDQ();   
+            dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+            return dt;
 
         }
     }

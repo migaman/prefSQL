@@ -67,7 +67,7 @@ namespace Utility
 
                 //string strPrefSQL = "SELECT cars.id, cars.title, colors.name, fuels.name FROM cars " +
                 //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name, mileage FROM cars " +
-                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name, t1.enginesize FROM cars_small t1 " +
+                string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage FROM cars_small t1 " +
                     //string strPrefSQL = "SELECT cars.id, cars.Price, cars.mileage FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage, cars.horsepower, cars.enginesize, cars.registration, cars.consumption, cars.doors, colors.name, fuels.name FROM cars " +
                     //string strPrefSQL = "SELECT cars.id, cars.title, colors.name AS colourname, fuels.name AS fuelname, cars.price FROM cars " +
@@ -86,20 +86,20 @@ namespace Utility
                     //"WHERE (t1.price < 4000) " + 
                     //"SKYLINE OF t1.price LOW, t1.mileage LOW ";
                     //"SKYLINE OF t1.price AROUND 10000, colors.name ('pink' >> 'rot' >> 'schwarz' >> OTHERS EQUAL) " +
-                    "SKYLINE OF t1.price LOW, t1.mileage LOW ";
+                    //"SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.doors HIGH, t1.enginesize HIGH, t1.consumption LOW, t1.seats HIGH, t1.cylinders HIGH " +
+                    //", colors.name ('pink' >> 'rot' >> 'schwarz' >> OTHERS EQUAL) ";
+
+                    "SKYLINE OF t1.price LOW, t1.mileage LOW, colors.name ('red' >> 'blau' >> OTHERS INCOMPARABLE) ";
+
                     //"SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000";
                     //", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +
                     //", t1.doors HIGH, t1.seats HIGH 2, t1.cylinders HIGH, t1.gears HIGH ";
                     //"ORDER BY BEST_RANK() ";
 
-                strPrefSQL = "SELECT cars_small.price, cars_small.mileage FROM cars_small   " +
-                    "RANKING OF cars_small.price AROUND 10000 0.89, cars_small.mileage HIGH 0.01, cars_small.title ({'MERCEDES-BENZ SL 500', 'VW', 'Skoda'} >> OTHERS EQUAL) 0.1";
 
-
-
-                strPrefSQL = "SELECT TOP 5 t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price HIGH, t1.title ('MERCEDES-BENZ SL 500' >> OTHERS EQUAL) ORDER BY BEST_RANK()";
-                
-                
+                //strPrefSQL = "SELECT c.id, c.price, b.name FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
+                //strPrefSQL = "SELECT c.id, c.price FROM cars_small c LEFT OUTER JOIN colors cc ON c.color_id = cc.id RANKING OF c.price LOW 0.5, cc.name ('braun' >> 'grün') 0.5";
+                //strPrefSQL = "SELECT c.id, c.price FROM cars_small c LEFT OUTER JOIN colors cc ON c.color_id = cc.id SKYLINE OF c.horsepower HIGH, cc.name ('rot' >> 'blau' >> 'gelb')";
 
                 Debug.WriteLine(strPrefSQL);
                 Debug.WriteLine("--------------------------------------------");
@@ -107,10 +107,10 @@ namespace Utility
                 SQLCommon parser = new SQLCommon();
                 //parser.SkylineType = new SkylineSQL();
                 //parser.SkylineType = new SkylineBNL();
-                //parser.SkylineType = new SkylineBNLSort();
+                parser.SkylineType = new SkylineBNLSort();
                 //parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new MultipleSkylineBNL();
-                parser.SkylineType = new SkylineDQ();
+                //parser.SkylineType = new SkylineDQ();
                 //parser.ShowSkylineAttributes = true;
                 //parser.SkylineUpToLevel = 1;
 

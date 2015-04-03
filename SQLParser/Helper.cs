@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using prefSQL.SQLSkyline;
+using prefSQL.SQLParser.Models;
 
 namespace prefSQL.SQLParser
 {
@@ -56,7 +57,7 @@ namespace prefSQL.SQLParser
         /// <param name="strPrefSQL"></param>
         /// <param name="algorithm"></param>
         /// <returns></returns>
-        public DataTable getResults(String strPrefSQL, SkylineStrategy strategy, bool withIncomparable)
+        public DataTable getResults(String strPrefSQL, SkylineStrategy strategy, PrefSQLModel model)
         {
             DataTable dt = new DataTable();
             //Default Parameter
@@ -120,7 +121,16 @@ namespace prefSQL.SQLParser
                 }
                 else 
                 {
-                    dt = strategy.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords, withIncomparable, parameter);    
+                    if (strategy.supportImplicitPreference() == false && model.ContainsOpenPreference == true)
+                    {
+                        throw new Exception(strategy.GetType() + " does not support implicit preferences!");
+                    }
+                    if (strategy.supportIncomparable() == false && model.WithIncomparable == true)
+                    {
+                        throw new Exception(strategy.GetType() +  " does not support incomparale tuples");
+                    }
+
+                    dt = strategy.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords, model.WithIncomparable, parameter);    
                 }
 
             }

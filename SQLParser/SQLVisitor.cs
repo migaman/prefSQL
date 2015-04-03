@@ -20,6 +20,7 @@ namespace prefSQL.SQLParser
         private PrefSQLModel model;                             //Preference SQL Model, contains i.e. the skyline attributes
         private bool isNative;                                  //True if the skyline algorithm is native                 
         private bool hasIncomparableTuples = false;             //True if the skyline must be checked for incomparable tuples
+        private bool containsOpenPreference = false;            //True if the skyline contains a categorical preference without an explicit OTHERS statement
 
 
         public bool IsNative
@@ -92,6 +93,7 @@ namespace prefSQL.SQLParser
             pref.Ranking.AddRange(left.Ranking);
             pref.Ranking.AddRange(right.Ranking);
             pref.Tables = tables;
+            pref.ContainsOpenPreference = containsOpenPreference;
             model = pref;
             return pref;
         }
@@ -130,6 +132,7 @@ namespace prefSQL.SQLParser
             //Add the preference to the list               
             pref.Ranking.Add(new RankingModel(strFullColumnName, strColumnName, strExpression, weight, strSelectExtrema));
             pref.Tables = tables;
+            pref.ContainsOpenPreference = containsOpenPreference;
             model = pref;
             return pref;
         }
@@ -228,9 +231,9 @@ namespace prefSQL.SQLParser
 
             //Define sort order value for each attribute
             int iWeight = 0;
-            for (int i = 0; i < context.exprCategory().ChildCount; i++)
+            for (int i = 0; i < context.exprCategoryNoIncomparable().ChildCount; i++)
             {
-                switch (context.exprCategory().GetChild(i).GetText())
+                switch (context.exprCategoryNoIncomparable().GetChild(i).GetText())
                 {
                     case ">>":
                         iWeight += 1; //Gewicht erhöhen, da >> Operator
@@ -243,24 +246,47 @@ namespace prefSQL.SQLParser
                         break;
                     default:
                         //Check if it contains multiple values
-                        if (context.exprCategory().GetChild(i).ChildCount > 1)
+                        if (context.exprCategoryNoIncomparable().GetChild(i).ChildCount > 1)
                         {
                             //Multiple values --> construct IN statement
-                            string strValues = "(" + context.exprCategory().GetChild(i).GetChild(1).GetText() + ")";
-                            strCaseWhen += " WHEN " + strTable + "." + strColumnName + " IN " + strValues + " THEN " + iWeight.ToString();
+                            for (int ii = 0; ii < context.exprCategoryNoIncomparable().GetChild(i).ChildCount; ii++)
+                            {
+                                switch (context.exprCategoryNoIncomparable().GetChild(i).GetChild(ii).GetText())
+                                {
+
+                                    case ">>":
+                                        iWeight += 1; //Gewicht erhöhen, da >> Operator
+                                        break;
+                                    case "==":
+                                        break;  //Gewicht bleibt gleich da == Operator
+                                    case "OTHERSEQUAL":
+                                        //Special word OTHERS EQUAL = all other attributes are defined with this order by value
+                                        strCaseElse = " ELSE " + iWeight;
+                                        break;
+                                    default:
+                                        string strValues = "(" + context.exprCategoryNoIncomparable().GetChild(i).GetChild(ii).GetText() + ")";
+                                        strCaseWhen += " WHEN " + strTable + "." + strColumnName + " IN " + strValues + " THEN " + iWeight.ToString();
+                                        break;
+                                }
+                            }
 
                         }
                         else
                         {
                             //Single value --> construct = statement
-                            strCaseWhen += " WHEN " + strTable + "." + strColumnName + " = " + context.exprCategory().GetChild(i).GetText() + " THEN " + iWeight.ToString();
+                            strCaseWhen += " WHEN " + strTable + "." + strColumnName + " = " + context.exprCategoryNoIncomparable().GetChild(i).GetText() + " THEN " + iWeight.ToString();
                         }
                         break;
                 }
 
             }
 
-            weight = double.Parse(context.GetChild(4).GetText());
+            weight = double.Parse(context.GetChild(context.ChildCount-1).GetText());
+
+            if(strCaseElse.Equals(""))
+            {
+                containsOpenPreference = true;
+            }
             strExpression = "CASE" + strCaseWhen + strCaseElse + " END";
             
 
@@ -290,6 +316,7 @@ namespace prefSQL.SQLParser
             pref.Tables = tables;
             pref.NumberOfRecords = numberOfRecords;
             pref.WithIncomparable = hasIncomparableTuples;
+            pref.ContainsOpenPreference = containsOpenPreference;
             model = pref;
             return pref;
         }
@@ -312,6 +339,7 @@ namespace prefSQL.SQLParser
             pref.NumberOfRecords = numberOfRecords;
             pref.Tables = tables;
             pref.WithIncomparable = hasIncomparableTuples;
+            pref.ContainsOpenPreference = containsOpenPreference;
             model = pref;
             return pref;
         }
@@ -362,6 +390,8 @@ namespace prefSQL.SQLParser
                     isLevelStepEqual = false;
                     bComparable = false;
                     hasIncomparableTuples = true;
+                    //Some algorithms cannot handle this incomparable preference --> It is like a categorical preference without explicit OTHERS
+                    containsOpenPreference = true;
                 }
                 
             }
@@ -506,11 +536,17 @@ namespace prefSQL.SQLParser
 
             }
 
+            if (strSQLELSE.Equals(""))
+            {
+                //There is a categorical preference without an OTHER statement!! (Not all algorithms can handle that)
+                containsOpenPreference = true;
+            }
+
             //Add others incomparable clause at the top-level if not OTHERS was specified
             if (strSQLELSE.Equals("") && IsNative == false)
             {
                 strIncomporableAttributeELSE = " ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
-                strSQLELSE = " ELSE 0"; //if no OTHERS is present all other values are on the top level
+                strSQLELSE = " ELSE NULL"; //if no OTHERS is present all other values are on the top level
                 bComparable = false;
                 hasIncomparableTuples = true;
             }
@@ -519,6 +555,7 @@ namespace prefSQL.SQLParser
             strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLInnerELSE + " END";
             strIncomporableAttribute = "CASE" + strSQLIncomparableAttribute + strIncomporableAttributeELSE + " END";
             strColumnExpression = "DENSE_RANK() OVER (ORDER BY " + strExpression + ")";
+
 
             strRankHexagon = "DENSE_RANK()" + " OVER (ORDER BY " + strExpression + ")-1 AS Rank" + strFullColumnName.Replace(".", "");
 
@@ -610,6 +647,7 @@ namespace prefSQL.SQLParser
             pref.Tables = tables;
             pref.NumberOfRecords = numberOfRecords;
             pref.WithIncomparable = hasIncomparableTuples;
+            pref.ContainsOpenPreference = containsOpenPreference;
             model = pref;
             return pref;
         }

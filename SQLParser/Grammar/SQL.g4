@@ -121,7 +121,7 @@ exprSkyline
 exprRanking
  : exprRanking ',' exprRanking																						#weightedsumAnd   
  | column_term op=(K_LOW | K_HIGH) (signed_number (K_EQUAL))?	signed_number										#weightedsumLowHigh
- | column_term ('(' exprCategory ')') signed_number																	#weightedsumCategory
+ | column_term ('(' exprCategoryNoIncomparable ')')	 signed_number															#weightedsumCategory
  | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term) signed_number		#weightedsumAround
  ;
 
@@ -130,7 +130,7 @@ exprSkylineSample
  ;
 
  exprCategory
-	: literal_value																						#opLiteral
+	: STRING_LITERAL																						#opLiteral
 	| '{' exprOwnPreference '}'																			#exprOwnPreferenceOp																	
 	| exprCategory ( '>>'  | '==') exprCategory															#opDoubleOrder
 	//OTHERS keywords are only possible with greater than
@@ -140,6 +140,20 @@ exprSkylineSample
 	| exprOthers ( '>>') exprCategory																	#opExprOthersBefore
 	;
 
+
+//only allow others equal --> i.e. for the ranking of clause
+ exprCategoryNoIncomparable
+	: STRING_LITERAL																						#opLiteralNoIncomparable																
+	| exprCategoryNoIncomparable ( '>>'  | '==') exprCategoryNoIncomparable															#opDoubleOrderNoIncomparable
+	//OTHERS keywords are only possible with greater than
+		//With the EQUAL keyword it would be too much coding		(i.e. blue >> red == OTHERS EQUAL --> blue == OTHERS EQUAL)
+	| exprCategoryNoIncomparable ( '>>') exprOthersEqual																	#opExprOthersAfterNoIncomparable
+	| exprOthersEqual ( '>>') exprCategoryNoIncomparable																	#opExprOthersBeforeNoIncomparable
+	;
+
+
+exprOthersEqual
+	: K_OTHERS (K_EQUAL);
 
 exprOthers
 	: K_OTHERS (K_EQUAL)

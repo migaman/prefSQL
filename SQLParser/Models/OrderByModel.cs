@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace prefSQL.SQLParser.Models
 {
-    class OrderByModel
+    public class OrderByModel
     {
         public int start { get; set; }
         public int stop { get; set; }
