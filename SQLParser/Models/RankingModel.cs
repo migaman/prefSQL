@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace prefSQL.SQLParser.Models
 {
-    public class RankingModel
+    internal class RankingModel
     {
 
         public RankingModel(string strFullColumnName, string strColumnName, string strExpression, double weight, string strSelectExtrema)

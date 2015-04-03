@@ -33,12 +33,6 @@ namespace prefSQL.SQLParser
             get { return _helper; }
         }
 
-        public PrefSQLModel QueryModel
-        {
-            get { return _queryModel; }
-            set { _queryModel = value; }
-        }
-
         /*
         public enum Algorithm
         {
@@ -82,27 +76,37 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="driverString"></param>
-        /// <param name="strPrefSQL"></param>
+        /// <param name="strPrefSql"></param>
         /// <param name="algorithm"></param>
         /// <param name="upToLevel"></param>
         /// <returns>Returns a DataTable with the requested values</returns>
-        public DataTable parseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSQL)
+        public DataTable parseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSql)
+        {
+            return parseAndExecutePrefSQL(connectionString, driverString, strPrefSql, null);
+        }
+
+        private DataTable parseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSql, PrefSQLModel prefSqlModel)
         {
             Helper.ConnectionString = connectionString;
             Helper.DriverString = driverString;
 
-            var prefSqlModel = GetPrefSqlModelFromPreferenceSql(strPrefSQL);
-            if (prefSqlModel.HasSkylineSample)
+            var prefSql = prefSqlModel;
+            if (prefSql == null)
             {
-                var skylineSamplingUtility = new SkylineSamplingUtility(prefSqlModel, this);
+                prefSql = GetPrefSqlModelFromPreferenceSql(strPrefSql);
+            }
+
+            if (prefSql.HasSkylineSample)
+            {
+                var skylineSamplingUtility = new SkylineSamplingUtility(prefSql, this);
                 return skylineSamplingUtility.GetSkyline();
             }
 
-            bool withIncomparable = false;
-            string strSQL = parsePreferenceSQL(strPrefSQL, ref withIncomparable, prefSqlModel);
+            var withIncomparable = false;
+            var strSQL = parsePreferenceSQL(strPrefSql, ref withIncomparable, prefSql);
             Debug.WriteLine(strSQL);
 
-            return Helper.getResults(strSQL, _SkylineType, prefSqlModel);
+            return Helper.getResults(strSQL, _SkylineType, prefSql);
         }
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
@@ -110,13 +114,15 @@ namespace prefSQL.SQLParser
         /// <returns>Return the ANSI SQL Statement</returns>
         public string parsePreferenceSQL(string strInput)
         {
-            bool withIncomparable = false;
-            string strSQL = parsePreferenceSQL(strInput, ref withIncomparable, null);
-            return strSQL;
+            var withIncomparable = false;
+            var strSql = parsePreferenceSQL(strInput, ref withIncomparable, null);
+            return strSql;
         }
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
         /// <param name="strInput">Preference SQL Statement</param>
+        /// <param name="withIncomparable"></param>
+        /// <param name="prefSqlModel"></param>
         /// <returns>Return the ANSI SQL Statement</returns>
         private string parsePreferenceSQL(string strInput, ref bool withIncomparable, PrefSQLModel prefSqlModel)
         {
@@ -127,11 +133,10 @@ namespace prefSQL.SQLParser
             try
             {
                 var prefSQL = prefSqlModel;
-                if (prefSqlModel == null)
+                if (prefSQL == null)
                 {
                     prefSQL = GetPrefSqlModelFromPreferenceSql(strInput);
                 }
-                QueryModel = prefSQL;
                 
                 //Check if parse was successful and query contains PrefSQL syntax
                 if (prefSQL != null) // && strInput.IndexOf(SkylineOf) > 0
@@ -511,6 +516,7 @@ namespace prefSQL.SQLParser
             {
                 prefSql.OriginalPreferenceSql = preferenceSql;
             }
+
             return prefSql;
         }
 
@@ -518,6 +524,11 @@ namespace prefSQL.SQLParser
         {
             var withIncomparable = false;
             return parsePreferenceSQL(prefSqlModel.OriginalPreferenceSql, ref withIncomparable, prefSqlModel);
+        }
+
+        internal DataTable ExecuteFromPrefSqlModel(string dbConnection, string dbProvider, PrefSQLModel prefSqlModel)
+        {
+            return parseAndExecutePrefSQL(dbConnection, dbProvider, prefSqlModel.OriginalPreferenceSql, prefSqlModel);
         }
     }
 }
