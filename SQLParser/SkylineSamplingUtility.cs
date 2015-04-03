@@ -167,12 +167,12 @@
             {
                 Common.SkylineType.UseDataTable = null;
                 var subspaceDataTable = Common.Helper.getResults(BuildSubspaceQuery(subspace), Common.SkylineType,
-                    PrefSqlModel.WithIncomparable);
+                    PrefSqlModel);
 
                 var subspaceComplement = GetSubspaceComplement(subspace);
                 Common.SkylineType.UseDataTable = subspaceDataTable;
                 var subspaceComplementDataTable = Common.Helper.getResults(BuildSubspaceQuery(subspaceComplement),
-                    Common.SkylineType, PrefSqlModel.WithIncomparable);
+                    Common.SkylineType, PrefSqlModel);
 
                 skylineSample.Merge(subspaceComplementDataTable, false, MissingSchemaAction.Add);
             }

@@ -88,8 +88,8 @@ namespace prefSQL.SQLParser
         /// <returns>Returns a DataTable with the requested values</returns>
         public DataTable parseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSQL)
         {
-            _helper.ConnectionString = connectionString;
-            _helper.DriverString = driverString;
+            Helper.ConnectionString = connectionString;
+            Helper.DriverString = driverString;
 
             var prefSqlModel = GetPrefSqlModelFromPreferenceSql(strPrefSQL);
             if (prefSqlModel.HasSkylineSample)
@@ -101,11 +101,19 @@ namespace prefSQL.SQLParser
             bool withIncomparable = false;
             string strSQL = parsePreferenceSQL(strPrefSQL, ref withIncomparable, prefSqlModel);
             Debug.WriteLine(strSQL);
-            
-            
-            return helper.getResults(strSQL, _SkylineType, model);
+
+            return Helper.getResults(strSQL, _SkylineType, prefSqlModel);
         }
 
+        /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
+        /// <param name="strInput">Preference SQL Statement</param>
+        /// <returns>Return the ANSI SQL Statement</returns>
+        public string parsePreferenceSQL(string strInput)
+        {
+            bool withIncomparable = false;
+            string strSQL = parsePreferenceSQL(strInput, ref withIncomparable, null);
+            return strSQL;
+        }
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
         /// <param name="strInput">Preference SQL Statement</param>
