@@ -408,7 +408,8 @@ namespace prefSQL.SQLParser
                     strOpposite = " * -1";
                 }
                 strRankHexagon = "DENSE_RANK()" + " OVER (ORDER BY " + strFullColumnName + strLevelStep + " " + strSortOrder + ")-1 AS Rank" + strFullColumnName.Replace(".", "");
-                strColumnExpression = "DENSE_RANK() OVER (ORDER BY " + strFullColumnName + strLevelStep + strOpposite + ")";
+                //Don't use Functions like DENSE_RANK() for the preferences --> slows down SQL performance!
+                strColumnExpression = "CAST(" + strFullColumnName + strLevelStep + strOpposite + " AS bigint)";
                 strExpression = strFullColumnName + strLevelStep + strOpposite;
                 if (isLevelStepEqual == true)
                 {
@@ -554,7 +555,7 @@ namespace prefSQL.SQLParser
             string strExpression = "CASE" + strSQLOrderBy + strSQLELSE + " END";
             strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLInnerELSE + " END";
             strIncomporableAttribute = "CASE" + strSQLIncomparableAttribute + strIncomporableAttributeELSE + " END";
-            strColumnExpression = "DENSE_RANK() OVER (ORDER BY " + strExpression + ")";
+            strColumnExpression = "CAST(" + strExpression + " AS bigint)";
 
 
             strRankHexagon = "DENSE_RANK()" + " OVER (ORDER BY " + strExpression + ")-1 AS Rank" + strFullColumnName.Replace(".", "");
@@ -589,7 +590,7 @@ namespace prefSQL.SQLParser
                 case SQLParser.K_AROUND:
                     
                     //Value should be as close as possible to a given numeric value
-                    strColumnExpression = "DENSE_RANK() OVER (ORDER BY ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + "))";
+                    strColumnExpression = "CAST(ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ") AS bigint)";
                     strInnerColumnExpression = "ABS(" + getTableName(context.GetChild(0)) + InnerTableSuffix + "." + getColumnName(context.GetChild(0))  + " - " + context.GetChild(2).GetText() + ")";
                     strExpression = "ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ")";
                     break;
