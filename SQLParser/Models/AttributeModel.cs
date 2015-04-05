@@ -30,10 +30,6 @@ namespace prefSQL.SQLParser.Models
             HexagonWeightIncomparable = weightHexagonIncomparable;
         }
 
-        public AttributeModel(string strRankExpression, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankHexagon, bool isCategory, string strHexagonIncomparable, int amountIncomparable, string strExpression)
-            : this(strRankExpression, strInnerColumnExpression, strFullColumnName, strInnerColumnName, isComparable, strIncomporableAttribute, strRankHexagon, isCategory, strHexagonIncomparable, amountIncomparable, 0, strExpression)
-        {
-        }
 
 
         public string RankExpression { get; set; }

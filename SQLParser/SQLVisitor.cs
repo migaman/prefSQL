@@ -426,7 +426,7 @@ namespace prefSQL.SQLParser
 
 
             //Add the preference to the list      
-            return addSkyline(new AttributeModel(strColumnExpression, strInnerColumnExpression, strFullColumnName, "", bComparable, strIncomporableAttribute, strRankHexagon, false, "", 0, strExpression));
+            return addSkyline(new AttributeModel(strColumnExpression, strInnerColumnExpression, strFullColumnName, "", bComparable, strIncomporableAttribute, strRankHexagon, false, "", 0, 0, strExpression));
         }
 
 
@@ -614,7 +614,7 @@ namespace prefSQL.SQLParser
             
 
             //Add the preference to the list     
-            return addSkyline(new AttributeModel(strColumnExpression, strInnerColumnExpression, strFullColumnName, "", true, "", strRankHexagon, false, "", 0, strExpression));
+            return addSkyline(new AttributeModel(strColumnExpression, strInnerColumnExpression, strFullColumnName, "", true, "", strRankHexagon, false, "", 0, 0, strExpression));
         }
 
 

@@ -89,17 +89,23 @@ namespace Utility
                     //"SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.doors HIGH, t1.enginesize HIGH, t1.consumption LOW, t1.seats HIGH, t1.cylinders HIGH " +
                     //", colors.name ('pink' >> 'rot' >> 'schwarz' >> OTHERS EQUAL) ";
 
-                    "SKYLINE OF t1.price LOW, t1.mileage LOW, colors.name ('red' >> 'blau' >> OTHERS INCOMPARABLE) ";
+                    //"SKYLINE OF t1.price LOW, t1.mileage LOW, colors.name ({'red', 'blau'} >> 'blau' >> OTHERS INCOMPARABLE) ";
 
                     //"SKYLINE OF t1.price LOW 3000, t1.mileage LOW 20000, t1.horsepower HIGH 20, t1.enginesize HIGH 1000";
                     //", t1.consumption LOW 10, t1.registration HIGHDATE 525600" +
                     //", t1.doors HIGH, t1.seats HIGH 2, t1.cylinders HIGH, t1.gears HIGH ";
-                    //"ORDER BY BEST_RANK() ";
+                    "ORDER BY BEST_RANK() ";
 
 
                 //strPrefSQL = "SELECT c.id, c.price, b.name FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
-                //strPrefSQL = "SELECT c.id, c.price FROM cars_small c LEFT OUTER JOIN colors cc ON c.color_id = cc.id RANKING OF c.price LOW 0.5, cc.name ('braun' >> 'grün') 0.5";
-                //strPrefSQL = "SELECT c.id, c.price FROM cars_small c LEFT OUTER JOIN colors cc ON c.color_id = cc.id SKYLINE OF c.horsepower HIGH, cc.name ('rot' >> 'blau' >> 'gelb')";
+                    strPrefSQL = "SELECT c.id, c.price FROM cars_small c LEFT OUTER JOIN colors cc ON c.color_id = cc.id RANKING OF c.price LOW 0.5, cc.name ('braun' >> 'grün') 0.5";
+                    //strPrefSQL = "SELECT c.id, c.price FROM cars_small c LEFT OUTER JOIN colors cc ON c.color_id = cc.id SKYLINE OF c.horsepower HIGH, cc.name ('rot' >> 'blau' >> 'gelb')";
+
+
+
+
+                //strPrefSQL = "SELECT t1.id FROM cars t1 RANKING OF t1.price HIGH 0.5, t1.mileage HIGH 0.5, t1.horsepower LOW 0.5, t1.enginesize LOW 0.5, t1.consumption HIGH 0.5, t1.doors LOW 0.5, t1.cylinders LOW 0.5";
+                strPrefSQL = "SELECT t1.id FROM cars t1 SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
 
                 Debug.WriteLine(strPrefSQL);
                 Debug.WriteLine("--------------------------------------------");
