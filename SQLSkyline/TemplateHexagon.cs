@@ -61,7 +61,7 @@ namespace prefSQL.SQLSkyline
                 dap.Fill(dt);
 
                 // Build our record schema 
-                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, ref dtResult);
+                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, dtResult);
 
 
 

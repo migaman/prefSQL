@@ -46,7 +46,7 @@ namespace prefSQL.SQLSkyline
 
 
                 // Build our record schema 
-                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, ref dtResult);
+                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, dtResult);
                 SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
 
 
@@ -59,7 +59,7 @@ namespace prefSQL.SQLSkyline
                     if (resultCollection.Count == 0)
                     {
                         // Build our SqlDataRecord and start the results 
-                        addtoWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, true, ref dtResult);
+                        addtoWindow(sqlReader, operators, resultCollection, resultstringCollection, record, true, dtResult);
                     }
                     else
                     {
@@ -68,7 +68,7 @@ namespace prefSQL.SQLSkyline
                         //check if record is dominated (compare against the records in the window)
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
                         {
-                            if (tupleDomination(ref resultCollection, ref resultstringCollection, sqlReader, operators, ref dtResult, i) == true)
+                            if (tupleDomination(resultCollection, resultstringCollection, sqlReader, operators, dtResult, i) == true)
                             {
                                 isDominated = true;
                                 break;
@@ -76,7 +76,7 @@ namespace prefSQL.SQLSkyline
                         }
                         if (isDominated == false)
                         {
-                            addtoWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, true, ref dtResult);
+                            addtoWindow(sqlReader, operators, resultCollection, resultstringCollection, record, true, dtResult);
                         }
 
                     }
@@ -131,9 +131,9 @@ namespace prefSQL.SQLSkyline
             return dtResult;
         }
 
-        protected abstract bool tupleDomination(ref ArrayList resultCollection, ref ArrayList resultstringCollection, DataTableReader sqlReader, string[] operators, ref DataTable dtResult, int i);
+        protected abstract bool tupleDomination(ArrayList resultCollection, ArrayList resultstringCollection, DataTableReader sqlReader, string[] operators, DataTable dtResult, int i);
 
-        protected abstract void addtoWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, ref DataTable dtResult);
+        protected abstract void addtoWindow(DataTableReader sqlReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
 
     }
 }

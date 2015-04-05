@@ -25,12 +25,12 @@ namespace prefSQL.SQLSkyline
             skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, "");
         }
 
-        protected override void addtoWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, ref DataTable dtResult)
+        protected override void addtoWindow(DataTableReader sqlReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult)
         {
-            Helper.addToWindow(sqlReader, operators, ref resultCollection, ref resultstringCollection, record, ref dtResult);
+            Helper.addToWindow(sqlReader, operators, resultCollection, resultstringCollection, record, dtResult);
         }
 
-        protected override bool tupleDomination(ref ArrayList resultCollection, ref ArrayList resultstringCollection, DataTableReader sqlReader, string[] operators, ref DataTable dtResult, int i)
+        protected override bool tupleDomination(ArrayList resultCollection, ArrayList resultstringCollection, DataTableReader sqlReader, string[] operators, DataTable dtResult, int i)
         {
             long?[] result = (long?[])resultCollection[i];
             string[] strResult = (string[])resultstringCollection[i];

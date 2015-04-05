@@ -44,7 +44,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="operators"></param>
         /// <param name="dtSkyline"></param>
         /// <returns></returns>
-        public static List<SqlMetaData> buildRecordSchema(DataTable dt, string[] operators, ref DataTable dtSkyline)
+        public static List<SqlMetaData> buildRecordSchema(DataTable dt, string[] operators, DataTable dtSkyline)
         {
             List<SqlMetaData> outputColumns = new List<SqlMetaData>(dt.Columns.Count - (operators.GetUpperBound(0)+1));
             int iCol = 0;
@@ -397,8 +397,9 @@ namespace prefSQL.SQLSkyline
         /// <param name="record"></param>
         /// <param name="isFrameworkMode"></param>
         /// <param name="dtResult"></param>
-        public static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, SqlDataRecord record, ref DataTable dtResult)
+        public static void addToWindow(DataTableReader sqlReader, string[] operators, ArrayList resultCollection, SqlDataRecord record, DataTable dtResult)
         {
+            
             //Erste Spalte ist die ID
             long[] recordInt = new long[operators.GetUpperBound(0) + 1];
             DataRow row = dtResult.NewRow();
@@ -417,10 +418,12 @@ namespace prefSQL.SQLSkyline
                 }
             }
 
-            
+
+
             dtResult.Rows.Add(row);
-            
             resultCollection.Add(recordInt);
+            //resultCollection.Insert(resultCollection.Count, recordInt);
+
         }
 
         /// <summary>
@@ -433,7 +436,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="record"></param>
         /// <param name="isFrameworkMode"></param>
         /// <param name="dtResult"></param>
-        public static void addToWindow(DataTableReader sqlReader, string[] operators, ref ArrayList resultCollection, ref ArrayList resultstringCollection, SqlDataRecord record, ref DataTable dtResult)
+        public static void addToWindow(DataTableReader sqlReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, DataTable dtResult)
         {
             //long must be nullable (because of incomparable tupels)
             long?[] recordInt = new long?[operators.GetUpperBound(0) + 1];
@@ -475,6 +478,7 @@ namespace prefSQL.SQLSkyline
             dtResult.Rows.Add(row);
             resultCollection.Add(recordInt);
             resultstringCollection.Add(recordstring);
+
         }
 
 

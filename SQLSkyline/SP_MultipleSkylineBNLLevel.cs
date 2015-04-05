@@ -68,7 +68,7 @@ namespace prefSQL.SQLSkyline
 
 
                 // Build our record schema 
-                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, ref dtResult);
+                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, dtResult);
                 //Add Level column
                 SqlMetaData OutputColumnLevel = new SqlMetaData("Level", SqlDbType.Int);
                 outputColumns.Add(OutputColumnLevel);
