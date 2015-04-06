@@ -41,12 +41,24 @@ namespace prefSQL.SQLSkyline
                 }
                 connection.Open();
 
-                SqlDataAdapter dap = new SqlDataAdapter(strQuery.ToString(), connection);
-                DataTable dt = new DataTable();
                 if (UseDataTable != null)
                 {
-                    dt = UseDataTable;
+                    var cmd = new SqlCommand
+                    {
+                        CommandText = "select top 0 * into #mytemptable from cars_small",
+                        CommandType = CommandType.Text,
+                        Connection = connection
+                    };                 
+                    cmd.ExecuteNonQuery();
+                    using (var bulkCopy = new SqlBulkCopy(connection))
+                    {
+                        bulkCopy.DestinationTableName = "#mytemptable";
+                        bulkCopy.WriteToServer(UseDataTable);
+                    }
                 }
+
+                SqlDataAdapter dap = new SqlDataAdapter(strQuery.ToString(), connection);
+                DataTable dt = new DataTable();              
                 dap.Fill(dt);
 
 

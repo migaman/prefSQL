@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Data;
+    using System.Globalization;
     using System.Linq;
     using prefSQL.SQLParser.Models;
 
@@ -209,19 +210,105 @@
 
             foreach (var subspace in Subspaces)
             {
+                var buildSubspaceQuery = BuildSubspaceQuery(subspace);
+                
                 Common.SkylineType.UseDataTable = null;
-                var subspaceDataTable = Common.Helper.getResults(BuildSubspaceQuery(subspace), Common.SkylineType,
+
+                var subspaceDataTable = Common.Helper.getResults(buildSubspaceQuery, Common.SkylineType,
                     PrefSqlModel);
 
-                var subspaceComplement = GetSubspaceComplement(subspace);
-                Common.SkylineType.UseDataTable = subspaceDataTable;
-                var subspaceComplementDataTable = Common.Helper.getResults(BuildSubspaceQuery(subspaceComplement),
-                    Common.SkylineType, PrefSqlModel);
+                var columnsUsedInSubspace = ColumnsUsedInSubspace(subspaceDataTable, subspace);
+                var equalRowsWithRespectToSubspaceColumnsDataTable = CompareEachRowWithRespectToSubspaceColumnsPairwise(subspaceDataTable, columnsUsedInSubspace);
 
-                skylineSample.Merge(subspaceComplementDataTable, false, MissingSchemaAction.Add);
+                if (equalRowsWithRespectToSubspaceColumnsDataTable.Rows.Count > 0)
+                {
+                    var subspaceComplement = GetSubspaceComplement(subspace);
+                    buildSubspaceQuery = BuildSubspaceQuery(subspaceComplement).Replace("cars_small", "#mytemptable").Replace("cars", "#mytemptable"); // TODO: obvious hack, probably extend Models
+
+                    Common.SkylineType.UseDataTable = equalRowsWithRespectToSubspaceColumnsDataTable;
+                    var subspaceComplementDataTable = Common.Helper.getResults(buildSubspaceQuery,
+                        Common.SkylineType, PrefSqlModel);
+
+                    RemoveDominatedObjects(equalRowsWithRespectToSubspaceColumnsDataTable, subspaceComplementDataTable, subspaceDataTable);
+                }
+
+                skylineSample.Merge(subspaceDataTable, false, MissingSchemaAction.Add); // TODO: does this work as expected? duplicate IDs? Common.ShowSkylineAttributes?
             }
 
             return skylineSample;
+        }
+
+        private static void RemoveDominatedObjects(DataTable equalRowsWithRespectToSubspaceColumnsDataTable,
+            DataTable subspaceComplementDataTable, DataTable subspaceDataTable)
+        {
+            foreach (DataRow equalRow in equalRowsWithRespectToSubspaceColumnsDataTable.Rows)
+            {
+                if (IsEqualRowStillContainedWithinSubspaceComplementSkyline(subspaceComplementDataTable, equalRow))
+                {
+                    continue;
+                }
+
+                var remove = subspaceDataTable.Rows.Cast<DataRow>().FirstOrDefault(row => row["Id"].Equals(equalRow["Id"]));
+
+                if (remove != null)
+                {
+                    subspaceDataTable.Rows.Remove(remove);
+                }
+            }
+        }
+
+        private static bool IsEqualRowStillContainedWithinSubspaceComplementSkyline(DataTable subspaceComplementDataTable, DataRow equalRow)
+        {
+            return subspaceComplementDataTable.AsEnumerable().Any(row => row["Id"].Equals(equalRow["Id"]));
+        }
+
+        private static HashSet<string> ColumnsUsedInSubspace(DataTable subspaceDataTable, HashSet<AttributeModel> subspace)
+        {
+            var columnsUsedInSubspace = new HashSet<string>();
+            foreach (var column in subspaceDataTable.Columns)
+            {
+                foreach (AttributeModel attribute in subspace)
+                {
+                    if (attribute.FullColumnName.EndsWith(column.ToString(), true, CultureInfo.InvariantCulture))
+                        // TODO: replace EndsWith, probably extend Models
+                    {
+                        columnsUsedInSubspace.Add(column.ToString());
+                        break;
+                    }
+                }
+            }
+            return columnsUsedInSubspace;
+        }
+
+        private static DataTable CompareEachRowWithRespectToSubspaceColumnsPairwise(DataTable subspaceDataTable,
+            HashSet<string> columnsUsedInSubspace)
+        {
+            var equalRowsWithRespectToSubspaceColumnsDataTable = subspaceDataTable.Clone();
+
+            var equalRowsWithRespectToSubspaceColumns = new HashSet<DataRow>();
+
+            for (var i = 0; i < subspaceDataTable.Rows.Count; i++)
+            {
+                for (var j = i + 1; j < subspaceDataTable.Rows.Count; j++)
+                {
+                    if (columnsUsedInSubspace.All(
+                        item => subspaceDataTable.Rows[i][item].Equals(subspaceDataTable.Rows[j][item])))
+                    {
+                        if (!equalRowsWithRespectToSubspaceColumns.Contains(subspaceDataTable.Rows[i]))
+                        {
+                            equalRowsWithRespectToSubspaceColumnsDataTable.ImportRow(subspaceDataTable.Rows[i]);
+                            equalRowsWithRespectToSubspaceColumns.Add(subspaceDataTable.Rows[i]);
+                        }
+                        if (!equalRowsWithRespectToSubspaceColumns.Contains(subspaceDataTable.Rows[j]))
+                        {
+                            equalRowsWithRespectToSubspaceColumnsDataTable.ImportRow(subspaceDataTable.Rows[j]);
+                            equalRowsWithRespectToSubspaceColumns.Add(subspaceDataTable.Rows[j]);
+                        }
+                    }
+                }
+            }
+
+            return equalRowsWithRespectToSubspaceColumnsDataTable;
         }
 
         public HashSet<AttributeModel> GetSubspaceComplement(HashSet<AttributeModel> subspace)
@@ -229,6 +316,36 @@
             var allPreferences = new List<AttributeModel>(PrefSqlModel.Skyline);
             allPreferences.RemoveAll(subspace.Contains);
             return new HashSet<AttributeModel>(allPreferences);
+        }
+
+        private class MyDataRowEqualityComparator : IEqualityComparer<DataRow>
+        {
+            private readonly HashSet<string> _attrib;
+
+            public MyDataRowEqualityComparator(HashSet<string> attrib)
+            {
+                _attrib = attrib;
+            }
+
+            private IEnumerable<string> Attrib
+            {
+                get { return _attrib; }
+            }        
+
+            public bool Equals(DataRow x, DataRow y)
+            {
+                return Attrib.All(attrib => x[attrib].Equals(y[attrib]));
+            }
+
+            public int GetHashCode(DataRow obj)
+            {
+                // http://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-an-overridden-system-object-gethashcode/263416#263416
+               // unchecked // Overflow is fine, just wrap
+               // {
+                    var hashCode = Attrib.Aggregate(486187739, (accumulated, next) => accumulated * 29 + next.GetHashCode());
+                    return hashCode;
+               // }               
+            }
         }
     }
 }
