@@ -12,9 +12,8 @@ using System.Text;
 
 namespace prefSQL.SQLSkyline
 {
-    public class Helper
+    class Helper
     {
-
         //Only this parameters are different beteen SQL CLR function and Utility class
         public const string cnnStringSQLCLR = "context connection=true";
         public const int MaxSize = 4000;
@@ -36,13 +35,6 @@ namespace prefSQL.SQLSkyline
 
             }
             return dt;
-        }
-
-        public enum PresortStrategy
-        {
-
-            NoPresort,
-            AttributePosition,
         }
 
         /// <summary>

@@ -11,20 +11,19 @@ using System.Collections.Generic;
 //Important: Only use equal for comparing text (otherwise performance issues)
 namespace prefSQL.SQLSkyline
 {
-    public class SP_SkylineBNLLevel : TemplateBNL
+    public class SP_SkylineBNLSortLevel : TemplateBNL
     {
         /// <summary>
         /// Calculate the skyline points from a dataset
         /// </summary>
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
-        [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineBNLLevel")]
+        [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineBNLSortLevel")]
         public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
         {
-            SP_SkylineBNLLevel skyline = new SP_SkylineBNLLevel();
+            SP_SkylineBNLSortLevel skyline = new SP_SkylineBNLSortLevel();
             skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, "");
         }
-
 
 
         protected override void addtoWindow(object[] sqlReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult)
@@ -32,10 +31,10 @@ namespace prefSQL.SQLSkyline
             Helper.addToWindow(sqlReader, operators, resultCollection, record, dtResult);
         }
 
+
         protected override bool tupleDomination(object[] sqlReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i)
         {
             long[] result = (long[])resultCollection[i];
-            
 
             //Dominanz
             if (Helper.isTupleDominated(result, sqlReader) == true)
@@ -44,19 +43,14 @@ namespace prefSQL.SQLSkyline
                 return true;
             }
 
-
             //Now, check if the new point dominates the one in the window
-            //This is only possible with not sorted data
-            if (Helper.doesTupleDominate(sqlReader, operators, result) == true)
-            {
-                //The new record dominates the one in the windows. Remove point from window and test further
-                resultCollection.RemoveAt(i);
-                dtResult.Rows.RemoveAt(i);
-            }
+            //--> It is not possible that the new point dominates the one in the window --> Reason data is ORDERED
+
+            
             return false;
         }
 
-             
+
 
     }
 }
