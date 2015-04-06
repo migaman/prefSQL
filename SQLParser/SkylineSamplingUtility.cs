@@ -317,35 +317,5 @@
             allPreferences.RemoveAll(subspace.Contains);
             return new HashSet<AttributeModel>(allPreferences);
         }
-
-        private class MyDataRowEqualityComparator : IEqualityComparer<DataRow>
-        {
-            private readonly HashSet<string> _attrib;
-
-            public MyDataRowEqualityComparator(HashSet<string> attrib)
-            {
-                _attrib = attrib;
-            }
-
-            private IEnumerable<string> Attrib
-            {
-                get { return _attrib; }
-            }        
-
-            public bool Equals(DataRow x, DataRow y)
-            {
-                return Attrib.All(attrib => x[attrib].Equals(y[attrib]));
-            }
-
-            public int GetHashCode(DataRow obj)
-            {
-                // http://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-an-overridden-system-object-gethashcode/263416#263416
-               // unchecked // Overflow is fine, just wrap
-               // {
-                    var hashCode = Attrib.Aggregate(486187739, (accumulated, next) => accumulated * 29 + next.GetHashCode());
-                    return hashCode;
-               // }               
-            }
-        }
     }
 }
