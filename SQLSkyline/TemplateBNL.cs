@@ -14,6 +14,8 @@ namespace prefSQL.SQLSkyline
     public abstract class TemplateBNL
     {
 
+        public long timeInMs = 0;
+
         public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection)
         {
             return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection);
@@ -21,6 +23,7 @@ namespace prefSQL.SQLSkyline
 
         protected DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection)
         {
+            Stopwatch sw = new Stopwatch();
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
@@ -46,14 +49,14 @@ namespace prefSQL.SQLSkyline
                 dap.Fill(dt);
 
 
+                //Time the algorithm needs (afer query to the database)
+                sw.Start();
+
+
                 // Build our record schema 
                 List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, dtResult);
                 SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
 
-
-
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
 
                 //Read all records only once. (SqlDataReader works forward only!!)
                 DataTableReader sqlReader = dt.CreateDataReader();
@@ -70,7 +73,7 @@ namespace prefSQL.SQLSkyline
                     }
                     listObjects.Add(recordObject);
                 }
-                
+
 
                 //For each tuple
                 foreach (object[] dbValuesObject in listObjects)
@@ -124,11 +127,6 @@ namespace prefSQL.SQLSkyline
                     }
                     SqlContext.Pipe.SendResultsEnd();
                 }
-
-                sw.Stop();
-                System.Diagnostics.Debug.WriteLine("Elapsed BNL={0}", sw.Elapsed);
-
-
             }
             catch (Exception ex)
             {
@@ -152,6 +150,9 @@ namespace prefSQL.SQLSkyline
                 if (connection != null)
                     connection.Close();
             }
+
+            sw.Stop();
+            timeInMs = sw.ElapsedMilliseconds;
             return dtResult;
         }
 

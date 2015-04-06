@@ -25,7 +25,7 @@ namespace Utility
         {
             /*
             Performance p = new Performance();
-            p.GeneratePerformanceQueries(SQLCommon.Algorithm.NativeSQL, true, Performance.PreferenceSet.Mya);
+            p.GeneratePerformanceQueries(new SkylineBNLSort(), true, Performance.PreferenceSet.Jon, 5);
             */
 
             /*p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.BNL,             false, true, false, true);
@@ -126,8 +126,8 @@ namespace Utility
                 //parser.ShowSkylineAttributes = true;
                 //parser.SkylineUpToLevel = 1;
 
-                //string strSQL = parser.parsePreferenceSQL(strPrefSQL);
-                //Debug.WriteLine(strSQL);
+                string strSQL = parser.parsePreferenceSQL(strPrefSQL);
+                Debug.WriteLine(strSQL);
 
                 DataTable dt = parser.parseAndExecutePrefSQL(cnnStringLocalhost, driver, strPrefSQL);
                 System.Diagnostics.Debug.WriteLine(dt.Rows.Count);

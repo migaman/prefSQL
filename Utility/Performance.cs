@@ -18,6 +18,7 @@ namespace Utility
     {
         private const string path = "E:\\Doc\\Studies\\PRJ_Thesis\\19 Performance Level\\";
         private const string cnnStringLocalhost = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
+        private const string driver = "System.Data.SqlClient";
 
         public enum PreferenceSet
         {
@@ -26,7 +27,8 @@ namespace Utility
             Barra
         };
 
-        public void GeneratePerformanceQueries(SkylineStrategy strategy, bool doExecute, PreferenceSet set)
+
+        public void GeneratePerformanceQueries(SkylineStrategy strategy, bool doExecute, PreferenceSet set, int trials)
         {
             //Use the correct line, depending on how incomparable items should be compared
             string[] preferences;
@@ -34,8 +36,8 @@ namespace Utility
 
             if (set == PreferenceSet.Jon)
             {
-                columns = new string[] { "cars.price", "cars.mileage", "cars.horsepower", "cars.enginesize", "cars.consumption", "cars.registration", "cars.doors", "cars.seats", "cars.cylinders", "cars.gears" };
-                preferences = new string[] { "cars.price LOW", "cars.mileage LOW", "cars.horsepower HIGH", "cars.enginesize HIGH", "cars.consumption LOW",  "cars.registration HIGHDATE", "cars.doors HIGH", "cars.seats HIGH", "cars.cylinders HIGH", "cars.gears HIGH" };
+                columns = new string[] { "cars.price", "cars.mileage", "cars.horsepower", "cars.enginesize", "cars.consumption", "cars.doors", "cars.seats", "cars.cylinders", "cars.gears" };
+                preferences = new string[] { "cars.price LOW", "cars.mileage LOW", "cars.horsepower HIGH", "cars.enginesize HIGH", "cars.consumption LOW", "cars.doors HIGH", "cars.seats HIGH", "cars.cylinders HIGH", "cars.gears HIGH" };
 
             }
             else if (set == PreferenceSet.Mya)
@@ -91,6 +93,19 @@ namespace Utility
             string[] sizes = { "small", "medium", "large", "superlarge" };
             StringBuilder sb = new StringBuilder();
 
+
+            sb.AppendLine("     Algorithm:" + strategy.ToString());
+            sb.AppendLine("Preference Set:" + set.ToString());
+            sb.AppendLine("          Host:" + System.Environment.MachineName);
+            sb.AppendLine("        Trials:" + trials);
+            sb.AppendLine("");
+            sb.AppendLine("dimensions|skyline size|time total|time algorithm");
+            
+            Debug.Write(sb);
+
+
+
+
             //Go only down two 3 dimension (because there are special algorithms for 1 and 2 dimensional skyline)
             for (int i = columns.GetUpperBound(0); i >= 2; i--)
             {
@@ -138,85 +153,74 @@ namespace Utility
                 //Convert to real SQL
                 SQLCommon parser = new SQLCommon();
                 parser.SkylineType = strategy; // SQLCommon.Algorithm.NativeSQL;
-                strSQL = parser.parsePreferenceSQL(strSQL);
+                //strSQL = parser.parsePreferenceSQL(strSQL);
 
-                if (doExecute == true)
+                for (int iTrial = 0; iTrial < trials; iTrial++ )
                 {
-                    Stopwatch sw = new Stopwatch();
-                    
-                    try
+
+                    if (doExecute == true)
                     {
-                        /*
-                        Program prg = new Program();
-                        prg.executeDb(strSQL, SQLCommon.Algorithm.Hexagon);
-                        */
-                        //Native SQL
-                        SqlConnection connection = null;
-                        connection = new SqlConnection(cnnStringLocalhost);
-                        connection.Open();
+                        Stopwatch sw = new Stopwatch();
+
+                        try
+                        {
+                            /*
+                            Program prg = new Program();
+                            prg.executeDb(strSQL, SQLCommon.Algorithm.Hexagon);
+                            */
+
+                            sw.Start();
+                            DataTable dt = parser.parseAndExecutePrefSQL(cnnStringLocalhost, driver, strSQL);
+                            long timeAlgorithm = parser.TimeInMilliseconds;
+                            sw.Stop();
+
+
+                            //Native SQL
+                            /*SqlConnection connection = null;
+                            connection = new SqlConnection(cnnStringLocalhost);
+                            connection.Open();
 
                         
-                        SqlDataAdapter dap = new SqlDataAdapter(strSQL, connection);
-                        dap.SelectCommand.CommandTimeout = 0;
-                        DataTable dt = new DataTable();
-                        sw.Start();
-                        dap.Fill(dt);
-                        sw.Stop();
-                        /*long time1 = sw.ElapsedMilliseconds;
-                        dt = new DataTable();
-                        sw = new Stopwatch();
-                        sw.Start();
-                        dap.Fill(dt);
-                        sw.Stop();
-                        long time2 = sw.ElapsedMilliseconds;
-                        dt = new DataTable();
-                        sw = new Stopwatch();
-                        sw.Start();
-                        dap.Fill(dt);
-                        sw.Stop();
-                        long time3 = sw.ElapsedMilliseconds;
-                        dt = new DataTable();
-                        sw = new Stopwatch();
-                        sw.Start();
-                        dap.Fill(dt);
-                        sw.Stop();
-                        long time4 = sw.ElapsedMilliseconds;
-                        dt = new DataTable();
-                        sw = new Stopwatch();
-                        sw.Start();
-                        dap.Fill(dt);
-                        sw.Stop();
-                        long time5 = sw.ElapsedMilliseconds;
-                        */
-                        
-                        System.Diagnostics.Debug.WriteLine(dt.Rows.Count);
-                        
-                        sb.AppendLine(i + 1 + ";" + dt.Rows.Count + ";" + sw.ElapsedMilliseconds);
-                        //sb.AppendLine(i + 1 + ";" + dt.Rows.Count + ";" + time1 + ";" + time2 + ";" + time3 + ";" + time4 + ";" + time5);
-                        
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine(e.Message);
-                        return;
-                    }
-                }
-                else
-                {
-                    //Format for each of the customer profiles
-                    sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
-                    sb.AppendLine("PRINT '----- " + (i + 1) + " dimensions, " + (countJoins) + " join(s) ------'");
-                    sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
-                    foreach (string size in sizes)
-                    {
-                        sb.AppendLine("GO"); //we need this in order the profiler shows each query in a new line
-                        sb.AppendLine(strSQL.Replace("cars", "cars_" + size));
+                            SqlDataAdapter dap = new SqlDataAdapter(strSQL, connection);
+                            dap.SelectCommand.CommandTimeout = 0;
+                            DataTable dt = new DataTable();
+                            sw.Start();
+                            dap.Fill(dt);
+                            sw.Stop();
+                            */
 
-                    }
 
-                    sb.AppendLine("");
-                    sb.AppendLine("");
-                    sb.AppendLine("");
+
+                            string strLine = (i + 1).ToString().PadLeft(10) + "|" + dt.Rows.Count.ToString().PadLeft(12) + "|" + sw.ElapsedMilliseconds.ToString().PadLeft(10) + "|" + timeAlgorithm.ToString().PadLeft(14);
+
+                            System.Diagnostics.Debug.WriteLine(strLine);
+                            sb.AppendLine(strLine);
+
+
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine(e.Message);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        //Format for each of the customer profiles
+                        sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
+                        sb.AppendLine("PRINT '----- " + (i + 1) + " dimensions, " + (countJoins) + " join(s) ------'");
+                        sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
+                        foreach (string size in sizes)
+                        {
+                            sb.AppendLine("GO"); //we need this in order the profiler shows each query in a new line
+                            sb.AppendLine(strSQL.Replace("cars", "cars_" + size));
+
+                        }
+
+                        sb.AppendLine("");
+                        sb.AppendLine("");
+                        sb.AppendLine("");
+                    }
                 }
                 //Remove current column
                 columns = columns.Where(w => w != columns[i]).ToArray();

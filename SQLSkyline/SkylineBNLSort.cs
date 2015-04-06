@@ -12,6 +12,8 @@ namespace prefSQL.SQLSkyline
 {
     public class SkylineBNLSort : SkylineStrategy
     {
+        
+
         public override bool isNative()
         {
             return false;
@@ -49,12 +51,16 @@ namespace prefSQL.SQLSkyline
             if (hasIncomparable)
             {
                 SP_SkylineBNLSort skyline = new SP_SkylineBNLSort();
-                return skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+                DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+                timeMilliseconds = skyline.timeInMs;
+                return dt;
             }
             else
             {
                 SP_SkylineBNLSortLevel skyline = new SP_SkylineBNLSortLevel();
-                return skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+                DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+                timeMilliseconds = skyline.timeInMs;
+                return dt;
             }
 
         }

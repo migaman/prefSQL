@@ -28,6 +28,14 @@ namespace prefSQL.SQLParser
         private int _SkylineUpToLevel = 3;                          //Defines the maximum level that should be returned for the multiple skyline algorithnmm
         Helper helper = new Helper();
         private PrefSQLModel _queryModel = new PrefSQLModel();
+        private long _timeInMilliseconds = 0;
+
+        public long TimeInMilliseconds
+        {
+            get { return _timeInMilliseconds; }
+            set { _timeInMilliseconds = value; }
+        }
+
 
         public PrefSQLModel QueryModel
         {
@@ -89,10 +97,11 @@ namespace prefSQL.SQLParser
 
             string strSQL = parsePreferenceSQL(strPrefSQL);
             PrefSQLModel model = QueryModel;
-            Debug.WriteLine(strSQL);
-            
-            
-            return helper.getResults(strSQL, _SkylineType, model);
+            //Debug.WriteLine(strSQL);
+
+            DataTable dt = helper.getResults(strSQL, _SkylineType, model);
+            TimeInMilliseconds = helper.timeInMilliseconds;
+            return dt;
         }
 
 
@@ -119,7 +128,7 @@ namespace prefSQL.SQLParser
 
                 //Parse query
                 IParseTree tree = parser.parse();
-                Debug.WriteLine("Parse Tree: " + tree.ToStringTree(parser));
+                //Debug.WriteLine("Parse Tree: " + tree.ToStringTree(parser));
 
                 //Visit parsetree (PrefSQL model is built during the visit of the parse tree)
                 SQLVisitor visitor = new SQLVisitor();

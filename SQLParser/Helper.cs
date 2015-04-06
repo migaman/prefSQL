@@ -26,6 +26,8 @@ namespace prefSQL.SQLParser
         /// </summary>
         public String ConnectionString { get; set; }
 
+        public long timeInMilliseconds { get; set; }
+
 
         public DataTable executeStatement(String strSQL)
         {
@@ -94,9 +96,9 @@ namespace prefSQL.SQLParser
                 //}
             }
 
-            Stopwatch sw = new Stopwatch();
+            //Stopwatch sw = new Stopwatch();
 
-            sw.Start();
+            //sw.Start();
 
             try
             {
@@ -130,7 +132,8 @@ namespace prefSQL.SQLParser
                         throw new Exception(strategy.GetType() +  " does not support incomparale tuples");
                     }
 
-                    dt = strategy.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords, model.WithIncomparable, parameter);    
+                    dt = strategy.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords, model.WithIncomparable, parameter);
+                    timeInMilliseconds = strategy.timeMilliseconds;
                 }
 
             }
@@ -140,8 +143,8 @@ namespace prefSQL.SQLParser
             }
 
 
-            sw.Stop();
-            System.Diagnostics.Debug.WriteLine("Elapsed={0}", sw.Elapsed);
+            //sw.Stop();
+            //System.Diagnostics.Debug.WriteLine("Elapsed={0}", sw.Elapsed);
             return dt;
         }
 
