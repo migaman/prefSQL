@@ -14,6 +14,17 @@ namespace prefSQL.SQLSkyline
     public abstract class TemplateBNL
     {
 
+        private Helper.PresortStrategy presortStrategy = Helper.PresortStrategy.NoPresort;
+
+
+
+        public Helper.PresortStrategy PresortStrategy
+        {
+            get { return presortStrategy; }
+            set { presortStrategy = value; }
+        }
+
+
         public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection)
         {
             return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection);

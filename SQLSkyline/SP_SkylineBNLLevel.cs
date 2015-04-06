@@ -20,7 +20,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="strOperators"></param>
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineBNLLevel")]
         public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
-        {
+        {            
             SP_SkylineBNLLevel skyline = new SP_SkylineBNLLevel();
             skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, "");
         }
@@ -46,12 +46,20 @@ namespace prefSQL.SQLSkyline
 
 
             //Now, check if the new point dominates the one in the window
-            //This is only possible with not sorted data
-            if (Helper.doesTupleDominate(sqlReader, operators, result) == true)
+            if (PresortStrategy == Helper.PresortStrategy.AttributePosition)
             {
-                //The new record dominates the one in the windows. Remove point from window and test further
-                resultCollection.RemoveAt(i);
-                dtResult.Rows.RemoveAt(i);
+                //It is not possible that the new point dominates the one in the window --> Reason data is ORDERED
+            }
+            else if (PresortStrategy == Helper.PresortStrategy.NoPresort)
+            {
+                //Now, check if the new point dominates the one in the window
+                //This is only possible with not sorted data
+                if (Helper.doesTupleDominate(sqlReader, operators, result) == true)
+                {
+                    //The new record dominates the one in the windows. Remove point from window and test further
+                    resultCollection.RemoveAt(i);
+                    dtResult.Rows.RemoveAt(i);
+                }
             }
             return false;
         }

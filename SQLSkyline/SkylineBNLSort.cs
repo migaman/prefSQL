@@ -48,12 +48,14 @@ namespace prefSQL.SQLSkyline
         {
             if (hasIncomparable)
             {
-                SP_SkylineBNLSort skyline = new SP_SkylineBNLSort();
+                SP_SkylineBNL skyline = new SP_SkylineBNL();
+                skyline.PresortStrategy = Helper.PresortStrategy.AttributePosition;
                 return skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
             }
             else
             {
-                SP_SkylineBNLSortLevel skyline = new SP_SkylineBNLSortLevel();
+                SP_SkylineBNLLevel skyline = new SP_SkylineBNLLevel();
+                skyline.PresortStrategy = Helper.PresortStrategy.AttributePosition;
                 return skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
             }
 
