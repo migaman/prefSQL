@@ -104,8 +104,14 @@ namespace Utility
 
 
 
-                //strPrefSQL = "SELECT t1.id FROM cars t1 RANKING OF t1.price HIGH 0.5, t1.mileage HIGH 0.5, t1.horsepower LOW 0.5, t1.enginesize LOW 0.5, t1.consumption HIGH 0.5, t1.doors LOW 0.5, t1.cylinders LOW 0.5";
-                strPrefSQL = "SELECT t1.id FROM cars t1 SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
+                strPrefSQL = "SELECT t1.id FROM cars t1 RANKING OF t1.price HIGH 0.5, t1.mileage HIGH 0.5, t1.horsepower LOW 0.5, t1.enginesize LOW 0.5, t1.consumption HIGH 0.5, t1.doors LOW 0.5, t1.cylinders LOW 0.5";
+                strPrefSQL = "SELECT t1.id, t1.title, t1.price FROM cars t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH, colors.name ('rot' >> 'blau' >> 'gelb' >> OTHERS INCOMPARABLE)";
+                strPrefSQL = "SELECT t1.id, t1.title, t1.price FROM cars t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
+                //strPrefSQL = "SELECT t1.id, t1.title, t1.price FROM cars t1 SKYLINE OF t1.price LOW, t1.mileage LOW ORDER BY BEST_RANK()";
+                //strPrefSQL = "SELECT t1.id FROM cars t1 SKYLINE OF t1.price AROUND 10000, t1.mileage LOW, t1.title ('Hans' >> 'Heidi')";
+                //strPrefSQL = "SELECT t1.id FROM cars t1 SKYLINE OF t1.price LOW, t1.mileage LOW";
+
+                //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
 
                 Debug.WriteLine(strPrefSQL);
                 Debug.WriteLine("--------------------------------------------");

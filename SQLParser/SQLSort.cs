@@ -66,6 +66,7 @@ namespace prefSQL.SQLParser
                     strSQL += ", ";
                 }
                 //strSQL += model.Skyline[iChild].OrderBy.ToString();
+
                 strSQL += model.Skyline[iChild].Expression.ToString();
             }
             return strSQL;
@@ -90,7 +91,8 @@ namespace prefSQL.SQLParser
                 {
                     strSQL += " + ";
                 }
-                strSQL += model.Skyline[iChild].RankExpression;
+                string strRankingExpression = "DENSE_RANK() OVER (ORDER BY " + model.Skyline[iChild].Expression + ")";
+                strSQL += strRankingExpression;
 
             }
 
@@ -111,7 +113,8 @@ namespace prefSQL.SQLParser
 
             for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
-                string strRankingExpression = model.Skyline[iChild].RankExpression.Replace("DENSE_RANK()", "ROW_NUMBER()");
+                string strRankingExpression = "DENSE_RANK() OVER (ORDER BY " + model.Skyline[iChild].Expression + ")";
+                strRankingExpression = strRankingExpression.Replace("DENSE_RANK()", "ROW_NUMBER()");
 
                 if (model.Skyline.Count == 1)
                 {
@@ -129,7 +132,8 @@ namespace prefSQL.SQLParser
                     strRanking = strRankingExpression;
                     for (int iSubChild = iChild + 1; iSubChild < model.Skyline.Count; iSubChild++)
                     {
-                        string strSubRanking = model.Skyline[iSubChild].RankExpression.Replace("DENSE_RANK()", "ROW_NUMBER()");
+                        string strSubRanking = "DENSE_RANK() OVER (ORDER BY " + model.Skyline[iSubChild].Expression + ")";
+                        strSubRanking = strSubRanking.Replace("DENSE_RANK()", "ROW_NUMBER()");
                         strSQL += strRanking + " <=" + strSubRanking;
                         if (iSubChild < model.Skyline.Count - 1)
                         {

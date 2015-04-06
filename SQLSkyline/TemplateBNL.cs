@@ -51,20 +51,36 @@ namespace prefSQL.SQLSkyline
                 SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
 
 
+
                 Stopwatch sw = new Stopwatch();
                 sw.Start();
 
-
-
                 //Read all records only once. (SqlDataReader works forward only!!)
                 DataTableReader sqlReader = dt.CreateDataReader();
+                
+                //Write all attributes to a Object-Array
+                //Profiling: This is much faster (factor 2) than working with the SQLReader
+                List<object[]> listObjects = new List<object[]>();
                 while (sqlReader.Read())
                 {
+                    object[] recordObject = new object[sqlReader.FieldCount];
+                    for (int iCol = 0; iCol < sqlReader.FieldCount; iCol++)
+                    {
+                        recordObject[iCol] = sqlReader[iCol];
+                    }
+                    listObjects.Add(recordObject);
+                }
+                
+
+                //For each tuple
+                foreach (object[] dbValuesObject in listObjects)
+                {
+
                     //Check if window list is empty
                     if (resultCollection.Count == 0)
                     {
                         // Build our SqlDataRecord and start the results 
-                        addtoWindow(sqlReader, operators, resultCollection, resultstringCollection, record, true, dtResult);
+                        addtoWindow(dbValuesObject, operators, resultCollection, resultstringCollection, record, true, dtResult);
                     }
                     else
                     {
@@ -73,7 +89,7 @@ namespace prefSQL.SQLSkyline
                         //check if record is dominated (compare against the records in the window)
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
                         {
-                            if (tupleDomination(resultCollection, resultstringCollection, sqlReader, operators, dtResult, i) == true)
+                            if (tupleDomination(dbValuesObject, resultCollection, resultstringCollection, operators, dtResult, i) == true)
                             {
                                 isDominated = true;
                                 break;
@@ -81,13 +97,13 @@ namespace prefSQL.SQLSkyline
                         }
                         if (isDominated == false)
                         {
-                            addtoWindow(sqlReader, operators, resultCollection, resultstringCollection, record, true, dtResult);
+                            addtoWindow(dbValuesObject, operators, resultCollection, resultstringCollection, record, true, dtResult);
                         }
 
                     }
                 }
 
-                sqlReader.Close();
+                
 
                 //Remove certain amount of rows if query contains TOP Keyword
                 Helper.getAmountOfTuples(dtResult, numberOfRecords);
@@ -139,9 +155,10 @@ namespace prefSQL.SQLSkyline
             return dtResult;
         }
 
-        protected abstract bool tupleDomination(ArrayList resultCollection, ArrayList resultstringCollection, DataTableReader sqlReader, string[] operators, DataTable dtResult, int i);
 
-        protected abstract void addtoWindow(DataTableReader sqlReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
+        protected abstract bool tupleDomination(object[] sqlReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i);
+
+        protected abstract void addtoWindow(object[] sqlReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
 
     }
 }

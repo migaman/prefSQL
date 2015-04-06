@@ -68,7 +68,7 @@ namespace prefSQL.SQLSkyline
                         //check if record is dominated (compare against the records in the window)
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
                         {
-                            if (tupleDomination(resultCollection, resultstringCollection, sqlReader, operators, dtResult, i) == true)
+                            if (tupleDomination(resultCollection, resultstringCollection, operators, dtResult, i) == true)
                             {
                                 isDominated = true;
                                 break;
@@ -131,7 +131,7 @@ namespace prefSQL.SQLSkyline
             return dtResult;
         }
 
-        protected abstract bool tupleDomination(ArrayList resultCollection, ArrayList resultstringCollection, DataTableReader sqlReader, string[] operators, DataTable dtResult, int i);
+        protected abstract bool tupleDomination(ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i);
 
         protected abstract void addtoWindow(DataTableReader sqlReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
 

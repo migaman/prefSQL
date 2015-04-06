@@ -26,17 +26,18 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        protected override void addtoWindow(DataTableReader sqlReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult)
+        protected override void addtoWindow(object[] sqlReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult)
         {
             Helper.addToWindow(sqlReader, operators, resultCollection, record, dtResult);
         }
 
-        protected override bool tupleDomination(ArrayList resultCollection, ArrayList resultstringCollection, DataTableReader sqlReader, string[] operators, DataTable dtResult, int i)
+
+        protected override bool tupleDomination(object[] sqlReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i)
         {
             long[] result = (long[])resultCollection[i];
 
             //Dominanz
-            if (Helper.isTupleDominated(sqlReader, result) == true)
+            if (Helper.isTupleDominated(result, sqlReader) == true)
             {
                 //New point is dominated. No further testing necessary
                 return true;
