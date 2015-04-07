@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Data;
-    using System.Diagnostics;
+    using System.Globalization;
     using System.Linq;
     using prefSQL.SQLParser.Models;
 
@@ -12,7 +12,8 @@
         private readonly PrefSQLModel _prefSqlModel;
         private readonly SQLCommon _common;
         private static readonly Random MyRandom = new Random();
-        private HashSet<HashSet<AttributeModel>> _subspaceQueries;
+        private HashSet<HashSet<AttributeModel>> _subspacs;
+        private HashSet<string> _subspaceQueries;
 
         private SQLCommon Common
         {
@@ -24,32 +25,36 @@
             get { return _prefSqlModel; }
         }
 
-        private HashSet<HashSet<AttributeModel>> Subspaces
+        internal HashSet<HashSet<AttributeModel>> Subspaces
         {
             get
             {
-                if (_subspaceQueries == null)
+                if (_subspacs == null)
                 {
                     DetermineSubspaces();
                 }
-                return _subspaceQueries;
+                return _subspacs;
             }
-            set { _subspaceQueries = value; }
+            private set { _subspacs = value; }
         }
 
         public HashSet<string> SubspaceQueries
         {
             get
             {
-                var subspaceQueriesReturn = new HashSet<string>();
-
-                foreach (var subspace in Subspaces)
+                if (_subspaceQueries == null)
                 {
-                    subspaceQueriesReturn.Add(BuildSubspaceQuery(subspace));
+                    _subspaceQueries = new HashSet<string>();
+
+                    foreach (var subspace in Subspaces)
+                    {
+                        _subspaceQueries.Add(BuildSubspaceQuery(subspace));
+                    }
                 }
 
-                return subspaceQueriesReturn;
+                return _subspaceQueries;
             }
+            private set { _subspaceQueries = value; }
         }
 
         public SkylineSamplingUtility(PrefSQLModel prefSqlModel, SQLCommon common)
@@ -60,6 +65,7 @@
 
         private void DetermineSubspaces()
         {
+            SubspaceQueries = null;
             Subspaces = null;
 
             if (!PrefSqlModel.HasSkylineSample)
@@ -68,14 +74,35 @@
                 return;
             }
 
-            var subspacesReturn = new HashSet<HashSet<AttributeModel>>();
+            var subspacesCount = PrefSqlModel.SkylineSampleCount;
 
-            var skylineSampleCount = PrefSqlModel.SkylineSampleCount;
+            var subspaceDimension = PrefSqlModel.SkylineSampleDimension;
+            var skylinePreferences = PrefSqlModel.Skyline.Count;
+
+            if (subspacesCount*subspaceDimension < skylinePreferences)
+            {
+                throw new Exception(
+                    String.Format(
+                        "Every preference has to be included in at least one subspace. This is not possible, since there are {0} preferences and at most COUNT (= {1}) * DIMENSION (= {2}) = {3} of them are included",
+                        skylinePreferences, subspacesCount, subspaceDimension, subspacesCount*subspaceDimension));
+            }
+
+            var binomialCoefficient = QuickBinomialCoefficient(skylinePreferences, subspaceDimension);
+
+            if (subspacesCount > binomialCoefficient)
+            {
+                throw new Exception(
+                    String.Format(
+                        "Cannot choose {0} from {1} in order to gain {2} subspaces, at most {3} subspaces possible.",
+                        subspaceDimension, skylinePreferences, subspacesCount, binomialCoefficient));
+            }
+
+            var subspacesReturn = new HashSet<HashSet<AttributeModel>>();
 
             var done = false;
             while (!done)
             {
-                if (subspacesReturn.Count >= skylineSampleCount)
+                if (subspacesReturn.Count >= subspacesCount)
                 {
                     if (AreAllPreferencesAtLeastOnceContainedInSubspaces(subspacesReturn))
                     {
@@ -95,9 +122,30 @@
             Subspaces = subspacesReturn;
         }
 
+        /// <summary>
+        ///     calculate binomial coefficient (n choose k).
+        /// </summary>
+        /// <remarks>
+        ///     implemented via a multiplicative formula, see
+        ///     http://en.wikipedia.org/wiki/Binomial_coefficient#Multiplicative_formula
+        /// </remarks>
+        /// <param name="nUpper">choose from set n</param>
+        /// <param name="kLower">choose k elements from set n</param>
+        /// <returns>binomial coefficient from n choose k</returns>
+        private static decimal QuickBinomialCoefficient(int nUpper, int kLower)
+        {
+            var binomialCoefficient = 1;
+            for (var i = 1; i <= kLower; i++)
+            {
+                binomialCoefficient *= nUpper + 1 - i;
+                binomialCoefficient /= i;
+            }
+            return binomialCoefficient;
+        }
+
         public void RedetermineSubspaces()
         {
-            DetermineSubspaces();
+            Subspaces = null;
         }
 
         public string GetAnsiSql()
@@ -141,22 +189,19 @@
 
         private void AddOneSubspace(ISet<HashSet<AttributeModel>> subspaceQueries)
         {
-            var skylineSampleDimension = PrefSqlModel.SkylineSampleDimension;
-            HashSet<AttributeModel> subspacePreferencesAsHashSet;
+            HashSet<AttributeModel> subspaceQueryCandidate;
 
             do
             {
-                var subspacePreferences = new List<AttributeModel>(PrefSqlModel.Skyline);
+                subspaceQueryCandidate = new HashSet<AttributeModel>();
 
-                while (subspacePreferences.Count > skylineSampleDimension)
+                while (subspaceQueryCandidate.Count < PrefSqlModel.SkylineSampleDimension)
                 {
-                    subspacePreferences.RemoveAt(MyRandom.Next(subspacePreferences.Count));
+                    subspaceQueryCandidate.Add(PrefSqlModel.Skyline[MyRandom.Next(PrefSqlModel.Skyline.Count)]);
                 }
+            } while (subspaceQueries.Any(element => element.SetEquals(subspaceQueryCandidate)));
 
-                subspacePreferencesAsHashSet = new HashSet<AttributeModel>(subspacePreferences);
-            } while (subspaceQueries.Any(element => element.SetEquals(subspacePreferencesAsHashSet)));
-           
-            subspaceQueries.Add(subspacePreferencesAsHashSet);
+            subspaceQueries.Add(subspaceQueryCandidate);
         }
 
         public DataTable GetSkyline()
@@ -165,19 +210,105 @@
 
             foreach (var subspace in Subspaces)
             {
+                var buildSubspaceQuery = BuildSubspaceQuery(subspace);
+                
                 Common.SkylineType.UseDataTable = null;
-                var subspaceDataTable = Common.Helper.getResults(BuildSubspaceQuery(subspace), Common.SkylineType,
+
+                var subspaceDataTable = Common.Helper.getResults(buildSubspaceQuery, Common.SkylineType,
                     PrefSqlModel);
 
-                var subspaceComplement = GetSubspaceComplement(subspace);
-                Common.SkylineType.UseDataTable = subspaceDataTable;
-                var subspaceComplementDataTable = Common.Helper.getResults(BuildSubspaceQuery(subspaceComplement),
-                    Common.SkylineType, PrefSqlModel);
+                var columnsUsedInSubspace = ColumnsUsedInSubspace(subspaceDataTable, subspace);
+                var equalRowsWithRespectToSubspaceColumnsDataTable = CompareEachRowWithRespectToSubspaceColumnsPairwise(subspaceDataTable, columnsUsedInSubspace);
 
-                skylineSample.Merge(subspaceComplementDataTable, false, MissingSchemaAction.Add);
+                if (equalRowsWithRespectToSubspaceColumnsDataTable.Rows.Count > 0)
+                {
+                    var subspaceComplement = GetSubspaceComplement(subspace);
+                    buildSubspaceQuery = BuildSubspaceQuery(subspaceComplement).Replace("cars_small", "#mytemptable").Replace("cars", "#mytemptable"); // TODO: obvious hack, probably extend Models
+
+                    Common.SkylineType.UseDataTable = equalRowsWithRespectToSubspaceColumnsDataTable;
+                    var subspaceComplementDataTable = Common.Helper.getResults(buildSubspaceQuery,
+                        Common.SkylineType, PrefSqlModel);
+
+                    RemoveDominatedObjects(equalRowsWithRespectToSubspaceColumnsDataTable, subspaceComplementDataTable, subspaceDataTable);
+                }
+
+                skylineSample.Merge(subspaceDataTable, false, MissingSchemaAction.Add); // TODO: does this work as expected? duplicate IDs? Common.ShowSkylineAttributes?
             }
 
             return skylineSample;
+        }
+
+        private static void RemoveDominatedObjects(DataTable equalRowsWithRespectToSubspaceColumnsDataTable,
+            DataTable subspaceComplementDataTable, DataTable subspaceDataTable)
+        {
+            foreach (DataRow equalRow in equalRowsWithRespectToSubspaceColumnsDataTable.Rows)
+            {
+                if (IsEqualRowStillContainedWithinSubspaceComplementSkyline(subspaceComplementDataTable, equalRow))
+                {
+                    continue;
+                }
+
+                var remove = subspaceDataTable.Rows.Cast<DataRow>().FirstOrDefault(row => row["Id"].Equals(equalRow["Id"]));
+
+                if (remove != null)
+                {
+                    subspaceDataTable.Rows.Remove(remove);
+                }
+            }
+        }
+
+        private static bool IsEqualRowStillContainedWithinSubspaceComplementSkyline(DataTable subspaceComplementDataTable, DataRow equalRow)
+        {
+            return subspaceComplementDataTable.AsEnumerable().Any(row => row["Id"].Equals(equalRow["Id"]));
+        }
+
+        private static HashSet<string> ColumnsUsedInSubspace(DataTable subspaceDataTable, HashSet<AttributeModel> subspace)
+        {
+            var columnsUsedInSubspace = new HashSet<string>();
+            foreach (var column in subspaceDataTable.Columns)
+            {
+                foreach (AttributeModel attribute in subspace)
+                {
+                    if (attribute.FullColumnName.EndsWith(column.ToString(), true, CultureInfo.InvariantCulture))
+                        // TODO: replace EndsWith, probably extend Models
+                    {
+                        columnsUsedInSubspace.Add(column.ToString());
+                        break;
+                    }
+                }
+            }
+            return columnsUsedInSubspace;
+        }
+
+        private static DataTable CompareEachRowWithRespectToSubspaceColumnsPairwise(DataTable subspaceDataTable,
+            HashSet<string> columnsUsedInSubspace)
+        {
+            var equalRowsWithRespectToSubspaceColumnsDataTable = subspaceDataTable.Clone();
+
+            var equalRowsWithRespectToSubspaceColumns = new HashSet<DataRow>();
+
+            for (var i = 0; i < subspaceDataTable.Rows.Count; i++)
+            {
+                for (var j = i + 1; j < subspaceDataTable.Rows.Count; j++)
+                {
+                    if (columnsUsedInSubspace.All(
+                        item => subspaceDataTable.Rows[i][item].Equals(subspaceDataTable.Rows[j][item])))
+                    {
+                        if (!equalRowsWithRespectToSubspaceColumns.Contains(subspaceDataTable.Rows[i]))
+                        {
+                            equalRowsWithRespectToSubspaceColumnsDataTable.ImportRow(subspaceDataTable.Rows[i]);
+                            equalRowsWithRespectToSubspaceColumns.Add(subspaceDataTable.Rows[i]);
+                        }
+                        if (!equalRowsWithRespectToSubspaceColumns.Contains(subspaceDataTable.Rows[j]))
+                        {
+                            equalRowsWithRespectToSubspaceColumnsDataTable.ImportRow(subspaceDataTable.Rows[j]);
+                            equalRowsWithRespectToSubspaceColumns.Add(subspaceDataTable.Rows[j]);
+                        }
+                    }
+                }
+            }
+
+            return equalRowsWithRespectToSubspaceColumnsDataTable;
         }
 
         public HashSet<AttributeModel> GetSubspaceComplement(HashSet<AttributeModel> subspace)

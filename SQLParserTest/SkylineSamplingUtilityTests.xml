@@ -4,26 +4,29 @@
     <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT 2 DIMENSION 1</skylineSampleSQL>
     <useSubspaces>
       <subspace>
-        <equivalentToSkyline>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW</equivalentToSkyline>
+        <dimension>cs.price</dimension>
       </subspace>
       <subspace>
-        <equivalentToSkyline>SELECT * FROM cars_small cs SKYLINE OF cs.mileage LOW</equivalentToSkyline>
+        <dimension>cs.mileage</dimension>
       </subspace>
     </useSubspaces>
   </TestDataRow>
-   <TestDataRow>
+  <TestDataRow>
     <comment>3 samples, each of dimension 2 (e.g., (cs.price, cs.mileage), (cs.mileage, cs.horsepower), (cs.price, cs.horsepower))</comment>
     <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH SAMPLE BY RANDOM_SUBSETS COUNT 3 DIMENSION 2</skylineSampleSQL>
     <useSubspaces>
       <subspace>
-        <equivalentToSkyline>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW</equivalentToSkyline>
+        <dimension>cs.price</dimension>
+        <dimension>cs.mileage</dimension>
       </subspace>
       <subspace>
-        <equivalentToSkyline>SELECT * FROM cars_small cs SKYLINE OF cs.mileage LOW, cs.horsepower HIGH</equivalentToSkyline>
+        <dimension>cs.mileage</dimension>
+        <dimension>cs.horsepower</dimension>
       </subspace>
       <subspace>
-        <equivalentToSkyline>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.horsepower HIGH</equivalentToSkyline>
-      </subspace>
+        <dimension>cs.price</dimension>
+        <dimension>cs.horsepower</dimension>
+      </subspace>    
     </useSubspaces>
   </TestDataRow>
 </TestData>

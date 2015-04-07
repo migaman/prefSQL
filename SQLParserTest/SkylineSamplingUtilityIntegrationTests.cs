@@ -32,8 +32,15 @@
             var prefSqlModel = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSql);
             var subjectUnderTest = new SkylineSamplingUtility(prefSqlModel, common);
 
+            var sw = new Stopwatch();
+            sw.Start();
             var entireSkyline = common.parseAndExecutePrefSQL(DbConnection, DbProvider, entireSkylineSql);
+            sw.Stop();
+            Debug.WriteLine("ORIG Elapsed={0}", sw.Elapsed);
+            sw.Restart();
             var sampleSkyline = subjectUnderTest.GetSkyline();
+            sw.Stop();
+            Debug.WriteLine("SMPL Elapsed={0}", sw.Elapsed);
 
             var entireSkylineObjectsIds = GetHashSetOfIdsFromDataTable(entireSkyline);
             var sampleSkylineObjectsIds = GetHashSetOfIdsFromDataTable(sampleSkyline);
