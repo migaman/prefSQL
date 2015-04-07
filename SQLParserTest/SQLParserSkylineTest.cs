@@ -108,8 +108,8 @@ namespace prefSQL.SQLParserTest
                 
                 SQLCommon common = new SQLCommon();
                 common.SkylineType = new SkylineSQL();
-                string sqlNative = common.parsePreferenceSQL(strPrefSQL[i]);
-                PrefSQLModel model = common.QueryModel;
+                PrefSQLModel model = common.GetPrefSqlModelFromPreferenceSql(strPrefSQL[i]);
+                string sqlNative = common.GetAnsiSqlFromPrefSqlModel(model);
                 common.SkylineType = new SkylineBNL();
                 string sqlBNL = common.parsePreferenceSQL(strPrefSQL[i]);
                 common.SkylineType = new SkylineBNLSort();
@@ -245,8 +245,8 @@ namespace prefSQL.SQLParserTest
                 
                 SQLCommon common = new SQLCommon();
                 common.SkylineType = new SkylineSQL();
-                DataTable dtNative = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
-                PrefSQLModel model = common.QueryModel;
+                PrefSQLModel model = common.GetPrefSqlModelFromPreferenceSql(strPrefSQL[i]);
+                DataTable dtNative = common.ExecuteFromPrefSqlModel(strConnection, driver, model);
                 common.SkylineType = new SkylineBNL();
                 DataTable dtBNL = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
                 common.SkylineType = new SkylineBNLSort();

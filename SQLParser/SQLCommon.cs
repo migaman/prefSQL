@@ -26,22 +26,19 @@ namespace prefSQL.SQLParser
         private SkylineStrategy _SkylineType = new SkylineSQL();    //Defines with which Algorithm the Skyline should be calculated
         private bool _ShowSkylineAttributes = false;                //Defines if the skyline attributes should be added to the SELECT list
         private int _SkylineUpToLevel = 3;                          //Defines the maximum level that should be returned for the multiple skyline algorithnmm
-        Helper helper = new Helper();
+        private readonly Helper _helper = new Helper();
         private PrefSQLModel _queryModel = new PrefSQLModel();
         private long _timeInMilliseconds = 0;
 
+        internal Helper Helper {
+            get { return _helper;} 
+        }
         public long TimeInMilliseconds
         {
             get { return _timeInMilliseconds; }
             set { _timeInMilliseconds = value; }
         }
-
-
-        public PrefSQLModel QueryModel
-        {
-            get { return _queryModel; }
-            set { _queryModel = value; }
-        }
+        
 
         /*
         public enum Algorithm
@@ -86,56 +83,69 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="driverString"></param>
-        /// <param name="strPrefSQL"></param>
+        /// <param name="strPrefSql"></param>
         /// <param name="algorithm"></param>
         /// <param name="upToLevel"></param>
         /// <returns>Returns a DataTable with the requested values</returns>
-        public DataTable parseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSQL)
+        public DataTable parseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSql)
         {
-            helper.ConnectionString = connectionString;
-            helper.DriverString = driverString;
-
-            string strSQL = parsePreferenceSQL(strPrefSQL);
-            PrefSQLModel model = QueryModel;
-            //Debug.WriteLine(strSQL);
-
-            DataTable dt = helper.getResults(strSQL, _SkylineType, model);
-            TimeInMilliseconds = helper.timeInMilliseconds;
-            return dt;
+            return parseAndExecutePrefSQL(connectionString, driverString, strPrefSql, null);
         }
 
+        private DataTable parseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSql, PrefSQLModel prefSqlModel)
+        {
+            Helper.ConnectionString = connectionString;
+            Helper.DriverString = driverString;
 
+            var prefSql = prefSqlModel;
+            if (prefSql == null)
+            {
+                prefSql = GetPrefSqlModelFromPreferenceSql(strPrefSql);
+            }
+
+            if (prefSql.HasSkylineSample)
+            {
+                var skylineSamplingUtility = new SkylineSamplingUtility(prefSql, this);
+                return skylineSamplingUtility.GetSkyline();
+            }
+
+            var withIncomparable = false;
+            var strSQL = parsePreferenceSQL(strPrefSql, ref withIncomparable, prefSql);
+            //return helper.getResults(strSQL, _SkylineType, model);
+            //return Helper.getResults(strSQL, _SkylineType, prefSql);
+            DataTable dt = Helper.getResults(strSQL, _SkylineType, prefSql);
+            TimeInMilliseconds = Helper.timeInMilliseconds;
+            return dt;
+        }
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
         /// <param name="strInput">Preference SQL Statement</param>
         /// <returns>Return the ANSI SQL Statement</returns>
         public string parsePreferenceSQL(string strInput)
         {
-            AntlrInputStream inputStream = new AntlrInputStream(strInput);
-            SQLLexer sqlLexer = new SQLLexer(inputStream);
-            CommonTokenStream commonTokenStream = new CommonTokenStream(sqlLexer);
-            SQLParser parser = new SQLParser(commonTokenStream);
-            SQLSort sqlSort = new SQLSort();
-            SQLCriterion sqlCriterion = new SQLCriterion();
-            string strSQLReturn = ""; //The SQL-Query that is built on the basis of the prefSQL 
+            var withIncomparable = false;
+            var strSql = parsePreferenceSQL(strInput, ref withIncomparable, null);
+            return strSql;
+        }
 
+        /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
+        /// <param name="strInput">Preference SQL Statement</param>
+        /// <param name="withIncomparable"></param>
+        /// <param name="prefSqlModel"></param>
+        /// <returns>Return the ANSI SQL Statement</returns>
+        private string parsePreferenceSQL(string strInput, ref bool withIncomparable, PrefSQLModel prefSqlModel)
+        {
+            var sqlSort = new SQLSort();
+            var sqlCriterion = new SQLCriterion();
+            string strSQLReturn = ""; //The SQL-Query that is built on the basis of the prefSQL 
 
             try
             {
-                //Add error listener to parser (helps to return detailed parser syntax errors)
-                ErrorListener listener = new ErrorListener();
-                parser.AddErrorListener(listener);
-
-                //Parse query
-                IParseTree tree = parser.parse();
-                //Debug.WriteLine("Parse Tree: " + tree.ToStringTree(parser));
-
-                //Visit parsetree (PrefSQL model is built during the visit of the parse tree)
-                SQLVisitor visitor = new SQLVisitor();
-                visitor.IsNative = _SkylineType.isNative();
-                visitor.Visit(tree);
-                PrefSQLModel prefSQL = visitor.Model;
-                QueryModel = prefSQL;
+                var prefSQL = prefSqlModel;
+                if (prefSQL == null)
+                {
+                    prefSQL = GetPrefSqlModelFromPreferenceSql(strInput);
+                }
                 
                 //Check if parse was successful and query contains PrefSQL syntax
                 if (prefSQL != null) // && strInput.IndexOf(SkylineOf) > 0
@@ -265,7 +275,7 @@ namespace prefSQL.SQLParser
                         foreach (RankingModel model in prefSQL.Ranking)
                         {
                             //Read min and max value of the preference
-                            DataTable dt = helper.executeStatement(model.SelectExtrema);
+                            DataTable dt = _helper.executeStatement(model.SelectExtrema);
                             double min = 0;
                             double max = 0;
                             string strMin = "";
@@ -497,8 +507,37 @@ namespace prefSQL.SQLParser
             return strSQL;
         }
 
+        internal PrefSQLModel GetPrefSqlModelFromPreferenceSql(string preferenceSql)
+        {
+            var parser = new SQLParser(new CommonTokenStream(new SQLLexer(new AntlrInputStream(preferenceSql))));
 
+            // An error listener helps to return detailed parser syntax errors
+            var listener = new ErrorListener();
+            parser.AddErrorListener(listener);
 
+            var tree = parser.parse();
+
+            // PrefSQLModel is built during the visit of the parse tree
+            var visitor = new SQLVisitor {IsNative = _SkylineType.isNative()};
+            visitor.Visit(tree);
+            var prefSql = visitor.Model;
+            if (prefSql != null)
+            {
+                prefSql.OriginalPreferenceSql = preferenceSql;
+            }
+
+            return prefSql;
+        }
+
+        internal string GetAnsiSqlFromPrefSqlModel(PrefSQLModel prefSqlModel)
+        {
+            var withIncomparable = false;
+            return parsePreferenceSQL(prefSqlModel.OriginalPreferenceSql, ref withIncomparable, prefSqlModel);
+        }
+
+        internal DataTable ExecuteFromPrefSqlModel(string dbConnection, string dbProvider, PrefSQLModel prefSqlModel)
+        {
+            return parseAndExecutePrefSQL(dbConnection, dbProvider, prefSqlModel.OriginalPreferenceSql, prefSqlModel);
+        }
     }
 }
-

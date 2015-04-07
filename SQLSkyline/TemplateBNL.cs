@@ -13,6 +13,7 @@ namespace prefSQL.SQLSkyline
 {
     public abstract class TemplateBNL
     {
+        public DataTable UseDataTable { private get; set; }
 
         public long timeInMs = 0;
 
@@ -46,6 +47,10 @@ namespace prefSQL.SQLSkyline
 
                 SqlDataAdapter dap = new SqlDataAdapter(strQuery.ToString(), connection);
                 DataTable dt = new DataTable();
+                if (UseDataTable != null)
+                {
+                    dt = UseDataTable;
+                }
                 dap.Fill(dt);
 
 
