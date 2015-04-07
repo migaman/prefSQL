@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Data;
     using System.Diagnostics;
+    using System.Globalization;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using prefSQL.SQLParser;
     using prefSQL.SQLSkyline;
@@ -58,5 +59,31 @@
             }
             return entireSkylineObjectsIds;
         }
+
+        [TestMethod]
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SkylineSamplingUtilityIntegrationTests.xml",
+            "TestDataRow", DataAccessMethod.Sequential),
+         DeploymentItem("SkylineSamplingUtilityIntegrationTests.xml")]
+        public void TestObjectsWithinEntireSkylineCount()
+        {
+            var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
+            var entireSkylineSql = TestContext.DataRow["entireSkylineSQL"].ToString();
+            var testComment = TestContext.DataRow["comment"].ToString();
+            Debug.WriteLine(testComment);
+            Debug.WriteLine(skylineSampleSql);
+
+            var common = new SQLCommon {SkylineType = new SkylineBNL()};
+
+            var prefSqlModel = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSql);
+            var subjectUnderTest = new SkylineSamplingUtility(prefSqlModel, common);
+
+            var entireSkyline = common.parseAndExecutePrefSQL(DbConnection, DbProvider, entireSkylineSql);
+            var sampleSkyline = subjectUnderTest.GetSkyline();
+
+            var expected = TestContext.DataRow["entireCount"].ToString();
+            var actual = entireSkyline.Rows.Count.ToString(CultureInfo.InvariantCulture);
+            Assert.AreEqual(expected, actual, "Entire Skyline contains unexpected number of objects.");       
+        }
+
     }
 }
