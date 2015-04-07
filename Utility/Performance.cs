@@ -19,6 +19,34 @@ namespace Utility
         private const string path = "E:\\Doc\\Studies\\PRJ_Thesis\\19 Performance Level\\";
         private const string cnnStringLocalhost = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
         private const string driver = "System.Data.SqlClient";
+        private int trials = 5;
+        private PreferenceSet set;
+        private bool generateScript = false;
+        private SkylineStrategy strategy;
+
+        public SkylineStrategy Strategy
+        {
+            get { return strategy; }
+            set { strategy = value; }
+        }
+
+        public bool GenerateScript
+        {
+            get { return generateScript; }
+            set { generateScript = value; }
+        }
+
+        internal PreferenceSet Set
+        {
+            get { return set; }
+            set { set = value; }
+        }
+
+        public int Trials
+        {
+            get { return trials; }
+            set { trials = value; }
+        }
 
         public enum PreferenceSet
         {
@@ -28,7 +56,7 @@ namespace Utility
         };
 
 
-        public void GeneratePerformanceQueries(SkylineStrategy strategy, bool doExecute, PreferenceSet set, int trials)
+        public void GeneratePerformanceQueries()
         {
             //Use the correct line, depending on how incomparable items should be compared
             string[] preferences;
@@ -90,14 +118,14 @@ namespace Utility
             }*/
 
             
-            string[] sizes = { "small", "medium", "large", "superlarge" };
+            
             StringBuilder sb = new StringBuilder();
 
 
             sb.AppendLine("     Algorithm:" + strategy.ToString());
             sb.AppendLine("Preference Set:" + set.ToString());
             sb.AppendLine("          Host:" + System.Environment.MachineName);
-            sb.AppendLine("        Trials:" + trials);
+            sb.AppendLine("        Trials:" + Trials);
             sb.AppendLine("");
             sb.AppendLine("dimensions|skyline size|time total|time algorithm");
             
@@ -155,10 +183,11 @@ namespace Utility
                 parser.SkylineType = strategy; // SQLCommon.Algorithm.NativeSQL;
                 //strSQL = parser.parsePreferenceSQL(strSQL);
 
-                for (int iTrial = 0; iTrial < trials; iTrial++ )
-                {
+                
 
-                    if (doExecute == true)
+                if (GenerateScript == false)
+                {
+                    for (int iTrial = 0; iTrial < Trials; iTrial++ )
                     {
                         Stopwatch sw = new Stopwatch();
 
@@ -204,24 +233,27 @@ namespace Utility
                             return;
                         }
                     }
-                    else
-                    {
-                        //Format for each of the customer profiles
-                        sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
-                        sb.AppendLine("PRINT '----- " + (i + 1) + " dimensions, " + (countJoins) + " join(s) ------'");
-                        sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
-                        foreach (string size in sizes)
-                        {
-                            sb.AppendLine("GO"); //we need this in order the profiler shows each query in a new line
-                            sb.AppendLine(strSQL.Replace("cars", "cars_" + size));
-
-                        }
-
-                        sb.AppendLine("");
-                        sb.AppendLine("");
-                        sb.AppendLine("");
-                    }
                 }
+                else
+                {
+                    string[] sizes = { "small", "medium", "large", "superlarge" };
+
+                    //Format for each of the customer profiles
+                    sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
+                    sb.AppendLine("PRINT '----- " + (i + 1) + " dimensions, " + (countJoins) + " join(s) ------'");
+                    sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
+                    foreach (string size in sizes)
+                    {
+                        sb.AppendLine("GO"); //we need this in order the profiler shows each query in a new line
+                        sb.AppendLine(strSQL.Replace("cars", "cars_" + size));
+
+                    }
+
+                    sb.AppendLine("");
+                    sb.AppendLine("");
+                    sb.AppendLine("");
+                }
+                
                 //Remove current column
                 columns = columns.Where(w => w != columns[i]).ToArray();
                 preferences = preferences.Where(w => w != preferences[i]).ToArray();
@@ -231,7 +263,7 @@ namespace Utility
             string strFileName = "";
             string strFiletype = "";
             
-            if(doExecute == true)
+            if(generateScript == false)
             {
                 strFiletype = ".csv";
             }
@@ -245,7 +277,6 @@ namespace Utility
             StreamWriter outfile = new StreamWriter(strFileName);
             outfile.Write(sb.ToString());
             outfile.Close();
-            Debug.WriteLine("THE END!!");
 
         }
 

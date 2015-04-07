@@ -23,17 +23,11 @@ namespace Utility
 
         static void Main(string[] args)
         {
-            /*
-            Performance p = new Performance();
-            p.GeneratePerformanceQueries(new SkylineBNLSort(), true, Performance.PreferenceSet.Jon, 5);
-            */
-
-            /*p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.BNL,             false, true, false, true);
-            p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.BNLLevel,        false, true, false, true);
-            p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.BNLSort,         false, true, false, true);*/
-            //p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.BNLSortLevel,    false, true, false, true);
-            //p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.Hexagon,         false, true, false, true);
-            //p.GeneratePerformanceQueries(prefSQL.SQLParser.SQLCommon.Algorithm.NativeSQL,       false, true, false, true);
+            Program prg = new Program();
+            
+            
+            
+            //prg.measurePerformance();
             
 
             /*
@@ -43,13 +37,31 @@ namespace Utility
 
             
             
-            Program prg = new Program();
             prg.Run();
             
             
             
             //Application.Run(new FrmSQLParser());
             
+        }
+
+        private void measurePerformance()
+        {
+            Performance p = new Performance();
+            p.GenerateScript = false;
+            p.Trials = 3;
+
+            p.Set = Performance.PreferenceSet.Jon;
+            //p.Set = Performance.PreferenceSet.Mya;
+            //p.Set = Performance.PreferenceSet.Barra;
+
+            //p.Strategy = new SkylineBNL();
+            p.Strategy = new SkylineBNLSort();
+            //p.Strategy = new SkylineDQ();
+            //p.Strategy = new SkylineHexagon();
+
+
+            p.GeneratePerformanceQueries();
         }
 
 
@@ -108,13 +120,11 @@ namespace Utility
                 strPrefSQL = "SELECT t1.id, t1.title, t1.price FROM cars t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH, colors.name ('rot' >> 'blau' >> 'gelb' >> OTHERS INCOMPARABLE)";
                 strPrefSQL = "SELECT t1.id, t1.title, t1.price FROM cars t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price FROM cars t1 SKYLINE OF t1.price LOW, t1.mileage LOW ORDER BY BEST_RANK()";
-                //strPrefSQL = "SELECT t1.id FROM cars t1 SKYLINE OF t1.price AROUND 10000, t1.mileage LOW, t1.title ('Hans' >> 'Heidi')";
                 //strPrefSQL = "SELECT t1.id FROM cars t1 SKYLINE OF t1.price LOW, t1.mileage LOW";
 
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
 
                 Debug.WriteLine(strPrefSQL);
-                Debug.WriteLine("--------------------------------------------");
 
                 SQLCommon parser = new SQLCommon();
                 //parser.SkylineType = new SkylineSQL();
@@ -126,13 +136,23 @@ namespace Utility
                 //parser.ShowSkylineAttributes = true;
                 //parser.SkylineUpToLevel = 1;
 
+                Stopwatch sw = new Stopwatch();
+                
                 string strSQL = parser.parsePreferenceSQL(strPrefSQL);
                 Debug.WriteLine(strSQL);
 
-                DataTable dt = parser.parseAndExecutePrefSQL(cnnStringLocalhost, driver, strPrefSQL);
-                System.Diagnostics.Debug.WriteLine(dt.Rows.Count);
 
-                Debug.WriteLine("------------------------------------------\nDONE");
+                sw.Start();
+                DataTable dt = parser.parseAndExecutePrefSQL(cnnStringLocalhost, driver, strPrefSQL);
+                sw.Stop();
+
+                Debug.WriteLine("\n------------------------------------------\nSTATISTIC\n------------------------------------------");
+
+                System.Diagnostics.Debug.WriteLine("         skyline size:" + dt.Rows.Count.ToString().PadLeft(6));
+                System.Diagnostics.Debug.WriteLine("algo  time elapsed ms:" + parser.TimeInMilliseconds.ToString().PadLeft(6));
+                System.Diagnostics.Debug.WriteLine("total time elapsed ms:" + sw.ElapsedMilliseconds.ToString().PadLeft(6));
+                
+               
 
 
             }
