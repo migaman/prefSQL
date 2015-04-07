@@ -53,7 +53,7 @@ select_or_values
  : K_SELECT  ( K_DISTINCT | K_ALL )? (top_keyword)? select_List_Item ( ',' select_List_Item  )*
    ( K_FROM ( table_List_Item ( ',' table_List_Item )* | join_clause ) )?
    ( K_WHERE expr )?
-   ( K_SKYLINE K_OF exprSkyline )?
+   ( K_SKYLINE K_OF exprSkyline ( exprSkylineSample )? )?
    ( K_RANKING K_OF exprRanking )?
  ;
 
@@ -125,6 +125,9 @@ exprRanking
  | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term) signed_number		#weightedsumAround
  ;
 
+exprSkylineSample
+ : K_SAMPLE K_BY K_RANDOMSUBSETS K_COUNT NUMERIC_LITERAL K_DIMENSION NUMERIC_LITERAL                    #exprSampleSkyline
+ ;
 
  exprCategory
 	: STRING_LITERAL																						#opLiteral
@@ -274,6 +277,10 @@ keyword
  | K_IMPORTANT
  | K_THAN
  | K_RANKING
+ | K_SAMPLE
+ | K_RANDOMSUBSETS
+ | K_COUNT
+ | K_DIMENSION
  ;
 
 
@@ -390,6 +397,10 @@ K_MORE: M O R E;
 K_IMPORTANT: I M P O R T A N T;
 K_THAN: T H A N;
 K_RANKING : R A N K I N G;
+K_SAMPLE: S A M P L E;
+K_RANDOMSUBSETS: R A N D O M '_' S U B S E T S;
+K_COUNT: C O U N T;
+K_DIMENSION: D I M E N S I O N;
 
 
  /*
@@ -407,7 +418,6 @@ NUMERIC_LITERAL
  : DIGIT+ ( '.' DIGIT* )? ( E [-+]? DIGIT+ )?
  | '.' DIGIT+ ( E [-+]? DIGIT+ )?
  ;
-
 
 STRING_LITERAL
  : '\'' ( ~'\'' | '\'\'' )* '\''

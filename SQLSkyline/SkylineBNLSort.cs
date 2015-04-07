@@ -51,14 +51,21 @@ namespace prefSQL.SQLSkyline
             if (hasIncomparable)
             {
                 SP_SkylineBNLSort skyline = new SP_SkylineBNLSort();
+                
+                skyline.UseDataTable = UseDataTable;
                 DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+
                 timeMilliseconds = skyline.timeInMs;
                 return dt;
             }
             else
             {
                 SP_SkylineBNLSortLevel skyline = new SP_SkylineBNLSortLevel();
-                DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+                
+                skyline.UseDataTable = UseDataTable;
+                
+				DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+                
                 timeMilliseconds = skyline.timeInMs;
                 return dt;
             }

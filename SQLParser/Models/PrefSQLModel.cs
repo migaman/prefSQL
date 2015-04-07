@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace prefSQL.SQLParser.Models
 {
-    public class PrefSQLModel
+    internal class PrefSQLModel
     {
         private int _numberOfRecords = 0;                                               //Number of records that should be returned (0 = all)
         private List<AttributeModel> _skyline = new List<AttributeModel>();             //skyline preference attributes
@@ -22,6 +22,13 @@ namespace prefSQL.SQLParser.Models
         {
             get { return _containsOpenPreference; }
             set { _containsOpenPreference = value; }
+        }
+
+        public PrefSQLModel()
+        {
+            SkylineSampleDimension = 0;
+            SkylineSampleCount = 0;
+            HasSkylineSample = false;
         }
 
         public int NumberOfRecords
@@ -66,5 +73,9 @@ namespace prefSQL.SQLParser.Models
             get { return _orderBy; }
         }
 
-    }
+        public int SkylineSampleCount { get; set; }
+        public int SkylineSampleDimension { get; set; }
+        public bool HasSkylineSample { get; set; }
+        public string OriginalPreferenceSql { get; set; }
+    }    
 }
