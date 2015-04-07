@@ -47,7 +47,7 @@
             var testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
             Debug.WriteLine(skylineSampleSql);
-            
+
             var common = new SQLCommon {SkylineType = new SkylineBNL()};
 
             var entireSkyline = common.parseAndExecutePrefSQL(DbConnection, DbProvider, entireSkylineSql);

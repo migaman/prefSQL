@@ -193,6 +193,7 @@ namespace prefSQL.SQLParserTest
          * as it works
          * 
          * */
+
         [TestMethod]
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineTest.xml", "TestDataRow",
             DataAccessMethod.Sequential),
