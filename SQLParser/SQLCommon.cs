@@ -27,7 +27,6 @@ namespace prefSQL.SQLParser
         private bool _ShowSkylineAttributes = false;                //Defines if the skyline attributes should be added to the SELECT list
         private int _SkylineUpToLevel = 3;                          //Defines the maximum level that should be returned for the multiple skyline algorithnmm
         private readonly Helper _helper = new Helper();
-        private PrefSQLModel _queryModel = new PrefSQLModel();
         private long _timeInMilliseconds = 0;
 
         internal Helper Helper {
