@@ -55,8 +55,9 @@ namespace Utility
             //p.Set = Performance.PreferenceSet.Mya;
             //p.Set = Performance.PreferenceSet.Barra;
             //p.Set = Performance.PreferenceSet.Shuffle;
-            //p.Set = Performance.PreferenceSet.Combination;
-            p.Set = Performance.PreferenceSet.Correlation;
+            p.Set = Performance.PreferenceSet.Combination;
+            //p.Set = Performance.PreferenceSet.Correlation;
+            //p.Set = Performance.PreferenceSet.AntiCorrelation;
 
             //p.Strategy = new SkylineBNL();
             p.Strategy = new SkylineBNLSort();

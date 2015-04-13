@@ -63,8 +63,7 @@ namespace Utility
             Shuffle,
             Combination,
             Correlation,
-            AntiCorrelation,
-            Independent
+            AntiCorrelation
         };
 
         private ArrayList getAllPreferences()
@@ -81,6 +80,7 @@ namespace Utility
             preferences.Add("cars.cylinders HIGH");
             preferences.Add("cars.gears HIGH");
             //preferencesAll.Add("DATEDIFF(DAY, '1900-01-01', cars.Registration) HIGH");
+            //preferences.Add("colors.name ('rot' >> 'blau' >> 'grün' >> OTHERS EQUAL)");
 
             return preferences;
         }
@@ -153,8 +153,13 @@ namespace Utility
 
         public void generatePerformanceQueries()
         {
+            //Open DBConnection --> Otherwise first query is slower as usual, because DBConnection is not open
+            SQLCommon parser = new SQLCommon();
+            DataTable dt = parser.parseAndExecutePrefSQL(cnnStringLocalhost, driver, "SELECT cars.id FROM cars SKYLINE OF cars.price LOW");
+
             //Use the correct line, depending on how incomparable items should be compared
             ArrayList listPreferences = new ArrayList();
+            ArrayList correlationMatrix = new ArrayList();
             
 
             if (set == PreferenceSet.Jon)
@@ -169,6 +174,8 @@ namespace Utility
                 preferences.Add("cars.seats HIGH");
                 preferences.Add("cars.cylinders HIGH");
                 preferences.Add("cars.gears HIGH");
+                correlationMatrix = getCorrelationMatrix(preferences);
+
                 listPreferences.Add(preferences);
 
             }
@@ -179,6 +186,8 @@ namespace Utility
                 preferences.Add("makes.name ('FISKER' >> OTHERS EQUAL)");
                 preferences.Add("bodies.name ('Roller' >> OTHERS EQUAL)");
                 preferences.Add("models.name ('123' >> OTHERS EQUAL)");
+                correlationMatrix = getCorrelationMatrix(preferences);
+
                 listPreferences.Add(preferences);
             }
             else if (set == PreferenceSet.Barra)
@@ -193,12 +202,16 @@ namespace Utility
                 preferences.Add("cars.seats HIGH 2");
                 preferences.Add("cars.cylinders HIGH");
                 preferences.Add("cars.gears HIGH");
+                correlationMatrix = getCorrelationMatrix(preferences);
+
                 listPreferences.Add(preferences);
             }
             else if (set == PreferenceSet.Combination)
             {
                 //Tests every possible combination with y preferences from the whole set of preferences
                 ArrayList preferences = getAllPreferences();
+                correlationMatrix = getCorrelationMatrix(preferences);
+
                 getCombinations(preferences, randomPreferences, 0, new ArrayList(), ref listPreferences);
                 
                 //set mindimensions to maxdimension (test with fixed amount of preferences)
@@ -210,6 +223,7 @@ namespace Utility
                 //Tests x times randomly y preferences
 
                 ArrayList preferencesAll = getAllPreferences();
+                correlationMatrix = getCorrelationMatrix(preferencesAll);
 
                 for (int iChoose = 0; iChoose < randomLoops; iChoose++)
                 {
@@ -235,16 +249,92 @@ namespace Utility
             {
                 //Tests every possible combination with y preferences from the whole set of preferences
                 ArrayList preferences = getAllPreferences();
-                ArrayList correlation = getCorrelationMatrix(preferences);
+                correlationMatrix = getCorrelationMatrix(preferences);
 
                 //Sort correlations to find the strongest
-                correlation.Sort(new CorrelationModel());
+                correlationMatrix.Sort(new CorrelationModel());
 
-
+                preferences.Clear();
+                for (int i = 0; i <= correlationMatrix.Count; i++)
+                {
+                    CorrelationModel model = (CorrelationModel)correlationMatrix[i];
+                    if (preferences.Count < randomPreferences)
+                    {
+                        if (!preferences.Contains(model.ColA))
+                        {
+                            preferences.Add(model.ColA);
+                        }
+                        if (preferences.Count < randomPreferences)
+                        {
+                            if (!preferences.Contains(model.ColB))
+                            {
+                                preferences.Add(model.ColB);
+                            }
+                        }
+                        else
+                        {
+                            //Enough columns found --> leave function
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        //Enough columns found --> leave function
+                        break;
+                    } 
+                }
+                
+                    
                 listPreferences.Add(preferences);
+                
                 //set mindimensions to maxdimension (test with fixed amount of preferences)
                 minDimensions = randomPreferences;
 
+            }
+            else if (set == PreferenceSet.AntiCorrelation)
+            {
+                //Tests every possible combination with y preferences from the whole set of preferences
+                ArrayList preferences = getAllPreferences();
+                correlationMatrix = getCorrelationMatrix(preferences);
+
+                //Sort correlations to find the strongest
+                correlationMatrix.Sort(new CorrelationModel());
+
+                preferences.Clear();
+                for (int i = correlationMatrix.Count - 1; i >= 0; i--)
+                {
+                    CorrelationModel model = (CorrelationModel)correlationMatrix[i];
+                    if (preferences.Count < randomPreferences)
+                    {
+                        if (!preferences.Contains(model.ColA))
+                        {
+                            preferences.Add(model.ColA);
+                        }
+                        if (preferences.Count < randomPreferences)
+                        {
+                            if (!preferences.Contains(model.ColB))
+                            {
+                                preferences.Add(model.ColB);
+                            }
+                        }
+                        else
+                        {
+                            //Enough columns found --> leave function
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        //Enough columns found --> leave function
+                        break;
+                    }
+                }
+
+
+                listPreferences.Add(preferences);
+
+                //set mindimensions to maxdimension (test with fixed amount of preferences)
+                minDimensions = randomPreferences;
             }
             
             //Header
@@ -256,8 +346,8 @@ namespace Utility
             sb.AppendLine("                  Trials:" + Trials);
             //sb.AppendLine("Correlation Coefficients:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
             sb.AppendLine("");
-            sb.AppendLine("preference set|      trial|dimensions|skyline size|time total|time algorithm|");
-            string strSeparatorLine = ("").PadLeft(14, '-') + "|" + ("").PadLeft(11, '-') + "|" + ("").PadLeft(10, '-') + "|" + ("-").PadLeft(12, '-') + "|" + ("-").PadLeft(10, '-') + "|" + ("-").PadLeft(14, '-');
+            sb.AppendLine("preference set|      trial|dimensions|skyline size|time total|time algorithm|sum correlation|");
+            string strSeparatorLine = ("").PadLeft(14, '-') + "|" + ("").PadLeft(11, '-') + "|" + ("").PadLeft(10, '-') + "|" + ("-").PadLeft(12, '-') + "|" + ("-").PadLeft(10, '-') + "|" + ("-").PadLeft(14, '-') + "|" + ("-").PadLeft(15, '-') + "|";
             sb.AppendLine(strSeparatorLine);
             System.Diagnostics.Debug.Write(sb);
 
@@ -267,6 +357,7 @@ namespace Utility
             List<long> reportSkylineSize = new List<long>();
             List<long> reportTimeTotal = new List<long>();
             List<long> reportTimeAlgorithm = new List<long>();
+            List<double> reportCorrelation = new List<double>();
 
             //For each preference set in the preference list
             for(int iPreferenceIndex = 0; iPreferenceIndex < listPreferences.Count; iPreferenceIndex++)
@@ -317,7 +408,7 @@ namespace Utility
 
 
                     //Convert to real SQL
-                    SQLCommon parser = new SQLCommon();
+                    parser = new SQLCommon();
                     parser.SkylineType = strategy;
                     parser.ShowSkylineAttributes = true;
 
@@ -332,23 +423,34 @@ namespace Utility
                             {
 
                                 sw.Start();
-                                DataTable dt = parser.parseAndExecutePrefSQL(cnnStringLocalhost, driver, strSQL);
+                                dt = parser.parseAndExecutePrefSQL(cnnStringLocalhost, driver, strSQL);
                                 long timeAlgorithm = parser.TimeInMilliseconds;
                                 sw.Stop();
+                                double correlation = searchCorrelation(subPreferences, correlationMatrix);
+
 
                                 reportDimensions.Add(i);
                                 reportSkylineSize.Add(dt.Rows.Count);
                                 reportTimeTotal.Add(sw.ElapsedMilliseconds);
                                 reportTimeAlgorithm.Add(timeAlgorithm);
-
+                                reportCorrelation.Add(correlation);
 
                                 //trial|dimensions|skyline size|time total|time algorithm
                                 string strTrial = iTrial+1 + " / " +  trials;
                                 string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
-                                string strLine = strPreferenceSet.PadLeft(14) + "|" + strTrial.PadLeft(11) + "|" + (i).ToString().PadLeft(10) + "|" + dt.Rows.Count.ToString().PadLeft(12) + "|" + sw.ElapsedMilliseconds.ToString().PadLeft(10) + "|" + timeAlgorithm.ToString().PadLeft(14);
+                                
 
-                                System.Diagnostics.Debug.WriteLine(strLine);
+
+                                string strLine = strPreferenceSet.PadLeft(14) + "|" + strTrial.PadLeft(11) + "|" + (i).ToString().PadLeft(10) + "|";
+                                strLine += dt.Rows.Count.ToString().PadLeft(12) + "|" + sw.ElapsedMilliseconds.ToString().PadLeft(10) + "|";
+                                strLine += timeAlgorithm.ToString().PadLeft(14) + "|" + Math.Round(correlation, 2).ToString().PadLeft(15) + "|";
+                                
+ 
+                                
+                                Debug.WriteLine(strLine);
                                 sb.AppendLine(strLine);
+
+                                
 
 
                             }
@@ -389,7 +491,7 @@ namespace Utility
             //Summary
             ///////////////////////////////
 
-            addSummary(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm);
+            addSummary(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportCorrelation);
 
 
 
@@ -419,8 +521,42 @@ namespace Utility
         }
 
 
+        private double searchCorrelation(ArrayList preferences, ArrayList correlationMatrix)
+        {
 
-        private void addSummary(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions, List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm)
+            double sumCorrelation = 0;
+            for (int i = 0; i < preferences.Count; i++)
+            {
+                for (int ii = i+1; ii < preferences.Count; ii++)
+                {
+                    bool bFound = false;
+                    for (int iModel = 0; iModel < correlationMatrix.Count; iModel++)
+                    {
+                        CorrelationModel model = (CorrelationModel)correlationMatrix[iModel];
+                        if (model.ColA.Equals(preferences[i].ToString()) && model.ColB.Equals(preferences[ii].ToString()))
+                        {
+                            sumCorrelation += model.Correlation;
+                            bFound = true;
+                            break;
+                        }
+                        else if (model.ColB.Equals(preferences[i].ToString()) && model.ColA.Equals(preferences[ii].ToString()))
+                        {
+                            bFound = true;
+                            sumCorrelation += model.Correlation;
+                            break;
+                        }
+                    }
+                    if (bFound == false)
+                    {
+                        throw new Exception("correlation factor not found");
+                    }
+                }
+            }
+            return sumCorrelation;
+        }
+
+
+        private void addSummary(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions, List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, List<double> reportCorrelation)
         {
             //Separator Line
             System.Diagnostics.Debug.WriteLine(strSeparatorLine);
@@ -428,9 +564,9 @@ namespace Utility
 
             //average line
             //trial|dimensions|skyline size|time total|time algorithm
-            string strAverage = "average".PadLeft(14) + "|" +  "".PadLeft(11) + "|" + reportDimensions.Average().ToString().PadLeft(10) + "|" + Math.Round(reportSkylineSize.Average(), 2).ToString().PadLeft(12) + "|" + Math.Round(reportTimeTotal.Average(), 2).ToString().PadLeft(10) + "|" + Math.Round(reportTimeAlgorithm.Average(),2).ToString().PadLeft(14);
-            string strMin = "minimum".PadLeft(14) + "|" + "".PadLeft(11) + "|" + reportDimensions.Min().ToString().PadLeft(10) + "|" + reportSkylineSize.Min().ToString().PadLeft(12) + "|" + reportTimeTotal.Min().ToString().PadLeft(10) + "|" + reportTimeAlgorithm.Min().ToString().PadLeft(14);
-            string strMax = "maximum".PadLeft(14) + "|" + "".PadLeft(11) + "|" + reportDimensions.Max().ToString().PadLeft(10) + "|" + reportSkylineSize.Max().ToString().PadLeft(12) + "|" + reportTimeTotal.Max().ToString().PadLeft(10) + "|" + reportTimeAlgorithm.Max().ToString().PadLeft(14);
+            string strAverage = "average".PadLeft(14) + "|" +  "".PadLeft(11) + "|" + reportDimensions.Average().ToString().PadLeft(10) + "|" + Math.Round(reportSkylineSize.Average(), 2).ToString().PadLeft(12) + "|" + Math.Round(reportTimeTotal.Average(), 2).ToString().PadLeft(10) + "|" + Math.Round(reportTimeAlgorithm.Average(),2).ToString().PadLeft(14) + "|" + Math.Round(reportCorrelation.Average(), 2).ToString().PadLeft(15) + "|";
+            string strMin = "minimum".PadLeft(14) + "|" + "".PadLeft(11) + "|" + reportDimensions.Min().ToString().PadLeft(10) + "|" + reportSkylineSize.Min().ToString().PadLeft(12) + "|" + reportTimeTotal.Min().ToString().PadLeft(10) + "|" + reportTimeAlgorithm.Min().ToString().PadLeft(14) + "|" + Math.Round(reportCorrelation.Min(), 2).ToString().PadLeft(15) + "|";
+            string strMax = "maximum".PadLeft(14) + "|" + "".PadLeft(11) + "|" + reportDimensions.Max().ToString().PadLeft(10) + "|" + reportSkylineSize.Max().ToString().PadLeft(12) + "|" + reportTimeTotal.Max().ToString().PadLeft(10) + "|" + reportTimeAlgorithm.Max().ToString().PadLeft(14) + "|" + Math.Round(reportCorrelation.Max(), 2).ToString().PadLeft(15) + "|";
             System.Diagnostics.Debug.WriteLine(strAverage);
             System.Diagnostics.Debug.WriteLine(strMin);
             System.Diagnostics.Debug.WriteLine(strMax);
@@ -457,7 +593,7 @@ namespace Utility
 
             if (len == 0)
             {
-                Debug.WriteLine(string.Join(",", (string[])result.ToArray(Type.GetType("System.String"))));
+                //Debug.WriteLine(string.Join(",", (string[])result.ToArray(Type.GetType("System.String"))));
                 returnArray.Add(result.Clone());
                 return;
             }
