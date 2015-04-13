@@ -12,6 +12,7 @@ using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
 using prefSQL.SQLSkyline;
 using System.Collections;
+using Utility.Model;
 
 namespace Utility
 {
@@ -28,6 +29,7 @@ namespace Utility
         static Random rnd = new Random();
         private int minDimensions = 3;
         private int randomPreferences = 6;
+        private int randomLoops = 50;
 
         public SkylineStrategy Strategy
         {
@@ -59,14 +61,16 @@ namespace Utility
             Mya,
             Barra,
             Shuffle,
-            Combination
+            Combination,
+            Correlation,
+            AntiCorrelation,
+            Independent
         };
 
-
-        private ArrayList calculateCorrelation()
+        private ArrayList getAllPreferences()
         {
             ArrayList preferences = new ArrayList();
-            
+
             preferences.Add("cars.price LOW");
             preferences.Add("cars.mileage LOW");
             preferences.Add("cars.horsepower HIGH");
@@ -78,13 +82,25 @@ namespace Utility
             preferences.Add("cars.gears HIGH");
             //preferencesAll.Add("DATEDIFF(DAY, '1900-01-01', cars.Registration) HIGH");
 
-            double[] correlation = new double[preferences.Count];
+            return preferences;
+        }
 
+        private ArrayList getCorrelationMatrix(ArrayList preferences)
+        {
+            ArrayList listCorrelation = new ArrayList();
             string strSQL = "SELECT ";
 
             for (int i = 0; i < preferences.Count; i++)
             {
-                strSQL += preferences[i] + ",";
+                if (preferences[i].ToString().IndexOf("LOW") > 0)
+                {
+                    strSQL += preferences[i].ToString().TrimEnd('L', 'O', 'W') + "*-1,";
+                }
+                else
+                {
+                    strSQL += preferences[i].ToString().TrimEnd('H', 'I', 'G', 'H') + ",";
+                }
+                
             }
             strSQL = strSQL.TrimEnd(',') + " FROM cars";
 
@@ -102,49 +118,32 @@ namespace Utility
             
 
             //Calculate correlation between the attributes
-            for (int iPref = 0; iPref < preferences.Count; iPref++)
+            for (int iIndex = 0; iIndex < preferences.Count; iIndex++)
             {
-                for (int i = 0; i < dt.Rows.Count; i++)
+                for (int iPref = 0; iPref <= iIndex; iPref++)
                 {
-                    colA[i] = (int)dt.Rows[i][0];
-                    colB[i] = (int)dt.Rows[i][iPref];
-                }    
+                    //Don't compare same preferences (correlation is always 1)
+                    if (iIndex != iPref)
+                    {
+                        for (int i = 0; i < dt.Rows.Count; i++)
+                        {
+                            colA[i] = (int)dt.Rows[i][iIndex];
+                            colB[i] = (int)dt.Rows[i][iPref];
+                        }
 
+                        double correlation = getPearson(colA, colB);
+                        Utility.Model.CorrelationModel model = new Model.CorrelationModel(preferences[iIndex].ToString(), preferences[iPref].ToString(), correlation);
+                        listCorrelation.Add(model);
+                    }
 
-                correlation[iPref] = getPearson(colA, colB);
+                    
+                }
             }
 
-
-            return preferences;
+            return listCorrelation;
         }
 
-        private double getPearson(double[] x,  double[] y)
-        {
-            //will regularize the unusual case of complete correlation
-            const double TINY = 1.0e-20;
-            int j, n = x.Length;
-            Double yt, xt;
-            Double syy = 0.0, sxy = 0.0, sxx = 0.0, ay = 0.0, ax = 0.0;
-            for (j = 0; j < n; j++)
-            {
-                //finds the mean
-                ax += x[j];
-                ay += y[j];
-            }
-            ax /= n;
-            ay /= n;
-            for (j = 0; j < n; j++)
-            {
-                // compute correlation coefficient
-                xt = x[j] - ax;
-                yt = y[j] - ay;
-                sxx += xt * xt;
-                syy += yt * yt;
-                sxy += xt * yt;
-            }
-            return sxy / (Math.Sqrt(sxx * syy) + TINY);
-            
-        }
+
 
 
        
@@ -156,6 +155,7 @@ namespace Utility
         {
             //Use the correct line, depending on how incomparable items should be compared
             ArrayList listPreferences = new ArrayList();
+            
 
             if (set == PreferenceSet.Jon)
             {
@@ -197,36 +197,54 @@ namespace Utility
             }
             else if (set == PreferenceSet.Combination)
             {
-                ArrayList preferences = calculateCorrelation();
+                //Tests every possible combination with y preferences from the whole set of preferences
+                ArrayList preferences = getAllPreferences();
                 getCombinations(preferences, randomPreferences, 0, new ArrayList(), ref listPreferences);
                 
-
-                //set mindimensions to maxdimension 
+                //set mindimensions to maxdimension (test with fixed amount of preferences)
                 minDimensions = randomPreferences;
 
             }
             else if (set == PreferenceSet.Shuffle)
             {
-                ArrayList preferencesAll = calculateCorrelation();
-                ArrayList preferences = new ArrayList();
-                
-                ArrayList combinations = new ArrayList();
-                getCombinations(preferencesAll, 6, 0, new ArrayList(), ref combinations);
+                //Tests x times randomly y preferences
 
+                ArrayList preferencesAll = getAllPreferences();
 
-                //Choose 6 preferences randomly
-                for (int i = 0; i < randomPreferences; i++)
+                for (int iChoose = 0; iChoose < randomLoops; iChoose++)
                 {
-                    int r = rnd.Next(preferencesAll.Count);
-                    preferences.Add(preferencesAll[r]);
-                    preferencesAll.RemoveAt(r);
+                    ArrayList preferences = new ArrayList();
+                    ArrayList preferencesChoose = (ArrayList)preferencesAll.Clone();
+
+                    //Choose x preferences randomly
+                    for (int i = 0; i < randomPreferences; i++)
+                    {
+                        int r = rnd.Next(preferencesChoose.Count);
+                        preferences.Add(preferencesChoose[r]);
+                        preferencesChoose.RemoveAt(r);
+                    }
+
+                    listPreferences.Add(preferences);
+
                 }
 
-                //set mindimensions to maxdimension 
+                //set mindimensions to maxdimension (test with fixed amount of preferences)
                 minDimensions = randomPreferences;
+            }
+            else if (set == PreferenceSet.Correlation)
+            {
+                //Tests every possible combination with y preferences from the whole set of preferences
+                ArrayList preferences = getAllPreferences();
+                ArrayList correlation = getCorrelationMatrix(preferences);
+
+                //Sort correlations to find the strongest
+                correlation.Sort(new CorrelationModel());
+
 
                 listPreferences.Add(preferences);
-                
+                //set mindimensions to maxdimension (test with fixed amount of preferences)
+                minDimensions = randomPreferences;
+
             }
             
             //Header
@@ -238,7 +256,7 @@ namespace Utility
             sb.AppendLine("                  Trials:" + Trials);
             //sb.AppendLine("Correlation Coefficients:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
             sb.AppendLine("");
-            sb.AppendLine("preference set|      trial|dimensions|skyline size|time total|time algorithm");
+            sb.AppendLine("preference set|      trial|dimensions|skyline size|time total|time algorithm|");
             string strSeparatorLine = ("").PadLeft(14, '-') + "|" + ("").PadLeft(11, '-') + "|" + ("").PadLeft(10, '-') + "|" + ("-").PadLeft(12, '-') + "|" + ("-").PadLeft(10, '-') + "|" + ("-").PadLeft(14, '-');
             sb.AppendLine(strSeparatorLine);
             System.Diagnostics.Debug.Write(sb);
@@ -254,7 +272,6 @@ namespace Utility
             for(int iPreferenceIndex = 0; iPreferenceIndex < listPreferences.Count; iPreferenceIndex++)
             {
                 ArrayList preferences = (ArrayList)listPreferences[iPreferenceIndex];
-
                 //Go only down two 3 dimension (because there are special algorithms for 1 and 2 dimensional skyline)
                 for (int i = minDimensions; i <= preferences.Count; i++)
                 {
@@ -402,6 +419,7 @@ namespace Utility
         }
 
 
+
         private void addSummary(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions, List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm)
         {
             //Separator Line
@@ -448,7 +466,36 @@ namespace Utility
                 result[result.Count - len] = (string)arr[i];
                 getCombinations(arr, len - 1, i + 1, result, ref returnArray);
             }
-        } 
+        }
+
+
+        private double getPearson(double[] x, double[] y)
+        {
+            //will regularize the unusual case of complete correlation
+            const double TINY = 1.0e-20;
+            int j, n = x.Length;
+            Double yt, xt;
+            Double syy = 0.0, sxy = 0.0, sxx = 0.0, ay = 0.0, ax = 0.0;
+            for (j = 0; j < n; j++)
+            {
+                //finds the mean
+                ax += x[j];
+                ay += y[j];
+            }
+            ax /= n;
+            ay /= n;
+            for (j = 0; j < n; j++)
+            {
+                // compute correlation coefficient
+                xt = x[j] - ax;
+                yt = y[j] - ay;
+                sxx += xt * xt;
+                syy += yt * yt;
+                sxy += xt * yt;
+            }
+            return sxy / (Math.Sqrt(sxx * syy) + TINY);
+
+        }
     
 
     }
