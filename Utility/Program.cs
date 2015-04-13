@@ -24,10 +24,8 @@ namespace Utility
         static void Main(string[] args)
         {
             Program prg = new Program();
-            
-            
-            
-            //prg.measurePerformance();
+
+            prg.measurePerformance();
             
 
             /*
@@ -37,7 +35,7 @@ namespace Utility
 
             
             
-            prg.Run();
+            //prg.Run();
             
             
             
@@ -48,12 +46,16 @@ namespace Utility
         private void measurePerformance()
         {
             Performance p = new Performance();
+
+
             p.GenerateScript = false;
-            p.Trials = 3;
+            p.Trials = 1;
 
             p.Set = Performance.PreferenceSet.Jon;
             //p.Set = Performance.PreferenceSet.Mya;
             //p.Set = Performance.PreferenceSet.Barra;
+            //p.Set = Performance.PreferenceSet.Shuffle;
+            p.Set = Performance.PreferenceSet.Combination;
 
             //p.Strategy = new SkylineBNL();
             p.Strategy = new SkylineBNLSort();
@@ -61,7 +63,7 @@ namespace Utility
             //p.Strategy = new SkylineHexagon();
 
 
-            p.GeneratePerformanceQueries();
+            p.generatePerformanceQueries();
         }
 
 
@@ -123,6 +125,8 @@ namespace Utility
                 //strPrefSQL = "SELECT t1.id FROM cars t1 SKYLINE OF t1.price LOW, t1.mileage LOW";
 
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
+
+                strPrefSQL = "SELECT cars.id FROM cars SKYLINE OF cars.mileage LOW,cars.cylinders HIGH,cars.seats HIGH,cars.enginesize HIGH";
 
                 Debug.WriteLine(strPrefSQL);
 

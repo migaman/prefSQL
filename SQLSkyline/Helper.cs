@@ -54,7 +54,7 @@ namespace prefSQL.SQLSkyline
                 if (iCol > operators.GetUpperBound(0))
                 {
                     SqlMetaData OutputColumn;
-                    if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(DateTime)))
+                    if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(Int64)) || col.DataType.Equals(typeof(DateTime)))
                     {
                         OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType));
                     }
