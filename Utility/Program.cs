@@ -57,9 +57,10 @@ namespace Utility
             //p.Set = Performance.PreferenceSet.Mya;
             //p.Set = Performance.PreferenceSet.Barra;
             //p.Set = Performance.PreferenceSet.Shuffle;
-            p.Set = Performance.PreferenceSet.Combination;
+            //p.Set = Performance.PreferenceSet.Combination;
             //p.Set = Performance.PreferenceSet.Correlation;
             //p.Set = Performance.PreferenceSet.AntiCorrelation;
+            p.Set = Performance.PreferenceSet.Independent;
 
             //p.Strategy = new SkylineBNL();
             p.Strategy = new SkylineBNLSort();
@@ -130,7 +131,7 @@ namespace Utility
 
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
 
-                strPrefSQL = "SELECT cars.id FROM cars SKYLINE OF cars.mileage LOW,cars.cylinders HIGH,cars.seats HIGH,cars.enginesize HIGH";
+                strPrefSQL = "SELECT cars.id, cars.consumption, cars.enginesize FROM cars SKYLINE OF cars.consumption LOW, cars.enginesize HIGH";
 
                 Debug.WriteLine(strPrefSQL);
 

@@ -31,6 +31,7 @@ namespace Utility
         private SkylineStrategy strategy;
         static Random rnd = new Random();
         private int minDimensions = 3;
+        private Mathematic mathematic = new Mathematic();
         
 
         public int Dimensions
@@ -72,8 +73,11 @@ namespace Utility
             Shuffle,
             Combination,
             Correlation,
-            AntiCorrelation
+            AntiCorrelation,
+            Independent
         };
+
+
 
         private ArrayList getAllPreferences()
         {
@@ -89,6 +93,7 @@ namespace Utility
             preferences.Add("cars.seats HIGH");
             preferences.Add("cars.cylinders HIGH");
             preferences.Add("cars.gears HIGH");
+            preferences.Add("cars.registrationNumeric HIGH");
             //preferencesAll.Add("DATEDIFF(DAY, '1900-01-01', cars.Registration) HIGH");
             
             //Categorical preferences
@@ -170,7 +175,7 @@ namespace Utility
                             colB[i] = (int)dt.Rows[i][iPref];
                         }
 
-                        double correlation = getPearson(colA, colB);
+                        double correlation = mathematic.getPearson(colA, colB);
                         Utility.Model.CorrelationModel model = new Model.CorrelationModel(preferences[iIndex].ToString(), preferences[iPref].ToString(), correlation);
                         listCorrelation.Add(model);
                     }
@@ -294,40 +299,16 @@ namespace Utility
                 correlationMatrix.Sort(new CorrelationModel());
 
                 preferences.Clear();
-                for (int i = 0; i <= correlationMatrix.Count; i++)
-                {
-                    CorrelationModel model = (CorrelationModel)correlationMatrix[i];
-                    if (preferences.Count < dimensions)
-                    {
-                        if (!preferences.Contains(model.ColA))
-                        {
-                            preferences.Add(model.ColA);
-                        }
-                        if (preferences.Count < dimensions)
-                        {
-                            if (!preferences.Contains(model.ColB))
-                            {
-                                preferences.Add(model.ColB);
-                            }
-                        }
-                        else
-                        {
-                            //Enough columns found --> leave function
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        //Enough columns found --> leave function
-                        break;
-                    } 
-                }
                 
-                    
+                //Take only the two preferences with the best correlation
+                CorrelationModel model = (CorrelationModel)correlationMatrix[0];          
+                preferences.Add(model.ColA);
+                preferences.Add(model.ColB);
                 listPreferences.Add(preferences);
                 
-                //set mindimensions to maxdimension (test with fixed amount of preferences)
-                minDimensions = dimensions;
+                //only the two dimensions should be tested
+                minDimensions = 2;
+                dimensions = 2;
 
             }
             else if (set == PreferenceSet.AntiCorrelation)
@@ -340,40 +321,66 @@ namespace Utility
                 correlationMatrix.Sort(new CorrelationModel());
 
                 preferences.Clear();
-                for (int i = correlationMatrix.Count - 1; i >= 0; i--)
+
+                //Take only the two preferences with the best correlation
+                CorrelationModel model = (CorrelationModel)correlationMatrix[correlationMatrix.Count-1];
+                preferences.Add(model.ColA);
+                preferences.Add(model.ColB);
+                listPreferences.Add(preferences);
+
+
+                //only the two dimensions should be tested
+                minDimensions = 2;
+                dimensions = 2;
+            }
+            else if (set == PreferenceSet.Independent)
+            {
+                //Tests every possible combination with y preferences from the whole set of preferences
+                ArrayList preferences = getAllPreferences();
+                correlationMatrix = getCorrelationMatrix(preferences);
+
+                //Sort correlations to find the strongest
+                correlationMatrix.Sort(new CorrelationModel());
+
+                preferences.Clear();
+
+                //Find the most independent atributes (closest to zero)
+                double max = 2; //impossible correlation
+                CorrelationModel modelBefore = new CorrelationModel();
+                CorrelationModel modelAfter = new CorrelationModel();
+                for (int i = 0; i <= correlationMatrix.Count; i++)
                 {
                     CorrelationModel model = (CorrelationModel)correlationMatrix[i];
-                    if (preferences.Count < dimensions)
+                    if(model.Correlation > 0)
                     {
-                        if (!preferences.Contains(model.ColA))
-                        {
-                            preferences.Add(model.ColA);
-                        }
-                        if (preferences.Count < dimensions)
-                        {
-                            if (!preferences.Contains(model.ColB))
-                            {
-                                preferences.Add(model.ColB);
-                            }
-                        }
-                        else
-                        {
-                            //Enough columns found --> leave function
-                            break;
-                        }
+                        //continue until the correlation turnaround
+                        modelBefore = model;
                     }
                     else
                     {
-                        //Enough columns found --> leave function
+                        modelAfter = model;
+                        //Leave the function, because now the correlation is getting worse
                         break;
                     }
                 }
 
-
+                //Add the two preferences to the list, that are closer to zero
+                if (Math.Abs(modelBefore.Correlation) > Math.Abs(modelAfter.Correlation))
+                {
+                    preferences.Add(modelAfter.ColA);
+                    preferences.Add(modelAfter.ColB);
+                }
+                else
+                {
+                    preferences.Add(modelBefore.ColA);
+                    preferences.Add(modelBefore.ColB);
+                }
                 listPreferences.Add(preferences);
 
-                //set mindimensions to maxdimension (test with fixed amount of preferences)
-                minDimensions = dimensions;
+
+                //only the two dimensions should be tested
+                minDimensions = 2;
+                dimensions = 2;
             }
             
             //Header
@@ -564,10 +571,6 @@ namespace Utility
             outfile.Write(sb.ToString());
             outfile.Close();
 
-            
-            
-
-            //Debug.Write(result.Combinations<int>());
         }
 
 
@@ -606,32 +609,64 @@ namespace Utility
         }
 
 
+        
+        private void getCombinations(ArrayList arr, int len, int startPosition, ArrayList result, ref ArrayList returnArray)
+        {
+            if(result.Count == 0)
+            {
+                for (int i = 0; i < len; i++)
+                {
+                    result.Add("");
+                }
+                    
+            }
+
+            if (len == 0)
+            {
+                //Debug.WriteLine(string.Join(",", (string[])result.ToArray(Type.GetType("System.String"))));
+                returnArray.Add(result.Clone());
+                return;
+            }
+            for (int i = startPosition; i <= arr.Count - len; i++)
+            {
+                result[result.Count - len] = (string)arr[i];
+                getCombinations(arr, len - 1, i + 1, result, ref returnArray);
+            }
+        }
+
+
+
+
+        #region formatOutput
+
+
         private void addSummary(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions, List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, List<double> reportCorrelation)
         {
             //Separator Line
             Debug.WriteLine(strSeparatorLine);
             sb.AppendLine(strSeparatorLine);
 
-            
 
-            
             string strAverage = formatLineString("average", "", reportDimensions.Average(), reportSkylineSize.Average(), reportTimeTotal.Average(), reportTimeAlgorithm.Average(), reportCorrelation.Average());
             string strMin = formatLineString("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(), reportTimeTotal.Min(), reportTimeAlgorithm.Min(), reportCorrelation.Min());
             string strMax = formatLineString("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), reportCorrelation.Max());
-            string strVar = formatLineString("variance", "", getVariance(reportDimensions), getVariance(reportSkylineSize), getVariance(reportTimeTotal), getVariance(reportTimeAlgorithm), getVariance(reportCorrelation));
-            string strStd = formatLineString("stdderivation", "", getStdDerivation(reportDimensions), getStdDerivation(reportSkylineSize), getStdDerivation(reportTimeTotal), getStdDerivation(reportTimeAlgorithm), getStdDerivation(reportCorrelation));
+            string strVar = formatLineString("variance", "", mathematic.getVariance(reportDimensions), mathematic.getVariance(reportSkylineSize), mathematic.getVariance(reportTimeTotal), mathematic.getVariance(reportTimeAlgorithm), mathematic.getVariance(reportCorrelation));
+            string strStd = formatLineString("stdderivation", "", mathematic.getStdDerivation(reportDimensions), mathematic.getStdDerivation(reportSkylineSize), mathematic.getStdDerivation(reportTimeTotal), mathematic.getStdDerivation(reportTimeAlgorithm), mathematic.getStdDerivation(reportCorrelation));
+
+            sb.AppendLine(strAverage);
+            sb.AppendLine(strMin);
+            sb.AppendLine(strMax);
+            sb.AppendLine(strVar);
+            sb.AppendLine(strStd);
             Debug.WriteLine(strAverage);
             Debug.WriteLine(strMin);
             Debug.WriteLine(strMax);
             Debug.WriteLine(strVar);
             Debug.WriteLine(strStd);
-            sb.AppendLine(strAverage);
-
 
             //Separator Line
-            Debug.WriteLine(strSeparatorLine);
             sb.AppendLine(strSeparatorLine);
-
+            Debug.WriteLine(strSeparatorLine);
         }
 
 
@@ -658,94 +693,9 @@ namespace Utility
         }
 
 
-        private double getStdDerivation(List<double> numbers)
-        {
-            return Math.Sqrt(getVariance(numbers));
-        }
 
-        private double getStdDerivation(List<long> numbers)
-        {
-            return Math.Sqrt(getVariance(numbers));
-        }
+        #endregion
 
-        //Source: http://www.remondo.net/calculate-the-variance-and-standard-deviation-in-csharp/
-        //private double Variance(this IEnumerable<double> list)
-        private double getVariance(List<double> numbers)
-        {
-            //List<double> numbers = list.ToList();
-
-            double mean = numbers.Average(); // .Mean();
-            double result = numbers.Sum(number => Math.Pow(number - mean, 2.0));
-
-            return result / numbers.Count;
-        }
-
-
-        private double getVariance(List<long> numbers)
-        {
-            //List<double> numbers = list.ToList();
-
-            double mean = numbers.Average(); // .Mean();
-            double result = numbers.Sum(number => Math.Pow(number - mean, 2.0));
-
-            return result / numbers.Count;
-        }
-
-
-
-        private void getCombinations(ArrayList arr, int len, int startPosition, ArrayList result, ref ArrayList returnArray)
-        {
-            if(result.Count == 0)
-            {
-                for (int i = 0; i < len; i++)
-                {
-                    result.Add("");
-                }
-                    
-            }
-
-            if (len == 0)
-            {
-                //Debug.WriteLine(string.Join(",", (string[])result.ToArray(Type.GetType("System.String"))));
-                returnArray.Add(result.Clone());
-                return;
-            }
-            for (int i = startPosition; i <= arr.Count - len; i++)
-            {
-                result[result.Count - len] = (string)arr[i];
-                getCombinations(arr, len - 1, i + 1, result, ref returnArray);
-            }
-        }
-
-
-        private double getPearson(double[] x, double[] y)
-        {
-            //will regularize the unusual case of complete correlation
-            const double TINY = 1.0e-20;
-            int j, n = x.Length;
-            Double yt, xt;
-            Double syy = 0.0, sxy = 0.0, sxx = 0.0, ay = 0.0, ax = 0.0;
-            for (j = 0; j < n; j++)
-            {
-                //finds the mean
-                ax += x[j];
-                ay += y[j];
-            }
-            ax /= n;
-            ay /= n;
-            for (j = 0; j < n; j++)
-            {
-                // compute correlation coefficient
-                xt = x[j] - ax;
-                yt = y[j] - ay;
-                sxx += xt * xt;
-                syy += yt * yt;
-                sxy += xt * yt;
-            }
-            return sxy / (Math.Sqrt(sxx * syy) + TINY);
-
-        }
-    
 
     }
     
