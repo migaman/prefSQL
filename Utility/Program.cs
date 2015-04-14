@@ -49,9 +49,11 @@ namespace Utility
 
 
             p.GenerateScript = false;
+            //Amount of trials for each single sql preference statement
             p.Trials = 1;
+            p.Dimensions = 6;
 
-            p.Set = Performance.PreferenceSet.Jon;
+            //p.Set = Performance.PreferenceSet.Jon;
             //p.Set = Performance.PreferenceSet.Mya;
             //p.Set = Performance.PreferenceSet.Barra;
             //p.Set = Performance.PreferenceSet.Shuffle;

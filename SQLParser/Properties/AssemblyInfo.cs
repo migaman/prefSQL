@@ -37,3 +37,4 @@ using System.Runtime.InteropServices;
 [assembly: System.CLSCompliant(false)]
 
 [assembly: InternalsVisibleTo("SQLParserTest")]
+[assembly: InternalsVisibleTo("Utility")]
