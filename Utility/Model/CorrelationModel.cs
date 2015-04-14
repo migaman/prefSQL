@@ -18,6 +18,13 @@ namespace Utility.Model
 
         }
 
+        public CorrelationModel(string _colA, string _colB, double _correlation)
+        {
+            colA = _colA;
+            colB = _colB;
+            correlation = _correlation;
+        }
+
         public int Compare(object x, object y)
         {
             if (x is CorrelationModel && y is CorrelationModel)
@@ -42,12 +49,7 @@ namespace Utility.Model
         
 
 
-        public CorrelationModel(string _colA, string _colB, double _correlation)
-        {
-            colA = _colA;
-            colB = _colB;
-            correlation = _correlation;
-        }
+
 
         public string ColA
         {
