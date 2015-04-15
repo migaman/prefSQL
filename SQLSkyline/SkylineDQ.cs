@@ -45,6 +45,7 @@ namespace prefSQL.SQLSkyline
             DataTable dt = null;
             prefSQL.SQLSkyline.SP_SkylineDQ skyline = new SQLSkyline.SP_SkylineDQ();   
             dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+            timeMilliseconds = skyline.timeInMs;
             return dt;
 
         }

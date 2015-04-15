@@ -25,7 +25,7 @@ namespace Utility
         {
             Program prg = new Program();
 
-            prg.measurePerformance();
+            //prg.measurePerformance();
             
 
             /*
@@ -51,16 +51,16 @@ namespace Utility
             p.GenerateScript = false;
             //Amount of trials for each single sql preference statement
             p.Trials = 1;
-            p.Dimensions = 6;
+            p.Dimensions = 1;
 
             //p.Set = Performance.PreferenceSet.Jon;
             //p.Set = Performance.PreferenceSet.Mya;
             //p.Set = Performance.PreferenceSet.Barra;
             //p.Set = Performance.PreferenceSet.Shuffle;
-            //p.Set = Performance.PreferenceSet.Combination;
-            p.Set = Performance.PreferenceSet.Correlation;
-            p.Set = Performance.PreferenceSet.AntiCorrelation;
-            p.Set = Performance.PreferenceSet.Independent;
+            p.Set = Performance.PreferenceSet.Combination;
+            //p.Set = Performance.PreferenceSet.Correlation;
+            //p.Set = Performance.PreferenceSet.AntiCorrelation;
+            //p.Set = Performance.PreferenceSet.Independent;
 
             //p.Strategy = new SkylineBNL();
             p.Strategy = new SkylineBNLSort();
@@ -134,6 +134,8 @@ namespace Utility
                 //strPrefSQL = "SELECT cars.id, cars.consumption, cars.enginesize FROM cars SKYLINE OF cars.consumption LOW, cars.enginesize HIGH";
                 strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.registrationnumeric HIGH, cars.mileage LOW";
                 //strPrefSQL = "SELECT cars.id, cars.horsepower, cars.mileage FROM cars SKYLINE OF cars.horsepower HIGH, cars.mileage LOW";
+                strPrefSQL = "SELECT cars.id, cars.horsepower, cars.mileage FROM cars LEFT OUTER JOIN Fuels ON cars.fuel_id = Fuels.id SKYLINE OF fuels.name ('Benzin' >> 'Diesel' >> 'Bioethanol' >> 'Elektro' >> 'Gas' >> 'Hybrid' >> OTHERS EQUAL) ";
+
 
                 Debug.WriteLine(strPrefSQL);
 
@@ -141,7 +143,7 @@ namespace Utility
                 //parser.SkylineType = new SkylineSQL();
                 //parser.SkylineType = new SkylineBNL();
                 parser.SkylineType = new SkylineBNLSort();
-                //parser.SkylineType = new SkylineHexagon();
+                parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new MultipleSkylineBNL();
                 //parser.SkylineType = new SkylineDQ();
                 //parser.ShowSkylineAttributes = true;

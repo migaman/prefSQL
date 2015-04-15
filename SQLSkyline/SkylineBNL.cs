@@ -51,13 +51,17 @@ namespace prefSQL.SQLSkyline
             {
                 SP_SkylineBNL skyline = new SP_SkylineBNL();
                 skyline.UseDataTable = UseDataTable;
-                return skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+                DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+                timeMilliseconds = skyline.timeInMs;
+                return dt;
             }
             else
             {
                 SP_SkylineBNLLevel skyline = new SP_SkylineBNLLevel();
                 skyline.UseDataTable = UseDataTable;
-                return skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+                DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+                timeMilliseconds = skyline.timeInMs;
+                return dt;
             }
 
         }

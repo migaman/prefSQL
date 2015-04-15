@@ -8,11 +8,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using prefSQL.SQLSkyline.Models;
+using System.Diagnostics;
 
 namespace prefSQL.SQLSkyline
 {
     public abstract class TemplateHexagon
     {
+        public long timeInMs = 0;
 
         public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strQueryConstruction, String strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
         {
@@ -21,6 +23,7 @@ namespace prefSQL.SQLSkyline
 
         protected DataTable getSkylineTable(string strQuery, string strOperators, int numberOfRecords, string strQueryConstruction, bool isIndependent, string strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
         {
+            Stopwatch sw = new Stopwatch();
             ArrayList[] btg = null;
             int[] next = null;
             int[] prev = null;
@@ -46,6 +49,9 @@ namespace prefSQL.SQLSkyline
 
             try
             {
+                //Time the algorithm needs (afer query to the database)
+                sw.Start();
+
 
                 construction(amountOfPreferences, strQueryConstruction.ToString(), ref btg, ref next, ref prev, ref level, ref weight, connection);
 
@@ -153,6 +159,9 @@ namespace prefSQL.SQLSkyline
                 if (connection != null)
                     connection.Close();
             }
+
+            sw.Stop();
+            timeInMs = sw.ElapsedMilliseconds;
             return dtResult;
 
         }

@@ -124,7 +124,7 @@ namespace Utility
         private ArrayList getAllPreferences()
         {
             ArrayList preferences = new ArrayList();
-            preferences.AddRange(getNumericPreferences());
+            //preferences.AddRange(getNumericPreferences());
             preferences.AddRange(getCategoricalPreferences());
            
             return preferences;

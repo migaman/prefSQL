@@ -60,11 +60,13 @@ namespace prefSQL.SQLSkyline
                 int weightHexagonIncomparable = int.Parse(additionalParameters[5].Trim());
                 prefSQL.SQLSkyline.SP_SkylineHexagon skyline = new SQLSkyline.SP_SkylineHexagon();
                 dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, strConnection, strHexagonSelectIncomparable, weightHexagonIncomparable);
+                timeMilliseconds = skyline.timeInMs;
             }
             else
             {
                 prefSQL.SQLSkyline.SP_SkylineHexagonLevel skyline = new SQLSkyline.SP_SkylineHexagonLevel();
                 dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, strConnection, "", 0);
+                timeMilliseconds = skyline.timeInMs;
             }
             return dt;
         }
