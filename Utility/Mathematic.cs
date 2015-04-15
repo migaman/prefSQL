@@ -8,6 +8,7 @@ namespace Utility
 {
     class Mathematic
     {
+        //http://www.codeproject.com/Articles/49723/Linear-correlation-and-statistical-functions
         public double getPearson(double[] x, double[] y)
         {
 

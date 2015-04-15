@@ -24,21 +24,14 @@ namespace Utility
         static void Main(string[] args)
         {
             Program prg = new Program();
+            prg.measurePerformance();
+            //prg.Run();
 
-            //prg.measurePerformance();
-            
 
             /*
             DominanceGraph graph = new DominanceGraph();
             graph.run();
             */
-
-            
-            
-            prg.Run();
-            
-            
-            
             //Application.Run(new FrmSQLParser());
             
         }
@@ -49,9 +42,10 @@ namespace Utility
 
 
             p.GenerateScript = false;
-            //Amount of trials for each single sql preference statement
-            p.Trials = 1;
-            p.Dimensions = 1;
+
+            p.Trials = 1;           //Amount of trials for each single sql preference statement
+            p.Dimensions = 6;       //Up to x dimensions
+            p.RandomDraws = 25;    //Amount of draws (x times randomly choose a some preferences)
 
             //p.Set = Performance.PreferenceSet.Jon;
             //p.Set = Performance.PreferenceSet.Mya;

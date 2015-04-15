@@ -72,15 +72,15 @@ namespace prefSQL.SQLSkyline
 
 
                 //Read start of skyline
-                DataTableReader sqlReader = dt.CreateDataReader();
+                DataTableReader dataTableReader = dt.CreateDataReader();
 
 
                 //Read all records only once. (SqlDataReader works forward only!!)
-                while (sqlReader.Read())
+                while (dataTableReader.Read())
                 {
-                    add(sqlReader, amountOfPreferences, operators, ref btg, ref weight, ref maxID, weightHexagonIncomparable);
+                    add(dataTableReader, amountOfPreferences, operators, ref btg, ref weight, ref maxID, weightHexagonIncomparable);
                 }
-                sqlReader.Close();
+                dataTableReader.Close();
 
                 findBMO(amountOfPreferences, ref btg, ref next, ref prev, ref level, ref weight);
 
@@ -556,7 +556,7 @@ namespace prefSQL.SQLSkyline
 
         
 
-        protected abstract void add(DataTableReader sqlReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable);
+        protected abstract void add(DataTableReader dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable);
 
         protected abstract void calculateOperators(ref string strOperators, string strSelectIncomparable, SqlConnection connection, ref string strSQL, ref string strQueryConstruction);
     }

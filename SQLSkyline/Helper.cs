@@ -18,6 +18,23 @@ namespace prefSQL.SQLSkyline
         public const string cnnStringSQLCLR = "context connection=true";
         public const int MaxSize = 4000;
 
+
+        public static List<object[]> fillObjectFromDataReader(DataTableReader reader)
+        {
+            List<object[]> listObjects = new List<object[]>();
+            while (reader.Read())
+            {
+                object[] recordObject = new object[reader.FieldCount];
+                for (int iCol = 0; iCol < reader.FieldCount; iCol++)
+                {
+                    recordObject[iCol] = reader[iCol];
+                }
+                listObjects.Add(recordObject);
+            }
+            reader.Close();
+            return listObjects;
+        }
+
         /// <summary>
         /// Returns the TOP n first tupels of a datatable
         /// </summary>

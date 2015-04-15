@@ -24,18 +24,18 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        protected override void addtoWindow(object[] sqlReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult)
+        protected override void addtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult)
         {
-            Helper.addToWindow(sqlReader, operators, resultCollection, resultstringCollection, record, dtResult);
+            Helper.addToWindow(dataReader, operators, resultCollection, resultstringCollection, record, dtResult);
         }
 
-        protected override bool tupleDomination(object[] sqlReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i)
+        protected override bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i)
         {
             long?[] result = (long?[])resultCollection[i];
             string[] strResult = (string[])resultstringCollection[i];
 
             //Dominanz
-            if (Helper.isTupleDominated(operators, result, strResult, sqlReader) == true)
+            if (Helper.isTupleDominated(operators, result, strResult, dataReader) == true)
             {
                 //New point is dominated. No further testing necessary
                 return true;
@@ -44,7 +44,7 @@ namespace prefSQL.SQLSkyline
 
             //Now, check if the new point dominates the one in the window
             //This is only possible with not sorted data
-            if (Helper.doesTupleDominate(sqlReader, operators, result, strResult) == true)
+            if (Helper.doesTupleDominate(dataReader, operators, result, strResult) == true)
             {
                 //The new record dominates the one in the windows. Remove point from window and test further
                 resultCollection.RemoveAt(i);
