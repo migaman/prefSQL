@@ -103,13 +103,13 @@ namespace prefSQL.SQLSkyline
             }
         }
 
-        protected override void add(DataTableReader sqlReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable) //add tuple
+        protected override void add(DataTableReader dataTableReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable) //add tuple
         {
             ArrayList al = new ArrayList();
 
-            //create int array from sqlReader
+            //create int array from dataTableReader
             long[] tuple = new long[operators.GetUpperBound(0) + 1];
-            for (int iCol = 0; iCol < sqlReader.FieldCount; iCol++)
+            for (int iCol = 0; iCol < dataTableReader.FieldCount; iCol++)
             {
                 //Only the real columns (skyline columns are not output fields)
                 if (iCol <= operators.GetUpperBound(0))
@@ -117,13 +117,13 @@ namespace prefSQL.SQLSkyline
                     //LOW und HIGH Spalte in record abfüllen
                     if (operators[iCol].Equals("LOW"))
                     {
-                        tuple[iCol] = (long)sqlReader[iCol];
+                        tuple[iCol] = (long)dataTableReader[iCol];
 
                         //Check if long value is incomparable
                         if (iCol + 1 <= tuple.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
                         {
                             //Incomparable field is always the next one
-                            String strValue = (string)sqlReader[iCol + 1];
+                            String strValue = (string)dataTableReader[iCol + 1];
                             if (strValue.Substring(0, 1).Equals("x"))
                             {
                                 //current level is ok, but add zeros if before incomparables, otherwise fill with ones
@@ -156,10 +156,7 @@ namespace prefSQL.SQLSkyline
                 }
                 else
                 {
-                    //record.SetValue(iCol - (operators.GetUpperBound(0) + 1), sqlReader[iCol]);
-                    al.Add(sqlReader[iCol]);
-
-
+                    al.Add(dataTableReader[iCol]);
                 }
 
             }

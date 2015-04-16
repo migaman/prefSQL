@@ -18,6 +18,23 @@ namespace prefSQL.SQLSkyline
         public const string cnnStringSQLCLR = "context connection=true";
         public const int MaxSize = 4000;
 
+
+        public static List<object[]> fillObjectFromDataReader(DataTableReader reader)
+        {
+            List<object[]> listObjects = new List<object[]>();
+            while (reader.Read())
+            {
+                object[] recordObject = new object[reader.FieldCount];
+                for (int iCol = 0; iCol < reader.FieldCount; iCol++)
+                {
+                    recordObject[iCol] = reader[iCol];
+                }
+                listObjects.Add(recordObject);
+            }
+            reader.Close();
+            return listObjects;
+        }
+
         /// <summary>
         /// Returns the TOP n first tupels of a datatable
         /// </summary>
@@ -54,7 +71,7 @@ namespace prefSQL.SQLSkyline
                 if (iCol > operators.GetUpperBound(0))
                 {
                     SqlMetaData OutputColumn;
-                    if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(DateTime)))
+                    if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(Int64)) || col.DataType.Equals(typeof(DateTime)))
                     {
                         OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType));
                     }

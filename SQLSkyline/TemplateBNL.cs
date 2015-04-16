@@ -76,21 +76,11 @@ namespace prefSQL.SQLSkyline
 
 
                 //Read all records only once. (SqlDataReader works forward only!!)
-                DataTableReader sqlReader = dt.CreateDataReader();
+                DataTableReader dataTableReader = dt.CreateDataReader();
                 
                 //Write all attributes to a Object-Array
                 //Profiling: This is much faster (factor 2) than working with the SQLReader
-                List<object[]> listObjects = new List<object[]>();
-                while (sqlReader.Read())
-                {
-                    object[] recordObject = new object[sqlReader.FieldCount];
-                    for (int iCol = 0; iCol < sqlReader.FieldCount; iCol++)
-                    {
-                        recordObject[iCol] = sqlReader[iCol];
-                    }
-                    listObjects.Add(recordObject);
-                }
-
+                List<object[]> listObjects = Helper.fillObjectFromDataReader(dataTableReader);
 
                 //For each tuple
                 foreach (object[] dbValuesObject in listObjects)
@@ -174,9 +164,9 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        protected abstract bool tupleDomination(object[] sqlReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i);
+        protected abstract bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i);
 
-        protected abstract void addtoWindow(object[] sqlReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
+        protected abstract void addtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
 
     }
 }

@@ -24,23 +24,14 @@ namespace Utility
         static void Main(string[] args)
         {
             Program prg = new Program();
-            
-            
-            
-            //prg.measurePerformance();
-            
+            prg.measurePerformance();
+            //prg.Run();
+
 
             /*
             DominanceGraph graph = new DominanceGraph();
             graph.run();
             */
-
-            
-            
-            prg.Run();
-            
-            
-            
             //Application.Run(new FrmSQLParser());
             
         }
@@ -48,12 +39,22 @@ namespace Utility
         private void measurePerformance()
         {
             Performance p = new Performance();
-            p.GenerateScript = false;
-            p.Trials = 3;
 
-            p.Set = Performance.PreferenceSet.Jon;
+
+            p.GenerateScript = false;
+
+            p.Trials = 1;           //Amount of trials for each single sql preference statement
+            p.Dimensions = 6;       //Up to x dimensions
+            p.RandomDraws = 25;    //Amount of draws (x times randomly choose a some preferences)
+
+            //p.Set = Performance.PreferenceSet.Jon;
             //p.Set = Performance.PreferenceSet.Mya;
             //p.Set = Performance.PreferenceSet.Barra;
+            //p.Set = Performance.PreferenceSet.Shuffle;
+            p.Set = Performance.PreferenceSet.Combination;
+            //p.Set = Performance.PreferenceSet.Correlation;
+            //p.Set = Performance.PreferenceSet.AntiCorrelation;
+            //p.Set = Performance.PreferenceSet.Independent;
 
             //p.Strategy = new SkylineBNL();
             p.Strategy = new SkylineBNLSort();
@@ -61,7 +62,7 @@ namespace Utility
             //p.Strategy = new SkylineHexagon();
 
 
-            p.GeneratePerformanceQueries();
+            p.generatePerformanceQueries();
         }
 
 
@@ -124,13 +125,19 @@ namespace Utility
 
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
 
+                //strPrefSQL = "SELECT cars.id, cars.consumption, cars.enginesize FROM cars SKYLINE OF cars.consumption LOW, cars.enginesize HIGH";
+                strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.registrationnumeric HIGH, cars.mileage LOW";
+                //strPrefSQL = "SELECT cars.id, cars.horsepower, cars.mileage FROM cars SKYLINE OF cars.horsepower HIGH, cars.mileage LOW";
+                strPrefSQL = "SELECT cars.id, cars.horsepower, cars.mileage FROM cars LEFT OUTER JOIN Fuels ON cars.fuel_id = Fuels.id SKYLINE OF fuels.name ('Benzin' >> 'Diesel' >> 'Bioethanol' >> 'Elektro' >> 'Gas' >> 'Hybrid' >> OTHERS EQUAL) ";
+
+
                 Debug.WriteLine(strPrefSQL);
 
                 SQLCommon parser = new SQLCommon();
                 //parser.SkylineType = new SkylineSQL();
                 //parser.SkylineType = new SkylineBNL();
                 parser.SkylineType = new SkylineBNLSort();
-                //parser.SkylineType = new SkylineHexagon();
+                parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new MultipleSkylineBNL();
                 //parser.SkylineType = new SkylineDQ();
                 //parser.ShowSkylineAttributes = true;

@@ -68,6 +68,9 @@
     <Compile Include="FrmSQLParser.Designer.cs">
       <DependentUpon>FrmSQLParser.cs</DependentUpon>
     </Compile>
+    <Compile Include="Mathematic.cs" />
+    <Compile Include="Model\CardinalityModel.cs" />
+    <Compile Include="Model\CorrelationModel.cs" />
     <Compile Include="Performance.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -5,6 +5,7 @@ using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 //Caution: Attention small changes in this code can lead to performance issues, i.e. using a startswith instead of an equal can increase by 10 times
 //Important: Only use equal for comparing text (otherwise performance issues)
@@ -12,6 +13,7 @@ namespace prefSQL.SQLSkyline
 {
     public abstract class TemplateS
     {
+        public long timeInMs = 0;
 
         public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection)
         {
@@ -20,6 +22,7 @@ namespace prefSQL.SQLSkyline
 
         protected DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection)
         {
+            Stopwatch sw = new Stopwatch();
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
@@ -44,6 +47,9 @@ namespace prefSQL.SQLSkyline
                 DataTable dt = new DataTable();
                 dap.Fill(dt);
 
+                //Time the algorithm needs (afer query to the database)
+                sw.Start();
+
 
                 // Build our record schema 
                 List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, dtResult);
@@ -52,14 +58,14 @@ namespace prefSQL.SQLSkyline
 
 
                 //Read all records only once. (SqlDataReader works forward only!!)
-                DataTableReader sqlReader = dt.CreateDataReader();
-                while (sqlReader.Read())
+                DataTableReader dataTableReader = dt.CreateDataReader();
+                while (dataTableReader.Read())
                 {
                     //Check if window list is empty
                     if (resultCollection.Count == 0)
                     {
                         // Build our SqlDataRecord and start the results 
-                        addtoWindow(sqlReader, operators, resultCollection, resultstringCollection, record, true, dtResult);
+                        addtoWindow(dataTableReader, operators, resultCollection, resultstringCollection, record, true, dtResult);
                     }
                     else
                     {
@@ -76,13 +82,13 @@ namespace prefSQL.SQLSkyline
                         }
                         if (isDominated == false)
                         {
-                            addtoWindow(sqlReader, operators, resultCollection, resultstringCollection, record, true, dtResult);
+                            addtoWindow(dataTableReader, operators, resultCollection, resultstringCollection, record, true, dtResult);
                         }
 
                     }
                 }
 
-                sqlReader.Close();
+                dataTableReader.Close();
 
                 //Remove certain amount of rows if query contains TOP Keyword
                 Helper.getAmountOfTuples(dtResult, numberOfRecords);
@@ -128,12 +134,15 @@ namespace prefSQL.SQLSkyline
                 if (connection != null)
                     connection.Close();
             }
+
+            sw.Stop();
+            timeInMs = sw.ElapsedMilliseconds;
             return dtResult;
         }
 
         protected abstract bool tupleDomination(ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i);
 
-        protected abstract void addtoWindow(DataTableReader sqlReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
+        protected abstract void addtoWindow(DataTableReader dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
 
     }
 }
