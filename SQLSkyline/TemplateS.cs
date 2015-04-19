@@ -59,13 +59,20 @@ namespace prefSQL.SQLSkyline
 
                 //Read all records only once. (SqlDataReader works forward only!!)
                 DataTableReader dataTableReader = dt.CreateDataReader();
-                while (dataTableReader.Read())
+
+                //Write all attributes to a Object-Array
+                //Profiling: This is much faster (factor 2) than working with the SQLReader
+                List<object[]> listObjects = Helper.fillObjectFromDataReader(dataTableReader);
+
+
+
+                foreach (object[] dbValuesObject in listObjects)
                 {
                     //Check if window list is empty
                     if (resultCollection.Count == 0)
                     {
                         // Build our SqlDataRecord and start the results 
-                        addtoWindow(dataTableReader, operators, resultCollection, resultstringCollection, record, true, dtResult);
+                        addtoWindow(dbValuesObject, operators, resultCollection, resultstringCollection, record, true, dtResult);
                     }
                     else
                     {
@@ -82,13 +89,12 @@ namespace prefSQL.SQLSkyline
                         }
                         if (isDominated == false)
                         {
-                            addtoWindow(dataTableReader, operators, resultCollection, resultstringCollection, record, true, dtResult);
+                            addtoWindow(dbValuesObject, operators, resultCollection, resultstringCollection, record, true, dtResult);
                         }
 
                     }
                 }
 
-                dataTableReader.Close();
 
                 //Remove certain amount of rows if query contains TOP Keyword
                 Helper.getAmountOfTuples(dtResult, numberOfRecords);
@@ -142,7 +148,7 @@ namespace prefSQL.SQLSkyline
 
         protected abstract bool tupleDomination(ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i);
 
-        protected abstract void addtoWindow(DataTableReader dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
+        protected abstract void addtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
 
     }
 }

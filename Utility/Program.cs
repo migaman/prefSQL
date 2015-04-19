@@ -24,8 +24,8 @@ namespace Utility
         static void Main(string[] args)
         {
             Program prg = new Program();
-            prg.measurePerformance();
-            //prg.Run();
+            //prg.measurePerformance();
+            prg.Run();
 
 
             /*
@@ -56,8 +56,8 @@ namespace Utility
             //p.Set = Performance.PreferenceSet.AntiCorrelation;
             //p.Set = Performance.PreferenceSet.Independent;
 
-            //p.Strategy = new SkylineBNL();
-            p.Strategy = new SkylineBNLSort();
+            p.Strategy = new SkylineBNL();
+            //p.Strategy = new SkylineBNLSort();
             //p.Strategy = new SkylineDQ();
             //p.Strategy = new SkylineHexagon();
 
@@ -126,9 +126,9 @@ namespace Utility
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
 
                 //strPrefSQL = "SELECT cars.id, cars.consumption, cars.enginesize FROM cars SKYLINE OF cars.consumption LOW, cars.enginesize HIGH";
-                strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.registrationnumeric HIGH, cars.mileage LOW";
+                strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.registrationnumeric HIGH, cars.mileage LOW, cars.horsepower HIGH 100 EQUAL";
                 //strPrefSQL = "SELECT cars.id, cars.horsepower, cars.mileage FROM cars SKYLINE OF cars.horsepower HIGH, cars.mileage LOW";
-                strPrefSQL = "SELECT cars.id, cars.horsepower, cars.mileage FROM cars LEFT OUTER JOIN Fuels ON cars.fuel_id = Fuels.id SKYLINE OF fuels.name ('Benzin' >> 'Diesel' >> 'Bioethanol' >> 'Elektro' >> 'Gas' >> 'Hybrid' >> OTHERS EQUAL) ";
+                //strPrefSQL = "SELECT * FROM cars LEFT OUTER JOIN Fuels ON cars.fuel_id = Fuels.id SKYLINE OF fuels.name ('Benzin' >> 'Diesel' >> 'Bioethanol' >> 'Elektro' >> 'Gas' >> 'Hybrid' >> OTHERS EQUAL) ";
 
 
                 Debug.WriteLine(strPrefSQL);
@@ -136,7 +136,7 @@ namespace Utility
                 SQLCommon parser = new SQLCommon();
                 //parser.SkylineType = new SkylineSQL();
                 //parser.SkylineType = new SkylineBNL();
-                parser.SkylineType = new SkylineBNLSort();
+                //parser.SkylineType = new SkylineBNLSort();
                 parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new MultipleSkylineBNL();
                 //parser.SkylineType = new SkylineDQ();
