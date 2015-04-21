@@ -10,8 +10,24 @@ using System.Runtime.Serialization.Formatters.Binary;
 using prefSQL.SQLSkyline.Models;
 using System.Diagnostics;
 
+//!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace prefSQL.SQLSkyline
 {
+    /// <summary>
+    /// Hexagon Algorithm implemented according to algorithm pseudocode in Preisinger (2007) and incompariblity considerations in Preisinger (2009)
+    /// </summary>
+    /// <remarks>
+    /// Preisinger, Timotheus; Kießling, Werner (2007)
+    /// The Hexagon Algorithm for Pareto Preference Queries.
+    /// 
+    /// Preisinger, Timotheus (2009)
+    /// Graph-based algorithms for Pareto preference query evaluation.
+    /// 
+    /// Profiling considersations:
+    /// - Always use equal when comparins test --> i.e. using a startswith instead of an equal can decrease performance by 10 times
+    /// - Write objects from DataReader into an object[] an work with the object. 
+    /// - Explicity convert (i.e. (int)reader[0]) value from DataReader and don't use the given methods (i.e. reader.getInt32(0))
+    /// </remarks>
     public abstract class TemplateHexagon
     {
         public long timeInMs = 0;
@@ -51,7 +67,7 @@ namespace prefSQL.SQLSkyline
             {
                 //Time the algorithm needs (afer query to the database)
                 sw.Start();
-
+                connection.Open();
 
                 construction(amountOfPreferences, strQueryConstruction.ToString(), ref btg, ref next, ref prev, ref level, ref weight, connection);
 
@@ -60,7 +76,6 @@ namespace prefSQL.SQLSkyline
                 {
                     throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
                 }
-                connection.Open();
 
                 SqlDataAdapter dap = new SqlDataAdapter(strSQL, connection);
                 DataTable dt = new DataTable();
@@ -172,14 +187,9 @@ namespace prefSQL.SQLSkyline
 
         private void construction(int amountOfPreferences, string strQuery, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight, SqlConnection connection)
         {
-
-
+            
             try
             {
-                connection.Open();
-
-
-
                 SqlDataAdapter dap = new SqlDataAdapter(strQuery, connection);
                 DataTable dt = new DataTable();
                 dap.Fill(dt);
@@ -208,11 +218,11 @@ namespace prefSQL.SQLSkyline
                     sizeNodes *= (maxPreferenceLevel[i] + 1);
                 }
 
-                if (sizeNodes > System.Int32.MaxValue)
+                //Because we have 4 objects to save the tree state
+                if (sizeNodes > (System.Int32.MaxValue / 4))
                 {
                     throw new Exception("Berechnung nicht möglich mit Hexagon. Baum wäre zu gross");
                 }
-
 
                 btg = new ArrayList[sizeNodes];
                 next = new int[sizeNodes];
@@ -272,18 +282,11 @@ namespace prefSQL.SQLSkyline
                     //
                     prev[first[curLvl + 1]] = work[curLvl];
                 }
-                /*for (int curLvl = 1; curLvl < workSize; curLvl++)
-                {
-                    prev[first[curLvl]] = work[curLvl - 1];
-                }*/
 
                 //set next node of bottom node
                 next[sizeNodes - 1] = -1;
                 //set previous node of top node
                 prev[0] = -1;
-
-                connection.Close();
-
             }
             catch (Exception e)
             {
@@ -297,6 +300,7 @@ namespace prefSQL.SQLSkyline
         private void findBMO(int amountPreferences, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight)
         {
             int last = 0;
+            long levelUpperBound = level.GetUpperBound(0);
 
             // special case: top node is not empty
             if (btg[0] != null)
@@ -328,7 +332,7 @@ namespace prefSQL.SQLSkyline
                                     HexagonRemoveModel modelIn = new HexagonRemoveModel(cur + weight[i], i, btg, next, prev, level, weight, 0);
                                     //removeRecursive(cur + weight[i], i, ref btg, ref next, ref prev, ref level, ref weight, 0);
 
-                                    HexagonRemoveModel modelOut = modelOut = removeIterative(modelIn);
+                                    HexagonRemoveModel modelOut = modelOut = removeIterative(modelIn, levelUpperBound);
                                     btg = modelOut.btg;
                                     next = modelOut.next;
                                     prev = modelOut.prev;
@@ -362,7 +366,7 @@ namespace prefSQL.SQLSkyline
 
         }
 
-        private HexagonRemoveModel removeIterative(HexagonRemoveModel returnModel)
+        private HexagonRemoveModel removeIterative(HexagonRemoveModel returnModel, long levelUpperBound)
         {
             int address = 10; // Entry point for each each "call"
             HexagonRemoveModel tempModel = returnModel;            
@@ -424,7 +428,9 @@ namespace prefSQL.SQLSkyline
 
                         //remove followers
                         // follow the edge for preference i (only if not already on last level)
-                        if (id + weight[0] <= level.GetUpperBound(0) && level[id + weight[0]] == level[id] + 1)
+                        //if (id + weight[0] <= level.GetUpperBound(0) && level[id + weight[0]] == level[id] + 1)
+                        //TODO: Profiling eigene long variable statt levelupperbound (bringt dies was??) --> hat nichts gebracht (14% der fkt statt 15%)
+                        if (id + weight[0] <= levelUpperBound && level[id + weight[0]] == level[id] + 1)
                         {                               
                             //Push current object to stack
                             returnModel.loopindex = 1;  //important: raise loop Index!! new position in position loop!!

@@ -17,6 +17,18 @@ using prefSQL.SQLParser.Models;
 
 namespace Utility
 {
+    /// <summary>
+    /// Performance class implented on a similar idea like Lofi (2014)
+    /// 
+    /// </summary>
+    /// <remarks>
+    /// Lofi, Christoph (2014): skyline_simulator
+    /// Bitbucket.      /// Available online at https://bitbucket.org/clofi/skyline_simulator.
+    /// 
+    /// </remarks>
+    
+
+
     class Performance
     {
 
@@ -30,8 +42,14 @@ namespace Utility
         private bool generateScript = false;   
         private SkylineStrategy strategy;
         static Random rnd = new Random();
-        private int minDimensions = 3;
-        
+        private int minDimensions = 2;
+        private Size tableSize;
+
+        internal Size TableSize
+        {
+            get { return tableSize; }
+            set { tableSize = value; }
+        }
 
 
         #region getter/setters
@@ -76,17 +94,75 @@ namespace Utility
         #endregion
 
 
+        public enum Size
+        {
+            Small,
+            Medium,
+            Large,
+            Superlarge
+        }
+
         public enum PreferenceSet
         {
-            Jon,
-            Mya,
-            Barra,
-            Shuffle,
-            Combination,
-            Correlation,
-            AntiCorrelation,
-            Independent
+            ArchiveComparable,      //Preferences from first performance tests, up to 13 dimnension
+            ArchiveIncomparable,    //Preferences from first performance tests, up to 13 dimnension
+            Jon,                    //Preference set from 2nd peformance phase
+            Mya,                    //Preference set from 2nd peformance phase
+            Barra,                  //Preference set from 2nd peformance phase
+            Shuffle,                //Choose randomly preferences from all preferences
+            Combination,            //Take all preferences
+            CombinationNumeric,     //Take only numeric preferences
+            CombinationCategoric,   //Take only categoric preferences
+            CombinationHexagon,      //Special collection of preferences which perform well on Hexagon
+            Correlation,            //Take 2 best correlated preferences
+            AntiCorrelation,        //Take 2 worst correlated preferences
+            Independent,            //Take 2 most independent correlated preferences
+            
         };
+
+
+        private ArrayList getArchiveComparablePreferences()
+        {
+            ArrayList preferences = new ArrayList();
+
+            preferences.Add("cars.price LOW");
+            preferences.Add("cars.mileage LOW");
+            preferences.Add("cars.horsepower HIGH");
+            preferences.Add("cars.enginesize HIGH");
+            preferences.Add("cars.registrationNumeric HIGH");
+            preferences.Add("cars.consumption LOW");
+            preferences.Add("cars.doors HIGH");
+            preferences.Add("colors.name ('rot' == 'blau' >> OTHERS EQUAL >> 'grau')");
+            preferences.Add("fuels.name ('Benzin' >> OTHERS EQUAL >> 'Diesel')");
+            preferences.Add("bodies.name ('Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS EQUAL >> 'Pick-Up')");
+            preferences.Add("cars.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL)");
+            preferences.Add("makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI')");
+            preferences.Add("conditions.name ('Neu' >> OTHERS EQUAL)");
+
+            return preferences;
+        }
+
+        private ArrayList getArchiveIncomparablePreferences()
+        {
+            ArrayList preferences = new ArrayList();
+
+            preferences.Add("cars.price LOW");
+            preferences.Add("cars.mileage LOW");
+            preferences.Add("cars.horsepower HIGH");
+            preferences.Add("cars.enginesize HIGH");
+            preferences.Add("cars.registrationNumeric HIGH");
+            preferences.Add("cars.consumption LOW");
+            preferences.Add("cars.doors HIGH");
+            preferences.Add("colors.name ('rot' == 'blau' >> OTHERS INCOMPARABLE >> 'grau')");
+            preferences.Add("fuels.name ('Benzin' >> OTHERS INCOMPARABLE >> 'Diesel')");
+            preferences.Add("bodies.name ('Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS INCOMPARABLE >> 'Pick-Up')");
+            preferences.Add("cars.title ('MERCEDES-BENZ SL 600' >> OTHERS INCOMPARABLE)");
+            preferences.Add("makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS INCOMPARABLE >> 'FERRARI')");
+            preferences.Add("conditions.name ('Neu' >> OTHERS INCOMPARABLE)");
+
+
+            return preferences;
+        }
 
 
         private ArrayList getJonsPreferences()
@@ -145,8 +221,7 @@ namespace Utility
             preferences.Add("cars.seats HIGH");
             preferences.Add("cars.cylinders HIGH");
             preferences.Add("cars.gears HIGH");
-            //preferences.Add("cars.registrationNumeric HIGH");
-            //preferencesAll.Add("DATEDIFF(DAY, '1900-01-01', cars.Registration) HIGH");
+            preferences.Add("cars.registrationNumeric HIGH");
 
             return preferences;
         }
@@ -168,12 +243,35 @@ namespace Utility
             return preferences;
         }
 
+        private ArrayList getSpecialHexagonPreferences()
+        {
+            ArrayList preferences = new ArrayList();
+
+            //Categorical preferences with a cardinality from 2 to 8 (descending)
+            preferences.Add("cars.doors HIGH");
+            preferences.Add("fuels.name ('Benzin' >> 'Diesel' >> 'Bioethanol' >> 'Elektro' >> 'Gas' >> 'Hybrid' >> OTHERS EQUAL)");
+            preferences.Add("conditions.name ('Neu' >> 'Occasion' >> 'Vorführmodell' >> 'Oldtimer' >> OTHERS EQUAL)");
+            preferences.Add("drives.name ('Vorderradantrieb' >> 'Allrad' >> 'Hinterradantrieb' >> OTHERS EQUAL)");
+            preferences.Add("transmissions.name ('Schaltgetriebe' >> 'Automat' >> OTHERS EQUAL)");
+            
+
+            /*
+             * TODO: Mit diesen beiden speziellen präferenzen ist hexagon schneller als SQL und andere algos
+             * */
+            //preferences.Add("fuels.name ('Benzin' >> 'Diesel' >> 'Bioethanol' >> 'Elektro' >> 'Gas' >> 'Hybrid' >> OTHERS EQUAL)");
+            //preferences.Add("cars.title ('AUDI Q7 3.0 TDI quattro' >> OTHERS EQUAL)");
+            
+
+            return preferences;
+        }
+
+
+
         private ArrayList getAllPreferences()
         {
             ArrayList preferences = new ArrayList();
             preferences.AddRange(getNumericPreferences());
-            //preferences.AddRange(getCategoricalPreferences());
-           
+            preferences.AddRange(getCategoricalPreferences());
             return preferences;
         }
 
@@ -182,7 +280,20 @@ namespace Utility
         private DataTable getSQLFromPreferences(ArrayList preferences, bool cardinality)
         {
             SQLCommon common = new SQLCommon();
-            string strPrefSQL = "SELECT cars.id FROM cars ";
+            string strPrefSQL = "SELECT cars.id FROM ";
+            if (tableSize == Size.Small)
+            {
+                strPrefSQL += "cars_small";
+            }
+            else if (tableSize == Size.Medium)
+            {
+                strPrefSQL += "cars_medium";
+            }
+            else if (tableSize == Size.Large)
+            {
+                strPrefSQL += "cars_large";
+            }
+            strPrefSQL += " cars ";
             strPrefSQL += "SKYLINE OF ";   
 
 
@@ -277,9 +388,25 @@ namespace Utility
             ArrayList listPreferences = new ArrayList();
             ArrayList correlationMatrix = new ArrayList();
             ArrayList listCardinality = new ArrayList();
-            
 
-            if (set == PreferenceSet.Jon)
+
+            if (set == PreferenceSet.ArchiveComparable)
+            {
+                ArrayList preferences = getArchiveComparablePreferences();
+                correlationMatrix = getCorrelationMatrix(preferences);
+                listCardinality = getCardinalityOfPreferences(preferences);
+                //Only one set
+                listPreferences.Add(preferences);
+            }
+            else if (set == PreferenceSet.ArchiveIncomparable)
+            {
+                ArrayList preferences = getArchiveIncomparablePreferences();
+                correlationMatrix = getCorrelationMatrix(preferences);
+                listCardinality = getCardinalityOfPreferences(preferences);
+                //Only one set
+                listPreferences.Add(preferences);
+            }
+            else if (set == PreferenceSet.Jon)
             {
                 ArrayList preferences = getJonsPreferences();
                 correlationMatrix = getCorrelationMatrix(preferences);
@@ -318,6 +445,48 @@ namespace Utility
                 minDimensions = dimensions;
 
             }
+            else if (set == PreferenceSet.CombinationNumeric)
+            {
+                //Tests every possible combination with y preferences from the whole set of preferences
+                ArrayList preferences = getNumericPreferences();
+                correlationMatrix = getCorrelationMatrix(preferences);
+                listCardinality = getCardinalityOfPreferences(preferences);
+
+                //create all possible combinations and add it to listPreferences
+                getCombinations(preferences, dimensions, 0, new ArrayList(), ref listPreferences);
+                
+                //set mindimensions to maxdimension (test with fixed amount of preferences)
+                minDimensions = dimensions;
+
+            }
+            else if (set == PreferenceSet.CombinationCategoric)
+            {
+                //Tests every possible combination with y preferences from the whole set of preferences
+                ArrayList preferences = getCategoricalPreferences();
+                correlationMatrix = getCorrelationMatrix(preferences);
+                listCardinality = getCardinalityOfPreferences(preferences);
+
+                //create all possible combinations and add it to listPreferences
+                getCombinations(preferences, dimensions, 0, new ArrayList(), ref listPreferences);
+                
+                //set mindimensions to maxdimension (test with fixed amount of preferences)
+                minDimensions = dimensions;
+
+            }
+            else if (set == PreferenceSet.CombinationHexagon)
+            {
+                //Tests every possible combination with y preferences from the whole set of preferences
+                ArrayList preferences = getSpecialHexagonPreferences();
+                correlationMatrix = getCorrelationMatrix(preferences);
+                listCardinality = getCardinalityOfPreferences(preferences);
+
+                //create all possible combinations and add it to listPreferences
+                getCombinations(preferences, dimensions, 0, new ArrayList(), ref listPreferences);
+
+                //set mindimensions to maxdimension (test with fixed amount of preferences)
+                minDimensions = dimensions;
+            }
+            
             else if (set == PreferenceSet.Shuffle)
             {
                 //Tests x times randomly y preferences
@@ -447,11 +616,14 @@ namespace Utility
             if (GenerateScript == false)
             {
                 //Header
-                sb.AppendLine("               Algorithm:" + strategy.ToString());
-                sb.AppendLine("          Preference Set:" + set.ToString());
-                sb.AppendLine("                    Host:" + System.Environment.MachineName);
-                sb.AppendLine("      Set of Preferences:" + listPreferences.Count);
-                sb.AppendLine("                  Trials:" + Trials);
+                sb.AppendLine("               Algorithm: " + strategy.ToString());
+                sb.AppendLine("          Preference Set: " + set.ToString());
+                sb.AppendLine("                    Host: " + System.Environment.MachineName);
+                sb.AppendLine("      Set of Preferences: " + listPreferences.Count);
+                sb.AppendLine("                  Trials: " + Trials);
+                sb.AppendLine("              Table size: " + tableSize.ToString());
+                sb.AppendLine("          Dimension from: " + minDimensions.ToString());
+                sb.AppendLine("            Dimension to: " + dimensions.ToString());
                 //sb.AppendLine("Correlation Coefficients:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
                 //sb.AppendLine("           Cardinalities:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
                 sb.AppendLine("");
@@ -481,7 +653,20 @@ namespace Utility
                     string strSkylineOf = "SKYLINE OF " + string.Join(",", (string[])subPreferences.ToArray(Type.GetType("System.String")));
 
                     //SELECT FROM
-                    string strSQL = "SELECT cars.id FROM cars ";
+                    string strSQL = "SELECT cars.id FROM ";
+                    if (tableSize == Size.Small)
+                    {
+                        strSQL += "cars_small";
+                    }
+                    else if (tableSize == Size.Medium)
+                    {
+                        strSQL += "cars_medium";
+                    }
+                    else if (tableSize == Size.Large)
+                    {
+                        strSQL += "cars_large";
+                    }
+                    strSQL += " cars ";
                     //Add Joins
                     strSQL += getJoinsForPreferences(strSkylineOf);
                     
@@ -526,7 +711,7 @@ namespace Utility
 
 
                                 string strLine = formatLineString(strPreferenceSet, strTrial, i, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality);
- 
+
                                 
                                 Debug.WriteLine(strLine);
                                 sb.AppendLine(strLine);

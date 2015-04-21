@@ -8,9 +8,24 @@ using Microsoft.SqlServer.Server;
 using System.Collections;
 using System.Diagnostics;
 
-
+//!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace prefSQL.SQLSkyline
 {
+    /// <summary>
+    /// D&Q Algorithm implemented according to algorithm pseudocode in Börzsönyi et al. (2001) and Rost(2006)
+    /// </summary>
+    /// <remarks>
+    /// Börzsönyi, Stephan; Kossmann, Donald; Stocker, Konrad (2001): The Skyline Operator. In : 
+    /// Proceedings of the 17th International Conference on Data Engineering. Washington, DC, USA: 
+    /// IEEE Computer Society, pp. 421–430. Available online at http://dl.acm.org/citation.cfm?id=645484.656550.
+    /// 
+    /// Rost, Steffen Thomas (2006): Skyline query processing: University Heidelberg; Fakultät für Mathematik und Informatik. Institut für Informatik.
+    /// 
+    /// Profiling considersations:
+    /// - Always use equal when comparins test --> i.e. using a startswith instead of an equal can decrease performance by 10 times
+    /// - Write objects from DataReader into an object[] an work with the object. 
+    /// - Explicity convert (i.e. (int)reader[0]) value from DataReader and don't use the given methods (i.e. reader.getInt32(0))
+    /// </remarks>
     public class TemplateDQ
     {
         public long timeInMs = 0;

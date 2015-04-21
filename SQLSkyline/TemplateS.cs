@@ -7,10 +7,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-//Caution: Attention small changes in this code can lead to performance issues, i.e. using a startswith instead of an equal can increase by 10 times
-//Important: Only use equal for comparing text (otherwise performance issues)
+//!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace prefSQL.SQLSkyline
 {
+    /// <summary>
+    /// TODO: Work in progress
+    /// </summary>
+    /// <remarks>
+    /// TODO: Work in progress
+    /// </remarks>
     public abstract class TemplateS
     {
         public long timeInMs = 0;
