@@ -367,7 +367,7 @@ namespace prefSQL.SQLParser
                     }
                     else
                     {
-                        //CASE WHEN  colors.name IN ('blau') THEN '001' WHEN colors.name IN ('silber') THEN '010' ELSE '100' END AS RankColorNew
+                        //CASE WHEN  colors.name IN ('blau') THEN '001' WHEN colors.name IN ('silver') THEN '010' ELSE '100' END AS RankColorNew
                         for (int iIncomparable = 0; iIncomparable < model.Skyline[iChild].AmountOfIncomparables; iIncomparable++)
                         {
                             strOperators += "INCOMPARABLE;";

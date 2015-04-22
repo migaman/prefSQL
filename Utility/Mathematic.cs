@@ -39,12 +39,12 @@ namespace Utility
         }
 
 
-        public double getStdDerivation(List<double> numbers)
+        public double getStdDeviation(List<double> numbers)
         {
             return Math.Sqrt(getVariance(numbers));
         }
 
-        public double getStdDerivation(List<long> numbers)
+        public double getStdDeviation(List<long> numbers)
         {
             return Math.Sqrt(getVariance(numbers));
         }

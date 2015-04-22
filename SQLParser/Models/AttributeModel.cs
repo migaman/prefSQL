@@ -11,8 +11,8 @@ namespace prefSQL.SQLParser.Models
 
         public AttributeModel(string strRankExpression, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankHexagon, bool isCategory, string strHexagonIncomparable, int amountIncomparable, int weightHexagonIncomparable, string strExpression)
         {
-            RankExpression = strRankExpression;                     //Rank expression                 (i.e. DENSE_RANK() OVER (ORDER BY CASE WHEN colors.name = 'türkis' THEN 0 WHEN colors.name = 'gelb' THEN 100 ELSE 200 END)
-            InnerExpression = strInnerColumnExpression;             //Inner column expression           (i.e CASE WHEN colors_INNER.name = 'türkis' THEN 0 WHEN colors_INNER.name = 'gelb' THEN 100 ELSE 200 END)
+            RankExpression = strRankExpression;                     //Rank expression                 (i.e. DENSE_RANK() OVER (ORDER BY CASE WHEN colors.name = 'turquoise' THEN 0 WHEN colors.name = 'yellow' THEN 100 ELSE 200 END)
+            InnerExpression = strInnerColumnExpression;             //Inner column expression           (i.e CASE WHEN colors_INNER.name = 'turquoise' THEN 0 WHEN colors_INNER.name = 'yellow' THEN 100 ELSE 200 END)
             Expression = strExpression;                             //
 
             FullColumnName = strFullColumnName;                     //Used for the additional OR with text values (i.e. OR colors_INNER.name = colors.name)

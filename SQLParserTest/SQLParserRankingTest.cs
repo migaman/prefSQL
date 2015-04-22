@@ -34,11 +34,11 @@ namespace prefSQL.SQLParserTest
             strPrefSQL[3] = "SELECT TOP 5 t1.title FROM cars_small t1 RANKING OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH";
 
             //OTHERS EQUAL at the end
-            strPrefSQL[4] = "SELECT t1.id, t1.title AS AutoTitel, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID RANKING OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS EQUAL)";
+            strPrefSQL[4] = "SELECT t1.id, t1.title AS AutoTitel, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID RANKING OF t1.price LOW, colors.name ('red' >> 'blue' >> OTHERS EQUAL)";
             //OTHERS EQUAL at the beginning
-            strPrefSQL[5] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID RANKING OF t1.price LOW, colors.name (OTHERS EQUAL >> 'blau')";
+            strPrefSQL[5] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID RANKING OF t1.price LOW, colors.name (OTHERS EQUAL >> 'blue')";
             //OTHERS EQUAL in the middle
-            strPrefSQL[6] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID RANKING OF t1.price LOW, colors.name ('rot' >> OTHERS EQUAL >> 'blau')";
+            strPrefSQL[6] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID RANKING OF t1.price LOW, colors.name ('red' >> OTHERS EQUAL >> 'blue')";
 
             return strPrefSQL;
         }

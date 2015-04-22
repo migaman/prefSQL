@@ -132,12 +132,12 @@ namespace Utility
             preferences.Add("cars.registrationNumeric HIGH");
             preferences.Add("cars.consumption LOW");
             preferences.Add("cars.doors HIGH");
-            preferences.Add("colors.name ('rot' == 'blau' >> OTHERS EQUAL >> 'grau')");
-            preferences.Add("fuels.name ('Benzin' >> OTHERS EQUAL >> 'Diesel')");
-            preferences.Add("bodies.name ('Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS EQUAL >> 'Pick-Up')");
+            preferences.Add("colors.name ('red' == 'blue' >> OTHERS EQUAL >> 'gray')");
+            preferences.Add("fuels.name ('petrol' >> OTHERS EQUAL >> 'Diesel')");
+            preferences.Add("bodies.name ('compact car' >> 'bus' >> 'estate car' >> 'scooter' >> OTHERS EQUAL >> 'pick-up')");
             preferences.Add("cars.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL)");
             preferences.Add("makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI')");
-            preferences.Add("conditions.name ('Neu' >> OTHERS EQUAL)");
+            preferences.Add("conditions.name ('new' >> OTHERS EQUAL)");
 
             return preferences;
         }
@@ -153,12 +153,12 @@ namespace Utility
             preferences.Add("cars.registrationNumeric HIGH");
             preferences.Add("cars.consumption LOW");
             preferences.Add("cars.doors HIGH");
-            preferences.Add("colors.name ('rot' == 'blau' >> OTHERS INCOMPARABLE >> 'grau')");
-            preferences.Add("fuels.name ('Benzin' >> OTHERS INCOMPARABLE >> 'Diesel')");
-            preferences.Add("bodies.name ('Kleinwagen' >> 'Bus' >> 'Kombi' >> 'Roller' >> OTHERS INCOMPARABLE >> 'Pick-Up')");
+            preferences.Add("colors.name ('red' == 'blue' >> OTHERS INCOMPARABLE >> 'gray')");
+            preferences.Add("fuels.name ('petrol' >> OTHERS INCOMPARABLE >> 'Diesel')");
+            preferences.Add("bodies.name ('compact car' >> 'bus' >> 'estate car' >> 'scooter' >> OTHERS INCOMPARABLE >> 'pick-up')");
             preferences.Add("cars.title ('MERCEDES-BENZ SL 600' >> OTHERS INCOMPARABLE)");
             preferences.Add("makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS INCOMPARABLE >> 'FERRARI')");
-            preferences.Add("conditions.name ('Neu' >> OTHERS INCOMPARABLE)");
+            preferences.Add("conditions.name ('new' >> OTHERS INCOMPARABLE)");
 
 
             return preferences;
@@ -185,9 +185,9 @@ namespace Utility
         private ArrayList getMyasPreferences()
         {
             ArrayList preferences = new ArrayList();
-            preferences.Add("fuels.name ('Benzin' >> OTHERS EQUAL)");
+            preferences.Add("fuels.name ('petrol' >> OTHERS EQUAL)");
             preferences.Add("makes.name ('FISKER' >> OTHERS EQUAL)");
-            preferences.Add("bodies.name ('Roller' >> OTHERS EQUAL)");
+            preferences.Add("bodies.name ('scooter' >> OTHERS EQUAL)");
             preferences.Add("models.name ('123' >> OTHERS EQUAL)");
             return preferences;
         }
@@ -231,13 +231,13 @@ namespace Utility
             ArrayList preferences = new ArrayList();
 
             //Categorical preferences with a cardinality from 2 to 8 (descending)
-            preferences.Add("colors.name ('rot' >> 'blau' >> 'grün' >> 'gold' >> 'schwarz' >> 'grau' >> 'bordeaux' >> OTHERS EQUAL)");
-            preferences.Add("bodies.name ('Bus' >> 'Cabriolet' >> 'Limousine' >> 'Coupé' >> 'Kasten' >> 'Kombi' >> OTHERS EQUAL)");
-            preferences.Add("fuels.name ('Benzin' >> 'Diesel' >> 'Bioethanol' >> 'Elektro' >> 'Gas' >> 'Hybrid' >> OTHERS EQUAL)");
+            preferences.Add("colors.name ('red' >> 'blue' >> 'green' >> 'gold' >> 'black' >> 'gray' >> 'bordeaux' >> OTHERS EQUAL)");
+            preferences.Add("bodies.name ('bus' >> 'cabriolet' >> 'limousine' >> 'coupé' >> 'van' >> 'estate car' >> OTHERS EQUAL)");
+            preferences.Add("fuels.name ('petrol' >> 'diesel' >> 'bioethanol' >> 'electro' >> 'gas' >> 'hybrid' >> OTHERS EQUAL)");
             preferences.Add("makes.name ('BENTLEY' >> 'DAIMLER' >> 'FIAT'>> 'FORD'  >> OTHERS EQUAL)");
-            preferences.Add("conditions.name ('Neu' >> 'Occasion' >> 'Vorführmodell' >> 'Oldtimer' >> OTHERS EQUAL)");
-            preferences.Add("drives.name ('Vorderradantrieb' >> 'Allrad' >> 'Hinterradantrieb' >> OTHERS EQUAL)");
-            preferences.Add("transmissions.name ('Schaltgetriebe' >> 'Automat' >> OTHERS EQUAL)");
+            preferences.Add("conditions.name ('new' >> 'occasion' >> 'demonstraction car' >> 'oldtimer' >> OTHERS EQUAL)");
+            preferences.Add("drives.name ('front wheel' >> 'all wheel' >> 'rear wheel' >> OTHERS EQUAL)");
+            preferences.Add("transmissions.name ('manual' >> 'automatic' >> OTHERS EQUAL)");
 
 
             return preferences;
@@ -249,16 +249,16 @@ namespace Utility
 
             //Categorical preferences with a cardinality from 2 to 8 (descending)
             preferences.Add("cars.doors HIGH");
-            preferences.Add("fuels.name ('Benzin' >> 'Diesel' >> 'Bioethanol' >> 'Elektro' >> 'Gas' >> 'Hybrid' >> OTHERS EQUAL)");
-            preferences.Add("conditions.name ('Neu' >> 'Occasion' >> 'Vorführmodell' >> 'Oldtimer' >> OTHERS EQUAL)");
-            preferences.Add("drives.name ('Vorderradantrieb' >> 'Allrad' >> 'Hinterradantrieb' >> OTHERS EQUAL)");
-            preferences.Add("transmissions.name ('Schaltgetriebe' >> 'Automat' >> OTHERS EQUAL)");
+            preferences.Add("fuels.name ('petrol' >> 'diesel' >> 'bioethanol' >> 'elektro' >> 'gas' >> 'hybrid' >> OTHERS EQUAL)");
+            preferences.Add("conditions.name ('new' >> 'occasion' >> 'demonstration model' >> 'oldtimer' >> OTHERS EQUAL)");
+            preferences.Add("drives.name ('front wheel' >> 'all wheel' >> 'rear wheel' >> OTHERS EQUAL)");
+            preferences.Add("transmissions.name ('automatic' >> 'manual' >> OTHERS EQUAL)");
             
 
             /*
              * TODO: Mit diesen beiden speziellen präferenzen ist hexagon schneller als SQL und andere algos
              * */
-            //preferences.Add("fuels.name ('Benzin' >> 'Diesel' >> 'Bioethanol' >> 'Elektro' >> 'Gas' >> 'Hybrid' >> OTHERS EQUAL)");
+            //preferences.Add("fuels.name ('petrol' >> 'diesel' >> 'bioethanol' >> 'elektro' >> 'gas' >> 'hybrid' >> OTHERS EQUAL)");
             //preferences.Add("cars.title ('AUDI Q7 3.0 TDI quattro' >> OTHERS EQUAL)");
             
 
@@ -946,7 +946,7 @@ namespace Utility
             string strMin = formatLineString("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(), reportTimeTotal.Min(), reportTimeAlgorithm.Min(), reportCorrelation.Min(), reportCardinality.Min());
             string strMax = formatLineString("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), reportCorrelation.Max(), reportCardinality.Max());
             string strVar = formatLineString("variance", "", mathematic.getVariance(reportDimensions), mathematic.getVariance(reportSkylineSize), mathematic.getVariance(reportTimeTotal), mathematic.getVariance(reportTimeAlgorithm), mathematic.getVariance(reportCorrelation), mathematic.getVariance(reportCardinality));
-            string strStd = formatLineString("stdderivation", "", mathematic.getStdDerivation(reportDimensions), mathematic.getStdDerivation(reportSkylineSize), mathematic.getStdDerivation(reportTimeTotal), mathematic.getStdDerivation(reportTimeAlgorithm), mathematic.getStdDerivation(reportCorrelation), mathematic.getStdDerivation(reportCardinality));
+            string strStd = formatLineString("stddeviation", "", mathematic.getStdDeviation(reportDimensions), mathematic.getStdDeviation(reportSkylineSize), mathematic.getStdDeviation(reportTimeTotal), mathematic.getStdDeviation(reportTimeAlgorithm), mathematic.getStdDeviation(reportCorrelation), mathematic.getStdDeviation(reportCardinality));
 
             sb.AppendLine(strAverage);
             sb.AppendLine(strMin);

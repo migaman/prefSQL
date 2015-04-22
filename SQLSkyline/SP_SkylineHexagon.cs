@@ -34,7 +34,6 @@ namespace prefSQL.SQLSkyline
                 int posOfFROM = 0;
                 posOfFROM = strSQL.IndexOf("FROM");
                 string strSQLIncomparable = "SELECT DISTINCT " + strSelectIncomparable + " " + strSQL.Substring(posOfFROM);
-                //strSQLIncomparable = "SELECT DISTINCT colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE colors.name IN ('blau', 'silber', 'rot', 'pink')";
 
                 SqlDataAdapter dap = new SqlDataAdapter(strSQLIncomparable, connection);
                 DataTable dt = new DataTable();

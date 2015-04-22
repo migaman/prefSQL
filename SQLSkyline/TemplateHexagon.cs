@@ -217,6 +217,7 @@ namespace prefSQL.SQLSkyline
                 {
                     sizeNodes *= (maxPreferenceLevel[i] + 1);
                 }
+                Debug.WriteLine("Grösse BTG: " + sizeNodes);
 
                 //Because we have 4 objects to save the tree state
                 if (sizeNodes > (System.Int32.MaxValue / 4))

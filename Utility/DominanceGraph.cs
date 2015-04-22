@@ -21,7 +21,7 @@ namespace Utility
             sw.Start();
 
             string strSQL = "SELECT t1.id, t1.title, t1.price FROM cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID ";
-            string strPreference = " SKYLINE OF HIGH t2.name {'schwarz' >> OTHERS EQUAL} AND LOW t1.price";
+            string strPreference = " SKYLINE OF HIGH t2.name {'black' >> OTHERS EQUAL} AND LOW t1.price";
             List<int> listIDs = new List<int>();
             bool isSkylineEmpty = false; 
             SQLCommon common = new SQLCommon();
