@@ -19,14 +19,8 @@ namespace prefSQL.SQLSkyline
             var dataTableResult = new DataTable();
 
             var operators = strOperators.ToString(CultureInfo.InvariantCulture).Split(';');
-            var allPreferences = new List<int>();
-
-            for (var i = 0; i < operators.Length; i++)
-            {
-                allPreferences.Add(i);
-            }
-
-            Utility = new SkylineSampleUtility(allPreferences, count, dimension);
+           
+            Utility = new SkylineSampleUtility(operators.Length, count, dimension);
 
             var fullDataTable = Helper.GetSkylineDataTable(strQuery, true, strConnection);
             var objectArrayFromDataTableOrig = Helper.GetObjectArrayFromDataTable(fullDataTable);
@@ -43,13 +37,13 @@ namespace prefSQL.SQLSkyline
 
             foreach (var dataRow in objectArrayFromDataTableOrig)
             {
-                result.Add((int) dataRow[Utility.AllPreferences.Count], dataRow);
+                result.Add((int) dataRow[Utility.AllPreferencesCount], dataRow);
             }
 
             return result;
         }
 
-        public DataTable GetSkyline(Dictionary<int, object[]> databaseAsObjectArray, SkylineStrategy algorithm,
+        internal DataTable GetSkyline(Dictionary<int, object[]> databaseAsObjectArray, SkylineStrategy algorithm,
             SqlDataRecord record, string[] operators, DataTable baseDataTableResult, int numberOfRecords,
             bool hasIncomparable, string[] additionalParameters)
         {
@@ -105,9 +99,9 @@ namespace prefSQL.SQLSkyline
             foreach (var item in skylineSampleFinalObjects)
             {
                 var row = skylineSample.NewRow();
-                for (var i = Utility.AllPreferences.Count; i < item.Value.Length; i++)
+                for (var i = Utility.AllPreferencesCount; i < item.Value.Length; i++)
                 {
-                    row[i - Utility.AllPreferences.Count] = item.Value[i];
+                    row[i - Utility.AllPreferencesCount] = item.Value[i];
                 }
                 skylineSample.Rows.Add(row);
             }
@@ -139,60 +133,6 @@ namespace prefSQL.SQLSkyline
             return result;
         }
 
-        private DataTable ReduceDtResult(DataTable dataTableStructure, HashSet<int> subspace)
-        {
-            //var subspaceList = GetSubspaceComplement(subspace).ToList();
-            //subspaceList.Sort();
-            //for (var i = subspaceList.Count - 1; i >= 0; i--)
-            //{
-            //    dataTableStructure.Columns.RemoveAt(i);
-            //}
-
-            var reducedDataTable = new DataTable();
-            Helper.buildDataRecord(dataTableStructure, new string[subspace.Count], reducedDataTable);
-            return reducedDataTable;
-        }
-
-        private SqlDataRecord ReduceRecord(DataTable dataTableStructure, HashSet<int> subspace)
-        {
-            //var subspaceList = GetSubspaceComplement(subspace).ToList();
-            //subspaceList.Sort();
-            //for(var i=subspaceList.Count-1;i>=0;i--)
-            //{
-            //    dataTableStructure.Columns.RemoveAt(i);
-            //}
-
-            return Helper.buildDataRecord(dataTableStructure, new string[subspace.Count], new DataTable());
-        }
-
-        private static HashSet<int> ColumnsUsedInSubspace(DataTable subspaceDataTable, HashSet<int> subspace)
-        {
-            return new HashSet<int>(subspace);
-
-            var columnsUsedInSubspace = new HashSet<int>();
-            var subspaceStrings = new List<string>();
-
-            foreach (var subspaceItem in subspace)
-            {
-                subspaceStrings.Add(subspaceDataTable.Columns[subspaceItem].ToString());
-            }
-
-            foreach (var column in subspaceDataTable.Columns)
-            {
-                for (var i = 0; i < subspaceStrings.Count; i++)
-                {
-                    var attribute = subspaceStrings[i];
-                    if (attribute.EndsWith(column.ToString(), true, CultureInfo.InvariantCulture))
-                        // TODO: replace EndsWith, probably extend Models
-                    {
-                        columnsUsedInSubspace.Add(i);
-                        break;
-                    }
-                }
-            }
-            return columnsUsedInSubspace;
-        }
-
         private static string[] ReducedOperators(string[] operators, HashSet<int> subspace)
         {
             var reducedOperators = new string[operators.Length];
@@ -221,12 +161,12 @@ namespace prefSQL.SQLSkyline
             var reducedObjectArrayFromDataTable = new List<object[]>();
             var objectFullDimension = databaseAsObjectArray.First().Value.Length;
 
-            var objectDim = databaseAsObjectArray.First().Value.Length - Utility.AllPreferences.Count + subspace.Count;
+            var objectDim = databaseAsObjectArray.First().Value.Length - Utility.AllPreferencesCount + subspace.Count;
             foreach (var item in databaseAsObjectArray)
             {
                 var count = 0;
                 var newObject = new object[objectDim];
-                for (var i = 0; i < Utility.AllPreferences.Count; i++)
+                for (var i = 0; i < Utility.AllPreferencesCount; i++)
                 {
                     if (subspace.Contains(i))
                     {
@@ -235,9 +175,9 @@ namespace prefSQL.SQLSkyline
                     }
                 }
 
-                for (var i = Utility.AllPreferences.Count; i < objectFullDimension; i++)
+                for (var i = Utility.AllPreferencesCount; i < objectFullDimension; i++)
                 {
-                    newObject[i + count - Utility.AllPreferences.Count] = item.Value[i];
+                    newObject[i + count - Utility.AllPreferencesCount] = item.Value[i];
                 }
                 reducedObjectArrayFromDataTable.Add(newObject);
             }
@@ -278,9 +218,15 @@ namespace prefSQL.SQLSkyline
 
         public HashSet<int> GetSubspaceComplement(HashSet<int> subspace)
         {
-            var allPreferences = new List<int>(Utility.AllPreferences);
-            allPreferences.RemoveAll(subspace.Contains);
-            return new HashSet<int>(allPreferences);
+            var subspaceComplement = new HashSet<int>();
+            for (var i = 0; i < Utility.AllPreferencesCount; i++)
+            {
+                if (!subspace.Contains(i))
+                {
+                    subspaceComplement.Add(i);
+                }
+            }
+            return subspaceComplement;
         }
 
         private static void RemoveDominatedObjects(Dictionary<int, object[]> equalRowsWithRespectToSubspaceColumnsDataTable,
