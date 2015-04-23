@@ -10,6 +10,8 @@ using System.Text;
 
 namespace prefSQL.SQLSkyline
 {
+    using Microsoft.SqlServer.Server;
+
     public class SkylineSQL : SkylineStrategy
     {
         public override bool isNative()
@@ -27,6 +29,12 @@ namespace prefSQL.SQLSkyline
             return true;
         }
 
+        internal override DataTable getSkylineTable(List<object[]> dataTable, SqlDataRecord record, string strOperators, int numberOfRecords,
+            bool hasIncomparable, string[] additionalParameters, DataTable dtResult)
+        {
+            throw new NotImplementedException();
+        }
+
         public override string getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
         {
             //string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strSQLReturn);
@@ -39,5 +47,6 @@ namespace prefSQL.SQLSkyline
             return null;
 
         }
+      
     }
 }

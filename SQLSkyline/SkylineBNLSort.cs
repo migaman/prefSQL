@@ -10,6 +10,8 @@ using System.Text;
 
 namespace prefSQL.SQLSkyline
 {
+    using Microsoft.SqlServer.Server;
+
     public class SkylineBNLSort : SkylineStrategy
     {
         
@@ -29,6 +31,12 @@ namespace prefSQL.SQLSkyline
             return true;
         }
 
+        internal override DataTable getSkylineTable(List<object[]> dataTable, SqlDataRecord record, string strOperators, int numberOfRecords,
+            bool hasIncomparable, string[] additionalParameters, DataTable dtResult)
+        {
+            throw new NotImplementedException();
+        }
+
         public override string getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
         {
             strFirstSQL += strOrderByAttributes;
@@ -46,30 +54,23 @@ namespace prefSQL.SQLSkyline
             return strSQLReturn;
             
         }
+
         public override DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        {
+            var skyline = getSP_Skyline(hasIncomparable);
+            DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+            timeMilliseconds = skyline.timeInMs;
+            return dt;         
+        }
+
+        private TemplateBNL getSP_Skyline(bool hasIncomparable)
         {
             if (hasIncomparable)
             {
-                SP_SkylineBNLSort skyline = new SP_SkylineBNLSort();
-                
-                skyline.UseDataTable = UseDataTable;
-                DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
-
-                timeMilliseconds = skyline.timeInMs;
-                return dt;
-            }
-            else
-            {
-                SP_SkylineBNLSortLevel skyline = new SP_SkylineBNLSortLevel();
-                
-                skyline.UseDataTable = UseDataTable;
-                
-				DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
-                
-                timeMilliseconds = skyline.timeInMs;
-                return dt;
+                return new SP_SkylineBNLSort();
             }
 
+            return new SP_SkylineBNLSortLevel();
         }
     }
 }
