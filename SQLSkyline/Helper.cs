@@ -12,6 +12,9 @@ using System.Text;
 
 namespace prefSQL.SQLSkyline
 {
+    using System.Data.SqlClient;
+    using System.Diagnostics;
+
     class Helper
     {
         //Only this parameters are different beteen SQL CLR function and Utility class
@@ -73,11 +76,11 @@ namespace prefSQL.SQLSkyline
                     SqlMetaData OutputColumn;
                     if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(Int64)) || col.DataType.Equals(typeof(DateTime)))
                     {
-                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType));
+                        OutputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType));
                     }
                     else
                     {
-                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
+                        OutputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
                     }
                     outputColumns.Add(OutputColumn);
                     dtSkyline.Columns.Add(col.ColumnName, col.DataType);
@@ -87,6 +90,38 @@ namespace prefSQL.SQLSkyline
             return outputColumns;
         }
 
+        /// <summary>
+        /// Adds every output column to a new datatable and creates the structure to return data over MSSQL CLR pipes
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="operators"></param>
+        /// <param name="dtSkyline"></param>
+        /// <returns></returns>
+        public static SqlDataRecord buildDataRecord(DataTable dt, string[] operators, DataTable dtSkyline)
+        {
+            List<SqlMetaData> outputColumns = new List<SqlMetaData>(dt.Columns.Count - (operators.GetUpperBound(0) + 1));
+            int iCol = 0;
+            foreach (DataColumn col in dt.Columns)
+            {
+                //Only the real columns (skyline columns are not output fields)
+                if (iCol > operators.GetUpperBound(0))
+                {
+                    SqlMetaData OutputColumn;
+                    if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(Int64)) || col.DataType.Equals(typeof(DateTime)))
+                    {
+                        OutputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType));
+                    }
+                    else
+                    {
+                        OutputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
+                    }
+                    outputColumns.Add(OutputColumn);
+                    dtSkyline.Columns.Add(col.ColumnName, col.DataType);
+                }
+                iCol++;
+            }
+            return new SqlDataRecord(outputColumns.ToArray());
+        }
 
 
         
@@ -544,6 +579,62 @@ namespace prefSQL.SQLSkyline
                 return 0;
             }
 
+        }
+   
+        public static List<object[]> GetObjectArrayFromDataTable(DataTable dataTable)
+        {
+            //Read all records only once. (SqlDataReader works forward only!!)
+            var dataTableReader = dataTable.CreateDataReader();
+
+            //Write all attributes to a Object-Array
+            //Profiling: This is much faster (factor 2) than working with the SQLReader
+            return fillObjectFromDataReader(dataTableReader);
+        }
+
+        public static DataTable GetSkylineDataTable(string strQuery, bool isIndependent, string strConnection)
+        {
+            SqlConnection connection = null;
+            if (isIndependent == false)
+                connection = new SqlConnection(cnnStringSQLCLR);
+            else
+                connection = new SqlConnection(strConnection);
+
+            var dt = new DataTable();
+
+            try
+            {
+                //Some checks
+                if (strQuery.ToString().Length == MaxSize)
+                {
+                    throw new Exception("Query is too long. Maximum size is " + MaxSize);
+                }
+                connection.Open();
+
+                var dap = new SqlDataAdapter(strQuery.ToString(), connection);
+
+                dap.Fill(dt);
+            }
+            catch (Exception ex)
+            {
+                //Pack Errormessage in a SQL and return the result
+                var strError = "Fehler in SP_SkylineBNL: ";
+                strError += ex.Message;
+
+                if (isIndependent == true)
+                {
+                    Debug.WriteLine(strError);
+                }
+                else
+                {
+                    SqlContext.Pipe.Send(strError);
+                }
+            }
+            finally
+            {
+                connection.Close();
+            }
+
+            return dt;
         }
     }
 }

@@ -47,7 +47,7 @@
             Debug.WriteLine(skylineSampleSql);
 
             var common = new SQLCommon {SkylineType = new SkylineSQL()};
-
+            
             var parsedSql = common.parsePreferenceSQL(skylineSampleSql);
             var parsedSqlExpected = TestContext.DataRow["parsePreferenceSQLSkylineSQLExpectedResult"].ToString();
 

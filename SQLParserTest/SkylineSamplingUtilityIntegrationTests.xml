@@ -30,7 +30,7 @@
     <entireCount>4464</entireCount>
   </TestDataRow>
   <TestDataRow>
-    <comment>9 samples, each of dimension 3 (e.g., (cs.price, cs.mileage, cs.horsepower))</comment>
+    <comment>10 samples, each of dimension 3 (e.g., (cs.price, cs.mileage, cs.horsepower))</comment>
     <skylineSampleSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH SAMPLE BY RANDOM_SUBSETS COUNT 10 DIMENSION 3</skylineSampleSQL>
     <entireSkylineSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH</entireSkylineSQL>
     <entireCount>6550</entireCount>

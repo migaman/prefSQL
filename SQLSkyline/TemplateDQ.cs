@@ -35,40 +35,25 @@ namespace prefSQL.SQLSkyline
             return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection);
         }
 
+        public DataTable getSkylineTable(DataTable dataTable, String strOperators, int numberOfRecords)
+        {
+            return getSkylineTable(dataTable, strOperators, numberOfRecords, true);
+        }
 
-        protected DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection)
+        protected DataTable getSkylineTable(DataTable dt, String strOperators, int numberOfRecords, bool isIndependent)
         {
             Stopwatch sw = new Stopwatch();
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
             DataTable dtResult = new DataTable();
-
-            SqlConnection connection = null;
-            if (isIndependent == false)
-                connection = new SqlConnection(Helper.cnnStringSQLCLR);
-            else
-                connection = new SqlConnection(strConnection);
-
+        
             try
             {
-                //Some checks
-                if (strQuery.ToString().Length == Helper.MaxSize)
-                {
-                    throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
-                }
-                connection.Open();
-
-                SqlDataAdapter dap = new SqlDataAdapter(strQuery.ToString(), connection);
-                DataTable dt = new DataTable();
-                dap.Fill(dt);
-
                 //Time the algorithm needs (afer query to the database)
                 sw.Start();
 
                 // Build our record schema 
-                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, dtResult);
-                SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
-
+                SqlDataRecord record = Helper.buildDataRecord(dt, operators, dtResult);
 
                 dtResult = computeSkyline(dt, operators, operators.GetUpperBound(0), false);
 
@@ -106,27 +91,64 @@ namespace prefSQL.SQLSkyline
                 string strError = "Fehler in SP_SkylineDQ: ";
                 strError += ex.Message;
 
-
                 if (isIndependent == true)
                 {
                     System.Diagnostics.Debug.WriteLine(strError);
-
                 }
                 else
                 {
                     SqlContext.Pipe.Send(strError);
                 }
-
-            }
-            finally
-            {
-                if (connection != null)
-                    connection.Close();
             }
 
             sw.Stop();
             timeInMs = sw.ElapsedMilliseconds;
             return dtResult;
+        }
+
+        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection)
+        {          
+            SqlConnection connection = null;
+            if (isIndependent == false)
+                connection = new SqlConnection(Helper.cnnStringSQLCLR);
+            else
+                connection = new SqlConnection(strConnection);
+
+            DataTable dt = new DataTable();
+
+            try
+            {
+                //Some checks
+                if (strQuery.ToString().Length == Helper.MaxSize)
+                {
+                    throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
+                }
+                connection.Open();
+
+                SqlDataAdapter dap = new SqlDataAdapter(strQuery.ToString(), connection);
+                dap.Fill(dt);
+            }
+            catch (Exception ex)
+            {
+                //Pack Errormessage in a SQL and return the result
+                string strError = "Fehler in SP_SkylineDQ: ";
+                strError += ex.Message;
+
+                if (isIndependent == true)
+                {
+                    System.Diagnostics.Debug.WriteLine(strError);
+                }
+                else
+                {
+                    SqlContext.Pipe.Send(strError);
+                }
+            }
+            finally
+            {
+                connection.Close();
+            }
+
+            return getSkylineTable(dt, strOperators, numberOfRecords, isIndependent);
         }
 
         private DataTable computeSkyline(DataTable dt, string[] operators, int dim, bool stopRecursion)
