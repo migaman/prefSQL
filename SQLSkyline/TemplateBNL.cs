@@ -13,8 +13,6 @@ namespace prefSQL.SQLSkyline
 {
     public abstract class TemplateBNL
     {
-        public DataTable UseDataTable { private get; set; }
-
         public long timeInMs = 0;
 
         public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection)
@@ -24,64 +22,33 @@ namespace prefSQL.SQLSkyline
 
         protected DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection)
         {
+            string[] operators = strOperators.ToString().Split(';');
+            var dt = Helper.GetSkylineDataTable(strQuery, isIndependent, strConnection);
+            var listObjects = Helper.GetObjectArrayFromDataTable(dt);
+            DataTable dtResult = new DataTable();
+            SqlDataRecord record = Helper.buildDataRecord(dt, operators, dtResult);
+
+            return getSkylineTable(listObjects, record, strOperators, numberOfRecords, isIndependent, dtResult);
+        }
+
+        public DataTable getSkylineTable(List<object[]> listObjects, SqlDataRecord record, string strOperators,
+            int numberOfRecords, DataTable dtResult)
+        {
+            return getSkylineTable(listObjects, record, strOperators, numberOfRecords, true, dtResult);
+        }
+
+        protected DataTable getSkylineTable(List<object[]> listObjects, SqlDataRecord record, string strOperators, int numberOfRecords, bool isIndependent, DataTable dtResult)
+        {
             Stopwatch sw = new Stopwatch();
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
-            DataTable dtResult = new DataTable();
-
-            SqlConnection connection = null;
-            if (isIndependent == false)
-                connection = new SqlConnection(Helper.cnnStringSQLCLR);
-            else
-                connection = new SqlConnection(strConnection);
 
             try
             {
-                //Some checks
-                if (strQuery.ToString().Length == Helper.MaxSize)
-                {
-                    throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
-                }
-                connection.Open();
-
-                if (UseDataTable != null)
-                {
-                    var cmd = new SqlCommand
-                    {
-                        CommandText = "select top 0 * into #mytemptable from cars_small",
-                        CommandType = CommandType.Text,
-                        Connection = connection
-                    };                 
-                    cmd.ExecuteNonQuery();
-                    using (var bulkCopy = new SqlBulkCopy(connection))
-                    {
-                        bulkCopy.DestinationTableName = "#mytemptable";
-                        bulkCopy.WriteToServer(UseDataTable);
-                    }
-                }
-
-                SqlDataAdapter dap = new SqlDataAdapter(strQuery.ToString(), connection);
-                DataTable dt = new DataTable();              
-                dap.Fill(dt);
-
-
-                //Time the algorithm needs (afer query to the database)
-                sw.Start();
-
-
-                // Build our record schema 
-                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, dtResult);
-                SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
-
-
-                //Read all records only once. (SqlDataReader works forward only!!)
-                DataTableReader dataTableReader = dt.CreateDataReader();
-                
-                //Write all attributes to a Object-Array
-                //Profiling: This is much faster (factor 2) than working with the SQLReader
-                List<object[]> listObjects = Helper.fillObjectFromDataReader(dataTableReader);
-
+                //Time the algorithm needs (after query to the database)
+                sw.Start();              
+             
                 //For each tuple
                 foreach (object[] dbValuesObject in listObjects)
                 {
@@ -113,8 +80,6 @@ namespace prefSQL.SQLSkyline
                     }
                 }
 
-                
-
                 //Remove certain amount of rows if query contains TOP Keyword
                 Helper.getAmountOfTuples(dtResult, numberOfRecords);
 
@@ -144,29 +109,20 @@ namespace prefSQL.SQLSkyline
                 if (isIndependent == true)
                 {
                     System.Diagnostics.Debug.WriteLine(strError);
-
                 }
                 else
                 {
                     SqlContext.Pipe.Send(strError);
                 }
-
             }
-            finally
-            {
-                if (connection != null)
-                    connection.Close();
-            }
-
+         
             sw.Stop();
             timeInMs = sw.ElapsedMilliseconds;
             return dtResult;
         }
 
-
         protected abstract bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i);
 
         protected abstract void addtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
-
     }
 }
