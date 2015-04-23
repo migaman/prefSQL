@@ -43,24 +43,35 @@ namespace Utility
 
             p.GenerateScript = false;
 
-            p.Trials = 1;           //Amount of trials for each single sql preference statement
-            p.Dimensions = 6;       //Up to x dimensions
-            p.RandomDraws = 25;    //Amount of draws (x times randomly choose a some preferences)
 
+            p.Trials = 1;           //Amount of trials for each single sql preference statement
+            p.Dimensions = 4;       //Up to x dimensions
+            p.RandomDraws = 50;    //Amount of draws (x times randomly choose a some preferences)
+            
+            //p.TableSize = Performance.Size.Small;
+            //p.TableSize = Performance.Size.Medium;
+            //p.TableSize = Performance.Size.Large;
+            p.TableSize = Performance.Size.Superlarge;
+
+            //p.Set = Performance.PreferenceSet.ArchiveComparable;
+            //p.Set = Performance.PreferenceSet.ArchiveIncomparable;
             //p.Set = Performance.PreferenceSet.Jon;
             //p.Set = Performance.PreferenceSet.Mya;
             //p.Set = Performance.PreferenceSet.Barra;
             //p.Set = Performance.PreferenceSet.Shuffle;
-            p.Set = Performance.PreferenceSet.Combination;
+            //p.Set = Performance.PreferenceSet.Combination;
+            //p.Set = Performance.PreferenceSet.CombinationNumeric;
+            //p.Set = Performance.PreferenceSet.CombinationCategoric;
             //p.Set = Performance.PreferenceSet.Correlation;
             //p.Set = Performance.PreferenceSet.AntiCorrelation;
             //p.Set = Performance.PreferenceSet.Independent;
+            p.Set = Performance.PreferenceSet.CombinationHexagon;
 
-            //p.Strategy = new SkylineBNL();
-            p.Strategy = new SkylineBNLSort();
-            //p.Strategy = new SkylineDQ();
+            //p.Strategy = new SkylineSQL();
+            //p.Strategy = new SkylineBNLSort();
+            p.Strategy = new SkylineDQ();
             //p.Strategy = new SkylineHexagon();
-
+            
 
             p.generatePerformanceQueries();
         }
@@ -98,9 +109,9 @@ namespace Utility
                     //"WHERE (t1.price < 16000) " +
                     //"WHERE (t1.price < 4000) " + 
                     //"SKYLINE OF t1.price LOW, t1.mileage LOW ";
-                    //"SKYLINE OF t1.price AROUND 10000, colors.name ('pink' >> 'rot' >> 'schwarz' >> OTHERS EQUAL) " +
+                    //"SKYLINE OF t1.price AROUND 10000, colors.name ('pink' >> 'red' >> 'black' >> OTHERS EQUAL) " +
                     //"SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.doors HIGH, t1.enginesize HIGH, t1.consumption LOW, t1.seats HIGH, t1.cylinders HIGH " +
-                    //", colors.name ('pink' >> 'rot' >> 'schwarz' >> OTHERS EQUAL) ";
+                    //", colors.name ('pink' >> 'red' >> 'black' >> OTHERS EQUAL) ";
 
                     //"SKYLINE OF t1.price LOW, t1.mileage LOW, colors.name ({'red', 'blau'} >> 'blau' >> OTHERS INCOMPARABLE) ";
 
@@ -111,32 +122,45 @@ namespace Utility
 
 
                 //strPrefSQL = "SELECT c.id, c.price, b.name FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
-                    strPrefSQL = "SELECT c.id, c.price FROM cars_small c LEFT OUTER JOIN colors cc ON c.color_id = cc.id RANKING OF c.price LOW 0.5, cc.name ('braun' >> 'grün') 0.5";
-                    //strPrefSQL = "SELECT c.id, c.price FROM cars_small c LEFT OUTER JOIN colors cc ON c.color_id = cc.id SKYLINE OF c.horsepower HIGH, cc.name ('rot' >> 'blau' >> 'gelb')";
+                    strPrefSQL = "SELECT c.id, c.price FROM cars_small c LEFT OUTER JOIN colors cc ON c.color_id = cc.id RANKING OF c.price LOW 0.5, cc.name ('brown' >> 'green') 0.5";
+                    //strPrefSQL = "SELECT c.id, c.price FROM cars_small c LEFT OUTER JOIN colors cc ON c.color_id = cc.id SKYLINE OF c.horsepower HIGH, cc.name ('red' >> 'blue' >> 'yellow')";
 
 
 
 
                 strPrefSQL = "SELECT t1.id FROM cars t1 RANKING OF t1.price HIGH 0.5, t1.mileage HIGH 0.5, t1.horsepower LOW 0.5, t1.enginesize LOW 0.5, t1.consumption HIGH 0.5, t1.doors LOW 0.5, t1.cylinders LOW 0.5";
-                strPrefSQL = "SELECT t1.id, t1.title, t1.price FROM cars t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH, colors.name ('rot' >> 'blau' >> 'gelb' >> OTHERS INCOMPARABLE)";
+                strPrefSQL = "SELECT t1.id, t1.title, t1.price FROM cars t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH, colors.name ('red' >> 'blue' >> 'yellow' >> OTHERS INCOMPARABLE)";
                 strPrefSQL = "SELECT t1.id, t1.title, t1.price FROM cars t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price FROM cars t1 SKYLINE OF t1.price LOW, t1.mileage LOW ORDER BY BEST_RANK()";
                 //strPrefSQL = "SELECT t1.id FROM cars t1 SKYLINE OF t1.price LOW, t1.mileage LOW";
 
-                //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('rot' >> 'blau' >> OTHERS INCOMPARABLE)";
+                //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('red' >> 'blue' >> OTHERS INCOMPARABLE)";
 
-                //strPrefSQL = "SELECT cars.id, cars.consumption, cars.enginesize FROM cars SKYLINE OF cars.consumption LOW, cars.enginesize HIGH";
-                strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.registrationnumeric HIGH, cars.mileage LOW";
+                strPrefSQL = "SELECT cars.id, cars.consumption, cars.enginesize FROM cars SKYLINE OF cars.consumption LOW, cars.enginesize HIGH, cars.price LOW";
+                //strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.registrationnumeric HIGH, cars.mileage LOW, cars.horsepower HIGH 100 EQUAL";
                 //strPrefSQL = "SELECT cars.id, cars.horsepower, cars.mileage FROM cars SKYLINE OF cars.horsepower HIGH, cars.mileage LOW";
-                strPrefSQL = "SELECT cars.id, cars.horsepower, cars.mileage FROM cars LEFT OUTER JOIN Fuels ON cars.fuel_id = Fuels.id SKYLINE OF fuels.name ('Benzin' >> 'Diesel' >> 'Bioethanol' >> 'Elektro' >> 'Gas' >> 'Hybrid' >> OTHERS EQUAL) ";
+                //strPrefSQL = "SELECT * FROM cars LEFT OUTER JOIN Fuels ON cars.fuel_id = Fuels.id SKYLINE OF fuels.name ('petrol' >> 'diesel' >> 'bioethanol' >> 'electro' >> 'gas' >> 'hybrid' >> OTHERS EQUAL) ";
 
+
+
+                strPrefSQL = "SELECT * FROM cars t1 " +
+                     "LEFT OUTER JOIN colors ON t1.color_id = colors.ID " +
+                    "LEFT OUTER JOIN bodies ON t1.body_id = bodies.ID " +
+                    "LEFT OUTER JOIN conditions ON t1.condition_id = conditions.id " +
+                    "LEFT OUTER JOIN Transmissions ON t1.transmission_id = Transmissions.id " +
+                    "LEFT OUTER JOIN Fuels ON t1.fuel_id = Fuels.id " +
+                    "LEFT OUTER JOIN Drives ON t1.drive_id = Drives.id " +
+                    "LEFT OUTER JOIN Pollutions ON t1.pollution_id = Pollutions.id " +
+                    "LEFT OUTER JOIN Efficiencies ON t1.efficiency_id = Efficiencies.id " +
+                    "LEFT OUTER JOIN Makes ON t1.make_id = Makes.id " +
+                "SKYLINE OF t1.price LOW,t1.mileage LOW,t1.horsepower HIGH,t1.enginesize HIGH,t1.registrationNumeric HIGH,t1.consumption LOW,t1.doors HIGH,colors.name ('red' == 'blue' >> OTHERS EQUAL >> 'gray'),fuels.name ('petrol' >> OTHERS EQUAL >> 'diesel'),bodies.name ('compact car' >> 'bus' >> 'estate car' >> 'scooter' >> OTHERS EQUAL >> 'Pick-Up'),t1.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL),makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI'),conditions.name ('new' >> OTHERS EQUAL)";
 
                 Debug.WriteLine(strPrefSQL);
 
                 SQLCommon parser = new SQLCommon();
                 //parser.SkylineType = new SkylineSQL();
                 //parser.SkylineType = new SkylineBNL();
-                parser.SkylineType = new SkylineBNLSort();
+                //parser.SkylineType = new SkylineBNLSort();
                 parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new MultipleSkylineBNL();
                 //parser.SkylineType = new SkylineDQ();

@@ -29,13 +29,13 @@ namespace prefSQL.SQLSkyline
             return;
         }
 
-        protected override void add(DataTableReader dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable)
+        protected override void add(object[] dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable)
         {
             ArrayList al = new ArrayList();
 
             //create int array from dataTableReader
             long[] tuple = new long[operators.GetUpperBound(0) + 1];
-            for (int iCol = 0; iCol < dataReader.FieldCount; iCol++)
+            for (int iCol = 0; iCol <= dataReader.GetUpperBound(0); iCol++)
             {
                 //Only the real columns (skyline columns are not output fields)
                 if (iCol <= operators.GetUpperBound(0))

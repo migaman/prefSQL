@@ -43,6 +43,7 @@ namespace prefSQL.SQLParser
 
             connection.Open();
             DbCommand command = connection.CreateCommand();
+            command.CommandTimeout = 0; //infinite timeout
             command.CommandText = strSQL;
             DbDataAdapter db = factory.CreateDataAdapter();
             db.SelectCommand = command;
@@ -116,6 +117,7 @@ namespace prefSQL.SQLParser
 
                     connection.Open();
                     DbCommand command = connection.CreateCommand();
+                    command.CommandTimeout = 0; //infinite timeout
                     command.CommandText = strPrefSQL;
                     DbDataAdapter db = factory.CreateDataAdapter();
                     db.SelectCommand = command;

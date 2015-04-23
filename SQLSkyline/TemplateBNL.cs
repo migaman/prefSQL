@@ -7,10 +7,25 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-//Caution: Attention small changes in this code can lead to performance issues, i.e. using a startswith instead of an equal can increase by 10 times
-//Important: Only use equal for comparing text (otherwise performance issues)
+
+
+//!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace prefSQL.SQLSkyline
 {
+
+    /// <summary>
+    /// BNL Algorithm implemented according to algorithm pseudocode in Börzsönyi et al. (2001)
+    /// </summary>
+    /// <remarks>
+    /// Börzsönyi, Stephan; Kossmann, Donald; Stocker, Konrad (2001): The Skyline Operator. In : 
+    /// Proceedings of the 17th International Conference on Data Engineering. Washington, DC, USA: 
+    /// IEEE Computer Society, pp. 421–430. Available online at http://dl.acm.org/citation.cfm?id=645484.656550.
+    /// 
+    /// Profiling considersations:
+    /// - Always use equal when comparins test --> i.e. using a startswith instead of an equal can decrease performance by 10 times
+    /// - Write objects from DataReader into an object[] an work with the object. 
+    /// - Explicity convert (i.e. (int)reader[0]) value from DataReader and don't use the given methods (i.e. reader.getInt32(0))
+    /// </remarks>
     public abstract class TemplateBNL
     {
         public DataTable UseDataTable { private get; set; }

@@ -30,9 +30,9 @@ namespace prefSQL.SQLParserTest
                 "LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID " +
                 "LEFT OUTER JOIN bodies ON t1.body_id = bodies.ID " +
                 "SKYLINE OF t1.price LOW, t1.mileage LOW " +  
-                "ORDER BY bodies.name ('Kompaktvan / Minivan' >> OTHERS EQUAL), t2.name ('weiss' >> OTHERS EQUAL) ";
+                "ORDER BY bodies.name ('minivan' >> OTHERS EQUAL), t2.name ('white' >> OTHERS EQUAL) ";
 
-            string expected = "SELECT t1.id, t1.title, t2.name, bodies.name FROM cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID LEFT OUTER JOIN bodies ON t1.body_id = bodies.ID WHERE NOT EXISTS(SELECT t1_INNER.id, t1_INNER.title, t2_INNER.name, bodies_INNER.name FROM cars_small t1_INNER LEFT OUTER JOIN colors t2_INNER ON t1_INNER.color_id = t2_INNER.ID LEFT OUTER JOIN bodies bodies_INNER ON t1_INNER.body_id = bodies_INNER.ID WHERE t1_INNER.price <= t1.price AND t1_INNER.mileage <= t1.mileage AND ( t1_INNER.price < t1.price OR t1_INNER.mileage < t1.mileage) ) ORDER BY CASE WHEN bodies.name = 'Kompaktvan / Minivan' THEN 0 ELSE 100 END ASC, CASE WHEN t2.name = 'weiss' THEN 0 ELSE 100 END ASC ";
+            string expected = "SELECT t1.id, t1.title, t2.name, bodies.name FROM cars_small t1 LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID LEFT OUTER JOIN bodies ON t1.body_id = bodies.ID WHERE NOT EXISTS(SELECT t1_INNER.id, t1_INNER.title, t2_INNER.name, bodies_INNER.name FROM cars_small t1_INNER LEFT OUTER JOIN colors t2_INNER ON t1_INNER.color_id = t2_INNER.ID LEFT OUTER JOIN bodies bodies_INNER ON t1_INNER.body_id = bodies_INNER.ID WHERE t1_INNER.price <= t1.price AND t1_INNER.mileage <= t1.mileage AND ( t1_INNER.price < t1.price OR t1_INNER.mileage < t1.mileage) ) ORDER BY CASE WHEN bodies.name = 'minivan' THEN 0 ELSE 100 END ASC, CASE WHEN t2.name = 'white' THEN 0 ELSE 100 END ASC ";
             SQLCommon common = new SQLCommon();
             string actual = common.parsePreferenceSQL(strPrefSQL);
 
