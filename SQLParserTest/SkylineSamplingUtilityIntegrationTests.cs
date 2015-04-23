@@ -45,6 +45,8 @@
 
             var entireSkylineObjectsIds = GetHashSetOfIdsFromDataTable(entireSkyline);
             var sampleSkylineObjectsIds = GetHashSetOfIdsFromDataTable(sampleSkyline);
+            Debug.WriteLine("ORIG Count={0}", entireSkylineObjectsIds.Count);
+            Debug.WriteLine("SMPL Count={0}", sampleSkylineObjectsIds.Count);
 
             Assert.IsTrue(sampleSkylineObjectsIds.IsSubsetOf(entireSkylineObjectsIds),
                 "Dominated objects contained in Sample Skyline (i.e., objects which are not contained in the entire Skyline).");
