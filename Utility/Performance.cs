@@ -252,7 +252,7 @@ namespace Utility
             preferences.Add("fuels.name ('petrol' >> 'diesel' >> 'bioethanol' >> 'elektro' >> 'gas' >> 'hybrid' >> OTHERS EQUAL)");
             preferences.Add("conditions.name ('new' >> 'occasion' >> 'demonstration model' >> 'oldtimer' >> OTHERS EQUAL)");
             preferences.Add("drives.name ('front wheel' >> 'all wheel' >> 'rear wheel' >> OTHERS EQUAL)");
-            preferences.Add("transmissions.name ('automatic' >> 'manual' >> OTHERS EQUAL)");
+            preferences.Add("transmissions.name ('manual' >> 'automatic' >> OTHERS EQUAL)");
             
 
             /*
