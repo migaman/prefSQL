@@ -58,6 +58,7 @@ namespace prefSQL.SQLSkyline
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
+            var resultToTupleMapping = Helper.ResultToTupleMapping(operators);
 
             try
             {
@@ -81,7 +82,7 @@ namespace prefSQL.SQLSkyline
                         //check if record is dominated (compare against the records in the window)
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
                         {
-                            if (tupleDomination(dbValuesObject, resultCollection, resultstringCollection, operators, dtResult, i) == true)
+                            if (tupleDomination(dbValuesObject, resultCollection, resultstringCollection, operators, dtResult, i, resultToTupleMapping) == true)
                             {
                                 isDominated = true;
                                 break;
@@ -136,7 +137,7 @@ namespace prefSQL.SQLSkyline
             return dtResult;
         }
 
-        protected abstract bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i);
+        protected abstract bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i, int[] resultToTupleMapping);
 
         protected abstract void addtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
     }

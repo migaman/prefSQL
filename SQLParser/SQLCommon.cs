@@ -88,32 +88,17 @@ namespace prefSQL.SQLParser
         /// <returns>Returns a DataTable with the requested values</returns>
         public DataTable parseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSql)
         {
-            return parseAndExecutePrefSQL(connectionString, driverString, strPrefSql, null);
+            return parseAndExecutePrefSQL(connectionString, driverString, GetPrefSqlModelFromPreferenceSql(strPrefSql));
         }
 
-        private DataTable parseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSql, PrefSQLModel prefSqlModel)
+        internal DataTable parseAndExecutePrefSQL(string connectionString, string driverString, PrefSQLModel prefSqlModel)
         {
             Helper.ConnectionString = connectionString;
             Helper.DriverString = driverString;
 
-            var prefSql = prefSqlModel;
-            if (prefSql == null)
-            {
-                prefSql = GetPrefSqlModelFromPreferenceSql(strPrefSql);
-            }
-
-            if (prefSql.HasSkylineSample)
-            {
-                var skylineSamplingUtility = new SkylineSamplingUtility(prefSql, this);
-                return skylineSamplingUtility.GetSkyline();
-            }
-
-            var withIncomparable = false;
-            var strSQL = parsePreferenceSQL(strPrefSql, ref withIncomparable, prefSql);
-            //return helper.getResults(strSQL, _SkylineType, model);
-            //return Helper.getResults(strSQL, _SkylineType, prefSql);
-            DataTable dt = Helper.getResults(strSQL, _SkylineType, prefSql);
+            DataTable dt = Helper.getResults(parsePreferenceSQL(prefSqlModel), SkylineType, prefSqlModel);
             TimeInMilliseconds = Helper.timeInMilliseconds;
+
             return dt;
         }
 
@@ -122,30 +107,26 @@ namespace prefSQL.SQLParser
         /// <returns>Return the ANSI SQL Statement</returns>
         public string parsePreferenceSQL(string strInput)
         {
-            var withIncomparable = false;
-            var strSql = parsePreferenceSQL(strInput, ref withIncomparable, null);
-            return strSql;
+            return parsePreferenceSQL(strInput, null);
+        }
+
+        internal string parsePreferenceSQL(PrefSQLModel prefSQL)
+        {
+            return parsePreferenceSQL(prefSQL.OriginalPreferenceSql, prefSQL);
         }
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
-        /// <param name="strInput">Preference SQL Statement</param>
-        /// <param name="withIncomparable"></param>
         /// <param name="prefSqlModel"></param>
         /// <returns>Return the ANSI SQL Statement</returns>
-        private string parsePreferenceSQL(string strInput, ref bool withIncomparable, PrefSQLModel prefSqlModel)
+        internal string parsePreferenceSQL(string strInput, PrefSQLModel prefSQLParam)
         {
             var sqlSort = new SQLSort();
             var sqlCriterion = new SQLCriterion();
             string strSQLReturn = ""; //The SQL-Query that is built on the basis of the prefSQL 
+            var prefSQL = prefSQLParam ?? GetPrefSqlModelFromPreferenceSql(strInput);
 
             try
-            {
-                var prefSQL = prefSqlModel;
-                if (prefSQL == null)
-                {
-                    prefSQL = GetPrefSqlModelFromPreferenceSql(strInput);
-                }
-                
+            {                            
                 //Check if parse was successful and query contains PrefSQL syntax
                 if (prefSQL != null) // && strInput.IndexOf(SkylineOf) > 0
                 {
@@ -530,13 +511,12 @@ namespace prefSQL.SQLParser
 
         internal string GetAnsiSqlFromPrefSqlModel(PrefSQLModel prefSqlModel)
         {
-            var withIncomparable = false;
-            return parsePreferenceSQL(prefSqlModel.OriginalPreferenceSql, ref withIncomparable, prefSqlModel);
+            return parsePreferenceSQL(prefSqlModel.OriginalPreferenceSql, prefSqlModel);
         }
 
         internal DataTable ExecuteFromPrefSqlModel(string dbConnection, string dbProvider, PrefSQLModel prefSqlModel)
         {
-            return parseAndExecutePrefSQL(dbConnection, dbProvider, prefSqlModel.OriginalPreferenceSql, prefSqlModel);
+            return parseAndExecutePrefSQL(dbConnection, dbProvider, prefSqlModel);
         }
     }
 }

@@ -96,5 +96,6 @@
     <Compile Include="Models\HexagonRemoveModel.cs" />
     <Compile Include="SkylineSample.cs" />
     <Compile Include="SkylineSampleUtility.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
 </Project>

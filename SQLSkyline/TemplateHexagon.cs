@@ -84,15 +84,7 @@ namespace prefSQL.SQLSkyline
                 // Build our record schema 
                 List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, dtResult);
 
-
-
-                //Read start of skyline
-                DataTableReader dataTableReader = dt.CreateDataReader();
-
-
-                //Write all attributes to a Object-Array
-                //Profiling: This is much faster (factor 2) than working with the SQLReader
-                List<object[]> listObjects = Helper.fillObjectFromDataReader(dataTableReader);
+                List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
 
                 //Read all records only once.
                 foreach (object[] dbValuesObject in listObjects)

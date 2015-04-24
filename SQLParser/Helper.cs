@@ -61,17 +61,7 @@ namespace prefSQL.SQLParser
         /// <param name="algorithm"></param>
         /// <returns></returns>
         public DataTable getResults(String strPrefSQL, SkylineStrategy strategy, PrefSQLModel model)
-        {
-            return getResults(strPrefSQL, strategy, model, false);
-        }
-
-        public DataTable getSamplingResults(String strPrefSQL, SkylineStrategy strategy, PrefSQLModel model)
-        {
-            return getResults(strPrefSQL, strategy, model, true);
-        }      
-
-        private DataTable getResults(String strPrefSQL, SkylineStrategy strategy, PrefSQLModel model, bool sampling)
-        {
+        {     
             DataTable dt = new DataTable();
             //Default Parameter
             string strQuery = "";
@@ -83,7 +73,7 @@ namespace prefSQL.SQLParser
             //Native SQL algorithm is already a valid SQL statement
             if (strPrefSQL.StartsWith("SELECT"))
             {
-                if (!sampling)
+                if (!model.HasSkylineSample)
                 {
                     //If query doesn't need skyline calculation (i.e. query without preference clause) --> set algorithm to nativeSQL
                     strategy = new SkylineSQL();
@@ -118,7 +108,7 @@ namespace prefSQL.SQLParser
             {
                 if (strategy.isNative())
                 {
-                    if (!sampling)
+                    if (!model.HasSkylineSample)
                     {
                         //Native SQL
 
@@ -153,7 +143,7 @@ namespace prefSQL.SQLParser
                         throw new Exception(strategy.GetType() + " does not support incomparale tuples");
                     }
 
-                    if (!sampling)
+                    if (!model.HasSkylineSample)
                     {
                         dt = strategy.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords, model.WithIncomparable, parameter);
                         timeInMilliseconds = strategy.timeMilliseconds;

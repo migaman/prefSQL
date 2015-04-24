@@ -1,0 +1,86 @@
+<TestData>
+  <TestDataRow>
+    <comment>3 samples, each of dimension 1: cannot choose 1 from 2 in order to gain 3 subspaces, max 2 subspaces possible.</comment>
+    <attributesCount>2</attributesCount>
+    <sampleCount>3</sampleCount>
+    <sampleDimension>1</sampleDimension>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>4 samples, each of dimension 2: cannot choose 2 from 3 in order to gain 4 subspaces, max 3 subspaces possible.</comment>
+    <attributesCount>3</attributesCount>
+    <sampleCount>4</sampleCount>
+    <sampleDimension>2</sampleDimension>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>5 samples, each of dimension 2: cannot choose 2 from 3 in order to gain 5 subspaces, max 3 subspaces possible.</comment>
+    <attributesCount>3</attributesCount>
+    <sampleCount>5</sampleCount>
+    <sampleDimension>2</sampleDimension>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>5 samples, each of dimension 1: cannot choose 1 from 3 in order to gain 5 subspaces, max 3 subspaces possible.</comment>
+    <attributesCount>3</attributesCount>
+    <sampleCount>5</sampleCount>
+    <sampleDimension>1</sampleDimension>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>count 0, dimension 0 impossible.</comment>
+    <attributesCount>4</attributesCount>
+    <sampleCount>0</sampleCount>
+    <sampleDimension>0</sampleDimension>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>count 1, dimension 0 impossible.</comment>
+    <attributesCount>4</attributesCount>
+    <sampleCount>1</sampleCount>
+    <sampleDimension>0</sampleDimension>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>count 10, dimension 0 impossible.</comment>
+    <attributesCount>4</attributesCount>
+    <sampleCount>10</sampleCount>
+    <sampleDimension>0</sampleDimension>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>count 0, dimension 1 impossible.</comment>
+    <attributesCount>4</attributesCount>
+    <sampleCount>0</sampleCount>
+    <sampleDimension>1</sampleDimension>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>count 0, dimension 10 impossible.</comment>
+    <attributesCount>4</attributesCount>
+    <sampleCount>0</sampleCount>
+    <sampleDimension>10</sampleDimension>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>1 sample of dimension 5: cannot choose 5 from 4 in order to gain 1 subspace, no subspace possible.</comment>
+    <attributesCount>4</attributesCount>
+    <sampleCount>1</sampleCount>
+    <sampleDimension>5</sampleDimension>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>2 samples, each of dimension 4: cannot choose 4 from 4 in order to gain 2 subspaces, max 1 subspace possible.</comment>
+    <attributesCount>4</attributesCount>
+    <sampleCount>2</sampleCount>
+    <sampleDimension>4</sampleDimension>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>5 samples, each of dimension 3: cannot choose 3 from 4 in order to gain 5 subspaces, max 4 subspaces possible.</comment>
+    <attributesCount>4</attributesCount>
+    <sampleCount>5</sampleCount>
+    <sampleDimension>3</sampleDimension>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>7 samples, each of dimension 2: cannot choose 2 from 4 in order to gain 7 subspaces, max 6 subspaces possible.</comment>
+    <attributesCount>4</attributesCount>
+    <sampleCount>7</sampleCount>
+    <sampleDimension>2</sampleDimension>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>5 samples, each of dimension 1: cannot choose 1 from 4 in order to gain 5 subspaces, max 4 subspaces possible.</comment>
+    <attributesCount>4</attributesCount>
+    <sampleCount>5</sampleCount>
+    <sampleDimension>1</sampleDimension>
+  </TestDataRow>
+</TestData>
