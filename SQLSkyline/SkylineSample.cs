@@ -3,6 +3,7 @@ namespace prefSQL.SQLSkyline
     using System;
     using System.Collections.Generic;
     using System.Data;
+    using System.Diagnostics;
     using System.Globalization;
     using System.Linq;
     using Microsoft.SqlServer.Server;
@@ -19,55 +20,44 @@ namespace prefSQL.SQLSkyline
             var dataTableResult = new DataTable();
 
             var operators = strOperators.ToString(CultureInfo.InvariantCulture).Split(';');
-           
+
             Utility = new SkylineSampleUtility(operators.Length, count, dimension);
 
             var fullDataTable = Helper.GetSkylineDataTable(strQuery, true, strConnection);
             var objectArrayFromDataTableOrig = Helper.GetObjectArrayFromDataTable(fullDataTable);
-            var objectArrayFromDataTable = FillbyRowId(objectArrayFromDataTableOrig);
+            var objectArrayFromDataTable =
+                objectArrayFromDataTableOrig.ToDictionary(dataRow => (int) dataRow[Utility.AllPreferencesCount]);
             var sqlDataRecord = Helper.buildDataRecord(fullDataTable, operators, dataTableResult);
 
             return GetSkyline(objectArrayFromDataTable, algorithm, sqlDataRecord, operators, dataTableResult,
                 numberOfRecords, hasIncomparable, additionalParameters);
         }
 
-        private Dictionary<int, object[]> FillbyRowId(List<object[]> objectArrayFromDataTableOrig)
-        {
-            var result = new Dictionary<int, object[]>();
-
-            foreach (var dataRow in objectArrayFromDataTableOrig)
-            {
-                result.Add((int) dataRow[Utility.AllPreferencesCount], dataRow);
-            }
-
-            return result;
-        }
-
         internal DataTable GetSkyline(Dictionary<int, object[]> databaseAsObjectArray, SkylineStrategy algorithm,
             SqlDataRecord record, string[] operators, DataTable baseDataTableResult, int numberOfRecords,
             bool hasIncomparable, string[] additionalParameters)
         {
-            var skylineSample = baseDataTableResult.Clone();
-            var skylineSampleOrigObjects = new Dictionary<int, object[]>();
-            var subspaceDataTableOrigObjects = new Dictionary<int, object[]>();
+            var skylineSampleReturn = baseDataTableResult.Clone();
             var skylineSampleFinalObjects = new Dictionary<int, object[]>();
+
+            timeMilliseconds = 0;
+            var sw = new Stopwatch();
+            sw.Start();
 
             foreach (var subspace in Utility.Subspaces)
             {
-                var reducedObjectArrayFromDataTable = ReducedObjectArrayFromDataTable(databaseAsObjectArray, subspace);
-
-                //var reducedRecord = ReduceRecord(baseDataTableResult.Clone(), subspace);
                 var reducedOperators = ReducedOperators(operators, subspace);
 
-                //var reducedDtResult = ReduceDtResult(baseDataTableResult, subspace);
-
-                var subspaceDataTable = algorithm.getSkylineTable(reducedObjectArrayFromDataTable, record,
+                sw.Stop();
+                timeMilliseconds += sw.ElapsedMilliseconds;
+                var subspaceDataTable = algorithm.getSkylineTable(databaseAsObjectArray.Values.ToList(), record,
                     string.Join(";", reducedOperators),
                     numberOfRecords, hasIncomparable, additionalParameters, baseDataTableResult.Clone());
+                timeMilliseconds += algorithm.timeMilliseconds;
+                sw.Restart();
 
-                subspaceDataTableOrigObjects = GetOriginalObjects(databaseAsObjectArray, subspaceDataTable, subspace);
+                var subspaceDataTableOrigObjects = GetOriginalObjects(databaseAsObjectArray, subspaceDataTable);
 
-                //var columnsUsedInSubspace = ColumnsUsedInSubspace(baseDataTableResult.Clone(), subspace);
                 var equalRowsWithRespectToSubspaceColumnsDataTable =
                     CompareEachRowWithRespectToSubspaceColumnsPairwise(subspaceDataTableOrigObjects, subspace);
 
@@ -75,18 +65,19 @@ namespace prefSQL.SQLSkyline
                 {
                     var subspaceComplement = GetSubspaceComplement(subspace);
 
-                    reducedObjectArrayFromDataTable = ReducedObjectArrayFromDataTable(equalRowsWithRespectToSubspaceColumnsDataTable,
-                        subspaceComplement);
                     reducedOperators = ReducedOperators(operators, subspaceComplement);
-                    //reducedRecord = ReduceRecord(baseDataTableResult.Clone(), subspace);
-                    //reducedDtResult = ReduceDtResult(baseDataTableResult, subspace);
 
-                    var subspaceComplementDataTable = algorithm.getSkylineTable(reducedObjectArrayFromDataTable,
-                        record, string.Join(";", reducedOperators),
-                        numberOfRecords, hasIncomparable, additionalParameters, baseDataTableResult.Clone());
+                    sw.Stop();
+                    timeMilliseconds += sw.ElapsedMilliseconds;
+                    var subspaceComplementDataTable =
+                        algorithm.getSkylineTable(subspaceDataTableOrigObjects.Values.ToList(),
+                            record, string.Join(";", reducedOperators),
+                            numberOfRecords, hasIncomparable, additionalParameters, baseDataTableResult.Clone());
+                    timeMilliseconds += algorithm.timeMilliseconds;
+                    sw.Restart();
 
                     var subspaceComplementDataTableOrigObjects = GetOriginalObjects(databaseAsObjectArray,
-                        subspaceComplementDataTable, subspace);
+                        subspaceComplementDataTable);
 
                     RemoveDominatedObjects(equalRowsWithRespectToSubspaceColumnsDataTable,
                         subspaceComplementDataTableOrigObjects,
@@ -98,90 +89,53 @@ namespace prefSQL.SQLSkyline
 
             foreach (var item in skylineSampleFinalObjects)
             {
-                var row = skylineSample.NewRow();
+                var row = skylineSampleReturn.NewRow();
                 for (var i = Utility.AllPreferencesCount; i < item.Value.Length; i++)
                 {
                     row[i - Utility.AllPreferencesCount] = item.Value[i];
                 }
-                skylineSample.Rows.Add(row);
+                skylineSampleReturn.Rows.Add(row);
             }
 
-            return skylineSample;
+            sw.Stop();
+            timeMilliseconds += sw.ElapsedMilliseconds;
+
+            return skylineSampleReturn;
         }
 
-        private void Merge(Dictionary<int, object[]> skylineSampleOrigObjects,
-            Dictionary<int, object[]> subspaceDataTableOrigObjects)
+        private static void Merge(Dictionary<int, object[]> skylineSampleOrigObjects,
+            IDictionary<int, object[]> subspaceDataTableOrigObjects)
         {
             foreach (var subspaceDataTableOrigObject in skylineSampleOrigObjects)
             {
                 if (!subspaceDataTableOrigObjects.ContainsKey(subspaceDataTableOrigObject.Key))
                 {
-                    subspaceDataTableOrigObjects.Add(subspaceDataTableOrigObject.Key, subspaceDataTableOrigObject.Value);                    
+                    subspaceDataTableOrigObjects.Add(subspaceDataTableOrigObject.Key, subspaceDataTableOrigObject.Value);
                 }
             }
         }
 
-        private Dictionary<int, object[]> GetOriginalObjects(Dictionary<int, object[]> databaseAsObjectArray,
-            DataTable reducedObjectArrayFromDataTable, HashSet<int> subspace)
+        private static Dictionary<int, object[]> GetOriginalObjects(
+            IReadOnlyDictionary<int, object[]> databaseAsObjectArray, DataTable reducedObjectArrayFromDataTable)
         {
-            var result = new Dictionary<int, object[]>();
-            foreach (DataRow dataRow in reducedObjectArrayFromDataTable.Rows)
-            {
-                result.Add((int) dataRow[0], databaseAsObjectArray[(int) dataRow[0]]);
-            }
-
-            return result;
+            return reducedObjectArrayFromDataTable.Rows.Cast<DataRow>()
+                .ToDictionary(dataRow => (int) dataRow[0], dataRow => databaseAsObjectArray[(int) dataRow[0]]);
         }
 
-        private static string[] ReducedOperators(string[] operators, HashSet<int> subspace)
+        private static string[] ReducedOperators(string[] operators, ICollection<int> subspace)
         {
             var reducedOperators = new string[operators.Length];
             Array.Copy(operators, reducedOperators, operators.Length);
-            foreach (var subspaceItem in subspace)
-            {
-                reducedOperators[subspaceItem] = "IGNORE";
-            }
-
-            reducedOperators = new string[subspace.Count];
-            var count2 = 0;
             for (var i = 0; i < operators.Length; i++)
             {
-                if (subspace.Contains(i))
+                reducedOperators[i] = operators[i];
+                if (!subspace.Contains(i))
                 {
-                    reducedOperators[count2] = operators[i];
-                    count2++;
+                    reducedOperators[i] = "IGNORE";
                 }
             }
+
             return reducedOperators;
-        }
-
-        private List<object[]> ReducedObjectArrayFromDataTable(Dictionary<int, object[]> databaseAsObjectArray,
-            HashSet<int> subspace)
-        {
-            var reducedObjectArrayFromDataTable = new List<object[]>();
-            var objectFullDimension = databaseAsObjectArray.First().Value.Length;
-
-            var objectDim = databaseAsObjectArray.First().Value.Length - Utility.AllPreferencesCount + subspace.Count;
-            foreach (var item in databaseAsObjectArray)
-            {
-                var count = 0;
-                var newObject = new object[objectDim];
-                for (var i = 0; i < Utility.AllPreferencesCount; i++)
-                {
-                    if (subspace.Contains(i))
-                    {
-                        newObject[count] = item.Value[i];
-                        count++;
-                    }
-                }
-
-                for (var i = Utility.AllPreferencesCount; i < objectFullDimension; i++)
-                {
-                    newObject[i + count - Utility.AllPreferencesCount] = item.Value[i];
-                }
-                reducedObjectArrayFromDataTable.Add(newObject);
-            }
-            return reducedObjectArrayFromDataTable;
         }
 
         private static Dictionary<int, object[]> CompareEachRowWithRespectToSubspaceColumnsPairwise(
@@ -201,7 +155,7 @@ namespace prefSQL.SQLSkyline
                     {
                         if (!equalRowsWithRespectToSubspaceColumns.Contains(i.Value))
                         {
-                            equalRowsWithRespectToSubspaceColumnsDataTable.Add(i.Key,i.Value);
+                            equalRowsWithRespectToSubspaceColumnsDataTable.Add(i.Key, i.Value);
                             equalRowsWithRespectToSubspaceColumns.Add(i.Value);
                         }
                         if (!equalRowsWithRespectToSubspaceColumns.Contains(j.Value))
@@ -229,34 +183,17 @@ namespace prefSQL.SQLSkyline
             return subspaceComplement;
         }
 
-        private static void RemoveDominatedObjects(Dictionary<int, object[]> equalRowsWithRespectToSubspaceColumnsDataTable,
-            Dictionary<int, object[]> subspaceComplementDataTable, Dictionary<int, object[]> subspaceDataTable)
+        private static void RemoveDominatedObjects(
+            Dictionary<int, object[]> equalRowsWithRespectToSubspaceColumnsDataTable,
+            IReadOnlyDictionary<int, object[]> subspaceComplementDataTable, IDictionary<int, object[]> subspaceDataTable)
         {
-            foreach (var equalRow in equalRowsWithRespectToSubspaceColumnsDataTable.Keys)
+            foreach (
+                var equalRow in
+                    equalRowsWithRespectToSubspaceColumnsDataTable.Keys.Where(
+                        equalRow => !subspaceComplementDataTable.ContainsKey(equalRow)))
             {
-                if (IsEqualRowStillContainedWithinSubspaceComplementSkyline(subspaceComplementDataTable, equalRow))
-                {
-                    continue;
-                }
-
                 subspaceDataTable.Remove(equalRow);
             }
-        }
-
-        private static bool IsEqualRowStillContainedWithinSubspaceComplementSkyline(
-            Dictionary<int, object[]> subspaceComplementDataTable, int equalRow)
-        {
-            return subspaceComplementDataTable.ContainsKey(equalRow);
-
-            //foreach (DataRow row in subspaceComplementDataTable.Rows)
-            //{
-            //    if (row["Id"].Equals(equalRow["Id"]))
-            //    {
-            //        return true;
-            //    }
-            //}
-
-            //return false;
         }
     }
 }

@@ -11,6 +11,8 @@ using System.Collections.Generic;
 //Important: Only use equal for comparing text (otherwise performance issues)
 namespace prefSQL.SQLSkyline
 {
+    using System.Linq;
+
     public class SP_SkylineBNLSortLevel : TemplateBNL
     {
         /// <summary>
@@ -32,12 +34,12 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        protected override bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i)
+        protected override bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i, int[] resultToTupleMapping)
         {
             long[] result = (long[])resultCollection[i];
 
             //Dominanz
-            if (Helper.isTupleDominated(result, dataReader) == true)
+            if (Helper.isTupleDominated(result, dataReader, resultToTupleMapping) == true)
             {
                 //New point is dominated. No further testing necessary
                 return true;
@@ -49,8 +51,5 @@ namespace prefSQL.SQLSkyline
             
             return false;
         }
-
-
-
     }
 }

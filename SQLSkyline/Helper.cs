@@ -14,29 +14,13 @@ namespace prefSQL.SQLSkyline
 {
     using System.Data.SqlClient;
     using System.Diagnostics;
+    using System.Linq;
 
     class Helper
     {
         //Only this parameters are different beteen SQL CLR function and Utility class
         public const string cnnStringSQLCLR = "context connection=true";
         public const int MaxSize = 4000;
-
-
-        public static List<object[]> fillObjectFromDataReader(DataTableReader reader)
-        {
-            List<object[]> listObjects = new List<object[]>();
-            while (reader.Read())
-            {
-                object[] recordObject = new object[reader.FieldCount];
-                for (int iCol = 0; iCol < reader.FieldCount; iCol++)
-                {
-                    recordObject[iCol] = reader[iCol];
-                }
-                listObjects.Add(recordObject);
-            }
-            reader.Close();
-            return listObjects;
-        }
 
         /// <summary>
         /// Returns the TOP n first tupels of a datatable
@@ -134,7 +118,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="operators"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public static bool isTupleDominated(long[] result, object[] tupletoCheck)
+        public static bool isTupleDominated(long[] result, object[] tupletoCheck, int[] resultToTupleMapping)
         {
             bool greaterThan = false;
 
@@ -146,7 +130,7 @@ namespace prefSQL.SQLSkyline
                 //long value = dataReader.GetInt64(iCol);
                 //long value = (long)dataReader[iCol];
                 //long value = tupletoCheck[iCol].Value;
-                long value = (long)tupletoCheck[iCol]; //.Value;
+                long value = (long)tupletoCheck[resultToTupleMapping[iCol]]; //.Value;
                 
 
                 int comparison = compareValue(value, result[iCol]);
@@ -185,14 +169,14 @@ namespace prefSQL.SQLSkyline
         /// <param name="result"></param>
         /// <returns></returns>
 
-        public static bool doesTupleDominate(object[] dataReader, string[] operators, long[] result)
+        public static bool doesTupleDominate(object[] dataReader, string[] operators, long[] result, int[] resultToTupleMapping)
         {
             bool greaterThan = false;
 
             for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
             {
                 //Use long array instead of dataReader --> is 100% faster!!!
-                long value = (long)dataReader[iCol];
+                long value = (long)dataReader[resultToTupleMapping[iCol]];
 
                 //interchange values for comparison
                 int comparison = compareValue(result[iCol], value);
@@ -466,8 +450,8 @@ namespace prefSQL.SQLSkyline
         public static void addToWindow(object[] dataReader, string[] operators, ArrayList resultCollection, SqlDataRecord record, DataTable dtResult)
         {
             
-            //Erste Spalte ist die ID
-            long[] recordInt = new long[operators.GetUpperBound(0) + 1];
+            long[] recordInt = new long[operators.Count(op => op != "IGNORE")];
+            var nextRecordIndex = 0;
             DataRow row = dtResult.NewRow();
 
             //for (int iCol = 0; iCol < dataReader.FieldCount; iCol++)
@@ -477,12 +461,16 @@ namespace prefSQL.SQLSkyline
                 if (iCol <= operators.GetUpperBound(0))
                 {
                     //recordInt[iCol] = tupletoCheck[iCol].Value; // (long)dataReader[iCol];
-                    recordInt[iCol] = (long)dataReader[iCol];
+                    if (operators[iCol] != "IGNORE")
+                    {
+                        recordInt[nextRecordIndex] = (long)dataReader[iCol];
+                        nextRecordIndex++;
+                    }
                 }
                 else
                 {
-                    row[iCol - (operators.GetUpperBound(0) + 1)] = dataReader[iCol];
-                    record.SetValue(iCol - (operators.GetUpperBound(0) + 1), dataReader[iCol]);
+                    row[iCol - operators.Length] = dataReader[iCol];
+                    record.SetValue(iCol - operators.Length, dataReader[iCol]);
                 }
             }
 
@@ -580,15 +568,14 @@ namespace prefSQL.SQLSkyline
             }
 
         }
-   
+
         public static List<object[]> GetObjectArrayFromDataTable(DataTable dataTable)
         {
             //Read all records only once. (SqlDataReader works forward only!!)
-            var dataTableReader = dataTable.CreateDataReader();
-
+            var dataTableRowList = dataTable.Rows.Cast<DataRow>().ToList();
             //Write all attributes to a Object-Array
             //Profiling: This is much faster (factor 2) than working with the SQLReader
-            return fillObjectFromDataReader(dataTableReader);
+            return dataTableRowList.Select(dataRow => dataRow.ItemArray).ToList();
         }
 
         public static DataTable GetSkylineDataTable(string strQuery, bool isIndependent, string strConnection)
@@ -635,6 +622,21 @@ namespace prefSQL.SQLSkyline
             }
 
             return dt;
+        }
+
+        internal static int[] ResultToTupleMapping(string[] operators)
+        {
+            int[] resultToTupleMapping = new int[operators.Count(op => op != "IGNORE")];
+            var next = 0;
+            for (var j = 0; j < operators.Length; j++)
+            {
+                if (operators[j] != "IGNORE")
+                {
+                    resultToTupleMapping[next] = j;
+                    next++;
+                }
+            }
+            return resultToTupleMapping;
         }
     }
 }

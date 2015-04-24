@@ -66,14 +66,8 @@ namespace prefSQL.SQLSkyline
                     SqlContext.Pipe.SendResultsStart(record);
                 }
 
-                int iMaxLevel = 0;
-                //Read all records only once. (SqlDataReader works forward only!!)
-                DataTableReader dataTableReader = dt.CreateDataReader();
-
-
-                //Write all attributes to a Object-Array
-                //Profiling: This is much faster (factor 2) than working with the SQLReader
-                List<object[]> listObjects = Helper.fillObjectFromDataReader(dataTableReader);
+                int iMaxLevel = 0;              
+                List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
                 
 
 
