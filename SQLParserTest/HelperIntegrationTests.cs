@@ -44,13 +44,15 @@
                 common.GetAnsiSqlFromPrefSqlModel(prefSqlModelEntireSkyline), common.SkylineType,
                 prefSqlModelEntireSkyline);
             sw.Stop();
-            Debug.WriteLine("ORIG Elapsed={0}", sw.Elapsed);
+            Debug.WriteLine("ORIG ElapsedMilliseconds={0}", sw.ElapsedMilliseconds);
+            Debug.WriteLine("ORIG Algorithm ElapsedMilliseconds={0}", subjectUnderTest.timeInMilliseconds);
             sw.Restart();
             var sampleSkyline = subjectUnderTest.getResults(
                 common.GetAnsiSqlFromPrefSqlModel(prefSqlModelSkylineSample), common.SkylineType,
                 prefSqlModelSkylineSample);
             sw.Stop();
-            Debug.WriteLine("SMPL Elapsed={0}", sw.Elapsed);
+            Debug.WriteLine("SMPL ElapsedMilliseconds={0}", sw.ElapsedMilliseconds);
+            Debug.WriteLine("SMPL Algorithm ElapsedMilliseconds={0}", subjectUnderTest.timeInMilliseconds); 
 
             var entireSkylineObjectsIds = GetHashSetOfIdsFromDataTable(entireSkyline);
             var sampleSkylineObjectsIds = GetHashSetOfIdsFromDataTable(sampleSkyline);
