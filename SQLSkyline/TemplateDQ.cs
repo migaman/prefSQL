@@ -55,13 +55,8 @@ namespace prefSQL.SQLSkyline
 
                 // Build our record schema 
                 SqlDataRecord record = Helper.buildDataRecord(dt, operators, dtResult);
-
-                //Read all records only once. (SqlDataReader works forward only!!)
-                DataTableReader dataTableReader = dt.CreateDataReader();
-
-                //Write all attributes to a Object-Array
-                //Profiling: This is much faster (factor 2) than working with the SQLReader
-                List<object[]> listObjects = Helper.fillObjectFromDataReader(dataTableReader);
+               
+                List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
 
                 //Work with object[]-array (more than 10 times faster than datatable)
                 List<object[]> listResult = computeSkyline(listObjects, operators, operators.GetUpperBound(0), false);
