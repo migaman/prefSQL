@@ -210,13 +210,13 @@ namespace prefSQL.SQLParserTest
 
 
                 //Check tuples (every algorithm should deliver the same amount of tuples)
-                Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNLSort, 0, "BNLSort Amount of tupels in query " + i + "do not match");
-                Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNL, 0, "BNL Amount of tupels in query " + i + "do not match");
+                Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNLSort, 0, "BNLSort Amount of tupels in query " + i + " do not match");
+                Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNL, 0, "BNL Amount of tupels in query " + i + " do not match");
 
                 //Hexagon cannot handle Categorical preference that have no explicit OTHERS
                 if (model.ContainsOpenPreference == false)
                 {
-                    Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsHexagon, 0, "Hexagon Amount of tupels in query " + i + "do not match");
+                    Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsHexagon, 0, "Hexagon Amount of tupels in query " + i + " do not match");
                 }
 
                 //D&Q does not work with incomparable tuples

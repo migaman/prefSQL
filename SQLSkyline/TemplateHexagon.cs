@@ -94,7 +94,7 @@ namespace prefSQL.SQLSkyline
 
                 //Replace the database values to ranks of the values
                 long[] maxValues = new long[amountOfPreferences];
-                listObjects = replaceValuesToRankValues(listObjects, operators.GetUpperBound(0), ref maxValues);
+                listObjects = replaceValuesToRankValues(listObjects, operators, ref maxValues);
 
 
                 construction(amountOfPreferences, maxValues, ref btg, ref next, ref prev, ref level, ref weight, connection);
@@ -196,29 +196,35 @@ namespace prefSQL.SQLSkyline
         /// <param name="listObjects"></param>
         /// <param name="UpperBound"></param>
         /// <returns></returns>
-        private List<object[]> replaceValuesToRankValues(List<object[]> listObjects, int dimensions, ref long[] maxValues)
+        private List<object[]> replaceValuesToRankValues(List<object[]> listObjects, string[] operators, ref long[] maxValues)
         {
             //Sort for each skyline attribute
-            for (int iCol = 0; iCol <= dimensions; iCol++)
+            for (int iCol = 0; iCol <= operators.GetUpperBound(0); iCol++)
             {
                 //Only the real columns (skyline columns are not output fields)
-                //if (iCol <= operators.GetUpperBound(0))
-                //{
-                listObjects.Sort((object1, object2) => ((long)object1[iCol]).CompareTo((long)object2[iCol]));
-                //Now replace values beginning from 0
-                long value = (long)listObjects[0][iCol];
-                long rank = 0;
-                for (int iRow = 0; iRow < listObjects.Count; iRow++)
+                if (operators[iCol].Equals("LOW"))
                 {
-                    if (value < (long)listObjects[iRow][iCol])
+                    listObjects.Sort((object1, object2) => ((long)object1[iCol]).CompareTo((long)object2[iCol]));
+                    //Now replace values beginning from 0
+                    long value = (long)listObjects[0][iCol];
+                    long rank = 0;
+                    for (int iRow = 0; iRow < listObjects.Count; iRow++)
                     {
-                        value = (long)listObjects[iRow][iCol];
-                        rank++;
+                        if (value < (long)listObjects[iRow][iCol])
+                        {
+                            value = (long)listObjects[iRow][iCol];
+                            rank++;
+                        }
+                        listObjects[iRow][iCol] = rank;
                     }
-                    listObjects[iRow][iCol] = rank;
+                    //Now store the biggest rank (max value of the dimension)
+                    maxValues[iCol] = rank;
                 }
-                //Now store the biggest rank (max value of the dimension)
-                maxValues[iCol] = rank;
+                else
+                {
+                    maxValues[iCol] = 1; //Incomparable field
+                }
+                
             }
 
             return listObjects;

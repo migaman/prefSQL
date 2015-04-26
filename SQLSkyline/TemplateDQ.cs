@@ -100,16 +100,11 @@ namespace prefSQL.SQLSkyline
                 {                   
                     SqlContext.Pipe.SendResultsStart(record);
 
-                    foreach (object[] row in listResult)
+                    foreach (DataRow row in dtResult.Rows)
                     {
-                        dtResult.Rows.Add(row);
-                        for (int i = 0; i <= row.GetUpperBound(0); i++)
+                        for (int i = 0; i < dtResult.Columns.Count; i++)
                         {
-                            //Only the real columns (skyline columns are not output fields)
-                            if (i > operators.GetUpperBound(0))
-                            {
-                                record.SetValue(i - (operators.GetUpperBound(0) + 1), row[i]);
-                            }
+                            record.SetValue(i, row[i]);
                         }
 
                         SqlContext.Pipe.SendResultsRow(record);

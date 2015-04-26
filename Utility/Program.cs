@@ -24,8 +24,8 @@ namespace Utility
         static void Main(string[] args)
         {
             Program prg = new Program();
-            prg.measurePerformance();
-            //prg.Run();
+            //prg.measurePerformance();
+            prg.Run();
 
 
             /*
@@ -157,6 +157,8 @@ namespace Utility
 
 
                 strPrefSQL = "SELECT t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price LOW";
+
+                //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 10000 SKYLINE OF t1.price LOW, colors.name ('red' >> 'blue' >> OTHERS INCOMPARABLE)";
 
                 Debug.WriteLine(strPrefSQL);
 
