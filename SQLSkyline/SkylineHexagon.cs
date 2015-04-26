@@ -61,12 +61,14 @@ namespace prefSQL.SQLSkyline
                 prefSQL.SQLSkyline.SP_SkylineHexagon skyline = new SQLSkyline.SP_SkylineHexagon();
                 dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, strConnection, strHexagonSelectIncomparable, weightHexagonIncomparable);
                 timeMilliseconds = skyline.timeInMs;
+                sizeBTG = skyline.sizeBTG;
             }
             else
             {
                 prefSQL.SQLSkyline.SP_SkylineHexagonLevel skyline = new SQLSkyline.SP_SkylineHexagonLevel();
                 dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, strConnection, "", 0);
                 timeMilliseconds = skyline.timeInMs;
+                sizeBTG = skyline.sizeBTG;
             }
             return dt;
         }

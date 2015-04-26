@@ -31,6 +31,7 @@ namespace prefSQL.SQLSkyline
     public abstract class TemplateHexagon
     {
         public long timeInMs = 0;
+        public long sizeBTG = 0;
 
         public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strQueryConstruction, String strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
         {
@@ -217,7 +218,9 @@ namespace prefSQL.SQLSkyline
                 {
                     sizeNodes *= (maxPreferenceLevel[i] + 1);
                 }
-                Debug.WriteLine("Grösse BTG: " + sizeNodes);
+                //Write treeSize to variable with global access for statistics output
+                sizeBTG = sizeNodes;
+                
 
                 //Because we have 4 objects to save the tree state
                 if (sizeNodes > (System.Int32.MaxValue / 4))

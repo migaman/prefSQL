@@ -45,7 +45,7 @@ namespace Utility
 
 
             p.Trials = 1;           //Amount of trials for each single sql preference statement
-            p.Dimensions = 4;       //Up to x dimensions
+            p.Dimensions = 3;       //Up to x dimensions
             p.RandomDraws = 50;    //Amount of draws (x times randomly choose a some preferences)
             
             //p.TableSize = Performance.Size.Small;
@@ -69,8 +69,8 @@ namespace Utility
 
             //p.Strategy = new SkylineSQL();
             //p.Strategy = new SkylineBNLSort();
-            p.Strategy = new SkylineDQ();
-            //p.Strategy = new SkylineHexagon();
+            //p.Strategy = new SkylineDQ();
+            p.Strategy = new SkylineHexagon();
             
 
             p.generatePerformanceQueries();
