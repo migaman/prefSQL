@@ -612,7 +612,7 @@ namespace Utility
             
             
             StringBuilder sb = new StringBuilder();
-            string strSeparatorLine = formatLineString('-', "", "", "", "", "", "", "", "");
+            string strSeparatorLine = formatLineString('-', "", "", "", "", "", "", "", "", "");
             if (GenerateScript == false)
             {
                 //Header
@@ -627,7 +627,7 @@ namespace Utility
                 //sb.AppendLine("Correlation Coefficients:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
                 //sb.AppendLine("           Cardinalities:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
                 sb.AppendLine("");
-                sb.AppendLine(formatLineString(' ', "preference set", "trial", "dimensions", "skyline size", "time total", "time algorithm", "sum correlation", "sum cardinality"));
+                sb.AppendLine(formatLineString(' ', "preference set", "trial", "dimensions", "skyline size", "time total", "time algorithm", "sum correlation", "sum cardinality", "size BTG"));
                 sb.AppendLine(strSeparatorLine);
                 Debug.Write(sb);
             }
@@ -640,6 +640,7 @@ namespace Utility
             List<long> reportTimeAlgorithm = new List<long>();
             List<double> reportCorrelation = new List<double>();
             List<double> reportCardinality = new List<double>();
+            List<double> reportSizeBTG = new List<double>();
 
             //For each preference set in the preference list
             for(int iPreferenceIndex = 0; iPreferenceIndex < listPreferences.Count; iPreferenceIndex++)
@@ -697,20 +698,21 @@ namespace Utility
                                 sw.Stop();
                                 double correlation = searchCorrelation(subPreferences, correlationMatrix);
                                 double cardinality = searchCardinality(subPreferences, listCardinality);
-
+                                double sizeBTG = parser.SizeBTG;
                                 reportDimensions.Add(i);
                                 reportSkylineSize.Add(dt.Rows.Count);
                                 reportTimeTotal.Add(sw.ElapsedMilliseconds);
                                 reportTimeAlgorithm.Add(timeAlgorithm);
                                 reportCorrelation.Add(correlation);
                                 reportCardinality.Add(cardinality);
+                                reportSizeBTG.Add(sizeBTG);
 
                                 //trial|dimensions|skyline size|time total|time algorithm
                                 string strTrial = iTrial+1 + " / " +  trials;
                                 string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
 
 
-                                string strLine = formatLineString(strPreferenceSet, strTrial, i, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality);
+                                string strLine = formatLineString(strPreferenceSet, strTrial, i, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality, sizeBTG);
 
                                 
                                 Debug.WriteLine(strLine);
@@ -762,7 +764,7 @@ namespace Utility
             ///////////////////////////////
             if (GenerateScript == false)
             {
-                addSummary(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportCorrelation, reportCardinality);
+                addSummary(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportCorrelation, reportCardinality, reportSizeBTG);
             }
             
 
@@ -935,18 +937,18 @@ namespace Utility
         #region formatOutput
 
 
-        private void addSummary(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions, List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, List<double> reportCorrelation, List<double> reportCardinality)
+        private void addSummary(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions, List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, List<double> reportCorrelation, List<double> reportCardinality, List<double> reportSizeBTG)
         {
             //Separator Line
             Debug.WriteLine(strSeparatorLine);
             sb.AppendLine(strSeparatorLine);
 
             Mathematic mathematic = new Mathematic();
-            string strAverage = formatLineString("average", "", reportDimensions.Average(), reportSkylineSize.Average(), reportTimeTotal.Average(), reportTimeAlgorithm.Average(), reportCorrelation.Average(), reportCardinality.Average());
-            string strMin = formatLineString("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(), reportTimeTotal.Min(), reportTimeAlgorithm.Min(), reportCorrelation.Min(), reportCardinality.Min());
-            string strMax = formatLineString("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), reportCorrelation.Max(), reportCardinality.Max());
-            string strVar = formatLineString("variance", "", mathematic.getVariance(reportDimensions), mathematic.getVariance(reportSkylineSize), mathematic.getVariance(reportTimeTotal), mathematic.getVariance(reportTimeAlgorithm), mathematic.getVariance(reportCorrelation), mathematic.getVariance(reportCardinality));
-            string strStd = formatLineString("stddeviation", "", mathematic.getStdDeviation(reportDimensions), mathematic.getStdDeviation(reportSkylineSize), mathematic.getStdDeviation(reportTimeTotal), mathematic.getStdDeviation(reportTimeAlgorithm), mathematic.getStdDeviation(reportCorrelation), mathematic.getStdDeviation(reportCardinality));
+            string strAverage = formatLineString("average", "", reportDimensions.Average(), reportSkylineSize.Average(), reportTimeTotal.Average(), reportTimeAlgorithm.Average(), reportCorrelation.Average(), reportCardinality.Average(), reportSizeBTG.Average());
+            string strMin = formatLineString("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(), reportTimeTotal.Min(), reportTimeAlgorithm.Min(), reportCorrelation.Min(), reportCardinality.Min(), reportSizeBTG.Min());
+            string strMax = formatLineString("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), reportCorrelation.Max(), reportCardinality.Max(), reportSizeBTG.Max());
+            string strVar = formatLineString("variance", "", mathematic.getVariance(reportDimensions), mathematic.getVariance(reportSkylineSize), mathematic.getVariance(reportTimeTotal), mathematic.getVariance(reportTimeAlgorithm), mathematic.getVariance(reportCorrelation), mathematic.getVariance(reportCardinality), mathematic.getVariance(reportSizeBTG));
+            string strStd = formatLineString("stddeviation", "", mathematic.getStdDeviation(reportDimensions), mathematic.getStdDeviation(reportSkylineSize), mathematic.getStdDeviation(reportTimeTotal), mathematic.getStdDeviation(reportTimeAlgorithm), mathematic.getStdDeviation(reportCorrelation), mathematic.getStdDeviation(reportCardinality), mathematic.getStdDeviation(reportSizeBTG));
 
             sb.AppendLine(strAverage);
             sb.AppendLine(strMin);
@@ -966,11 +968,11 @@ namespace Utility
 
 
 
-        private string formatLineString(char paddingChar, string strTitle, string strTrial, string strDimension, string strSkyline, string strTimeTotal, string strTimeAlgo, string strCorrelation, string strCardinality)
+        private string formatLineString(char paddingChar, string strTitle, string strTrial, string strDimension, string strSkyline, string strTimeTotal, string strTimeAlgo, string strCorrelation, string strCardinality, string strSizeBTG)
         {
             //average line
             //trial|dimensions|skyline size|time total|time algorithm|correlation|
-            string[] line = new string[9];
+            string[] line = new string[10];
             line[0] = strTitle.PadLeft(14, paddingChar);
             line[1] = strTrial.PadLeft(11, paddingChar);
             line[2] = strDimension.PadLeft(10, paddingChar);
@@ -979,13 +981,14 @@ namespace Utility
             line[5] = strTimeAlgo.PadLeft(14, paddingChar);
             line[6] = strCorrelation.PadLeft(15, paddingChar);
             line[7] = strCardinality.PadLeft(15, paddingChar);
-            line[8] = "";
+            line[8] = strSizeBTG.PadLeft(8, paddingChar);
+            line[9] = "";
             return string.Join("|", line);
         }
 
-        private string formatLineString(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double correlation, double cardinality)
+        private string formatLineString(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double correlation, double cardinality, double sizeBTG)
         {
-            return formatLineString(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(), Math.Round(skyline, 2).ToString(), Math.Round(timeTotal, 2).ToString(), Math.Round(timeAlgo, 2).ToString(), Math.Round(correlation, 2).ToString(), Math.Round(cardinality, 2).ToString());
+            return formatLineString(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(), Math.Round(skyline, 2).ToString(), Math.Round(timeTotal, 2).ToString(), Math.Round(timeAlgo, 2).ToString(), Math.Round(correlation, 2).ToString(), Math.Round(cardinality, 2).ToString(), Math.Round(sizeBTG, 2).ToString());
         }
 
 

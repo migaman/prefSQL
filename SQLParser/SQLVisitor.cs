@@ -358,7 +358,6 @@ namespace prefSQL.SQLParser
             string strInnerColumnExpression = "";
             string strFullColumnName = "";
             string strTable = "";
-            string strRankHexagon = "";
             string strLevelStep = "";
             string strLevelAdd = "";
             string strLevelMinus = "";
@@ -407,7 +406,6 @@ namespace prefSQL.SQLParser
                     //Multiply with -1 (result: every value can be minimized!)
                     strOpposite = " * -1";
                 }
-                strRankHexagon = "DENSE_RANK()" + " OVER (ORDER BY " + strFullColumnName + strLevelStep + " " + strSortOrder + ")-1 AS Rank" + strFullColumnName.Replace(".", "");
                 //Don't use Functions like DENSE_RANK() for the preferences --> slows down SQL performance!
                 strColumnExpression = "CAST(" + strFullColumnName + strLevelStep + strOpposite + " AS bigint)";
                 strExpression = strFullColumnName + strLevelStep + strOpposite;
@@ -427,7 +425,7 @@ namespace prefSQL.SQLParser
 
 
             //Add the preference to the list      
-            return addSkyline(new AttributeModel(strColumnExpression, strInnerColumnExpression, strFullColumnName, "", bComparable, strIncomporableAttribute, strRankHexagon, false, "", 0, 0, strExpression));
+            return addSkyline(new AttributeModel(strColumnExpression, strInnerColumnExpression, strFullColumnName, "", bComparable, strIncomporableAttribute, false, "", 0, 0, strExpression));
         }
 
 
@@ -442,7 +440,6 @@ namespace prefSQL.SQLParser
             //It is a text --> Text text must be converted in a given sortordez
             string strColumnName = "";
             string strTable = "";
-            string strRankHexagon = "";
             string strHexagonIncomparable = "";
             int amountOfIncomparable = 0;
             string strFullColumnName = "";
@@ -558,11 +555,10 @@ namespace prefSQL.SQLParser
             strColumnExpression = "CAST(" + strExpression + " AS bigint)";
 
 
-            strRankHexagon = "DENSE_RANK()" + " OVER (ORDER BY " + strExpression + ")-1 AS Rank" + strFullColumnName.Replace(".", "");
 
 
             //Add the preference to the list               
-            return addSkyline(new AttributeModel(strColumnExpression, strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, strRankHexagon, true, strHexagonIncomparable, amountOfIncomparable, weightHexagonIncomparable, strExpression));
+            return addSkyline(new AttributeModel(strColumnExpression, strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, true, strHexagonIncomparable, amountOfIncomparable, weightHexagonIncomparable, strExpression));
         }
 
         /// <summary>
@@ -577,7 +573,6 @@ namespace prefSQL.SQLParser
             string strColumnExpression = "";
             string strTable = "";
             string strInnerColumnExpression = "";
-            string strRankHexagon = "";
             string strExpression = "";
 
             //Separate Column and Table
@@ -609,13 +604,10 @@ namespace prefSQL.SQLParser
                     strExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END * -1";
                     break;
             }
-
-
-            strRankHexagon = "DENSE_RANK()" + " OVER (ORDER BY " + strExpression + ")-1 AS Rank" + strFullColumnName.Replace(".", "");
             
 
             //Add the preference to the list     
-            return addSkyline(new AttributeModel(strColumnExpression, strInnerColumnExpression, strFullColumnName, "", true, "", strRankHexagon, false, "", 0, 0, strExpression));
+            return addSkyline(new AttributeModel(strColumnExpression, strInnerColumnExpression, strFullColumnName, "", true, "", false, "", 0, 0, strExpression));
         }
 
 

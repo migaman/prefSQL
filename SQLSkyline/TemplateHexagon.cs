@@ -27,17 +27,19 @@ namespace prefSQL.SQLSkyline
     /// - Always use equal when comparins test --> i.e. using a startswith instead of an equal can decrease performance by 10 times
     /// - Write objects from DataReader into an object[] an work with the object. 
     /// - Explicity convert (i.e. (int)reader[0]) value from DataReader and don't use the given methods (i.e. reader.getInt32(0))
+    /// - Don't use DENSE_RANK() in the SQLStatement. Better to sort in C# and replace the values through ranks (method replacevaluesto...)
     /// </remarks>
     public abstract class TemplateHexagon
     {
         public long timeInMs = 0;
+        public long sizeBTG = 0;
 
-        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strQueryConstruction, String strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
+        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
         {
-            return getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, true, strConnection, strSelectIncomparable, weightHexagonIncomparable);
+            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strSelectIncomparable, weightHexagonIncomparable);
         }
 
-        protected DataTable getSkylineTable(string strQuery, string strOperators, int numberOfRecords, string strQueryConstruction, bool isIndependent, string strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
+        protected DataTable getSkylineTable(string strQuery, string strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
         {
             Stopwatch sw = new Stopwatch();
             ArrayList[] btg = null;
@@ -56,35 +58,42 @@ namespace prefSQL.SQLSkyline
 
             String strSQL = strQuery.ToString();
 
-            calculateOperators(ref strOperators, strSelectIncomparable, connection, ref strSQL, ref strQueryConstruction);
+
+            calculateOperators(ref strOperators, strSelectIncomparable, connection, ref strSQL);
 
             string[] operators = strOperators.ToString().Split(';');
             int amountOfPreferences = operators.GetUpperBound(0) + 1;
 
 
-
             try
             {
-                //Time the algorithm needs (afer query to the database)
-                sw.Start();
-                connection.Open();
-
-                construction(amountOfPreferences, strQueryConstruction.ToString(), ref btg, ref next, ref prev, ref level, ref weight, connection);
-
                 //Some checks
                 if (strSQL.Length == Helper.MaxSize)
                 {
                     throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
                 }
+                connection.Open();
 
                 SqlDataAdapter dap = new SqlDataAdapter(strSQL, connection);
                 DataTable dt = new DataTable();
                 dap.Fill(dt);
 
+                //Time the algorithm needs (afer query to the database)
+                sw.Start();
+
+
                 // Build our record schema 
                 List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, dtResult);
 
                 List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
+
+                //Replace the database values to ranks of the values
+                long[] maxValues = new long[amountOfPreferences];
+                listObjects = replaceValuesToRankValues(listObjects, operators.GetUpperBound(0), ref maxValues);
+
+
+                construction(amountOfPreferences, maxValues, ref btg, ref next, ref prev, ref level, ref weight, connection);
+
 
                 //Read all records only once.
                 foreach (object[] dbValuesObject in listObjects)
@@ -176,21 +185,48 @@ namespace prefSQL.SQLSkyline
 
         }
 
-
-        private void construction(int amountOfPreferences, string strQuery, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight, SqlConnection connection)
+        /// <summary>
+        /// Replace the database values to ranks (this is much faster than directly with SQL, i.e. with the DENSE_RANK() function
+        /// </summary>
+        /// <param name="listObjects"></param>
+        /// <param name="UpperBound"></param>
+        /// <returns></returns>
+        private List<object[]> replaceValuesToRankValues(List<object[]> listObjects, int dimensions, ref long[] maxValues)
         {
-            
-            try
+            //Sort for each skyline attribute
+            for (int iCol = 0; iCol <= dimensions; iCol++)
             {
-                SqlDataAdapter dap = new SqlDataAdapter(strQuery, connection);
-                DataTable dt = new DataTable();
-                dap.Fill(dt);
+                //Only the real columns (skyline columns are not output fields)
+                //if (iCol <= operators.GetUpperBound(0))
+                //{
+                listObjects.Sort((object1, object2) => ((long)object1[iCol]).CompareTo((long)object2[iCol]));
+                //Now replace values beginning from 0
+                long value = (long)listObjects[0][iCol];
+                long rank = 0;
+                for (int iRow = 0; iRow < listObjects.Count; iRow++)
+                {
+                    if (value < (long)listObjects[iRow][iCol])
+                    {
+                        value = (long)listObjects[iRow][iCol];
+                        rank++;
+                    }
+                    listObjects[iRow][iCol] = rank;
+                }
+                //Now store the biggest rank (max value of the dimension)
+                maxValues[iCol] = rank;
+            }
 
+            return listObjects;
+        }
 
+        private void construction(int amountOfPreferences, long[] maxValues, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight, SqlConnection connection)
+        {
+            try
+            {                
                 int[] maxPreferenceLevel = new int[amountOfPreferences];
                 for (int i = 0; i < amountOfPreferences; i++)
                 {
-                    maxPreferenceLevel[i] = int.Parse(dt.Rows[0][i].ToString());
+                    maxPreferenceLevel[i] = (int)maxValues[i];
                 }
 
                 //calculate edge weights
@@ -209,7 +245,9 @@ namespace prefSQL.SQLSkyline
                 {
                     sizeNodes *= (maxPreferenceLevel[i] + 1);
                 }
-                Debug.WriteLine("Grösse BTG: " + sizeNodes);
+                //Write treeSize to variable with global access for statistics output
+                sizeBTG = sizeNodes;
+                
 
                 //Because we have 4 objects to save the tree state
                 if (sizeNodes > (System.Int32.MaxValue / 4))
@@ -285,6 +323,7 @@ namespace prefSQL.SQLSkyline
             {
                 throw e;
             }
+
         }
 
         
@@ -560,6 +599,6 @@ namespace prefSQL.SQLSkyline
 
         protected abstract void add(object[] dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable);
 
-        protected abstract void calculateOperators(ref string strOperators, string strSelectIncomparable, SqlConnection connection, ref string strSQL, ref string strQueryConstruction);
+        protected abstract void calculateOperators(ref string strOperators, string strSelectIncomparable, SqlConnection connection, ref string strSQL);
     }
 }

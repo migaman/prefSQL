@@ -17,13 +17,13 @@ namespace prefSQL.SQLSkyline
     public class SP_SkylineHexagonLevel : TemplateHexagon
     {
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineHexagonLevel")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlString strQueryConstruction)
+        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
         {
             SP_SkylineHexagonLevel skyline = new SP_SkylineHexagonLevel();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, strQueryConstruction.ToString(), false, "", "", 0);
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, "", "", 0);
         }
 
-        protected override void calculateOperators(ref string strOperators, string strSelectIncomparable, SqlConnection connection, ref string strSQL, ref string strQueryConstruction)
+        protected override void calculateOperators(ref string strOperators, string strSelectIncomparable, SqlConnection connection, ref string strSQL)
         {
             //No Operation
             return;

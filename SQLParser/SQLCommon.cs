@@ -28,6 +28,13 @@ namespace prefSQL.SQLParser
         private int _SkylineUpToLevel = 3;                          //Defines the maximum level that should be returned for the multiple skyline algorithnmm
         private readonly Helper _helper = new Helper();
         private long _timeInMilliseconds = 0;
+        private long _sizeBTG = 0;
+
+        public long SizeBTG
+        {
+            get { return _sizeBTG; }
+            set { _sizeBTG = value; }
+        }
 
         internal Helper Helper {
             get { return _helper;} 
@@ -99,6 +106,7 @@ namespace prefSQL.SQLParser
             DataTable dt = Helper.getResults(parsePreferenceSQL(prefSqlModel), SkylineType, prefSqlModel);
             TimeInMilliseconds = Helper.timeInMilliseconds;
 
+            SizeBTG = Helper.sizeBTG;
             return dt;
         }
 
@@ -206,7 +214,7 @@ namespace prefSQL.SQLParser
 
                         ////////////////////////////////////////////
                         //attributes used for hexagon
-                        string[] additionalParameters = new string[5];
+                        string[] additionalParameters = new string[4];
 
                         string strOperatorsHexagon = "";
                         string strAttributesSkylineHexagon = buildSELECTHexagon(prefSQL, strSQLReturn, ref strOperatorsHexagon);
@@ -218,17 +226,15 @@ namespace prefSQL.SQLParser
                         strFirstSQLHexagon = strFirstSQLHexagon.Replace("'", "''");
 
                         //Quote quotes because it is a parameter of the stored procedure
-                        string strSelectDistinctIncomparable = "";
+                        //string strSelectDistinctIncomparable = "";
                         int weightHexagonIncomparable = 0;
-                        string strHexagon = buildSELECTMaxHexagon(prefSQL, strSQLReturn, ref strSelectDistinctIncomparable, ref weightHexagonIncomparable);
+                        string strSelectDistinctIncomparable = buildIncomparableHexagon(prefSQL, strSQLReturn, ref weightHexagonIncomparable);
                         strSelectDistinctIncomparable = strSelectDistinctIncomparable.Replace("'", "''");
-                        strHexagon = strHexagon.Replace("'", "''");
 
                         additionalParameters[0] = strFirstSQLHexagon;
                         additionalParameters[1] = strOperatorsHexagon;
-                        additionalParameters[2] = strHexagon;
-                        additionalParameters[3] = strSelectDistinctIncomparable;
-                        additionalParameters[4] = weightHexagonIncomparable.ToString();
+                        additionalParameters[2] = strSelectDistinctIncomparable;
+                        additionalParameters[3] = weightHexagonIncomparable.ToString();
 
 
 
@@ -335,7 +341,7 @@ namespace prefSQL.SQLParser
             for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
                 //Replace ROW_NUMBER with Rank, for the reason that multiple tuples can have the same value (i.e. mileage=0)
-                string strRank = model.Skyline[iChild].HexagonRank;
+                string strRank = model.Skyline[iChild].RankExpression;
                 strSQL += ", " + strRank;
                 strOperators += "LOW" + ";";
                 if (model.Skyline[iChild].Comparable == false && model.Skyline[iChild].AmountOfIncomparables > 0)
@@ -370,19 +376,13 @@ namespace prefSQL.SQLParser
         /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
         /// <param name="strOperators">Returns the operators</param>
         /// <returns>TODO</returns>
-        private string buildSELECTMaxHexagon(PrefSQLModel model, string strPreSQL, ref string strDistinctSelect, ref int weight)
+        private string buildIncomparableHexagon(PrefSQLModel model, string strPreSQL, ref int weight)
         {
-            string strSQL = "";
-            string strMaxSQL = "";
-            int posOfFROM = 0;
+            string strDistinctSelect = "";
 
             //Add a RankColumn for each PRIORITIZE preference
             for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
-                //Replace ROW_NUMBER with Rank, for the reason that multiple tuples can have the same value (i.e. mileage=0)
-                string strRank = model.Skyline[iChild].HexagonRank;
-                strSQL += ", " + strRank;
-                strMaxSQL += ", MAX(Rank" + model.Skyline[iChild].FullColumnName.Replace(".", "") + ")";
                 
                 //Add additional columns if attribute is incomparable
                 if (model.Skyline[iChild].Comparable == false && model.Skyline[iChild].AmountOfIncomparables > 0)
@@ -391,31 +391,14 @@ namespace prefSQL.SQLParser
                     //99 means OTHER INCOMPARABLE --> not clear at the moment how many distinct values exists
                     if (model.Skyline[iChild].AmountOfIncomparables == 99)
                     {
-                        strMaxSQL += "CALCULATEINCOMPARABLE";
                         strDistinctSelect = model.Skyline[iChild].IncomparableAttribute;
                         weight = model.Skyline[iChild].HexagonWeightIncomparable;
                     }
-                    else
-                    {
-                        strMaxSQL += "+1";
-                        for (int iIncomparable = 0; iIncomparable < model.Skyline[iChild].AmountOfIncomparables; iIncomparable++)
-                        {
-                            strMaxSQL += ", 1";
-                        }
-                    }
-                    
-                    
                 }
             }
-            strMaxSQL = strMaxSQL.TrimStart(',');
-            strSQL = strSQL.TrimStart(',');
-            strSQL = "SELECT " + strMaxSQL + " FROM (SELECT " + strSQL;
+            
 
-            //Add the ranked column before the FROM keyword
-            posOfFROM = strPreSQL.IndexOf("FROM");
-            strSQL = strSQL + strPreSQL.Substring(posOfFROM - 1) + ") MyQuery";
-
-            return strSQL;
+            return strDistinctSelect;
         }
 
 

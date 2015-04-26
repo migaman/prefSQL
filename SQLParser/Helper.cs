@@ -28,6 +28,8 @@ namespace prefSQL.SQLParser
 
         public long timeInMilliseconds { get; set; }
 
+        public long sizeBTG { get; set; }
+
 
         public DataTable executeStatement(String strSQL)
         {
@@ -155,6 +157,7 @@ namespace prefSQL.SQLParser
                             model.WithIncomparable, parameter, strategy, model.SkylineSampleCount, model.SkylineSampleDimension);
                         timeInMilliseconds = skylineSample.timeMilliseconds;                        
                     }
+                    sizeBTG = strategy.sizeBTG;
                 }
 
             }

@@ -42,39 +42,38 @@ namespace prefSQL.SQLSkyline
 
             strFirstSQL = additionalParameters[0];
             strOperators = additionalParameters[1];
-            string strHexagon = additionalParameters[2];
-            string strSelectDistinctIncomparable = additionalParameters[3];
-            int weightHexagonIncomparable = int.Parse(additionalParameters[4]);
+            string strSelectDistinctIncomparable = additionalParameters[2];
+            int weightHexagonIncomparable = int.Parse(additionalParameters[3]);
 
             if (hasIncomparable == true)
             {
-                strSQLReturn = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords + ", '" + strHexagon + "', '" + strSelectDistinctIncomparable + "'," + weightHexagonIncomparable;
+                strSQLReturn = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords + ", '" + strSelectDistinctIncomparable + "'," + weightHexagonIncomparable;
             }
             else
             {
-                strSQLReturn = "EXEC dbo.SP_SkylineHexagonLevel '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords + ", '" + strHexagon + "'";
+                strSQLReturn = "EXEC dbo.SP_SkylineHexagonLevel '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords;
             }
             return strSQLReturn;
         }
         public override DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
-            //Hexagon needs additional parameters
-            string strQueryConstruction = additionalParameters[3].Trim().Replace("''", "'").Trim('\'');
-            
             DataTable dt = null;
             if (hasIncomparable == true)
             {
-                String strHexagonSelectIncomparable = additionalParameters[4].Trim().Replace("''", "'").Trim('\'');
-                int weightHexagonIncomparable = int.Parse(additionalParameters[5].Trim());
+                //Hexagon incomparable needs additional parameters
+                String strHexagonSelectIncomparable = additionalParameters[3].Trim().Replace("''", "'").Trim('\'');
+                int weightHexagonIncomparable = int.Parse(additionalParameters[4].Trim());
                 prefSQL.SQLSkyline.SP_SkylineHexagon skyline = new SQLSkyline.SP_SkylineHexagon();
-                dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, strConnection, strHexagonSelectIncomparable, weightHexagonIncomparable);
+                dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, strHexagonSelectIncomparable, weightHexagonIncomparable);
                 timeMilliseconds = skyline.timeInMs;
+                sizeBTG = skyline.sizeBTG;
             }
             else
             {
                 prefSQL.SQLSkyline.SP_SkylineHexagonLevel skyline = new SQLSkyline.SP_SkylineHexagonLevel();
-                dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strQueryConstruction, strConnection, "", 0);
+                dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, "", 0);
                 timeMilliseconds = skyline.timeInMs;
+                sizeBTG = skyline.sizeBTG;
             }
             return dt;
         }
