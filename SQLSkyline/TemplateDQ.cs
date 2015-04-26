@@ -83,9 +83,11 @@ namespace prefSQL.SQLSkyline
                 //Write object in datatable
                 foreach (object[] row in listResult)
                 {
+                    
                     int validDataFrom = dt.Columns.Count - operators.GetUpperBound(0) - 1;
                     object [] resultArray = new object[validDataFrom];
-                    Array.Copy(row, 0, resultArray, 0, validDataFrom);
+                    //First columns are skyline columns, there start with index after skyline column
+                    Array.Copy(row, operators.GetUpperBound(0)+1, resultArray, 0, validDataFrom);
                     dtResult.Rows.Add(resultArray);
                     
                 }

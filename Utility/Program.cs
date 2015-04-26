@@ -155,15 +155,18 @@ namespace Utility
                     "LEFT OUTER JOIN Makes ON t1.make_id = Makes.id " +
                 "SKYLINE OF t1.price LOW,t1.mileage LOW,t1.horsepower HIGH,t1.enginesize HIGH,t1.registrationNumeric HIGH,t1.consumption LOW,t1.doors HIGH,colors.name ('red' == 'blue' >> OTHERS EQUAL >> 'gray'),fuels.name ('petrol' >> OTHERS EQUAL >> 'diesel'),bodies.name ('compact car' >> 'bus' >> 'estate car' >> 'scooter' >> OTHERS EQUAL >> 'Pick-Up'),t1.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL),makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI'),conditions.name ('new' >> OTHERS EQUAL)";
 
+
+                strPrefSQL = "SELECT t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price LOW";
+
                 Debug.WriteLine(strPrefSQL);
 
                 SQLCommon parser = new SQLCommon();
                 //parser.SkylineType = new SkylineSQL();
                 //parser.SkylineType = new SkylineBNL();
                 //parser.SkylineType = new SkylineBNLSort();
-                parser.SkylineType = new SkylineHexagon();
+                //parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new MultipleSkylineBNL();
-                //parser.SkylineType = new SkylineDQ();
+                parser.SkylineType = new SkylineDQ();
                 //parser.ShowSkylineAttributes = true;
                 //parser.SkylineUpToLevel = 1;
 

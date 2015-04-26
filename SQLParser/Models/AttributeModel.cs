@@ -9,9 +9,9 @@ namespace prefSQL.SQLParser.Models
     internal class AttributeModel
     {
 
-        public AttributeModel(string strRankExpression, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, string strRankHexagon, bool isCategory, string strHexagonIncomparable, int amountIncomparable, int weightHexagonIncomparable, string strExpression)
+        public AttributeModel(string strRankExpression, string strInnerColumnExpression, string strFullColumnName, string strInnerColumnName, bool isComparable, string strIncomporableAttribute, bool isCategory, string strHexagonIncomparable, int amountIncomparable, int weightHexagonIncomparable, string strExpression)
         {
-            RankExpression = strRankExpression;                     //Rank expression                 (i.e. DENSE_RANK() OVER (ORDER BY CASE WHEN colors.name = 'turquoise' THEN 0 WHEN colors.name = 'yellow' THEN 100 ELSE 200 END)
+            RankExpression = strRankExpression;                     //Rank expression                 (i.e. CASE WHEN colors.name = 'turquoise' THEN 0 WHEN colors.name = 'yellow' THEN 100 ELSE 200 END
             InnerExpression = strInnerColumnExpression;             //Inner column expression           (i.e CASE WHEN colors_INNER.name = 'turquoise' THEN 0 WHEN colors_INNER.name = 'yellow' THEN 100 ELSE 200 END)
             Expression = strExpression;                             //
 
@@ -25,7 +25,6 @@ namespace prefSQL.SQLParser.Models
             AmountOfIncomparables = amountIncomparable;
 
             //Additional Hexagon attributes
-            HexagonRank = strRankHexagon;
             HexagonIncomparable = strHexagonIncomparable;
             HexagonWeightIncomparable = weightHexagonIncomparable;
         }
@@ -49,7 +48,6 @@ namespace prefSQL.SQLParser.Models
 
         //Hexagon attributes
         public int HexagonWeightIncomparable { get; set; }
-        public string HexagonRank { get; set; }
         public string HexagonIncomparable { get; set; }
     }
 }

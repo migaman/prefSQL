@@ -17,14 +17,14 @@ namespace prefSQL.SQLSkyline
     public class SP_SkylineHexagon : TemplateHexagon
     {        
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineHexagon")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlString strQueryConstruction, SqlString strSelectIncomparable, int weightHexagonIncomparable)
+        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlString strSelectIncomparable, int weightHexagonIncomparable)
         {
             SP_SkylineHexagon skyline = new SP_SkylineHexagon();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, strQueryConstruction.ToString(), false, "", strSelectIncomparable.ToString(), weightHexagonIncomparable);
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, "", strSelectIncomparable.ToString(), weightHexagonIncomparable);
         }
 
 
-        protected override void calculateOperators(ref string strOperators, string strSelectIncomparable, SqlConnection connection, ref string strSQL, ref string strQueryConstruction)
+        protected override void calculateOperators(ref string strOperators, string strSelectIncomparable, SqlConnection connection, ref string strSQL)
         {
             if (!strSelectIncomparable.Equals(""))
             {
@@ -93,7 +93,6 @@ namespace prefSQL.SQLSkyline
 
                 //Manipulate construction sql
                 strSQL = strSQL.Replace("CALCULATEINCOMPARABLE", strAddSQL);
-                strQueryConstruction = strQueryConstruction.Replace("CALCULATEINCOMPARABLE", strMaxSQL);
                 strOperators = strOperators.Replace("CALCULATEINCOMPARABLE", strAddOperators);
 
                 if (connection != null)

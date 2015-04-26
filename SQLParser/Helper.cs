@@ -148,8 +148,6 @@ namespace prefSQL.SQLParser
             }
 
 
-            //sw.Stop();
-            //System.Diagnostics.Debug.WriteLine("Elapsed={0}", sw.Elapsed);
             return dt;
         }
 
