@@ -24,8 +24,8 @@ namespace Utility
         static void Main(string[] args)
         {
             Program prg = new Program();
-            //prg.measurePerformance();
-            prg.Run();
+            prg.measurePerformance();
+            //prg.Run();
 
 
             /*
@@ -45,8 +45,8 @@ namespace Utility
 
 
             p.Trials = 1;           //Amount of trials for each single sql preference statement
-            p.Dimensions = 3;       //Up to x dimensions
-            p.RandomDraws = 50;    //Amount of draws (x times randomly choose a some preferences)
+            p.Dimensions = 5;       //Up to x dimensions
+            //p.RandomDraws = 3;    //Amount of draws (x times randomly choose a some preferences)
             
             //p.TableSize = Performance.Size.Small;
             //p.TableSize = Performance.Size.Medium;
@@ -61,16 +61,17 @@ namespace Utility
             //p.Set = Performance.PreferenceSet.Shuffle;
             //p.Set = Performance.PreferenceSet.Combination;
             //p.Set = Performance.PreferenceSet.CombinationNumeric;
-            //p.Set = Performance.PreferenceSet.CombinationCategoric;
+            p.Set = Performance.PreferenceSet.CombinationCategoric;
             //p.Set = Performance.PreferenceSet.Correlation;
             //p.Set = Performance.PreferenceSet.AntiCorrelation;
             //p.Set = Performance.PreferenceSet.Independent;
-            p.Set = Performance.PreferenceSet.CombinationHexagon;
+            //p.Set = Performance.PreferenceSet.CombinationHexagon;
 
             //p.Strategy = new SkylineSQL();
             //p.Strategy = new SkylineBNLSort();
             //p.Strategy = new SkylineDQ();
             p.Strategy = new SkylineHexagon();
+            //p.Strategy = null; //all algorithms should be tested
             
 
             p.generatePerformanceQueries();

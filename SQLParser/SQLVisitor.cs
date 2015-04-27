@@ -397,11 +397,9 @@ namespace prefSQL.SQLParser
             //Keyword LOW or HIGH, build ORDER BY
             if (context.op.Type == SQLParser.K_LOW || context.op.Type == SQLParser.K_HIGH)
             {
-                string strSortOrder = "ASC";
                 string strLevelAdditionaly = strLevelAdd;
                 if (context.op.Type == SQLParser.K_HIGH)
                 {
-                    strSortOrder = "DESC";
                     strLevelAdditionaly = strLevelMinus;
                     //Multiply with -1 (result: every value can be minimized!)
                     strOpposite = " * -1";

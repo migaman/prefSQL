@@ -29,13 +29,6 @@ namespace prefSQL.SQLParser
         private readonly Helper _helper = new Helper();
         private PrefSQLModel _queryModel = new PrefSQLModel();
         private long _timeInMilliseconds = 0;
-        private long _sizeBTG = 0;
-
-        public long SizeBTG
-        {
-            get { return _sizeBTG; }
-            set { _sizeBTG = value; }
-        }
 
         internal Helper Helper {
             get { return _helper;} 
@@ -122,7 +115,6 @@ namespace prefSQL.SQLParser
             //return Helper.getResults(strSQL, _SkylineType, prefSql);
             DataTable dt = Helper.getResults(strSQL, _SkylineType, prefSql);
             TimeInMilliseconds = Helper.timeInMilliseconds;
-            SizeBTG = Helper.sizeBTG;
             return dt;
         }
 

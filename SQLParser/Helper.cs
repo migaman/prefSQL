@@ -28,9 +28,6 @@ namespace prefSQL.SQLParser
 
         public long timeInMilliseconds { get; set; }
 
-        public long sizeBTG { get; set; }
-
-
         public DataTable executeStatement(String strSQL)
         {
             DataTable dt = new DataTable();
@@ -138,7 +135,6 @@ namespace prefSQL.SQLParser
 
                     dt = strategy.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords, model.WithIncomparable, parameter);
                     timeInMilliseconds = strategy.timeMilliseconds;
-                    sizeBTG = strategy.sizeBTG;
                 }
 
             }

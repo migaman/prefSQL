@@ -16,7 +16,6 @@ namespace prefSQL.SQLSkyline
     {
         public DataTable UseDataTable { get; set; }
         public long timeMilliseconds;
-        public long sizeBTG;
         public abstract DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters);
 
         public abstract String getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters);

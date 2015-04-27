@@ -609,186 +609,203 @@ namespace Utility
                 minDimensions = 2;
                 dimensions = 2;
             }
-            
-            
-            StringBuilder sb = new StringBuilder();
-            string strSeparatorLine = formatLineString('-', "", "", "", "", "", "", "", "", "");
-            if (GenerateScript == false)
+
+
+            List<SkylineStrategy> listStrategy = new List<SkylineStrategy>();
+            if (strategy == null)
             {
-                //Header
-                sb.AppendLine("               Algorithm: " + strategy.ToString());
-                sb.AppendLine("          Preference Set: " + set.ToString());
-                sb.AppendLine("                    Host: " + System.Environment.MachineName);
-                sb.AppendLine("      Set of Preferences: " + listPreferences.Count);
-                sb.AppendLine("                  Trials: " + Trials);
-                sb.AppendLine("              Table size: " + tableSize.ToString());
-                sb.AppendLine("          Dimension from: " + minDimensions.ToString());
-                sb.AppendLine("            Dimension to: " + dimensions.ToString());
-                //sb.AppendLine("Correlation Coefficients:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
-                //sb.AppendLine("           Cardinalities:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
-                sb.AppendLine("");
-                sb.AppendLine(formatLineString(' ', "preference set", "trial", "dimensions", "skyline size", "time total", "time algorithm", "sum correlation", "sum cardinality", "size BTG"));
-                sb.AppendLine(strSeparatorLine);
-                Debug.Write(sb);
-            }
-
-
-            
-            List<long> reportDimensions = new List<long>();
-            List<long> reportSkylineSize = new List<long>();
-            List<long> reportTimeTotal = new List<long>();
-            List<long> reportTimeAlgorithm = new List<long>();
-            List<double> reportCorrelation = new List<double>();
-            List<double> reportCardinality = new List<double>();
-            List<double> reportSizeBTG = new List<double>();
-
-            //For each preference set in the preference list
-            for(int iPreferenceIndex = 0; iPreferenceIndex < listPreferences.Count; iPreferenceIndex++)
-            {
-                ArrayList preferences = (ArrayList)listPreferences[iPreferenceIndex];
-                //Go only down two 3 dimension (because there are special algorithms for 1 and 2 dimensional skyline)
-                for (int i = minDimensions; i <= preferences.Count; i++)
-                {
-                    //ADD Preferences to SKYLINE
-                    ArrayList subPreferences = preferences.GetRange(0, i);
-                    string strSkylineOf = "SKYLINE OF " + string.Join(",", (string[])subPreferences.ToArray(Type.GetType("System.String")));
-
-                    //SELECT FROM
-                    string strSQL = "SELECT cars.id FROM ";
-                    if (tableSize == Size.Small)
-                    {
-                        strSQL += "cars_small";
-                    }
-                    else if (tableSize == Size.Medium)
-                    {
-                        strSQL += "cars_medium";
-                    }
-                    else if (tableSize == Size.Large)
-                    {
-                        strSQL += "cars_large";
-                    }
-                    strSQL += " cars ";
-                    //Add Joins
-                    strSQL += getJoinsForPreferences(strSkylineOf);
-                    
-
-
-                    //Add Skyline-Clause
-                    strSQL += strSkylineOf;
-
-
-                    //Convert to real SQL
-                    parser = new SQLCommon();
-                    parser.SkylineType = strategy;
-                    parser.ShowSkylineAttributes = true;
-
-                
-                    if (GenerateScript == false)
-                    {
-                        for (int iTrial = 0; iTrial < Trials; iTrial++ )
-                        {
-                            Stopwatch sw = new Stopwatch();
-
-                            try
-                            {
-
-                                sw.Start();
-                                dt = parser.parseAndExecutePrefSQL(cnnStringLocalhost, driver, strSQL);
-                                long timeAlgorithm = parser.TimeInMilliseconds;
-                                sw.Stop();
-                                double correlation = searchCorrelation(subPreferences, correlationMatrix);
-                                double cardinality = searchCardinality(subPreferences, listCardinality);
-                                double sizeBTG = parser.SizeBTG;
-                                reportDimensions.Add(i);
-                                reportSkylineSize.Add(dt.Rows.Count);
-                                reportTimeTotal.Add(sw.ElapsedMilliseconds);
-                                reportTimeAlgorithm.Add(timeAlgorithm);
-                                reportCorrelation.Add(correlation);
-                                reportCardinality.Add(cardinality);
-                                reportSizeBTG.Add(sizeBTG);
-
-                                //trial|dimensions|skyline size|time total|time algorithm
-                                string strTrial = iTrial+1 + " / " +  trials;
-                                string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
-
-
-                                string strLine = formatLineString(strPreferenceSet, strTrial, i, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality, sizeBTG);
-
-                                
-                                Debug.WriteLine(strLine);
-                                sb.AppendLine(strLine);
-
-                                
-
-
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.WriteLine(e.Message);
-                                return;
-                            }
-                        }
-                    }
-                    else
-                    {
-
-
-                        strSQL = parser.parsePreferenceSQL(strSQL);
-
-                        string[] sizes = { "small", "medium", "large", "superlarge" };
-
-                        //Format for each of the customer profiles
-                        sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
-                        sb.AppendLine("PRINT '----- " + (i + 1) + " dimensions  ------'");
-                        sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
-                        foreach (string size in sizes)
-                        {
-                            sb.AppendLine("GO"); //we need this in order the profiler shows each query in a new line
-                            sb.AppendLine(strSQL.Replace("cars", "cars_" + size));
-
-                        }
-
-                        sb.AppendLine("");
-                        sb.AppendLine("");
-                        sb.AppendLine("");
-                    }
-
-
-                    
-
-                }
-            }
-
-            ////////////////////////////////
-            //Summary
-            ///////////////////////////////
-            if (GenerateScript == false)
-            {
-                addSummary(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportCorrelation, reportCardinality, reportSizeBTG);
-            }
-            
-
-
-
-            //Write in file
-            string strFileName = "";
-            string strFiletype = "";
-            
-            if(generateScript == false)
-            {
-                strFiletype = ".csv";
+                //If no strategy is defined --> Take all possible algorithms
+                //listStrategy.Add(new SkylineSQL());
+                listStrategy.Add(new SkylineBNLSort());
+                listStrategy.Add(new SkylineDQ());
+                listStrategy.Add(new SkylineHexagon());
             }
             else
             {
-                strFiletype = ".sql";
+                listStrategy.Add(strategy);
             }
-            //create filename
-            strFileName = path + "Performance_" + set.ToString() + "_" + strategy.ToString()   + strFiletype;
-            
-            StreamWriter outfile = new StreamWriter(strFileName);
-            outfile.Write(sb.ToString());
-            outfile.Close();
+            foreach(SkylineStrategy currentStrategy in listStrategy)
+            {
+                //Take all strategies
 
+
+
+                StringBuilder sb = new StringBuilder();
+                string strSeparatorLine = formatLineString('-', "", "", "", "", "", "", "", "");
+                if (GenerateScript == false)
+                {
+                    //Header
+                    sb.AppendLine("               Algorithm: " + currentStrategy.ToString());
+                    sb.AppendLine("          Preference Set: " + set.ToString());
+                    sb.AppendLine("                    Host: " + System.Environment.MachineName);
+                    sb.AppendLine("      Set of Preferences: " + listPreferences.Count);
+                    sb.AppendLine("                  Trials: " + Trials);
+                    sb.AppendLine("              Table size: " + tableSize.ToString());
+                    sb.AppendLine("          Dimension from: " + minDimensions.ToString());
+                    sb.AppendLine("            Dimension to: " + dimensions.ToString());
+                    //sb.AppendLine("Correlation Coefficients:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
+                    //sb.AppendLine("           Cardinalities:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
+                    sb.AppendLine("");
+                    sb.AppendLine(formatLineString(' ', "preference set", "trial", "dimensions", "skyline size", "time total", "time algorithm", "sum correlation*", "product cardinality"));
+                    sb.AppendLine(strSeparatorLine);
+                    Debug.Write(sb);
+                }
+
+
+
+                List<long> reportDimensions = new List<long>();
+                List<long> reportSkylineSize = new List<long>();
+                List<long> reportTimeTotal = new List<long>();
+                List<long> reportTimeAlgorithm = new List<long>();
+                List<double> reportCorrelation = new List<double>();
+                List<double> reportCardinality = new List<double>();
+
+
+                //For each preference set in the preference list
+                for (int iPreferenceIndex = 0; iPreferenceIndex < listPreferences.Count; iPreferenceIndex++)
+                {
+                    ArrayList preferences = (ArrayList)listPreferences[iPreferenceIndex];
+                    //Go only down two 3 dimension (because there are special algorithms for 1 and 2 dimensional skyline)
+                    for (int i = minDimensions; i <= preferences.Count; i++)
+                    {
+                        //ADD Preferences to SKYLINE
+                        ArrayList subPreferences = preferences.GetRange(0, i);
+                        string strSkylineOf = "SKYLINE OF " + string.Join(",", (string[])subPreferences.ToArray(Type.GetType("System.String")));
+
+                        //SELECT FROM
+                        string strSQL = "SELECT cars.id FROM ";
+                        if (tableSize == Size.Small)
+                        {
+                            strSQL += "cars_small";
+                        }
+                        else if (tableSize == Size.Medium)
+                        {
+                            strSQL += "cars_medium";
+                        }
+                        else if (tableSize == Size.Large)
+                        {
+                            strSQL += "cars_large";
+                        }
+                        strSQL += " cars ";
+                        //Add Joins
+                        strSQL += getJoinsForPreferences(strSkylineOf);
+
+
+
+                        //Add Skyline-Clause
+                        strSQL += strSkylineOf;
+
+
+                        //Convert to real SQL
+                        parser = new SQLCommon();
+                        parser.SkylineType = currentStrategy;
+                        parser.ShowSkylineAttributes = true;
+
+
+                        if (GenerateScript == false)
+                        {
+                            for (int iTrial = 0; iTrial < Trials; iTrial++)
+                            {
+                                Stopwatch sw = new Stopwatch();
+
+                                try
+                                {
+
+                                    sw.Start();
+                                    dt = parser.parseAndExecutePrefSQL(cnnStringLocalhost, driver, strSQL);
+                                    long timeAlgorithm = parser.TimeInMilliseconds;
+                                    sw.Stop();
+                                    double correlation = searchCorrelation(subPreferences, correlationMatrix);
+                                    double cardinality = searchCardinality(subPreferences, listCardinality);
+                                    reportDimensions.Add(i);
+                                    reportSkylineSize.Add(dt.Rows.Count);
+                                    reportTimeTotal.Add(sw.ElapsedMilliseconds);
+                                    reportTimeAlgorithm.Add(timeAlgorithm);
+                                    reportCorrelation.Add(correlation);
+                                    reportCardinality.Add(cardinality);
+
+                                    //trial|dimensions|skyline size|time total|time algorithm
+                                    string strTrial = iTrial + 1 + " / " + trials;
+                                    string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
+
+
+                                    string strLine = formatLineString(strPreferenceSet, strTrial, i, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality);
+
+
+                                    Debug.WriteLine(strLine);
+                                    sb.AppendLine(strLine);
+
+
+
+
+                                }
+                                catch (Exception e)
+                                {
+                                    Debug.WriteLine(e.Message);
+                                    return;
+                                }
+                            }
+                        }
+                        else
+                        {
+
+
+                            strSQL = parser.parsePreferenceSQL(strSQL);
+
+                            string[] sizes = { "small", "medium", "large", "superlarge" };
+
+                            //Format for each of the customer profiles
+                            sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
+                            sb.AppendLine("PRINT '----- " + (i + 1) + " dimensions  ------'");
+                            sb.AppendLine("PRINT '----- -------------------------------------------------------- ------'");
+                            foreach (string size in sizes)
+                            {
+                                sb.AppendLine("GO"); //we need this in order the profiler shows each query in a new line
+                                sb.AppendLine(strSQL.Replace("cars", "cars_" + size));
+
+                            }
+
+                            sb.AppendLine("");
+                            sb.AppendLine("");
+                            sb.AppendLine("");
+                        }
+
+
+
+
+                    }
+                }
+
+                ////////////////////////////////
+                //Summary
+                ///////////////////////////////
+                if (GenerateScript == false)
+                {
+                    addSummary(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportCorrelation, reportCardinality);
+                }
+
+
+
+
+                //Write in file
+                string strFileName = "";
+                string strFiletype = "";
+
+                if (generateScript == false)
+                {
+                    strFiletype = ".csv";
+                }
+                else
+                {
+                    strFiletype = ".sql";
+                }
+                //create filename
+                strFileName = path + "Performance_" + set.ToString() + "_" + currentStrategy.ToString() + strFiletype;
+
+                StreamWriter outfile = new StreamWriter(strFileName);
+                outfile.Write(sb.ToString());
+                outfile.Close();
+            }
         }
 
 
@@ -883,7 +900,7 @@ namespace Utility
         private double searchCardinality(ArrayList preferences, ArrayList cardinality)
         {
 
-            double sum = 0;
+            double product = 1;
             for (int i = 0; i < preferences.Count; i++)
             {
                 bool bFound = false;
@@ -892,7 +909,7 @@ namespace Utility
                     CardinalityModel model = (CardinalityModel)cardinality[iModel];
                     if (model.Col.Equals(preferences[i].ToString()))
                     {
-                        sum += model.Cardinality;
+                        product *= model.Cardinality;
                         bFound = true;
                         break;
                     }
@@ -902,7 +919,7 @@ namespace Utility
                     throw new Exception("cardinality factor not found");
                 }
             }
-            return sum;
+            return product;
         }
 
 
@@ -937,18 +954,18 @@ namespace Utility
         #region formatOutput
 
 
-        private void addSummary(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions, List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, List<double> reportCorrelation, List<double> reportCardinality, List<double> reportSizeBTG)
+        private void addSummary(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions, List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, List<double> reportCorrelation, List<double> reportCardinality)
         {
             //Separator Line
             Debug.WriteLine(strSeparatorLine);
             sb.AppendLine(strSeparatorLine);
 
             Mathematic mathematic = new Mathematic();
-            string strAverage = formatLineString("average", "", reportDimensions.Average(), reportSkylineSize.Average(), reportTimeTotal.Average(), reportTimeAlgorithm.Average(), reportCorrelation.Average(), reportCardinality.Average(), reportSizeBTG.Average());
-            string strMin = formatLineString("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(), reportTimeTotal.Min(), reportTimeAlgorithm.Min(), reportCorrelation.Min(), reportCardinality.Min(), reportSizeBTG.Min());
-            string strMax = formatLineString("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), reportCorrelation.Max(), reportCardinality.Max(), reportSizeBTG.Max());
-            string strVar = formatLineString("variance", "", mathematic.getVariance(reportDimensions), mathematic.getVariance(reportSkylineSize), mathematic.getVariance(reportTimeTotal), mathematic.getVariance(reportTimeAlgorithm), mathematic.getVariance(reportCorrelation), mathematic.getVariance(reportCardinality), mathematic.getVariance(reportSizeBTG));
-            string strStd = formatLineString("stddeviation", "", mathematic.getStdDeviation(reportDimensions), mathematic.getStdDeviation(reportSkylineSize), mathematic.getStdDeviation(reportTimeTotal), mathematic.getStdDeviation(reportTimeAlgorithm), mathematic.getStdDeviation(reportCorrelation), mathematic.getStdDeviation(reportCardinality), mathematic.getStdDeviation(reportSizeBTG));
+            string strAverage = formatLineString("average", "", reportDimensions.Average(), reportSkylineSize.Average(), reportTimeTotal.Average(), reportTimeAlgorithm.Average(), reportCorrelation.Average(), reportCardinality.Average());
+            string strMin = formatLineString("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(), reportTimeTotal.Min(), reportTimeAlgorithm.Min(), reportCorrelation.Min(), reportCardinality.Min());
+            string strMax = formatLineString("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), reportCorrelation.Max(), reportCardinality.Max());
+            string strVar = formatLineString("variance", "", mathematic.getVariance(reportDimensions), mathematic.getVariance(reportSkylineSize), mathematic.getVariance(reportTimeTotal), mathematic.getVariance(reportTimeAlgorithm), mathematic.getVariance(reportCorrelation), mathematic.getVariance(reportCardinality));
+            string strStd = formatLineString("stddeviation", "", mathematic.getStdDeviation(reportDimensions), mathematic.getStdDeviation(reportSkylineSize), mathematic.getStdDeviation(reportTimeTotal), mathematic.getStdDeviation(reportTimeAlgorithm), mathematic.getStdDeviation(reportCorrelation), mathematic.getStdDeviation(reportCardinality));
 
             sb.AppendLine(strAverage);
             sb.AppendLine(strMin);
@@ -968,27 +985,26 @@ namespace Utility
 
 
 
-        private string formatLineString(char paddingChar, string strTitle, string strTrial, string strDimension, string strSkyline, string strTimeTotal, string strTimeAlgo, string strCorrelation, string strCardinality, string strSizeBTG)
+        private string formatLineString(char paddingChar, string strTitle, string strTrial, string strDimension, string strSkyline, string strTimeTotal, string strTimeAlgo, string strCorrelation, string strCardinality)
         {
             //average line
             //trial|dimensions|skyline size|time total|time algorithm|correlation|
-            string[] line = new string[10];
+            string[] line = new string[9];
             line[0] = strTitle.PadLeft(14, paddingChar);
             line[1] = strTrial.PadLeft(11, paddingChar);
             line[2] = strDimension.PadLeft(10, paddingChar);
-            line[3] = strSkyline.PadLeft(12, paddingChar);
-            line[4] = strTimeTotal.PadLeft(10, paddingChar);
-            line[5] = strTimeAlgo.PadLeft(14, paddingChar);
-            line[6] = strCorrelation.PadLeft(15, paddingChar);
-            line[7] = strCardinality.PadLeft(15, paddingChar);
-            line[8] = strSizeBTG.PadLeft(8, paddingChar);
-            line[9] = "";
+            line[3] = strSkyline.PadLeft(20, paddingChar);
+            line[4] = strTimeTotal.PadLeft(20, paddingChar);
+            line[5] = strTimeAlgo.PadLeft(20, paddingChar);
+            line[6] = strCorrelation.PadLeft(20, paddingChar);
+            line[7] = strCardinality.PadLeft(20, paddingChar);
+            line[8] = "";
             return string.Join("|", line);
         }
 
-        private string formatLineString(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double correlation, double cardinality, double sizeBTG)
+        private string formatLineString(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double correlation, double cardinality)
         {
-            return formatLineString(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(), Math.Round(skyline, 2).ToString(), Math.Round(timeTotal, 2).ToString(), Math.Round(timeAlgo, 2).ToString(), Math.Round(correlation, 2).ToString(), Math.Round(cardinality, 2).ToString(), Math.Round(sizeBTG, 2).ToString());
+            return formatLineString(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(), Math.Round(skyline, 2).ToString(), Math.Round(timeTotal, 2).ToString(), Math.Round(timeAlgo, 2).ToString(), Math.Round(correlation, 2).ToString(), Math.Round(cardinality, 2).ToString());
         }
 
 
