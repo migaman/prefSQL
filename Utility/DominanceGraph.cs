@@ -7,14 +7,12 @@ using prefSQL.SQLParser;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using prefSQL.SQLSkyline;
+using System.Data.Common;
 
 namespace Utility
 {
     class DominanceGraph
     {
-        private const string strConnection = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True;";
-
-
         public void run()
         {
             Stopwatch sw = new Stopwatch();
@@ -27,7 +25,7 @@ namespace Utility
             SQLCommon common = new SQLCommon();
             common.SkylineType = new SkylineSQL();
             common.ShowSkylineAttributes = true;
-            SqlConnection cnnSQL = new SqlConnection(strConnection);
+            SqlConnection cnnSQL = new SqlConnection(Helper.ConnectionString);
             string sqlNative = "";
 
             try
@@ -52,8 +50,10 @@ namespace Utility
                     sqlNative = common.parsePreferenceSQL(strSQL + strIDs + strPreference);
 
                     //Execute SQL
-                    SqlCommand sqlCommand = new SqlCommand(sqlNative, cnnSQL);
-                    SqlDataReader sqlReader = sqlCommand.ExecuteReader();
+                    DbCommand command = cnnSQL.CreateCommand();
+                    command.CommandTimeout = 0; //infinite timeout
+                    command.CommandText = sqlNative;
+                    DbDataReader sqlReader = command.ExecuteReader();
 
                     if (sqlReader.HasRows)
                     {

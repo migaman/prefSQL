@@ -14,6 +14,8 @@ using prefSQL.SQLSkyline;
 using System.Collections;
 using Utility.Model;
 using prefSQL.SQLParser.Models;
+using System.Threading;
+using System.Data.Common;
 
 namespace Utility
 {
@@ -33,8 +35,6 @@ namespace Utility
     {
 
         private const string path = "E:\\Doc\\Studies\\PRJ_Thesis\\43 Correlation\\";
-        private const string cnnStringLocalhost = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
-        private const string driver = "System.Data.SqlClient";
         private int trials = 5;                 //How many times each preferene query is executed
         private int dimensions = 6;             //Up to this amount of dimension should be tested
         private int randomDraws = 25;          //Only used for the shuffle set. How many random set will be generated
@@ -44,6 +44,13 @@ namespace Utility
         static Random rnd = new Random();
         private int minDimensions = 2;
         private Size tableSize;
+        private bool useCLR = false;
+
+        public bool UseCLR
+        {
+            get { return useCLR; }
+            set { useCLR = value; }
+        }
 
         internal Size TableSize
         {
@@ -113,7 +120,7 @@ namespace Utility
             Combination,            //Take all preferences
             CombinationNumeric,     //Take only numeric preferences
             CombinationCategoric,   //Take only categoric preferences
-            CombinationHexagon,      //Special collection of preferences which perform well on Hexagon
+            CombinationMinCardinality,      //Special collection of preferences which perform well on Hexagon
             Correlation,            //Take 2 best correlated preferences
             AntiCorrelation,        //Take 2 worst correlated preferences
             Independent,            //Take 2 most independent correlated preferences
@@ -320,15 +327,13 @@ namespace Utility
             }
             strSQL = strSQL.TrimEnd(',') + " FROM cars ";
             strSQL += getJoinsForPreferences(strSQL);
-            
 
 
-            SqlConnection conn = new SqlConnection(cnnStringLocalhost);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand(strSQL, conn);
 
-            DataTable dt = new DataTable();
-            dt.Load(cmd.ExecuteReader());
+
+
+            DataTable dt = Helper.executeStatement(strSQL);
+
             return dt;
         }
 
@@ -382,13 +387,17 @@ namespace Utility
         {
             //Open DBConnection --> Otherwise first query is slower as usual, because DBConnection is not open
             SQLCommon parser = new SQLCommon();
-            DataTable dt = parser.parseAndExecutePrefSQL(cnnStringLocalhost, driver, "SELECT cars.id FROM cars SKYLINE OF cars.price LOW");
+            DataTable dt = parser.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, "SELECT cars.id FROM cars SKYLINE OF cars.price LOW");
 
             //Use the correct line, depending on how incomparable items should be compared
             ArrayList listPreferences = new ArrayList();
             ArrayList correlationMatrix = new ArrayList();
             ArrayList listCardinality = new ArrayList();
-
+            SqlConnection cnnSQL = new SqlConnection(Helper.ConnectionString); //for CLR performance tets
+            if (useCLR == true)
+            {
+                cnnSQL.Open();
+            }
 
             if (set == PreferenceSet.ArchiveComparable)
             {
@@ -473,7 +482,7 @@ namespace Utility
                 minDimensions = dimensions;
 
             }
-            else if (set == PreferenceSet.CombinationHexagon)
+            else if (set == PreferenceSet.CombinationMinCardinality)
             {
                 //Tests every possible combination with y preferences from the whole set of preferences
                 ArrayList preferences = getSpecialHexagonPreferences();
@@ -712,7 +721,20 @@ namespace Utility
                                 {
 
                                     sw.Start();
-                                    dt = parser.parseAndExecutePrefSQL(cnnStringLocalhost, driver, strSQL);
+                                    if (useCLR == true)
+                                    {
+                                        string strSP = parser.parsePreferenceSQL(strSQL);
+                                        SqlDataAdapter dap = new SqlDataAdapter(strSP, cnnSQL);
+                                        dt.Clear(); //clear datatable
+                                        dap.Fill(dt);
+
+
+                                        
+                                    }
+                                    else
+                                    {
+                                        dt = parser.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strSQL);
+                                    }
                                     long timeAlgorithm = parser.TimeInMilliseconds;
                                     sw.Stop();
                                     double correlation = searchCorrelation(subPreferences, correlationMatrix);
@@ -765,15 +787,11 @@ namespace Utility
 
                             }
 
-                            sb.AppendLine("");
-                            sb.AppendLine("");
-                            sb.AppendLine("");
+                            
                         }
 
-
-
-
                     }
+
                 }
 
                 ////////////////////////////////
@@ -784,7 +802,10 @@ namespace Utility
                     addSummary(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportCorrelation, reportCardinality);
                 }
 
-
+                //Write some empty lines (clarification in output window)
+                Debug.WriteLine("");
+                Debug.WriteLine("");
+                Debug.WriteLine("");
 
 
                 //Write in file
@@ -806,6 +827,13 @@ namespace Utility
                 outfile.Write(sb.ToString());
                 outfile.Close();
             }
+
+            //close connection
+            if (useCLR == true)
+            {
+                cnnSQL.Close();
+            }
+            
         }
 
 
@@ -839,6 +867,7 @@ namespace Utility
 
                 }
             }
+
 
             return listCorrelation;
         }
@@ -997,20 +1026,101 @@ namespace Utility
             line[4] = strTimeTotal.PadLeft(20, paddingChar);
             line[5] = strTimeAlgo.PadLeft(20, paddingChar);
             line[6] = strCorrelation.PadLeft(20, paddingChar);
-            line[7] = strCardinality.PadLeft(20, paddingChar);
+            line[7] = strCardinality.PadLeft(25, paddingChar);
             line[8] = "";
             return string.Join("|", line);
         }
 
         private string formatLineString(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double correlation, double cardinality)
         {
-            return formatLineString(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(), Math.Round(skyline, 2).ToString(), Math.Round(timeTotal, 2).ToString(), Math.Round(timeAlgo, 2).ToString(), Math.Round(correlation, 2).ToString(), Math.Round(cardinality, 2).ToString());
+            return formatLineString(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(), Math.Round(skyline, 2).ToString(), Math.Round(timeTotal, 2).ToString(), Math.Round(timeAlgo, 2).ToString(), Math.Round(correlation, 2).ToString(), ToLongString(Math.Round(cardinality, 2)));
+        }
+
+
+        
+        /// <summary>
+        /// Source: http://stackoverflow.com/questions/1546113/double-to-string-conversion-without-scientific-notation
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private static string ToLongString(double input)
+        {
+            string str = input.ToString().ToUpper();
+
+            // if string representation was collapsed from scientific notation, just return it:
+            if (!str.Contains("E")) return str;
+
+            bool negativeNumber = false;
+
+            if (str[0] == '-')
+            {
+                str = str.Remove(0, 1);
+                negativeNumber = true;
+            }
+
+            string sep = Thread.CurrentThread.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+            char decSeparator = sep.ToCharArray()[0];
+
+            string[] exponentParts = str.Split('E');
+            string[] decimalParts = exponentParts[0].Split(decSeparator);
+
+            // fix missing decimal point:
+            if (decimalParts.Length == 1) decimalParts = new string[] { exponentParts[0], "0" };
+
+            int exponentValue = int.Parse(exponentParts[1]);
+
+            string newNumber = decimalParts[0] + decimalParts[1];
+
+            string result;
+
+            if (exponentValue > 0)
+            {
+                result =
+                    newNumber +
+                    GetZeros(exponentValue - decimalParts[1].Length);
+            }
+            else // negative exponent
+            {
+                result =
+                    "0" +
+                    decSeparator +
+                    GetZeros(exponentValue + decimalParts[0].Length) +
+                    newNumber;
+
+                result = result.TrimEnd('0');
+            }
+
+            if (negativeNumber)
+                result = "-" + result;
+
+            return result;
+        }
+
+        /// <summary>
+        /// Source: http://stackoverflow.com/questions/1546113/double-to-string-conversion-without-scientific-notation
+        /// </summary>
+        /// <param name="zeroCount"></param>
+        /// <returns></returns>
+        private static string GetZeros(int zeroCount)
+        {
+            if (zeroCount < 0)
+                zeroCount = Math.Abs(zeroCount);
+
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < zeroCount; i++) sb.Append("0");
+
+            return sb.ToString();
         }
 
 
 
         #endregion
 
+
+
+
+        
 
     }
     

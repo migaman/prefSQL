@@ -51,6 +51,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
@@ -68,6 +69,7 @@
     <Compile Include="FrmSQLParser.Designer.cs">
       <DependentUpon>FrmSQLParser.cs</DependentUpon>
     </Compile>
+    <Compile Include="Helper.cs" />
     <Compile Include="Mathematic.cs" />
     <Compile Include="Model\CardinalityModel.cs" />
     <Compile Include="Model\CorrelationModel.cs" />

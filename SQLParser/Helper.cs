@@ -22,7 +22,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         public String DriverString { get; set; }  
         /// <summary>
-        /// Connectionstring, i.e. Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True
+        /// Connectionstring, i.e. Data Source=myserver;Initial Catalog=eCommerce;Integrated Security=True
         /// </summary>
         public String ConnectionString { get; set; }
 

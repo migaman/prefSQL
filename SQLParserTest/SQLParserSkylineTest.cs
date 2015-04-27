@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using prefSQL.SQLSkyline;
 using System.Data;
 using prefSQL.SQLParser.Models;
+using System.Data.Common;
 
 
 namespace prefSQL.SQLParserTest
@@ -14,10 +15,6 @@ namespace prefSQL.SQLParserTest
     [TestClass]
     public class SQLParserSkylineTest
     {
-        private const string strConnection = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
-        private const string driver = "System.Data.SqlClient";
-
-
         private string[] getPreferences()
         {
             string[] strPrefSQL = new string[11];
@@ -126,15 +123,17 @@ namespace prefSQL.SQLParserTest
                 int amountOfTupelsHexagon = 0;
                 int amountOfTupelsDQ = 0;
 
-                SqlConnection cnnSQL = new SqlConnection(strConnection);
+                SqlConnection cnnSQL = new SqlConnection(Helper.ConnectionString);
                 cnnSQL.InfoMessage += cnnSQL_InfoMessage;
                 try
                 {
                     cnnSQL.Open();
 
                     //Native
-                    SqlCommand sqlCommand = new SqlCommand(sqlNative, cnnSQL);
-                    SqlDataReader sqlReader = sqlCommand.ExecuteReader();
+                    DbCommand command = cnnSQL.CreateCommand();
+                    command.CommandTimeout = 0; //infinite timeout
+                    command.CommandText = sqlNative;
+                    DbDataReader sqlReader = command.ExecuteReader();
 
                     if (sqlReader.HasRows)
                     {
@@ -146,8 +145,8 @@ namespace prefSQL.SQLParserTest
                     sqlReader.Close();
 
                     //BNL
-                    sqlCommand = new SqlCommand(sqlBNL, cnnSQL);
-                    sqlReader = sqlCommand.ExecuteReader();
+                    command.CommandText = sqlBNL;
+                    sqlReader = command.ExecuteReader();
 
                     if (sqlReader.HasRows)
                     {
@@ -159,8 +158,8 @@ namespace prefSQL.SQLParserTest
                     sqlReader.Close();
 
                     //BNLSort
-                    sqlCommand = new SqlCommand(sqlBNLSort, cnnSQL);
-                    sqlReader = sqlCommand.ExecuteReader();
+                    command.CommandText = sqlBNLSort;
+                    sqlReader = command.ExecuteReader();
 
                     if (sqlReader.HasRows)
                     {
@@ -173,8 +172,8 @@ namespace prefSQL.SQLParserTest
 
 
                     //Hexagon
-                    sqlCommand = new SqlCommand(sqlHexagon, cnnSQL);
-                    sqlReader = sqlCommand.ExecuteReader();
+                    command.CommandText = sqlHexagon;
+                    sqlReader = command.ExecuteReader();
 
                     if (sqlReader.HasRows)
                     {
@@ -188,8 +187,8 @@ namespace prefSQL.SQLParserTest
                     //D&Q (does not work with incomparable tuples)
                     if(model.WithIncomparable == false)
                     {
-                        sqlCommand = new SqlCommand(sqlDQ, cnnSQL);
-                        sqlReader = sqlCommand.ExecuteReader();
+                        command.CommandText = sqlDQ; ;
+                        sqlReader = command.ExecuteReader();
 
                         if (sqlReader.HasRows)
                         {
@@ -246,17 +245,17 @@ namespace prefSQL.SQLParserTest
                 SQLCommon common = new SQLCommon();
                 common.SkylineType = new SkylineSQL();
                 PrefSQLModel model = common.GetPrefSqlModelFromPreferenceSql(strPrefSQL[i]);
-                DataTable dtNative = common.ExecuteFromPrefSqlModel(strConnection, driver, model);
+                DataTable dtNative = common.ExecuteFromPrefSqlModel(Helper.ConnectionString, Helper.ProviderName, model);
                 common.SkylineType = new SkylineBNL();
-                DataTable dtBNL = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
+                DataTable dtBNL = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL[i]);
                 common.SkylineType = new SkylineBNLSort();
-                DataTable dtBNLSort = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
+                DataTable dtBNLSort = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL[i]);
                 
                 DataTable dtHexagon = new DataTable();
                 if (model.ContainsOpenPreference == false)
                 {
                     common.SkylineType = new SkylineHexagon();
-                    dtHexagon = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
+                    dtHexagon = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL[i]);
                 }
                 
                 
@@ -264,8 +263,8 @@ namespace prefSQL.SQLParserTest
                 //D&Q does not work with incomparable tuples
                 if (model.WithIncomparable == false)
                 {
-                    common.SkylineType = new SkylineDQ();    
-                    dtDQ = common.parseAndExecutePrefSQL(strConnection, driver, strPrefSQL[i]);
+                    common.SkylineType = new SkylineDQ();
+                    dtDQ = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL[i]);
                 }
                 
 
@@ -296,7 +295,7 @@ namespace prefSQL.SQLParserTest
             string strPreferences = " SKYLINE OF t1.price LOW, t1.mileage LOW";
             SQLCommon common = new SQLCommon();
 
-            SqlConnection cnnSQL = new SqlConnection(strConnection);
+            SqlConnection cnnSQL = new SqlConnection(Helper.ConnectionString);
             cnnSQL.InfoMessage += cnnSQL_InfoMessage;
             try
             {
@@ -308,14 +307,18 @@ namespace prefSQL.SQLParserTest
                 common.SkylineUpToLevel = 3;
                 string sqlTree = common.parsePreferenceSQL(strSQL + strPreferences);
                 ArrayList levelRecordsTree = new ArrayList(); ;
-                SqlCommand sqlCommand = new SqlCommand(sqlTree, cnnSQL);
-                SqlDataReader sqlReader = sqlCommand.ExecuteReader();
 
-                if (sqlReader.HasRows)
+
+                DbCommand command = cnnSQL.CreateCommand();
+                command.CommandTimeout = 0; //infinite timeout
+                command.CommandText = sqlTree;
+                DbDataReader dataReader = command.ExecuteReader();
+
+                if (dataReader.HasRows)
                 {
-                    while (sqlReader.Read())
+                    while (dataReader.Read())
                     {
-                        int level = (int)sqlReader["level"];
+                        int level = (int)dataReader["level"];
                         if (levelRecordsTree.Count > level)
                         {
                             levelRecordsTree[level] = (int)levelRecordsTree[level] + 1;
@@ -327,7 +330,7 @@ namespace prefSQL.SQLParserTest
                         }
                     }
                 }
-                sqlReader.Close();
+                dataReader.Close();
 
 
                 //BNL Algorithm (multiple times)
@@ -351,15 +354,18 @@ namespace prefSQL.SQLParserTest
                     }
                     //Parse PreferenceSQL into SQL
                     string sqlBNLSort = common.parsePreferenceSQL(strSQL + strIDs + strPreferences);
-                    
-                    sqlCommand = new SqlCommand(sqlBNLSort, cnnSQL);
-                    sqlReader = sqlCommand.ExecuteReader();
 
-                    if (sqlReader.HasRows)
+                    command = cnnSQL.CreateCommand();
+                    command.CommandTimeout = 0; //infinite timeout
+                    command.CommandText = sqlBNLSort;
+                    dataReader = command.ExecuteReader();
+
+
+                    if (dataReader.HasRows)
                     {
-                        while (sqlReader.Read())
+                        while (dataReader.Read())
                         {
-                            listIDs.Add(Int32.Parse(sqlReader["id"].ToString()));
+                            listIDs.Add(Int32.Parse(dataReader["id"].ToString()));
 
                             //int level = (int)sqlReader["level"];
                             if (levelRecordsBNLSort.Count > iLevel)
@@ -372,7 +378,7 @@ namespace prefSQL.SQLParserTest
 
                             }
                         }
-                        sqlReader.Close();
+                        dataReader.Close();
                     }
                     else
                     {

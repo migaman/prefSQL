@@ -18,8 +18,7 @@ namespace Utility
 {
     class Program
     {
-        private const string cnnStringLocalhost = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
-        private const string driver = "System.Data.SqlClient";
+        
 
         static void Main(string[] args)
         {
@@ -43,10 +42,10 @@ namespace Utility
 
             p.GenerateScript = false;
 
-
+            //p.UseCLR = true;
             p.Trials = 1;           //Amount of trials for each single sql preference statement
-            p.Dimensions = 5;       //Up to x dimensions
-            //p.RandomDraws = 3;    //Amount of draws (x times randomly choose a some preferences)
+            p.Dimensions = 7;       //Up to x dimensions
+            p.RandomDraws = 50;    //Amount of draws (x times randomly choose a some preferences)
             
             //p.TableSize = Performance.Size.Small;
             //p.TableSize = Performance.Size.Medium;
@@ -60,18 +59,19 @@ namespace Utility
             //p.Set = Performance.PreferenceSet.Barra;
             //p.Set = Performance.PreferenceSet.Shuffle;
             //p.Set = Performance.PreferenceSet.Combination;
-            //p.Set = Performance.PreferenceSet.CombinationNumeric;
-            p.Set = Performance.PreferenceSet.CombinationCategoric;
+            p.Set = Performance.PreferenceSet.CombinationNumeric;
+            //p.Set = Performance.PreferenceSet.CombinationCategoric;
             //p.Set = Performance.PreferenceSet.Correlation;
             //p.Set = Performance.PreferenceSet.AntiCorrelation;
             //p.Set = Performance.PreferenceSet.Independent;
-            //p.Set = Performance.PreferenceSet.CombinationHexagon;
+            //p.Set = Performance.PreferenceSet.CombinationMinCardinality;
 
-            //p.Strategy = new SkylineSQL();
-            //p.Strategy = new SkylineBNLSort();
-            //p.Strategy = new SkylineDQ();
-            p.Strategy = new SkylineHexagon();
             //p.Strategy = null; //all algorithms should be tested
+            //p.Strategy = new SkylineSQL();
+            p.Strategy = new SkylineBNLSort();
+            //p.Strategy = new SkylineDQ();
+            //p.Strategy = new SkylineHexagon();
+            
             
 
             p.generatePerformanceQueries();
@@ -180,7 +180,7 @@ namespace Utility
 
 
                 sw.Start();
-                DataTable dt = parser.parseAndExecutePrefSQL(cnnStringLocalhost, driver, strPrefSQL);
+                DataTable dt = parser.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL);
                 sw.Stop();
 
                 Debug.WriteLine("\n------------------------------------------\nSTATISTIC\n------------------------------------------");

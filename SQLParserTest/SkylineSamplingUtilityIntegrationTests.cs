@@ -10,8 +10,6 @@
     [TestClass]
     public class SkylineSamplingUtilityIntegrationTests
     {
-        private const string DbConnection = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
-        private const string DbProvider = "System.Data.SqlClient"; 
         
         public TestContext TestContext { get; set; }
 
@@ -32,7 +30,7 @@
             var prefSqlModel = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSql);
             var subjectUnderTest = new SkylineSamplingUtility(prefSqlModel, common);
 
-            var entireSkyline = common.parseAndExecutePrefSQL(DbConnection, DbProvider, entireSkylineSql);
+            var entireSkyline = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, entireSkylineSql);
             var sampleSkyline = subjectUnderTest.GetSkyline();
 
             var entireSkylineObjectsIds = GetHashSetOfIdsFromDataTable(entireSkyline);
