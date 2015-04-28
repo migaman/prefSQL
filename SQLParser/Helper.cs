@@ -133,6 +133,10 @@ namespace prefSQL.SQLParser
                         throw new Exception(strategy.GetType() +  " does not support incomparale tuples");
                     }
 
+                    //Set the database provider
+                    strategy.Provider = DriverString;
+
+
                     dt = strategy.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords, model.WithIncomparable, parameter);
                     timeInMilliseconds = strategy.timeMilliseconds;
                 }

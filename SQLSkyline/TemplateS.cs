@@ -6,6 +6,7 @@ using Microsoft.SqlServer.Server;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Data.Common;
 
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace prefSQL.SQLSkyline
@@ -16,16 +17,10 @@ namespace prefSQL.SQLSkyline
     /// <remarks>
     /// TODO: Work in progress
     /// </remarks>
-    public abstract class TemplateS
+    public abstract class TemplateS : TemplateStrategy
     {
-        public long timeInMs = 0;
 
-        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection)
-        {
-            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection);
-        }
-
-        protected DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection)
+        protected override DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider)
         {
             Stopwatch sw = new Stopwatch();
             ArrayList resultCollection = new ArrayList();
@@ -33,11 +28,13 @@ namespace prefSQL.SQLSkyline
             string[] operators = strOperators.ToString().Split(';');
             DataTable dtResult = new DataTable();
 
-            SqlConnection connection = null;
-            if (isIndependent == false)
-                connection = new SqlConnection(Helper.cnnStringSQLCLR);
-            else
-                connection = new SqlConnection(strConnection);
+            DbProviderFactory factory = null;
+            DbConnection connection = null;
+            factory = DbProviderFactories.GetFactory(strProvider);
+
+            // use the factory object to create Data access objects.
+            connection = factory.CreateConnection(); // will return the connection object (i.e. SqlConnection ...)
+            connection.ConnectionString = strConnection;
 
             try
             {
@@ -48,7 +45,11 @@ namespace prefSQL.SQLSkyline
                 }
                 connection.Open();
 
-                SqlDataAdapter dap = new SqlDataAdapter(strQuery.ToString(), connection);
+                DbDataAdapter dap = factory.CreateDataAdapter();
+                DbCommand selectCommand = connection.CreateCommand();
+                selectCommand.CommandTimeout = 0; //infinite timeout
+                selectCommand.CommandText = strQuery.ToString();
+                dap.SelectCommand = selectCommand;
                 DataTable dt = new DataTable();
                 dap.Fill(dt);
 

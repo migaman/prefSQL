@@ -45,12 +45,12 @@ namespace prefSQL.SQLSkyline
             if (hasIncomparable)
             {
                 SP_MultipleSkylineBNL skyline = new SP_MultipleSkylineBNL();
-                return skyline.getSkylineTable(strQuery, strOperators, strConnection, numberOfRecords, upToLevel);
+                return skyline.getSkylineTable(strQuery, strOperators, strConnection, Provider, numberOfRecords, upToLevel);
             }
             else
             {
                 SP_MultipleSkylineBNLLevel skyline = new SP_MultipleSkylineBNLLevel();
-                return skyline.getSkylineTable(strQuery, strOperators, strConnection, numberOfRecords, upToLevel);
+                return skyline.getSkylineTable(strQuery, strOperators, strConnection, Provider, numberOfRecords, upToLevel);
             }
             
         }

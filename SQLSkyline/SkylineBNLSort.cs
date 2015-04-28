@@ -53,7 +53,7 @@ namespace prefSQL.SQLSkyline
                 SP_SkylineBNLSort skyline = new SP_SkylineBNLSort();
                 
                 skyline.UseDataTable = UseDataTable;
-                DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+                DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
 
                 timeMilliseconds = skyline.timeInMs;
                 return dt;
@@ -64,7 +64,7 @@ namespace prefSQL.SQLSkyline
                 
                 skyline.UseDataTable = UseDataTable;
                 
-				DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+				DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
                 
                 timeMilliseconds = skyline.timeInMs;
                 return dt;

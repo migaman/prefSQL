@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Data.Common;
 
 
 //Caution: Attention small changes in this code can lead to performance issues, i.e. using a startswith instead of an equal can increase by 10 times
@@ -20,11 +21,11 @@ namespace prefSQL.SQLSkyline
         public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlString strSelectIncomparable, int weightHexagonIncomparable)
         {
             SP_SkylineHexagon skyline = new SP_SkylineHexagon();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, "", strSelectIncomparable.ToString(), weightHexagonIncomparable);
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.cnnStringSQLCLR, Helper.ProviderCLR, strSelectIncomparable.ToString(), weightHexagonIncomparable);
         }
 
 
-        protected override void calculateOperators(ref string strOperators, string strSelectIncomparable, SqlConnection connection, ref string strSQL)
+        protected override void calculateOperators(ref string strOperators, string strSelectIncomparable, DbProviderFactory factory, DbConnection connection, ref string strSQL)
         {
             if (!strSelectIncomparable.Equals(""))
             {
@@ -35,7 +36,11 @@ namespace prefSQL.SQLSkyline
                 posOfFROM = strSQL.IndexOf("FROM");
                 string strSQLIncomparable = "SELECT DISTINCT " + strSelectIncomparable + " " + strSQL.Substring(posOfFROM);
 
-                SqlDataAdapter dap = new SqlDataAdapter(strSQLIncomparable, connection);
+                DbDataAdapter dap = factory.CreateDataAdapter();
+                DbCommand selectCommand = connection.CreateCommand();
+                selectCommand.CommandTimeout = 0; //infinite timeout
+                selectCommand.CommandText = strSQLIncomparable;
+                dap.SelectCommand = selectCommand;
                 DataTable dt = new DataTable();
                 dap.Fill(dt);
 

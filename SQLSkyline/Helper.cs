@@ -16,6 +16,7 @@ namespace prefSQL.SQLSkyline
     {
         //Only this parameters are different beteen SQL CLR function and Utility class
         public const string cnnStringSQLCLR = "context connection=true";
+        public const string ProviderCLR = "System.Data.SqlClient";
         public const int MaxSize = 4000;
 
 

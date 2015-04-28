@@ -1,11 +1,11 @@
 using System;
 using System.Data;
-using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Data.Common;
 
 
 
@@ -26,18 +26,10 @@ namespace prefSQL.SQLSkyline
     /// - Write objects from DataReader into an object[] an work with the object. 
     /// - Explicity convert (i.e. (int)reader[0]) value from DataReader and don't use the given methods (i.e. reader.getInt32(0))
     /// </remarks>
-    public abstract class TemplateBNL
+    public abstract class TemplateBNL : TemplateStrategy
     {
-        public DataTable UseDataTable { private get; set; }
 
-        public long timeInMs = 0;
-
-        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection)
-        {
-            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection);
-        }
-
-        protected DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection)
+        protected override DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider)
         {
             Stopwatch sw = new Stopwatch();
             ArrayList resultCollection = new ArrayList();
@@ -45,11 +37,14 @@ namespace prefSQL.SQLSkyline
             string[] operators = strOperators.ToString().Split(';');
             DataTable dtResult = new DataTable();
 
-            SqlConnection connection = null;
-            if (isIndependent == false)
-                connection = new SqlConnection(Helper.cnnStringSQLCLR);
-            else
-                connection = new SqlConnection(strConnection);
+            DbProviderFactory factory = null;
+            DbConnection connection = null;
+            factory = DbProviderFactories.GetFactory(strProvider);
+
+            // use the factory object to create Data access objects.
+            connection = factory.CreateConnection(); // will return the connection object (i.e. SqlConnection ...)
+            connection.ConnectionString = strConnection;
+                
 
             try
             {
@@ -60,7 +55,11 @@ namespace prefSQL.SQLSkyline
                 }
                 connection.Open();
 
-                SqlDataAdapter dap = new SqlDataAdapter(strQuery.ToString(), connection);
+                DbDataAdapter dap = factory.CreateDataAdapter();
+                DbCommand selectCommand = connection.CreateCommand();
+                selectCommand.CommandTimeout = 0; //infinite timeout
+                selectCommand.CommandText = strQuery.ToString();
+                dap.SelectCommand = selectCommand;
                 DataTable dt = new DataTable();
                 if (UseDataTable != null)
                 {
@@ -166,10 +165,10 @@ namespace prefSQL.SQLSkyline
             return dtResult;
         }
 
-
         protected abstract bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i);
 
         protected abstract void addtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
+
 
     }
 }

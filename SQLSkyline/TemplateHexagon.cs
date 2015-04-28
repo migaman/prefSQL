@@ -9,6 +9,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using prefSQL.SQLSkyline.Models;
 using System.Diagnostics;
+using System.Data.Common;
 
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace prefSQL.SQLSkyline
@@ -29,16 +30,23 @@ namespace prefSQL.SQLSkyline
     /// - Explicity convert (i.e. (int)reader[0]) value from DataReader and don't use the given methods (i.e. reader.getInt32(0))
     /// - Don't use DENSE_RANK() in the SQLStatement. Better to sort in C# and replace the values through ranks (method replacevaluesto...)
     /// </remarks>
-    public abstract class TemplateHexagon
+    public abstract class TemplateHexagon : TemplateStrategy
     {
-        public long timeInMs = 0;
+        
 
-        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
+        //Incomparable version has some attributes more
+        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection, string strProvider, string strSelectIncomparable, int weightHexagonIncomparable)
         {
-            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strSelectIncomparable, weightHexagonIncomparable);
+            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strProvider, strSelectIncomparable, weightHexagonIncomparable);
         }
 
-        protected DataTable getSkylineTable(string strQuery, string strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strSelectIncomparable, int weightHexagonIncomparable)
+        protected override DataTable getSkylineTable(string strQuery, string strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider)
+        {
+            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strProvider, "", 0);
+        }
+        
+
+        protected DataTable getSkylineTable(string strQuery, string strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, string strSelectIncomparable, int weightHexagonIncomparable)
         {
             Stopwatch sw = new Stopwatch();
             ArrayList[] btg = null;
@@ -49,16 +57,18 @@ namespace prefSQL.SQLSkyline
             long maxID = 0;
             DataTable dtResult = new DataTable();
 
-            SqlConnection connection = null;
-            if (isIndependent == false)
-                connection = new SqlConnection(Helper.cnnStringSQLCLR);
-            else
-                connection = new SqlConnection(strConnection);
+            DbProviderFactory factory = null;
+            DbConnection connection = null;
+            factory = DbProviderFactories.GetFactory(strProvider);
+
+            // use the factory object to create Data access objects.
+            connection = factory.CreateConnection(); // will return the connection object (i.e. SqlConnection ...)
+            connection.ConnectionString = strConnection;
 
             String strSQL = strQuery.ToString();
 
 
-            calculateOperators(ref strOperators, strSelectIncomparable, connection, ref strSQL);
+            calculateOperators(ref strOperators, strSelectIncomparable, factory, connection, ref strSQL);
 
             string[] operators = strOperators.ToString().Split(';');
             int amountOfPreferences = operators.GetUpperBound(0) + 1;
@@ -73,7 +83,11 @@ namespace prefSQL.SQLSkyline
                 }
                 connection.Open();
 
-                SqlDataAdapter dap = new SqlDataAdapter(strSQL, connection);
+                DbDataAdapter dap = factory.CreateDataAdapter();
+                DbCommand selectCommand = connection.CreateCommand();
+                selectCommand.CommandTimeout = 0; //infinite timeout
+                selectCommand.CommandText = strSQL;
+                dap.SelectCommand = selectCommand;
                 DataTable dt = new DataTable();
                 dap.Fill(dt);
 
@@ -96,7 +110,7 @@ namespace prefSQL.SQLSkyline
                 listObjects = replaceValuesToRankValues(listObjects, operators, ref maxValues);
 
 
-                construction(amountOfPreferences, maxValues, ref btg, ref next, ref prev, ref level, ref weight, connection);
+                construction(amountOfPreferences, maxValues, ref btg, ref next, ref prev, ref level, ref weight);
 
 
                 //Read all records only once.
@@ -229,7 +243,7 @@ namespace prefSQL.SQLSkyline
             return listObjects;
         }
 
-        private void construction(int amountOfPreferences, long[] maxValues, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight, SqlConnection connection)
+        private void construction(int amountOfPreferences, long[] maxValues, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight)
         {
             try
             {                
@@ -606,6 +620,6 @@ namespace prefSQL.SQLSkyline
 
         protected abstract void add(object[] dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable);
 
-        protected abstract void calculateOperators(ref string strOperators, string strSelectIncomparable, SqlConnection connection, ref string strSQL);
+        protected abstract void calculateOperators(ref string strOperators, string strSelectIncomparable, DbProviderFactory factory, DbConnection connection, ref string strSQL);
     }
 }

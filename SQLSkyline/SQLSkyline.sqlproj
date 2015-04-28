@@ -94,5 +94,6 @@
     <Compile Include="TemplateHexagon.cs" />
     <Compile Include="TemplateS.cs" />
     <Compile Include="Models\HexagonRemoveModel.cs" />
+    <Compile Include="TemplateStrategy.cs" />
   </ItemGroup>
 </Project>

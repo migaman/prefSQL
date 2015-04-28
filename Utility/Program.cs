@@ -13,6 +13,7 @@ using System.Threading;
 using System.Data.Common;
 using System.Windows.Forms;
 using prefSQL.SQLSkyline;
+using Npgsql;
 
 namespace Utility
 {
@@ -23,8 +24,8 @@ namespace Utility
         static void Main(string[] args)
         {
             Program prg = new Program();
-            prg.measurePerformance();
-            //prg.Run();
+            //prg.measurePerformance();
+            prg.Run();
 
 
             /*
@@ -139,37 +140,25 @@ namespace Utility
 
                 strPrefSQL = "SELECT cars.id, cars.consumption, cars.enginesize FROM cars SKYLINE OF cars.consumption LOW, cars.enginesize HIGH, cars.price LOW";
                 //strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.registrationnumeric HIGH, cars.mileage LOW, cars.horsepower HIGH 100 EQUAL";
-                //strPrefSQL = "SELECT cars.id, cars.horsepower, cars.mileage FROM cars SKYLINE OF cars.horsepower HIGH, cars.mileage LOW";
-                //strPrefSQL = "SELECT * FROM cars LEFT OUTER JOIN Fuels ON cars.fuel_id = Fuels.id SKYLINE OF fuels.name ('petrol' >> 'diesel' >> 'bioethanol' >> 'electro' >> 'gas' >> 'hybrid' >> OTHERS EQUAL) ";
+                strPrefSQL = "SELECT cars.id, cars.horsepower, cars.mileage FROM cars SKYLINE OF cars.horsepower HIGH, cars.mileage LOW";
 
 
+                /*NpgsqlConnection conn = new NpgsqlConnection("Server=localhost;Port=5432;User Id=postgres;Password=pentaho;Database=autoscout24;");
+                conn.Open();
+                conn.Close();
+                */
 
-                strPrefSQL = "SELECT * FROM cars t1 " +
-                     "LEFT OUTER JOIN colors ON t1.color_id = colors.ID " +
-                    "LEFT OUTER JOIN bodies ON t1.body_id = bodies.ID " +
-                    "LEFT OUTER JOIN conditions ON t1.condition_id = conditions.id " +
-                    "LEFT OUTER JOIN Transmissions ON t1.transmission_id = Transmissions.id " +
-                    "LEFT OUTER JOIN Fuels ON t1.fuel_id = Fuels.id " +
-                    "LEFT OUTER JOIN Drives ON t1.drive_id = Drives.id " +
-                    "LEFT OUTER JOIN Pollutions ON t1.pollution_id = Pollutions.id " +
-                    "LEFT OUTER JOIN Efficiencies ON t1.efficiency_id = Efficiencies.id " +
-                    "LEFT OUTER JOIN Makes ON t1.make_id = Makes.id " +
-                "SKYLINE OF t1.price LOW,t1.mileage LOW,t1.horsepower HIGH,t1.enginesize HIGH,t1.registrationNumeric HIGH,t1.consumption LOW,t1.doors HIGH,colors.name ('red' == 'blue' >> OTHERS EQUAL >> 'gray'),fuels.name ('petrol' >> OTHERS EQUAL >> 'diesel'),bodies.name ('compact car' >> 'bus' >> 'estate car' >> 'scooter' >> OTHERS EQUAL >> 'Pick-Up'),t1.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL),makes.name ('ASTON MARTIN' >> 'VW' == 'Audi' >> OTHERS EQUAL >> 'FERRARI'),conditions.name ('new' >> OTHERS EQUAL)";
-
-
-                strPrefSQL = "SELECT t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price LOW";
-
-                //strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 10000 SKYLINE OF t1.price LOW, colors.name ('red' >> 'blue' >> OTHERS INCOMPARABLE)";
-
+            
+               
                 Debug.WriteLine(strPrefSQL);
 
                 SQLCommon parser = new SQLCommon();
                 //parser.SkylineType = new SkylineSQL();
                 //parser.SkylineType = new SkylineBNL();
-                //parser.SkylineType = new SkylineBNLSort();
+                parser.SkylineType = new SkylineBNLSort();
                 //parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new MultipleSkylineBNL();
-                parser.SkylineType = new SkylineDQ();
+                //parser.SkylineType = new SkylineDQ();
                 //parser.ShowSkylineAttributes = true;
                 //parser.SkylineUpToLevel = 1;
 
