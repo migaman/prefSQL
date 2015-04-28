@@ -24,8 +24,8 @@ namespace Utility
         static void Main(string[] args)
         {
             Program prg = new Program();
-            //prg.measurePerformance();
-            prg.Run();
+            prg.measurePerformance();
+            //prg.Run();
 
 
             /*
@@ -44,6 +44,7 @@ namespace Utility
             p.GenerateScript = false;
 
             //p.UseCLR = true;
+            p.UseCLR = false;
             p.Trials = 1;           //Amount of trials for each single sql preference statement
             p.Dimensions = 7;       //Up to x dimensions
             p.RandomDraws = 50;    //Amount of draws (x times randomly choose a some preferences)
@@ -69,6 +70,7 @@ namespace Utility
 
             //p.Strategy = null; //all algorithms should be tested
             //p.Strategy = new SkylineSQL();
+            //p.Strategy = new SkylineBNL();
             p.Strategy = new SkylineBNLSort();
             //p.Strategy = new SkylineDQ();
             //p.Strategy = new SkylineHexagon();

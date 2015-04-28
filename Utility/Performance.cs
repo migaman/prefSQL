@@ -46,6 +46,35 @@ namespace Utility
         private Size tableSize;
         private bool useCLR = false;
 
+        public enum Size
+        {
+            Small,
+            Medium,
+            Large,
+            Superlarge
+        }
+
+        public enum PreferenceSet
+        {
+            ArchiveComparable,      //Preferences from first performance tests, up to 13 dimnension
+            ArchiveIncomparable,    //Preferences from first performance tests, up to 13 dimnension
+            Jon,                    //Preference set from 2nd peformance phase
+            Mya,                    //Preference set from 2nd peformance phase
+            Barra,                  //Preference set from 2nd peformance phase
+            Shuffle,                //Choose randomly preferences from all preferences
+            Combination,            //Take all preferences
+            CombinationNumeric,     //Take only numeric preferences
+            CombinationCategoric,   //Take only categoric preferences
+            CombinationMinCardinality,      //Special collection of preferences which perform well on Hexagon
+            Correlation,            //Take 2 best correlated preferences
+            AntiCorrelation,        //Take 2 worst correlated preferences
+            Independent,            //Take 2 most independent correlated preferences
+
+        };
+
+
+        #region getter/setters
+
         public bool UseCLR
         {
             get { return useCLR; }
@@ -57,9 +86,6 @@ namespace Utility
             get { return tableSize; }
             set { tableSize = value; }
         }
-
-
-        #region getter/setters
 
         public int Dimensions
         {
@@ -101,31 +127,7 @@ namespace Utility
         #endregion
 
 
-        public enum Size
-        {
-            Small,
-            Medium,
-            Large,
-            Superlarge
-        }
-
-        public enum PreferenceSet
-        {
-            ArchiveComparable,      //Preferences from first performance tests, up to 13 dimnension
-            ArchiveIncomparable,    //Preferences from first performance tests, up to 13 dimnension
-            Jon,                    //Preference set from 2nd peformance phase
-            Mya,                    //Preference set from 2nd peformance phase
-            Barra,                  //Preference set from 2nd peformance phase
-            Shuffle,                //Choose randomly preferences from all preferences
-            Combination,            //Take all preferences
-            CombinationNumeric,     //Take only numeric preferences
-            CombinationCategoric,   //Take only categoric preferences
-            CombinationMinCardinality,      //Special collection of preferences which perform well on Hexagon
-            Correlation,            //Take 2 best correlated preferences
-            AntiCorrelation,        //Take 2 worst correlated preferences
-            Independent,            //Take 2 most independent correlated preferences
-            
-        };
+        #region preferences
 
 
         private ArrayList getArchiveComparablePreferences()
@@ -218,7 +220,7 @@ namespace Utility
         {
             ArrayList preferences = new ArrayList();
 
-            //Numeric/Date preferences
+            //Numeric preferences
             preferences.Add("cars.price LOW");
             preferences.Add("cars.mileage LOW");
             preferences.Add("cars.horsepower HIGH");
@@ -260,14 +262,6 @@ namespace Utility
             preferences.Add("conditions.name ('new' >> 'occasion' >> 'demonstration model' >> 'oldtimer' >> OTHERS EQUAL)");
             preferences.Add("drives.name ('front wheel' >> 'all wheel' >> 'rear wheel' >> OTHERS EQUAL)");
             preferences.Add("transmissions.name ('manual' >> 'automatic' >> OTHERS EQUAL)");
-            
-
-            /*
-             * TODO: Mit diesen beiden speziellen präferenzen ist hexagon schneller als SQL und andere algos
-             * */
-            //preferences.Add("fuels.name ('petrol' >> 'diesel' >> 'bioethanol' >> 'elektro' >> 'gas' >> 'hybrid' >> OTHERS EQUAL)");
-            //preferences.Add("cars.title ('AUDI Q7 3.0 TDI quattro' >> OTHERS EQUAL)");
-            
 
             return preferences;
         }
@@ -282,105 +276,7 @@ namespace Utility
             return preferences;
         }
 
-
-
-        private DataTable getSQLFromPreferences(ArrayList preferences, bool cardinality)
-        {
-            SQLCommon common = new SQLCommon();
-            string strPrefSQL = "SELECT cars.id FROM ";
-            if (tableSize == Size.Small)
-            {
-                strPrefSQL += "cars_small";
-            }
-            else if (tableSize == Size.Medium)
-            {
-                strPrefSQL += "cars_medium";
-            }
-            else if (tableSize == Size.Large)
-            {
-                strPrefSQL += "cars_large";
-            }
-            strPrefSQL += " cars ";
-            strPrefSQL += "SKYLINE OF ";   
-
-
-            for (int i = 0; i < preferences.Count; i++)
-            {
-                strPrefSQL += preferences[i].ToString() + ",";
-            }
-            strPrefSQL = strPrefSQL.TrimEnd(',');
-
-            PrefSQLModel prefModel = common.GetPrefSqlModelFromPreferenceSql(strPrefSQL);
-
-            string strSQL = "SELECT ";
-
-            for (int i = 0; i < prefModel.Skyline.Count; i++)
-            {
-                if (cardinality == true)
-                {
-                    strSQL += "COUNT(DISTINCT " + prefModel.Skyline[i].Expression + "),";
-                }
-                else
-                {
-                    strSQL += prefModel.Skyline[i].Expression + ",";
-                }
-            }
-            strSQL = strSQL.TrimEnd(',') + " FROM cars ";
-            strSQL += getJoinsForPreferences(strSQL);
-
-
-
-
-
-            DataTable dt = Helper.executeStatement(strSQL);
-
-            return dt;
-        }
-
-        private string getJoinsForPreferences(string strSkylineOf)
-        {
-            string strSQL = "";
-            if (strSkylineOf.IndexOf("colors") > 0)
-            {
-                strSQL += "LEFT OUTER JOIN colors ON cars.color_id = colors.ID ";
-            }
-            if (strSkylineOf.IndexOf("fuels") > 0)
-            {
-                strSQL += "LEFT OUTER JOIN fuels ON cars.fuel_id = fuels.ID ";
-            }
-            if (strSkylineOf.IndexOf("bodies") > 0)
-            {
-                strSQL += "LEFT OUTER JOIN bodies ON cars.body_id = bodies.ID ";
-            }
-            if (strSkylineOf.IndexOf("makes") > 0)
-            {
-                strSQL += "LEFT OUTER JOIN makes ON cars.make_id = makes.ID ";
-            }
-            if (strSkylineOf.IndexOf("conditions") > 0)
-            {
-                strSQL += "LEFT OUTER JOIN conditions ON cars.condition_id = conditions.ID ";
-            }
-            if (strSkylineOf.IndexOf("models") > 0)
-            {
-                strSQL += "LEFT OUTER JOIN models ON cars.model_id = models.ID ";
-            }
-            if (strSkylineOf.IndexOf("transmissions") > 0)
-            {
-                strSQL += "LEFT OUTER JOIN transmissions ON cars.transmission_id = transmissions.ID ";
-            }
-            if (strSkylineOf.IndexOf("drives") > 0)
-            {
-                strSQL += "LEFT OUTER JOIN drives ON cars.drive_id = drives.ID ";
-            }
-
-
-            return strSQL;
-        }
-
-        
-       
-
-
+        #endregion
 
 
         public void generatePerformanceQueries()
@@ -447,6 +343,12 @@ namespace Utility
                 correlationMatrix = getCorrelationMatrix(preferences);
                 listCardinality = getCardinalityOfPreferences(preferences);
 
+                if (dimensions > preferences.Count)
+                {
+                    Debug.WriteLine("Combination with more dimensions than preferences. Please reduce dimensions!");
+                    return;
+                }
+
                 //create all possible combinations and add it to listPreferences
                 getCombinations(preferences, dimensions, 0, new ArrayList(), ref listPreferences);
                 
@@ -460,6 +362,12 @@ namespace Utility
                 ArrayList preferences = getNumericPreferences();
                 correlationMatrix = getCorrelationMatrix(preferences);
                 listCardinality = getCardinalityOfPreferences(preferences);
+
+                if (dimensions > preferences.Count)
+                {
+                    Debug.WriteLine("Combination with more dimensions than preferences. Please reduce dimensions!");
+                    return;
+                }
 
                 //create all possible combinations and add it to listPreferences
                 getCombinations(preferences, dimensions, 0, new ArrayList(), ref listPreferences);
@@ -475,6 +383,12 @@ namespace Utility
                 correlationMatrix = getCorrelationMatrix(preferences);
                 listCardinality = getCardinalityOfPreferences(preferences);
 
+                if (dimensions > preferences.Count)
+                {
+                    Debug.WriteLine("Combination with more dimensions than preferences. Please reduce dimensions!");
+                    return;
+                }
+
                 //create all possible combinations and add it to listPreferences
                 getCombinations(preferences, dimensions, 0, new ArrayList(), ref listPreferences);
                 
@@ -488,6 +402,12 @@ namespace Utility
                 ArrayList preferences = getSpecialHexagonPreferences();
                 correlationMatrix = getCorrelationMatrix(preferences);
                 listCardinality = getCardinalityOfPreferences(preferences);
+
+                if (dimensions > preferences.Count)
+                {
+                    Debug.WriteLine("Combination with more dimensions than preferences. Please reduce dimensions!");
+                    return;
+                }
 
                 //create all possible combinations and add it to listPreferences
                 getCombinations(preferences, dimensions, 0, new ArrayList(), ref listPreferences);
@@ -836,6 +756,98 @@ namespace Utility
             
         }
 
+        private DataTable getSQLFromPreferences(ArrayList preferences, bool cardinality)
+        {
+            SQLCommon common = new SQLCommon();
+            string strPrefSQL = "SELECT cars.id FROM ";
+            if (tableSize == Size.Small)
+            {
+                strPrefSQL += "cars_small";
+            }
+            else if (tableSize == Size.Medium)
+            {
+                strPrefSQL += "cars_medium";
+            }
+            else if (tableSize == Size.Large)
+            {
+                strPrefSQL += "cars_large";
+            }
+            strPrefSQL += " cars ";
+            strPrefSQL += "SKYLINE OF ";
+
+
+            for (int i = 0; i < preferences.Count; i++)
+            {
+                strPrefSQL += preferences[i].ToString() + ",";
+            }
+            strPrefSQL = strPrefSQL.TrimEnd(',');
+
+            PrefSQLModel prefModel = common.GetPrefSqlModelFromPreferenceSql(strPrefSQL);
+
+            string strSQL = "SELECT ";
+
+            for (int i = 0; i < prefModel.Skyline.Count; i++)
+            {
+                if (cardinality == true)
+                {
+                    strSQL += "COUNT(DISTINCT " + prefModel.Skyline[i].Expression + "),";
+                }
+                else
+                {
+                    strSQL += prefModel.Skyline[i].Expression + ",";
+                }
+            }
+            strSQL = strSQL.TrimEnd(',') + " FROM cars ";
+            strSQL += getJoinsForPreferences(strSQL);
+
+
+
+
+
+            DataTable dt = Helper.executeStatement(strSQL);
+
+            return dt;
+        }
+
+        private string getJoinsForPreferences(string strSkylineOf)
+        {
+            string strSQL = "";
+            if (strSkylineOf.IndexOf("colors") > 0)
+            {
+                strSQL += "LEFT OUTER JOIN colors ON cars.color_id = colors.ID ";
+            }
+            if (strSkylineOf.IndexOf("fuels") > 0)
+            {
+                strSQL += "LEFT OUTER JOIN fuels ON cars.fuel_id = fuels.ID ";
+            }
+            if (strSkylineOf.IndexOf("bodies") > 0)
+            {
+                strSQL += "LEFT OUTER JOIN bodies ON cars.body_id = bodies.ID ";
+            }
+            if (strSkylineOf.IndexOf("makes") > 0)
+            {
+                strSQL += "LEFT OUTER JOIN makes ON cars.make_id = makes.ID ";
+            }
+            if (strSkylineOf.IndexOf("conditions") > 0)
+            {
+                strSQL += "LEFT OUTER JOIN conditions ON cars.condition_id = conditions.ID ";
+            }
+            if (strSkylineOf.IndexOf("models") > 0)
+            {
+                strSQL += "LEFT OUTER JOIN models ON cars.model_id = models.ID ";
+            }
+            if (strSkylineOf.IndexOf("transmissions") > 0)
+            {
+                strSQL += "LEFT OUTER JOIN transmissions ON cars.transmission_id = transmissions.ID ";
+            }
+            if (strSkylineOf.IndexOf("drives") > 0)
+            {
+                strSQL += "LEFT OUTER JOIN drives ON cars.drive_id = drives.ID ";
+            }
+
+
+            return strSQL;
+        }
 
         private ArrayList getCorrelationMatrix(ArrayList preferences)
         {
