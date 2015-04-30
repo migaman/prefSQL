@@ -10,6 +10,7 @@ namespace prefSQL.SQLSkyline
 
     public sealed class SkylineSample
     {
+        public string Provider { get; set; }
         public long timeMilliseconds;
 
         private SkylineSampleUtility Utility { get; set; }
@@ -23,7 +24,7 @@ namespace prefSQL.SQLSkyline
 
             Utility = new SkylineSampleUtility(operators.Length, count, dimension);
 
-            var fullDataTable = Helper.GetSkylineDataTable(strQuery, true, strConnection);
+            var fullDataTable = Helper.GetSkylineDataTable(strQuery, true, strConnection, Provider);
             var objectArrayFromDataTableOrig = Helper.GetObjectArrayFromDataTable(fullDataTable);
             var objectArrayFromDataTable =
                 objectArrayFromDataTableOrig.ToDictionary(dataRow => (int) dataRow[Utility.AllPreferencesCount]);
@@ -162,8 +163,8 @@ namespace prefSQL.SQLSkyline
                     for (var k = 0; k < columnsInSubspaceCount; k++)
                     {
                         var column = columnsUsedInSubspaceList[k];
-                        var iColumnValue = i.Value[column];
-                        var jColumnValue = j.Value[column];
+                        var iColumnValue = (long)i.Value[column];
+                        var jColumnValue = (long)j.Value[column];
                         
                         if (iColumnValue != jColumnValue)
                         {

@@ -51,7 +51,7 @@ namespace prefSQL.SQLSkyline
         public override DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
             var skyline = getSP_Skyline(hasIncomparable);
-            DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection);
+            DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
             timeMilliseconds = skyline.timeInMs;
             return dt;         
         }

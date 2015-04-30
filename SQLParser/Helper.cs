@@ -14,8 +14,7 @@ using prefSQL.SQLParser.Models;
 
 namespace prefSQL.SQLParser
 {
-    //internal class
-    class Helper
+    internal class Helper
     {
         /// <summary>
         /// Driver-String, i.e. System.Data.SqlClient
@@ -153,6 +152,7 @@ namespace prefSQL.SQLParser
                     else
                     {
                         var skylineSample = new SkylineSample();
+                        skylineSample.Provider = DriverString;
                         dt = skylineSample.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords,
                             model.WithIncomparable, parameter, strategy, model.SkylineSampleCount, model.SkylineSampleDimension);
                         timeInMilliseconds = skylineSample.timeMilliseconds;                        

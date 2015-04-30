@@ -32,7 +32,8 @@
 
             var prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSql);
             var prefSqlModelEntireSkyline = common.GetPrefSqlModelFromPreferenceSql(entireSkylineSql);
-            var subjectUnderTest = new Helper
+
+            var subjectUnderTest = new prefSQL.SQLParser.Helper
             {
                 ConnectionString = DbConnection,
                 DriverString = DbProvider
@@ -89,7 +90,7 @@
 
             var prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSql);
             var prefSqlModelEntireSkyline = common.GetPrefSqlModelFromPreferenceSql(entireSkylineSql);
-            var subjectUnderTest = new Helper
+            var subjectUnderTest = new prefSQL.SQLParser.Helper
             {
                 ConnectionString = DbConnection,
                 DriverString = DbProvider

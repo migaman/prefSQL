@@ -34,10 +34,6 @@ namespace prefSQL.SQLSkyline
             return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strProvider, upToLevel);
         }
 
-        public DataTable getSkylineTable(DataTable dataTable, String strOperators, int numberOfRecords, int upToLevel)
-        {
-            return getSkylineTable(dataTable, strOperators, numberOfRecords, true, upToLevel);
-        }
 
         private DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, int upToLevel)
         {
@@ -92,10 +88,9 @@ namespace prefSQL.SQLSkyline
                     SqlContext.Pipe.SendResultsStart(record);
                 }
 
-                int iMaxLevel = 0;              
-                List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
+                int iMaxLevel = 0;
                 
-
+                List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);               
 
                 foreach (object[] dbValuesObject in listObjects)
                 {
@@ -175,47 +170,7 @@ namespace prefSQL.SQLSkyline
                 if (isIndependent == true)
                 {
                     System.Diagnostics.Debug.WriteLine(strError);
-                }
-                else
-                {
-                    SqlContext.Pipe.Send(strError);
-                }
-            }
-          
-            return dtResult;
-        }
 
-        private DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, int upToLevel)
-        {         
-            SqlConnection connection = null;
-            if (isIndependent == false)
-                connection = new SqlConnection(Helper.cnnStringSQLCLR);
-            else
-                connection = new SqlConnection(strConnection);
-
-            DataTable dt = new DataTable();
-
-            try
-            {
-                //Some checks
-                if (strQuery.ToString().Length == Helper.MaxSize)
-                {
-                    throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
-                }
-                connection.Open();
-
-                SqlDataAdapter dap = new SqlDataAdapter(strQuery.ToString(), connection);
-                dap.Fill(dt);
-            }
-            catch (Exception ex)
-            {
-                //Pack Errormessage in a SQL and return the result
-                string strError = "Fehler in SP_MultipleSkylineBNL: ";
-                strError += ex.Message;
-
-                if (isIndependent == true)
-                {
-                    System.Diagnostics.Debug.WriteLine(strError);
                 }
                 else
                 {
@@ -225,11 +180,12 @@ namespace prefSQL.SQLSkyline
             }
             finally
             {
-                connection.Close();
+                if (connection != null)
+                    connection.Close();
             }
-
-            return getSkylineTable(dt, strOperators, numberOfRecords, isIndependent, upToLevel);
+            return dtResult;
         }
+
 
         private void addToWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, SqlBoolean isFrameworkMode, int level, DataTable dtResult)
         {

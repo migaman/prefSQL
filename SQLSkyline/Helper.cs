@@ -12,6 +12,7 @@ using System.Text;
 
 namespace prefSQL.SQLSkyline
 {
+    using System.Data.Common;
     using System.Data.SqlClient;
     using System.Diagnostics;
     using System.Linq;
@@ -579,14 +580,16 @@ namespace prefSQL.SQLSkyline
             return dataTableRowList.Select(dataRow => dataRow.ItemArray).ToList();
         }
 
-        public static DataTable GetSkylineDataTable(string strQuery, bool isIndependent, string strConnection)
+        public static DataTable GetSkylineDataTable(string strQuery, bool isIndependent, string strConnection, string strProvider)
         {
-            SqlConnection connection = null;
-            if (isIndependent == false)
-                connection = new SqlConnection(cnnStringSQLCLR);
-            else
-                connection = new SqlConnection(strConnection);
+            DbProviderFactory factory = null;
+            DbConnection connection = null;
+            factory = DbProviderFactories.GetFactory(strProvider);
 
+            // use the factory object to create Data access objects.
+            connection = factory.CreateConnection(); // will return the connection object (i.e. SqlConnection ...)
+            connection.ConnectionString = strConnection; 
+            
             var dt = new DataTable();
 
             try
@@ -598,7 +601,12 @@ namespace prefSQL.SQLSkyline
                 }
                 connection.Open();
 
-                var dap = new SqlDataAdapter(strQuery.ToString(), connection);
+                DbDataAdapter dap = factory.CreateDataAdapter();
+                DbCommand selectCommand = connection.CreateCommand();
+                selectCommand.CommandTimeout = 0; //infinite timeout
+                selectCommand.CommandText = strQuery.ToString();
+                dap.SelectCommand = selectCommand;
+                dt = new DataTable();
 
                 dap.Fill(dt);
             }

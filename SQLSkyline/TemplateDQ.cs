@@ -68,7 +68,7 @@ namespace prefSQL.SQLSkyline
 
                 // Build our record schema 
                 SqlDataRecord record = Helper.buildDataRecord(dt, operators, dtResult);
-               
+
                 List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
 
                 //Work with object[]-array (more than 10 times faster than datatable)
@@ -116,14 +116,22 @@ namespace prefSQL.SQLSkyline
                 string strError = "Fehler in SP_SkylineDQ: ";
                 strError += ex.Message;
 
+
                 if (isIndependent == true)
                 {
                     System.Diagnostics.Debug.WriteLine(strError);
+
                 }
                 else
                 {
                     SqlContext.Pipe.Send(strError);
                 }
+
+            }
+            finally
+            {
+                if (connection != null)
+                    connection.Close();
             }
 
             sw.Stop();
@@ -131,49 +139,10 @@ namespace prefSQL.SQLSkyline
             return dtResult;
         }
 
-        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection)
-        {          
-            SqlConnection connection = null;
-            if (isIndependent == false)
-                connection = new SqlConnection(Helper.cnnStringSQLCLR);
-            else
-                connection = new SqlConnection(strConnection);
-
-            DataTable dt = new DataTable();
-
-            try
-            {
-                //Some checks
-                if (strQuery.ToString().Length == Helper.MaxSize)
-                {
-                    throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
-                }
-                connection.Open();
-
-                SqlDataAdapter dap = new SqlDataAdapter(strQuery.ToString(), connection);
-                dap.Fill(dt);
-            }
-            catch (Exception ex)
-            {
-                //Pack Errormessage in a SQL and return the result
-                string strError = "Fehler in SP_SkylineDQ: ";
-                strError += ex.Message;
-
-                if (isIndependent == true)
-                {
-                    System.Diagnostics.Debug.WriteLine(strError);
-                }
-                else
-                {
-                    SqlContext.Pipe.Send(strError);
-                }
-            }
-            finally
-            {
-                connection.Close();
-            }
-
-            return getSkylineTable(dt, strOperators, numberOfRecords, isIndependent);
+        protected override DataTable getSkylineTable(List<object[]> listObjects, SqlDataRecord record, string strOperators, int numberOfRecords,
+            bool isIndependent, DataTable dtResult)
+        {
+            throw new NotImplementedException();
         }
 
         private List<object[]> computeSkyline(List<object[]> listObjects, string[] operators, int dim, bool stopRecursion)

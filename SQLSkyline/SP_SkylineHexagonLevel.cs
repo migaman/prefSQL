@@ -73,6 +73,5 @@ namespace prefSQL.SQLSkyline
             }
         }
 
-
     }
 }
