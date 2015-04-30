@@ -24,7 +24,7 @@ namespace prefSQL.SQLSkyline
         public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
         {
             SP_SkylineBNLLevel skyline = new SP_SkylineBNLLevel();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, "");
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.cnnStringSQLCLR, Helper.ProviderCLR);
         }
 
 

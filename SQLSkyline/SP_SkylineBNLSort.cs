@@ -22,7 +22,7 @@ namespace prefSQL.SQLSkyline
         public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
         {
             SP_SkylineBNLSort skyline = new SP_SkylineBNLSort();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, "");
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.cnnStringSQLCLR, Helper.ProviderCLR);
         }
 
         protected override void addtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult)

@@ -22,14 +22,11 @@ namespace prefSQL.SQLParser
         /// </summary>
         public String DriverString { get; set; }  
         /// <summary>
-        /// Connectionstring, i.e. Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True
+        /// Connectionstring, i.e. Data Source=myserver;Initial Catalog=eCommerce;Integrated Security=True
         /// </summary>
         public String ConnectionString { get; set; }
 
         public long timeInMilliseconds { get; set; }
-
-        public long sizeBTG { get; set; }
-
 
         public DataTable executeStatement(String strSQL)
         {
@@ -145,6 +142,9 @@ namespace prefSQL.SQLParser
                         throw new Exception(strategy.GetType() + " does not support incomparale tuples");
                     }
 
+                    //Set the database provider
+                    strategy.Provider = DriverString;
+
                     if (!model.HasSkylineSample)
                     {
                         dt = strategy.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords, model.WithIncomparable, parameter);
@@ -157,7 +157,6 @@ namespace prefSQL.SQLParser
                             model.WithIncomparable, parameter, strategy, model.SkylineSampleCount, model.SkylineSampleDimension);
                         timeInMilliseconds = skylineSample.timeMilliseconds;                        
                     }
-                    sizeBTG = strategy.sizeBTG;
                 }
 
             }

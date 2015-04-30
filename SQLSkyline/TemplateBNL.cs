@@ -1,11 +1,11 @@
 using System;
 using System.Data;
-using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Data.Common;
 
 
 
@@ -26,16 +26,10 @@ namespace prefSQL.SQLSkyline
     /// - Write objects from DataReader into an object[] an work with the object. 
     /// - Explicity convert (i.e. (int)reader[0]) value from DataReader and don't use the given methods (i.e. reader.getInt32(0))
     /// </remarks>
-    public abstract class TemplateBNL
+    public abstract class TemplateBNL : TemplateStrategy
     {
-        public long timeInMs = 0;
 
-        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection)
-        {
-            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection);
-        }
-
-        protected DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection)
+        protected override DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider)
         {
             string[] operators = strOperators.ToString().Split(';');
             var dt = Helper.GetSkylineDataTable(strQuery, isIndependent, strConnection);
@@ -60,11 +54,53 @@ namespace prefSQL.SQLSkyline
             string[] operators = strOperators.ToString().Split(';');
             var resultToTupleMapping = Helper.ResultToTupleMapping(operators);
 
+            DbProviderFactory factory = null;
+            DbConnection connection = null;
+            factory = DbProviderFactories.GetFactory(strProvider);
+
+            // use the factory object to create Data access objects.
+            connection = factory.CreateConnection(); // will return the connection object (i.e. SqlConnection ...)
+            connection.ConnectionString = strConnection;
+                
+
             try
             {
-                //Time the algorithm needs (after query to the database)
-                sw.Start();              
-             
+                //Some checks
+                if (strQuery.ToString().Length == Helper.MaxSize)
+                {
+                    throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
+                }
+                connection.Open();
+
+                DbDataAdapter dap = factory.CreateDataAdapter();
+                DbCommand selectCommand = connection.CreateCommand();
+                selectCommand.CommandTimeout = 0; //infinite timeout
+                selectCommand.CommandText = strQuery.ToString();
+                dap.SelectCommand = selectCommand;
+                DataTable dt = new DataTable();
+                if (UseDataTable != null)
+                {
+                    dt = UseDataTable;
+                }
+                dap.Fill(dt);
+
+
+                //Time the algorithm needs (afer query to the database)
+                sw.Start();
+
+
+                // Build our record schema 
+                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, dtResult);
+                SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
+
+
+                //Read all records only once. (SqlDataReader works forward only!!)
+                DataTableReader dataTableReader = dt.CreateDataReader();
+                
+                //Write all attributes to a Object-Array
+                //Profiling: This is much faster (factor 2) than working with the SQLReader
+                List<object[]> listObjects = Helper.fillObjectFromDataReader(dataTableReader);
+
                 //For each tuple
                 foreach (object[] dbValuesObject in listObjects)
                 {
@@ -137,8 +173,7 @@ namespace prefSQL.SQLSkyline
             return dtResult;
         }
 
-        protected abstract bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i, int[] resultToTupleMapping);
-
         protected abstract void addtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
+
     }
 }

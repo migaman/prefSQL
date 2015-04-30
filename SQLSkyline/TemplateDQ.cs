@@ -7,6 +7,7 @@ using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
 using System.Collections;
 using System.Diagnostics;
+using System.Data.Common;
 
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace prefSQL.SQLSkyline
@@ -27,29 +28,41 @@ namespace prefSQL.SQLSkyline
     /// - Don't use DataTable through the function (just use an object[] array. 10 times faster!!)
     /// - Explicity convert (i.e. (int)reader[0]) value from DataReader and don't use the given methods (i.e. reader.getInt32(0))
     /// </remarks>
-    public class TemplateDQ
+    public class TemplateDQ : TemplateStrategy
     {
-        public long timeInMs = 0;
-
-        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection)
-        {
-            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection);
-        }
-
-        public DataTable getSkylineTable(DataTable dataTable, String strOperators, int numberOfRecords)
-        {
-            return getSkylineTable(dataTable, strOperators, numberOfRecords, true);
-        }
-
-        protected DataTable getSkylineTable(DataTable dt, String strOperators, int numberOfRecords, bool isIndependent)
+        
+        protected override DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider)
         {
             Stopwatch sw = new Stopwatch();
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
             DataTable dtResult = new DataTable();
-        
+
+            DbProviderFactory factory = null;
+            DbConnection connection = null;
+            factory = DbProviderFactories.GetFactory(strProvider);
+
+            // use the factory object to create Data access objects.
+            connection = factory.CreateConnection(); // will return the connection object (i.e. SqlConnection ...)
+            connection.ConnectionString = strConnection;
+
             try
             {
+                //Some checks
+                if (strQuery.ToString().Length == Helper.MaxSize)
+                {
+                    throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
+                }
+                connection.Open();
+
+                DbDataAdapter dap = factory.CreateDataAdapter();
+                DbCommand selectCommand = connection.CreateCommand();
+                selectCommand.CommandTimeout = 0; //infinite timeout
+                selectCommand.CommandText = strQuery.ToString();
+                dap.SelectCommand = selectCommand;
+                DataTable dt = new DataTable();
+                dap.Fill(dt);
+
                 //Time the algorithm needs (afer query to the database)
                 sw.Start();
 
@@ -81,16 +94,11 @@ namespace prefSQL.SQLSkyline
                 {                   
                     SqlContext.Pipe.SendResultsStart(record);
 
-                    foreach (object[] row in listResult)
+                    foreach (DataRow row in dtResult.Rows)
                     {
-                        dtResult.Rows.Add(row);
-                        for (int i = 0; i <= row.GetUpperBound(0); i++)
+                        for (int i = 0; i < dtResult.Columns.Count; i++)
                         {
-                            //Only the real columns (skyline columns are not output fields)
-                            if (i > operators.GetUpperBound(0))
-                            {
-                                record.SetValue(i - (operators.GetUpperBound(0) + 1), row[i]);
-                            }
+                            record.SetValue(i, row[i]);
                         }
 
                         SqlContext.Pipe.SendResultsRow(record);

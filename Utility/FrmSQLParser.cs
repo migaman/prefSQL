@@ -15,9 +15,6 @@ namespace Utility
 {
     public partial class FrmSQLParser : Form
     {
-        private const string cnnStringLocalhost = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
-        private const string driver = "System.Data.SqlClient";
-
         public FrmSQLParser()
         {
             InitializeComponent();
@@ -55,7 +52,7 @@ namespace Utility
                 parser.SkylineType = new SkylineHexagon();
             }
 
-            DataTable dt = parser.parseAndExecutePrefSQL(cnnStringLocalhost, driver, this.txtPrefSQL.Text);
+            DataTable dt = parser.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, this.txtPrefSQL.Text);
             System.Diagnostics.Debug.WriteLine(dt.Rows.Count);
 
 

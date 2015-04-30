@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Data.Common;
 
 
 //Caution: Attention small changes in this code can lead to performance issues, i.e. using a startswith instead of an equal can increase by 10 times
@@ -20,10 +21,10 @@ namespace prefSQL.SQLSkyline
         public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
         {
             SP_SkylineHexagonLevel skyline = new SP_SkylineHexagonLevel();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, "", "", 0);
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.cnnStringSQLCLR, Helper.ProviderCLR, "", 0);
         }
 
-        protected override void calculateOperators(ref string strOperators, string strSelectIncomparable, SqlConnection connection, ref string strSQL)
+        protected override void calculateOperators(ref string strOperators, string strSelectIncomparable, DbProviderFactory factory, DbConnection connection, ref string strSQL)
         {
             //No Operation
             return;

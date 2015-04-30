@@ -15,8 +15,8 @@ namespace prefSQL.SQLSkyline
 
     public abstract class SkylineStrategy
     {
+        public string Provider { get; set; }
         public long timeMilliseconds;
-        public long sizeBTG;
         public abstract DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters);
         internal abstract DataTable getSkylineTable(List<object[]> dataTable, SqlDataRecord record, string strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters, DataTable dtResult);
 

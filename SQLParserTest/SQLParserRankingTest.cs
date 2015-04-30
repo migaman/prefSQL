@@ -12,9 +12,6 @@ namespace prefSQL.SQLParserTest
 {
     class SQLParserRankingTest
     {
-        private const string strConnection = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
-        private const string driver = "System.Data.SqlClient";
-
 
         private string[] getPreferences()
         {

@@ -10,9 +10,6 @@
     [TestClass]
     public class SqlParserSkylineSamplingIntegrationTests
     {
-        private const string DbConnection = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
-        private const string DbProvider = "System.Data.SqlClient";
-
         public TestContext TestContext { get; set; }
 
         [TestMethod]
@@ -30,7 +27,7 @@
 
             var common = new SQLCommon {SkylineType = new SkylineBNL()};
 
-            var skyline = common.parseAndExecutePrefSQL(DbConnection, DbProvider, entireSkylineSql);
+            var skyline = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, entireSkylineSql);
 
             Assert.AreEqual(expectedNumberOfEntireSkylineObjects, skyline.Rows.Count,
                 "Unexpected number of Skyline objects.");
@@ -50,8 +47,8 @@
 
             var common = new SQLCommon {SkylineType = new SkylineBNL()};
 
-            var entireSkyline = common.parseAndExecutePrefSQL(DbConnection, DbProvider, entireSkylineSql);
-            var sampleSkyline = common.parseAndExecutePrefSQL(DbConnection, DbProvider, skylineSampleSql);
+            var entireSkyline = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, entireSkylineSql);
+            var sampleSkyline = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, skylineSampleSql);
 
             var entireSkylineObjectsIds = GetHashSetOfIdsFromDataTable(entireSkyline);
             var sampleSkylineObjectsIds = GetHashSetOfIdsFromDataTable(sampleSkyline);

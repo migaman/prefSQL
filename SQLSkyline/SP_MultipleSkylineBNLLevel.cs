@@ -5,6 +5,7 @@ using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 
 
 //Caution: Attention small changes in this code can lead to performance issues, i.e. using a startswith instead of an equal can increase by 10 times
@@ -23,14 +24,14 @@ namespace prefSQL.SQLSkyline
         {
             int up = upToLevel.Value;
             SP_MultipleSkylineBNLLevel skyline = new SP_MultipleSkylineBNLLevel();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, "", up);
+            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.cnnStringSQLCLR, Helper.ProviderCLR, up);
 
         }
 
 
-        public DataTable getSkylineTable(String strQuery, String strOperators, String strConnection, int numberOfRecords, int upToLevel)
+        public DataTable getSkylineTable(string strQuery, string strOperators, string strConnection, string strProvider, int numberOfRecords, int upToLevel)
         {
-            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, upToLevel);
+            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strProvider, upToLevel);
         }
 
         public DataTable getSkylineTable(DataTable dataTable, String strOperators, int numberOfRecords, int upToLevel)
@@ -38,15 +39,39 @@ namespace prefSQL.SQLSkyline
             return getSkylineTable(dataTable, strOperators, numberOfRecords, true, upToLevel);
         }
 
-        private DataTable getSkylineTable(DataTable dt, String strOperators, int numberOfRecords, bool isIndependent, int upToLevel)
+        private DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, int upToLevel)
         {
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
             DataTable dtResult = new DataTable();
             var resultToTupleMapping = Helper.ResultToTupleMapping(operators);
 
+            DbProviderFactory factory = null;
+            DbConnection connection = null;
+            factory = DbProviderFactories.GetFactory(strProvider);
+
+            // use the factory object to create Data access objects.
+            connection = factory.CreateConnection(); // will return the connection object (i.e. SqlConnection ...)
+            connection.ConnectionString = strConnection;
+
             try
             {
+                //Some checks
+                if (strQuery.ToString().Length == Helper.MaxSize)
+                {
+                    throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
+                }
+                connection.Open();
+
+                DbDataAdapter dap = factory.CreateDataAdapter();
+                DbCommand selectCommand = connection.CreateCommand();
+                selectCommand.CommandTimeout = 0; //infinite timeout
+                selectCommand.CommandText = strQuery.ToString();
+                dap.SelectCommand = selectCommand;
+                DataTable dt = new DataTable();
+                dap.Fill(dt);
+
+
                 //trees erstellen mit n nodes (n = anzahl tupels)
                 int[] graph = new int[dt.Rows.Count];
                 //int[] levels = new int[dt.Rows.Count];

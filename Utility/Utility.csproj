@@ -50,7 +50,11 @@
     <StartupObject>Utility.SamplingTest</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Npgsql">
+      <HintPath>..\bin\Npgsql-2.2.4.3-net45\Npgsql.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
@@ -68,6 +72,7 @@
     <Compile Include="FrmSQLParser.Designer.cs">
       <DependentUpon>FrmSQLParser.cs</DependentUpon>
     </Compile>
+    <Compile Include="Helper.cs" />
     <Compile Include="Mathematic.cs" />
     <Compile Include="Model\CardinalityModel.cs" />
     <Compile Include="Model\CorrelationModel.cs" />
@@ -77,7 +82,9 @@
     <Compile Include="SamplingTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SQLParser\SQLParser.csproj">
