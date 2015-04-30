@@ -11,9 +11,6 @@
     [TestClass]
     public class HelperIntegrationTests
     {
-        private const string DbConnection = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
-        private const string DbProvider = "System.Data.SqlClient";
-
         public TestContext TestContext { get; set; }
 
         [TestMethod]
@@ -35,8 +32,8 @@
 
             var subjectUnderTest = new prefSQL.SQLParser.Helper
             {
-                ConnectionString = DbConnection,
-                DriverString = DbProvider
+                ConnectionString = Helper.ConnectionString,
+                DriverString = Helper.ProviderName
             };
 
             var sw = new Stopwatch();
@@ -92,8 +89,8 @@
             var prefSqlModelEntireSkyline = common.GetPrefSqlModelFromPreferenceSql(entireSkylineSql);
             var subjectUnderTest = new prefSQL.SQLParser.Helper
             {
-                ConnectionString = DbConnection,
-                DriverString = DbProvider
+                ConnectionString = Helper.ConnectionString,
+                DriverString = Helper.ProviderName
             };
 
             var entireSkyline = subjectUnderTest.getResults(
