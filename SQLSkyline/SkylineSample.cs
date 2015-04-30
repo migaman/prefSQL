@@ -140,28 +140,49 @@ namespace prefSQL.SQLSkyline
 
         private static Dictionary<int, object[]> CompareEachRowWithRespectToSubspaceColumnsPairwise(
             Dictionary<int, object[]> subspaceDataTable,
-            HashSet<int> columnsUsedInSubspace)
+            IEnumerable<int> columnsUsedInSubspace)
         {
             var equalRowsWithRespectToSubspaceColumnsDataTable = new Dictionary<int, object[]>();
 
-            var equalRowsWithRespectToSubspaceColumns = new HashSet<object[]>();
+            var columnsUsedInSubspaceList = columnsUsedInSubspace.ToList();
+            var equalRowsWithRespectToSubspaceColumns = new HashSet<int>();
+            var columnsInSubspaceCount = columnsUsedInSubspaceList.Count;
 
             foreach (var i in subspaceDataTable)
             {
                 foreach (var j in subspaceDataTable)
                 {
-                    if (i.Key != j.Key && columnsUsedInSubspace.All(
-                        item => i.Value[item].Equals(j.Value[item])))
+                    if (i.Key == j.Key)
                     {
-                        if (!equalRowsWithRespectToSubspaceColumns.Contains(i.Value))
+                        continue;
+                    }
+
+                    var isEqual = true;
+                    
+                    for (var k = 0; k < columnsInSubspaceCount; k++)
+                    {
+                        var column = columnsUsedInSubspaceList[k];
+                        var iColumnValue = i.Value[column];
+                        var jColumnValue = j.Value[column];
+                        
+                        if (iColumnValue != jColumnValue)
+                        {
+                            isEqual = false;
+                            break;
+                        }
+                    }
+                    
+                    if(isEqual)
+                    {
+                        if (!equalRowsWithRespectToSubspaceColumns.Contains(i.Key))
                         {
                             equalRowsWithRespectToSubspaceColumnsDataTable.Add(i.Key, i.Value);
-                            equalRowsWithRespectToSubspaceColumns.Add(i.Value);
+                            equalRowsWithRespectToSubspaceColumns.Add(i.Key);
                         }
-                        if (!equalRowsWithRespectToSubspaceColumns.Contains(j.Value))
+                        if (!equalRowsWithRespectToSubspaceColumns.Contains(j.Key))
                         {
                             equalRowsWithRespectToSubspaceColumnsDataTable.Add(j.Key, j.Value);
-                            equalRowsWithRespectToSubspaceColumns.Add(j.Value);
+                            equalRowsWithRespectToSubspaceColumns.Add(j.Key);
                         }
                     }
                 }
