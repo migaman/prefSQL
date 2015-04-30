@@ -84,28 +84,8 @@ namespace prefSQL.SQLSkyline
         /// <param name="dtSkyline"></param>
         /// <returns></returns>
         public static SqlDataRecord buildDataRecord(DataTable dt, string[] operators, DataTable dtSkyline)
-        {
-            List<SqlMetaData> outputColumns = new List<SqlMetaData>(dt.Columns.Count - (operators.GetUpperBound(0) + 1));
-            int iCol = 0;
-            foreach (DataColumn col in dt.Columns)
-            {
-                //Only the real columns (skyline columns are not output fields)
-                if (iCol > operators.GetUpperBound(0))
-                {
-                    SqlMetaData OutputColumn;
-                    if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(Int64)) || col.DataType.Equals(typeof(DateTime)))
-                    {
-                        OutputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType));
-                    }
-                    else
-                    {
-                        OutputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
-                    }
-                    outputColumns.Add(OutputColumn);
-                    dtSkyline.Columns.Add(col.ColumnName, col.DataType);
-                }
-                iCol++;
-            }
+        {           
+            var outputColumns = buildRecordSchema(dt, operators, dtSkyline);
             return new SqlDataRecord(outputColumns.ToArray());
         }
 
