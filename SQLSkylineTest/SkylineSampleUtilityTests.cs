@@ -24,7 +24,12 @@
             var sampleCount = int.Parse(TestContext.DataRow["sampleCount"].ToString());
             var sampleDimension = int.Parse(TestContext.DataRow["sampleDimension"].ToString());
 
-            var subjectUnderTest = new SkylineSampleUtility(attributesCount, sampleCount, sampleDimension);
+            var subjectUnderTest = new SkylineSampleUtility
+            {
+                AllPreferencesCount = attributesCount,
+                SampleCount = sampleCount,
+                SampleDimension = sampleDimension
+            };
 
             var preferencesInProducedSubspaces = subjectUnderTest.Subspaces;
             var preferencesInExpectedSubspaces = ExpectedSubspaces();
@@ -85,7 +90,12 @@
             var sampleCount = int.Parse(TestContext.DataRow["sampleCount"].ToString());
             var sampleDimension = int.Parse(TestContext.DataRow["sampleDimension"].ToString());
 
-            var subjectUnderTest = new SkylineSampleUtility(attributesCount, sampleCount, sampleDimension);
+            var subjectUnderTest = new SkylineSampleUtility
+            {
+                AllPreferencesCount = attributesCount,
+                SampleCount = sampleCount,
+                SampleDimension = sampleDimension
+            };
 
             try
             {

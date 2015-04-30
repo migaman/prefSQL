@@ -10,10 +10,26 @@ namespace prefSQL.SQLSkyline
 
     public sealed class SkylineSample
     {
+        private readonly SkylineSampleUtility _utility;
+
         public string Provider { get; set; }
+
+        private SkylineSampleUtility Utility
+        {
+            get { return _utility; }
+        }
+
         public long timeMilliseconds;
 
-        private SkylineSampleUtility Utility { get; set; }
+        public SkylineSample() : this(new SkylineSampleUtility())
+        {
+            
+        }
+
+        internal SkylineSample(SkylineSampleUtility utility)
+        {
+            _utility = utility;
+        }     
 
         public DataTable getSkylineTable(string strConnection, string strQuery, string strOperators, int numberOfRecords,
             bool hasIncomparable, string[] additionalParameters, SkylineStrategy algorithm, int count, int dimension)
@@ -22,7 +38,9 @@ namespace prefSQL.SQLSkyline
 
             var operators = strOperators.ToString(CultureInfo.InvariantCulture).Split(';');
 
-            Utility = new SkylineSampleUtility(operators.Length, count, dimension);
+            Utility.AllPreferencesCount = operators.Length;
+            Utility.SampleCount = count;
+            Utility.SampleDimension = dimension;
 
             var fullDataTable = Helper.GetSkylineDataTable(strQuery, true, strConnection, Provider);
             var objectArrayFromDataTableOrig = Helper.GetObjectArrayFromDataTable(fullDataTable);
