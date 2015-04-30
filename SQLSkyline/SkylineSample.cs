@@ -151,20 +151,23 @@ namespace prefSQL.SQLSkyline
 
             foreach (var i in subspaceDataTable)
             {
+                var iValue = i.Value;
                 foreach (var j in subspaceDataTable)
                 {
+                    var jValue = j.Value;
+
                     if (i.Key == j.Key)
                     {
                         continue;
                     }
 
                     var isEqual = true;
-                    
+
                     for (var k = 0; k < columnsInSubspaceCount; k++)
                     {
                         var column = columnsUsedInSubspaceList[k];
-                        var iColumnValue = (long)i.Value[column];
-                        var jColumnValue = (long)j.Value[column];
+                        var iColumnValue = (long)iValue[column];
+                        var jColumnValue = (long)jValue[column];
                         
                         if (iColumnValue != jColumnValue)
                         {
