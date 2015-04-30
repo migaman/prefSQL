@@ -4,5 +4,119 @@
     <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT 2 DIMENSION 1</skylineSampleSQL>
     <entireSkylineSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>6</expectedNumberOfEntireSkylineObjects>
+    <expectedNumberOfSamplingSkylineObjects>2</expectedNumberOfSamplingSkylineObjects>
+    <useSubspaces>
+      <subspace>
+        <dimension>cs.price</dimension>
+        <dimension>cs.price</dimension>
+      </subspace>
+      <subspace>
+        <dimension>cs.mileage</dimension>
+        <dimension>cs.mileage</dimension>
+      </subspace>
+    </useSubspaces>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>3 samples, each of dimension 2 (e.g., (cs.price, cs.mileage), (cs.mileage, cs.horsepower), (cs.price, cs.horsepower))</comment>
+    <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH SAMPLE BY RANDOM_SUBSETS COUNT 3 DIMENSION 2</skylineSampleSQL>
+    <entireSkylineSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH</entireSkylineSQL>
+    <expectedNumberOfEntireSkylineObjects>78</expectedNumberOfEntireSkylineObjects>
+    <expectedNumberOfSamplingSkylineObjects>29</expectedNumberOfSamplingSkylineObjects>
+    <useSubspaces>
+      <subspace>
+        <dimension>cs.price</dimension>
+        <dimension>cs.mileage</dimension>
+      </subspace>
+      <subspace>
+        <dimension>cs.price</dimension>
+        <dimension>cs.horsepower</dimension>
+      </subspace>
+      <subspace>
+        <dimension>cs.mileage</dimension>
+        <dimension>cs.horsepower</dimension>
+      </subspace>
+    </useSubspaces>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>3 samples, each of dimension 2 (e.g., (cs.price, cs.mileage), (cs.mileage, cs.horsepower), (cs.price, cs.horsepower))</comment>
+    <skylineSampleSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH SAMPLE BY RANDOM_SUBSETS COUNT 3 DIMENSION 2</skylineSampleSQL>
+    <entireSkylineSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH</entireSkylineSQL>
+    <expectedNumberOfEntireSkylineObjects>207</expectedNumberOfEntireSkylineObjects>
+    <expectedNumberOfSamplingSkylineObjects>31</expectedNumberOfSamplingSkylineObjects>
+    <useSubspaces>
+      <subspace>
+        <dimension>cs.price</dimension>
+        <dimension>cs.mileage</dimension>
+      </subspace>
+      <subspace>
+        <dimension>cs.price</dimension>
+        <dimension>cs.horsepower</dimension>
+      </subspace>
+      <subspace>
+        <dimension>cs.mileage</dimension>
+        <dimension>cs.horsepower</dimension>
+      </subspace>
+    </useSubspaces>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>2 samples, each of dimension 2 (e.g., (cs.price, cs.mileage), (cs.horsepower, cs.enginesize))</comment>
+    <skylineSampleSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY RANDOM_SUBSETS COUNT 2 DIMENSION 2</skylineSampleSQL>
+    <entireSkylineSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH</entireSkylineSQL>
+    <expectedNumberOfEntireSkylineObjects>353</expectedNumberOfEntireSkylineObjects>
+    <expectedNumberOfSamplingSkylineObjects>15</expectedNumberOfSamplingSkylineObjects>
+    <useSubspaces>
+      <subspace>
+        <dimension>cs.price</dimension>
+        <dimension>cs.mileage</dimension>
+      </subspace>      
+      <subspace>
+        <dimension>cs.horsepower</dimension>
+        <dimension>cs.enginesize</dimension>
+      </subspace>
+    </useSubspaces>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>7 samples, each of dimension 3 (e.g., (cs.price, cs.mileage, cs.horsepower))</comment>
+    <skylineSampleSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH SAMPLE BY RANDOM_SUBSETS COUNT 7 DIMENSION 3</skylineSampleSQL>
+    <entireSkylineSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH</entireSkylineSQL>
+    <expectedNumberOfEntireSkylineObjects>4464</expectedNumberOfEntireSkylineObjects>
+    <expectedNumberOfSamplingSkylineObjects>593</expectedNumberOfSamplingSkylineObjects>
+    <useSubspaces>
+      <subspace>
+        <dimension>cs.price</dimension>
+        <dimension>cs.mileage</dimension>
+        <dimension>cs.horsepower</dimension>
+      </subspace>
+      <subspace>
+        <dimension>cs.price</dimension>
+        <dimension>cs.mileage</dimension>
+        <dimension>cs.enginesize</dimension>
+      </subspace>
+      <subspace>
+        <dimension>cs.price</dimension>
+        <dimension>cs.mileage</dimension>
+        <dimension>cs.consumption</dimension>
+      </subspace>
+      <subspace>
+        <dimension>cs.price</dimension>
+        <dimension>cs.mileage</dimension>
+        <dimension>cs.cylinders</dimension>
+      </subspace>
+      <subspace>
+        <dimension>cs.price</dimension>
+        <dimension>cs.mileage</dimension>
+        <dimension>cs.seats</dimension>
+      </subspace>
+      <subspace>
+        <dimension>cs.price</dimension>
+        <dimension>cs.horsepower</dimension>
+        <dimension>cs.enginesize</dimension>
+      </subspace>
+      <subspace>
+        <dimension>cs.price</dimension>
+        <dimension>cs.horsepower</dimension>
+        <dimension>cs.consumption</dimension>
+      </subspace>
+    </useSubspaces>
   </TestDataRow>
 </TestData>

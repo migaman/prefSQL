@@ -60,6 +60,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="FixedSubspacesProducer.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="SQLParserRankingTest.cs" />
     <Compile Include="SqlParserSkylineSamplingIntegrationTests.cs" />
