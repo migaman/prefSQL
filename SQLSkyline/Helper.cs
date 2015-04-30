@@ -580,7 +580,8 @@ namespace prefSQL.SQLSkyline
             return dataTableRowList.Select(dataRow => dataRow.ItemArray).ToList();
         }
 
-        public static DataTable GetSkylineDataTable(string strQuery, bool isIndependent, string strConnection, string strProvider)
+        public static DataTable GetSkylineDataTable(string strQuery, bool isIndependent, string strConnection,
+            string strProvider)
         {
             DbProviderFactory factory = null;
             DbConnection connection = null;
@@ -588,8 +589,8 @@ namespace prefSQL.SQLSkyline
 
             // use the factory object to create Data access objects.
             connection = factory.CreateConnection(); // will return the connection object (i.e. SqlConnection ...)
-            connection.ConnectionString = strConnection; 
-            
+            connection.ConnectionString = strConnection;
+
             var dt = new DataTable();
 
             try

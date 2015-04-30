@@ -53,7 +53,7 @@
                 prefSqlModelSkylineSample);
             sw.Stop();
             Debug.WriteLine("SMPL ElapsedMilliseconds={0}", sw.ElapsedMilliseconds);
-            Debug.WriteLine("SMPL Algorithm ElapsedMilliseconds={0}", subjectUnderTest.timeInMilliseconds); 
+            Debug.WriteLine("SMPL Algorithm ElapsedMilliseconds={0}", subjectUnderTest.timeInMilliseconds);
 
             var entireSkylineObjectsIds = GetHashSetOfIdsFromDataTable(entireSkyline);
             var sampleSkylineObjectsIds = GetHashSetOfIdsFromDataTable(sampleSkyline);
@@ -97,8 +97,8 @@
             };
 
             var entireSkyline = subjectUnderTest.getResults(
-               common.GetAnsiSqlFromPrefSqlModel(prefSqlModelEntireSkyline), common.SkylineType,
-               prefSqlModelEntireSkyline);
+                common.GetAnsiSqlFromPrefSqlModel(prefSqlModelEntireSkyline), common.SkylineType,
+                prefSqlModelEntireSkyline);
             var sampleSkyline = subjectUnderTest.getResults(
                 common.GetAnsiSqlFromPrefSqlModel(prefSqlModelSkylineSample), common.SkylineType,
                 prefSqlModelSkylineSample);

@@ -51,12 +51,12 @@ namespace prefSQL.SQLSkyline
         {
             Subspaces = null;
 
-            if (SampleCount * SampleDimension < AllPreferencesCount)
+            if (SampleCount*SampleDimension < AllPreferencesCount)
             {
                 throw new Exception(
                     string.Format(
                         "Every preference has to be included in at least one subspace. This is not possible, since there are {0} preferences and at most COUNT (= {1}) * DIMENSION (= {2}) = {3} of them are included",
-                        AllPreferencesCount, SampleCount, SampleDimension, SampleCount * SampleDimension));
+                        AllPreferencesCount, SampleCount, SampleDimension, SampleCount*SampleDimension));
             }
 
             var binomialCoefficient = QuickBinomialCoefficient(AllPreferencesCount, SampleDimension);

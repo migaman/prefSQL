@@ -166,17 +166,17 @@ namespace prefSQL.SQLSkyline
                     for (var k = 0; k < columnsInSubspaceCount; k++)
                     {
                         var column = columnsUsedInSubspaceList[k];
-                        var iColumnValue = (long)iValue[column];
-                        var jColumnValue = (long)jValue[column];
-                        
+                        var iColumnValue = (long) iValue[column];
+                        var jColumnValue = (long) jValue[column];
+
                         if (iColumnValue != jColumnValue)
                         {
                             isEqual = false;
                             break;
                         }
                     }
-                    
-                    if(isEqual)
+
+                    if (isEqual)
                     {
                         if (!equalRowsWithRespectToSubspaceColumns.Contains(i.Key))
                         {

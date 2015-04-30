@@ -28,8 +28,8 @@ namespace prefSQL.SQLSkyline
     /// </remarks>
     public abstract class TemplateBNL : TemplateStrategy
     {
-
-        protected override DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider)
+        protected override DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords,
+            bool isIndependent, string strConnection, string strProvider)
         {
             string[] operators = strOperators.ToString().Split(';');
             var dt = Helper.GetSkylineDataTable(strQuery, isIndependent, strConnection, strProvider);

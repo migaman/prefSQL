@@ -10,7 +10,7 @@
     public class SkylineSampleUtilityTests
     {
         public TestContext TestContext { get; set; }
-    
+
         [TestMethod]
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SkylineSampleUtilityTests.xml", "TestDataRow",
             DataAccessMethod.Sequential),

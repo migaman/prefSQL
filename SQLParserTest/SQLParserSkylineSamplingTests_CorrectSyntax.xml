@@ -16,7 +16,7 @@
     </parsePreferenceSQLSkylineDQExpectedResult>
     <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
       <![CDATA[EXEC dbo.SP_MultipleSkylineBNL 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY cs.price, cs.mileage', 'LOW;LOW', 0, 3]]>
-    </parsePreferenceSQLMultipleSkylineBNLExpectedResult>lo
+    </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
     <parsePreferenceSQLSkylineHexagonExpectedResult>
       <![CDATA[EXEC dbo.SP_SkylineHexagonLevel 'SELECT  CAST(cs.price AS bigint), CAST(cs.mileage AS bigint) , * FROM cars_small cs', 'LOW;LOW', 0]]>
     </parsePreferenceSQLSkylineHexagonExpectedResult>
