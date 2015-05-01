@@ -4,7 +4,7 @@ namespace prefSQL.SQLSkyline
     using System.Collections.Generic;
     using System.Linq;
 
-    internal sealed class RandomSubspacesesProducer : ISubspacesProducer
+    internal sealed class RandomSubspacesProducer : ISubspacesProducer
     {
         private static readonly Random MyRandom = new Random();
 

@@ -99,6 +99,6 @@
     <Compile Include="SkylineSampleUtility.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ISubspacesProducer.cs" />
-    <Compile Include="RandomSubspacesesProducer.cs" />
+    <Compile Include="RandomSubspacesProducer.cs" />
   </ItemGroup>
 </Project>

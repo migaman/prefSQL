@@ -48,7 +48,7 @@ namespace prefSQL.SQLSkyline
         }
 
         public SkylineSampleUtility()
-            : this(new RandomSubspacesesProducer())
+            : this(new RandomSubspacesProducer())
         {
         }
 

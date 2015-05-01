@@ -5,7 +5,7 @@
     using System.Linq;
     using prefSQL.SQLSkyline;
 
-    internal sealed class FixedSubspacesProducer : ISubspacesProducer
+    public sealed class FixedSubspacesProducer : ISubspacesProducer
     {
         private readonly HashSet<HashSet<int>> _fixedSubspaces;
 
