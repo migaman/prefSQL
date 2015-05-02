@@ -44,11 +44,13 @@
             var testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
             Debug.WriteLine(skylineSampleSql);
-            
+
             var common = new SQLCommon {SkylineType = new SkylineBNL()};
 
-            var entireSkyline = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, entireSkylineSql);
-            var sampleSkyline = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, skylineSampleSql);
+            var entireSkyline = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                entireSkylineSql);
+            var sampleSkyline = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                skylineSampleSql);
 
             var entireSkylineObjectsIds = GetHashSetOfIdsFromDataTable(entireSkyline);
             var sampleSkylineObjectsIds = GetHashSetOfIdsFromDataTable(sampleSkyline);

@@ -10,14 +10,15 @@ using System.Text;
 
 namespace prefSQL.SQLSkyline
 {
-    
+    using Microsoft.SqlServer.Server;
+
 
     public abstract class SkylineStrategy
     {
-        public DataTable UseDataTable { get; set; }
         public string Provider { get; set; }
         public long timeMilliseconds;
         public abstract DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters);
+        internal abstract DataTable getSkylineTable(List<object[]> dataTable, SqlDataRecord record, string strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters, DataTable dtResult);
 
         public abstract String getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters);
 

@@ -11,6 +11,8 @@ using System.Collections.Generic;
 //Important: Only use equal for comparing text (otherwise performance issues)
 namespace prefSQL.SQLSkyline
 {
+    using System.Linq;
+
     public class SP_SkylineBNLLevel : TemplateBNL
     {
         /// <summary>
@@ -32,13 +34,12 @@ namespace prefSQL.SQLSkyline
             Helper.addToWindow(dataReader, operators, resultCollection, record, dtResult);
         }
 
-        protected override bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i)
+        protected override bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i, int[] resultToTupleMapping)
         {
-            long[] result = (long[])resultCollection[i];
-            
+            long[] result = (long[])resultCollection[i];            
 
             //Dominanz
-            if (Helper.isTupleDominated(result, dataReader) == true)
+            if (Helper.isTupleDominated(result, dataReader, resultToTupleMapping) == true)
             {
                 //New point is dominated. No further testing necessary
                 return true;
@@ -47,7 +48,7 @@ namespace prefSQL.SQLSkyline
 
             //Now, check if the new point dominates the one in the window
             //This is only possible with not sorted data
-            if (Helper.doesTupleDominate(dataReader, operators, result) == true)
+            if (Helper.doesTupleDominate(dataReader, operators, result, resultToTupleMapping) == true)
             {
                 //The new record dominates the one in the windows. Remove point from window and test further
                 resultCollection.RemoveAt(i);

@@ -61,7 +61,6 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Helper.cs" />
-    <Compile Include="SkylineSamplingUtilityTests.cs" />
     <Compile Include="SQLParserRankingTest.cs" />
     <Compile Include="SqlParserSkylineSamplingIntegrationTests.cs" />
     <Compile Include="SqlParserSkylineSamplingTests.cs" />
@@ -69,7 +68,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SQLParserSortTests.cs" />
     <Compile Include="SQLParserSkylineTest.cs" />
-    <Compile Include="SkylineSamplingUtilityIntegrationTests.cs" />
+    <Compile Include="HelperIntegrationTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SQLParser\SQLParser.csproj">
@@ -86,10 +85,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="SkylineSamplingUtilityTests.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="SkylineSamplingUtilityIntegrationTests.xml">
+    <Content Include="HelperIntegrationTests.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="SQLParserSkylineSamplingIntegrationTests.xml">
@@ -99,6 +95,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="SQLParserSkylineSamplingTests_CorrectSyntax.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SQLParserSkylineTest.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

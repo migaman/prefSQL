@@ -15,79 +15,7 @@ namespace prefSQL.SQLParserTest
     [TestClass]
     public class SQLParserSkylineTest
     {
-        private string[] getPreferences()
-        {
-            string[] strPrefSQL = new string[11];
-
-            //1 numerical preference
-            strPrefSQL[0] = "SELECT t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price LOW";
-            
-            //3 numerical preferences
-            strPrefSQL[1] = "   SELECT   * FROM cars_small t1 SKYLINE OF t1.price AROUND 10000, t1.mileage LOW, t1.horsepower HIGH";
-            
-            //6 numerical preferences with EQUAL STEPS
-            strPrefSQL[2] = "SELECT cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID " +
-                "SKYLINE OF cars_small.price LOW 3000 EQUAL, cars_small.mileage LOW 20000 EQUAL, cars_small.horsepower HIGH 20 EQUAL, cars_small.enginesize HIGH 1000 EQUAL, cars_small.consumption LOW 15 EQUAL, cars_small.doors HIGH ";
-            
-
-            //Preference with TOP Keyword
-            //1 numerical preferences with TOP Keyword
-            strPrefSQL[3] = "  SELECT   TOP   5    t1.title FROM cars_small t1 SKYLINE OF t1.price LOW";
-            
-
-            //3 numerical preferences with TOP Keyword
-            strPrefSQL[4] = "SELECT TOP 5 t1.title FROM cars_small t1 SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH";
-            
-
-            //OTHERS EQUAL at the end
-            strPrefSQL[5] = "SELECT t1.id, t1.title AS AutoTitel, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('red' >> 'blue' >> OTHERS EQUAL)";
-            
-
-            //OTHERS EQUAL at the beginning
-            strPrefSQL[6] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name (OTHERS EQUAL >> 'blue')";
-            
-
-            //OTHERS EQUAL in the middle
-            strPrefSQL[7] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('red' >> OTHERS EQUAL >> 'blue')";
-            
-
-            //OTHERS INCOMPARABLE at the end
-            strPrefSQL[8] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 10000 SKYLINE OF t1.price LOW, colors.name ('red' >> 'blue' >> OTHERS INCOMPARABLE)";
-            
-
-            //OTHERS INCOMPARABLE at the beginning
-            strPrefSQL[9] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 10000 SKYLINE OF t1.price LOW, colors.name (OTHERS INCOMPARABLE >> 'blue' >> 'red')";
-            
-
-            //OTHERS INCOMPARABLE in the middle
-            strPrefSQL[10] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 10000 SKYLINE OF t1.price LOW, colors.name ('red' >>  OTHERS INCOMPARABLE >> 'blue')";
-            
-
-            //Statement without explicit OTHERS INCOMPARABLE do not work with hexagon (problem: levelling)
-            //2 FIXED INCOMPARABLE values
-            /*strPrefSQL[11] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ({'blue', 'silver'})";
-            
-
-            //5 FIXED INCOMPARABLE values better than another value
-            strPrefSQL[12] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 900) SKYLINE OF t1.price LOW, colors.name ({'blue', 'silver', 'black', 'red', 'pink'} >> 'gray')";
-            
-
-            //4 FIXED INCOMPARABLE values in the middle
-            strPrefSQL[13] = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE (t1.price = 2400 OR t1.price = 900) SKYLINE OF t1.price LOW, colors.name ('black' >> {'blue', 'silver', 'red', 'pink'} >> 'gray')";
-            
-            
-            //Preferene with Step Level Incomparable
-            strPrefSQL[14] = "SELECT t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price LOW 1000 INCOMPARABLE, t1.mileage LOW";
-            */
-            //TODO: currentyl doesn't work with BNL --> Fix it
-            //WITHOUT OTHERS --> This means that tuples with other values are assumed to be incomparable
-            //strPrefSQL[15] = "SELECT c.id AS ID FROM cars_small c LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
-            
-
-
-            return strPrefSQL;
-        }
-
+        public TestContext TestContext { get; set; }
         /**
          * This test checks if the algorithms return the same amount of tupels for different prefSQL statements
          * At the moment it contains the BNL, nativeSQL and Hexagon algorithm. It is intendend to add the D&Q as soon
@@ -95,138 +23,170 @@ namespace prefSQL.SQLParserTest
          * 
          * */
         [TestMethod]
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineTest.xml", "TestDataRow",
+            DataAccessMethod.Sequential),
+         DeploymentItem("SQLParserSkylineTest.xml")]
         public void TestSKYLINEAmountOfTupels_MSSQLCLR()
         {
-            string[] strPrefSQL = getPreferences();
+            var skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
             
-            
-            for (int i = 0; i <= strPrefSQL.GetUpperBound(0); i++)
+            var common = new SQLCommon();
+            common.SkylineType = new SkylineSQL();
+            PrefSQLModel model = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSql);
+            string sqlNative = common.GetAnsiSqlFromPrefSqlModel(model);
+            common.SkylineType = new SkylineBNL();
+            string sqlBNL = common.parsePreferenceSQL(skylineSampleSql);
+            common.SkylineType = new SkylineBNLSort();
+            string sqlBNLSort = common.parsePreferenceSQL(skylineSampleSql);
+            common.SkylineType = new SkylineHexagon();
+            string sqlHexagon = common.parsePreferenceSQL(skylineSampleSql);
+            //D&Q does not run with CLR
+            common.SkylineType = new SkylineDQ();
+            string sqlDQ = common.parsePreferenceSQL(skylineSampleSql);
+
+            int amountOfTupelsBNL = 0;
+            int amountOfTupelsBNLSort = 0;
+            int amountOfTupelsSQL = 0;
+            int amountOfTupelsHexagon = 0;
+            int amountOfTupelsDQ = 0;
+
+            SqlConnection cnnSQL = new SqlConnection(Helper.ConnectionString);
+            cnnSQL.InfoMessage += cnnSQL_InfoMessage;
+            try
             {
-                
-                SQLCommon common = new SQLCommon();
-                common.SkylineType = new SkylineSQL();
-                PrefSQLModel model = common.GetPrefSqlModelFromPreferenceSql(strPrefSQL[i]);
-                string sqlNative = common.GetAnsiSqlFromPrefSqlModel(model);
-                common.SkylineType = new SkylineBNL();
-                string sqlBNL = common.parsePreferenceSQL(strPrefSQL[i]);
-                common.SkylineType = new SkylineBNLSort();
-                string sqlBNLSort = common.parsePreferenceSQL(strPrefSQL[i]);
-                common.SkylineType = new SkylineHexagon();
-                string sqlHexagon = common.parsePreferenceSQL(strPrefSQL[i]);
-                //D&Q does not run with CLR
-                common.SkylineType = new SkylineDQ();
-                string sqlDQ = common.parsePreferenceSQL(strPrefSQL[i]);
+                cnnSQL.Open();
 
-                int amountOfTupelsBNL = 0;
-                int amountOfTupelsBNLSort = 0;
-                int amountOfTupelsSQL = 0;
-                int amountOfTupelsHexagon = 0;
-                int amountOfTupelsDQ = 0;
+                //Native
+                DbCommand command = cnnSQL.CreateCommand();
+                command.CommandTimeout = 0; //infinite timeout
+                command.CommandText = sqlNative;
+                DbDataReader sqlReader = command.ExecuteReader();
 
-                SqlConnection cnnSQL = new SqlConnection(Helper.ConnectionString);
-                cnnSQL.InfoMessage += cnnSQL_InfoMessage;
-                try
+                if (sqlReader.HasRows)
                 {
-                    cnnSQL.Open();
-
-                    //Native
-                    DbCommand command = cnnSQL.CreateCommand();
-                    command.CommandTimeout = 0; //infinite timeout
-                    command.CommandText = sqlNative;
-                    DbDataReader sqlReader = command.ExecuteReader();
-
-                    if (sqlReader.HasRows)
+                    while (sqlReader.Read())
                     {
-                        while (sqlReader.Read())
-                        {
-                            amountOfTupelsSQL++;
-                        }
+                        amountOfTupelsSQL++;
                     }
-                    sqlReader.Close();
+                }
+                sqlReader.Close();
 
-                    //BNL
-                    command.CommandText = sqlBNL;
+                //BNL
+                command.CommandText = sqlBNL;
+                sqlReader = command.ExecuteReader();
+
+                if (sqlReader.HasRows)
+                {
+                    while (sqlReader.Read())
+                    {
+                        amountOfTupelsBNL++;
+                    }
+                }
+                sqlReader.Close();
+
+                //BNLSort
+                command.CommandText = sqlBNLSort;
+                sqlReader = command.ExecuteReader();
+
+                if (sqlReader.HasRows)
+                {
+                    while (sqlReader.Read())
+                    {
+                        amountOfTupelsBNLSort++;
+                    }
+                }
+                sqlReader.Close();
+
+
+                //Hexagon
+                command.CommandText = sqlHexagon;
+                sqlReader = command.ExecuteReader();
+
+                if (sqlReader.HasRows)
+                {
+                    while (sqlReader.Read())
+                    {
+                        amountOfTupelsHexagon++;
+                    }
+                }
+                sqlReader.Close();
+
+                //D&Q (does not work with incomparable tuples)
+                if(model.WithIncomparable == false)
+                {
+                    command.CommandText = sqlDQ; ;
                     sqlReader = command.ExecuteReader();
 
                     if (sqlReader.HasRows)
                     {
                         while (sqlReader.Read())
                         {
-                            amountOfTupelsBNL++;
+                            amountOfTupelsDQ++;
                         }
                     }
                     sqlReader.Close();
-
-                    //BNLSort
-                    command.CommandText = sqlBNLSort;
-                    sqlReader = command.ExecuteReader();
-
-                    if (sqlReader.HasRows)
-                    {
-                        while (sqlReader.Read())
-                        {
-                            amountOfTupelsBNLSort++;
-                        }
-                    }
-                    sqlReader.Close();
-
-
-                    //Hexagon
-                    command.CommandText = sqlHexagon;
-                    sqlReader = command.ExecuteReader();
-
-                    if (sqlReader.HasRows)
-                    {
-                        while (sqlReader.Read())
-                        {
-                            amountOfTupelsHexagon++;
-                        }
-                    }
-                    sqlReader.Close();
-
-                    //D&Q (does not work with incomparable tuples)
-                    if(model.WithIncomparable == false)
-                    {
-                        command.CommandText = sqlDQ; ;
-                        sqlReader = command.ExecuteReader();
-
-                        if (sqlReader.HasRows)
-                        {
-                            while (sqlReader.Read())
-                            {
-                                amountOfTupelsDQ++;
-                            }
-                        }
-                        sqlReader.Close();
-                    }
-
-                    cnnSQL.Close();
-                }
-                catch (Exception ex)
-                {
-                    Assert.Fail("Connection failed:" + ex.Message);
                 }
 
-
-                //Check tuples (every algorithm should deliver the same amount of tuples)
-                Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNLSort, 0, "BNLSort Amount of tupels in query " + i + " do not match");
-                Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNL, 0, "BNL Amount of tupels in query " + i + " do not match");
-
-                //Hexagon cannot handle Categorical preference that have no explicit OTHERS
-                if (model.ContainsOpenPreference == false)
-                {
-                    Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsHexagon, 0, "Hexagon Amount of tupels in query " + i + " do not match");
-                }
-
-                //D&Q does not work with incomparable tuples
-                if (model.WithIncomparable == false)
-                {
-                    Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsDQ, 0, "Amount of tupels in query " + i + "do not match");
-                }
-                
+                cnnSQL.Close();
             }
+            catch (Exception ex)
+            {
+                Assert.Fail("Connection failed:" + ex.Message);
+            }
+
+            var currentDataRowIndex = TestContext.DataRow.Table.Rows.IndexOf(TestContext.DataRow);
+
+            //Check tuples (every algorithm should deliver the same amount of tuples)
+            Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNLSort, 0,
+                "BNLSort Amount of tupels in query " + currentDataRowIndex + " do not match");
+            Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNL, 0,
+                "BNL Amount of tupels in query " + currentDataRowIndex + " do not match");
+
+            //Hexagon cannot handle Categorical preference that have no explicit OTHERS
+            if (model.ContainsOpenPreference == false)
+            {
+                Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsHexagon, 0,
+                    "Hexagon Amount of tupels in query " + currentDataRowIndex + " do not match");
+            }
+
+            //D&Q does not work with incomparable tuples
+            if (model.WithIncomparable == false)
+            {
+                Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsDQ, 0,
+                    "Amount of tupels in query " + currentDataRowIndex + " do not match");
+            }
+                         
         }
 
+        [TestMethod]
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineTest.xml", "TestDataRow",
+            DataAccessMethod.Sequential),
+         DeploymentItem("SQLParserSkylineTest.xml")]
+        public void TestSkylineParseResults()
+        {
+            var skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
+
+            var allResultTypes = new Dictionary<string, SkylineStrategy>
+            {
+                {"parsePreferenceSQLSkylineSQLExpectedResult", new SkylineSQL()},
+                {"parsePreferenceSQLSkylineBNLExpectedResult", new SkylineBNL()},
+                {"parsePreferenceSQLSkylineBNLSortExpectedResult", new SkylineBNLSort()},
+                {"parsePreferenceSQLSkylineHexagonExpectedResult", new SkylineHexagon()},
+                {"parsePreferenceSQLSkylineDQExpectedResult", new SkylineDQ()},
+                {"parsePreferenceSQLMultipleSkylineBNLExpectedResult", new MultipleSkylineBNL()}
+            };
+
+            var currentDataRowIndex = TestContext.DataRow.Table.Rows.IndexOf(TestContext.DataRow);
+
+            var common = new SQLCommon();
+            foreach (var resultType in allResultTypes)
+            {
+                common.SkylineType = resultType.Value;
+                var parsedSql = common.parsePreferenceSQL(skylineSampleSql);
+                Assert.AreEqual(TestContext.DataRow[resultType.Key].ToString().Trim(), parsedSql.Trim(),
+                    "Parsed result in data row " + currentDataRowIndex + " for " + resultType.Key + " is incorrect.");
+            }
+        }
 
         /**
          * This test checks if the algorithms return the same amount of tupels for different prefSQL statements
@@ -235,55 +195,58 @@ namespace prefSQL.SQLParserTest
          * 
          * */
         [TestMethod]
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineTest.xml", "TestDataRow",
+            DataAccessMethod.Sequential),
+         DeploymentItem("SQLParserSkylineTest.xml")]
         public void TestSKYLINEAmountOfTupels_DataTable()
         {
-            string[] strPrefSQL = getPreferences();
+            var skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
 
-            for (int i = 0; i <= strPrefSQL.GetUpperBound(0); i++)
+            var common = new SQLCommon();
+            common.SkylineType = new SkylineSQL();
+            PrefSQLModel model = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSql);
+            DataTable dtNative = common.ExecuteFromPrefSqlModel(Helper.ConnectionString, Helper.ProviderName, model);
+            common.SkylineType = new SkylineBNL();
+            DataTable dtBNL = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, skylineSampleSql);
+            common.SkylineType = new SkylineBNLSort();
+            DataTable dtBNLSort = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, skylineSampleSql);
+
+            var dtHexagon = new DataTable();
+            if (model.ContainsOpenPreference == false)
             {
+                common.SkylineType = new SkylineHexagon();
+                dtHexagon = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, skylineSampleSql);
+            }                
                 
-                SQLCommon common = new SQLCommon();
-                common.SkylineType = new SkylineSQL();
-                PrefSQLModel model = common.GetPrefSqlModelFromPreferenceSql(strPrefSQL[i]);
-                DataTable dtNative = common.ExecuteFromPrefSqlModel(Helper.ConnectionString, Helper.ProviderName, model);
-                common.SkylineType = new SkylineBNL();
-                DataTable dtBNL = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL[i]);
-                common.SkylineType = new SkylineBNLSort();
-                DataTable dtBNLSort = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL[i]);
-                
-                DataTable dtHexagon = new DataTable();
-                if (model.ContainsOpenPreference == false)
-                {
-                    common.SkylineType = new SkylineHexagon();
-                    dtHexagon = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL[i]);
-                }
-                
-                
-                DataTable dtDQ = new DataTable();
-                //D&Q does not work with incomparable tuples
-                if (model.WithIncomparable == false)
-                {
-                    common.SkylineType = new SkylineDQ();
-                    dtDQ = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL[i]);
-                }
-                
-
-                //Check tuples (every algorithm should deliver the same amount of tuples)
-                Assert.AreEqual(dtNative.Rows.Count, dtBNL.Rows.Count, 0, "BNL Amount of tupels in query " + i + " do not match");
-                Assert.AreEqual(dtNative.Rows.Count, dtBNLSort.Rows.Count, 0, "BNLSort Amount of tupels in query " + i + " do not match");
-
-                //Hexagon cannot handle Categorical preference that have no explicit OTHERS
-                if (model.ContainsOpenPreference == false)
-                {
-                    Assert.AreEqual(dtNative.Rows.Count, dtHexagon.Rows.Count, 0, "Hexagon Amount of tupels in query " + i + " do not match");
-                }
-                //D&Q does not work with incomparable tuples
-                if (model.WithIncomparable == false)
-                {
-                    Assert.AreEqual(dtNative.Rows.Count, dtDQ.Rows.Count, 0, "D&Q Amount of tupels in query " + i + " do not match");
-                }
-                
+            DataTable dtDQ = new DataTable();
+            //D&Q does not work with incomparable tuples
+            if (model.WithIncomparable == false)
+            {
+                common.SkylineType = new SkylineDQ();
+                dtDQ = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, skylineSampleSql);
             }
+
+            var currentDataRowIndex = TestContext.DataRow.Table.Rows.IndexOf(TestContext.DataRow);
+
+            //Check tuples (every algorithm should deliver the same amount of tuples)
+            Assert.AreEqual(dtNative.Rows.Count, dtBNL.Rows.Count, 0,
+                "BNL Amount of tupels in query " + currentDataRowIndex + " do not match");
+            Assert.AreEqual(dtNative.Rows.Count, dtBNLSort.Rows.Count, 0,
+                "BNLSort Amount of tupels in query " + currentDataRowIndex + " do not match");
+
+            //Hexagon cannot handle Categorical preference that have no explicit OTHERS
+            if (model.ContainsOpenPreference == false)
+            {
+                Assert.AreEqual(dtNative.Rows.Count, dtHexagon.Rows.Count, 0,
+                    "Hexagon Amount of tupels in query " + currentDataRowIndex + " do not match");
+            }
+            //D&Q does not work with incomparable tuples
+            if (model.WithIncomparable == false)
+            {
+                Assert.AreEqual(dtNative.Rows.Count, dtDQ.Rows.Count, 0,
+                    "D&Q Amount of tupels in query " + currentDataRowIndex + " do not match");
+            }
+                
         }
 
 

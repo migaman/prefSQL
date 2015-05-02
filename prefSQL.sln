@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "SQLSkyline", "SQLSkyline\SQLSkyline.sqlproj", "{C0006FB5-527B-4812-8E5C-9B2CBA268B59}"
 EndProject
@@ -17,6 +17,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{DF7030
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utility", "Utility\Utility.csproj", "{B8B93B25-2B92-414A-9ADA-15C345DB0217}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C8D9D2BF-1CDE-4BC3-AA54-9946FC4E080F}"
+	ProjectSection(SolutionItems) = preProject
+		Performance1.psess = Performance1.psess
+		Performance2.psess = Performance2.psess
+		Performance3.psess = Performance3.psess
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLSkylineTest", "SQLSkylineTest\SQLSkylineTest.csproj", "{E72ACC4B-70B8-448E-9B41-A8FE0460014E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,8 +51,15 @@ Global
 		{B8B93B25-2B92-414A-9ADA-15C345DB0217}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8B93B25-2B92-414A-9ADA-15C345DB0217}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B8B93B25-2B92-414A-9ADA-15C345DB0217}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E72ACC4B-70B8-448E-9B41-A8FE0460014E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E72ACC4B-70B8-448E-9B41-A8FE0460014E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E72ACC4B-70B8-448E-9B41-A8FE0460014E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E72ACC4B-70B8-448E-9B41-A8FE0460014E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

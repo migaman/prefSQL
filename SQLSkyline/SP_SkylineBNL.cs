@@ -28,7 +28,7 @@ namespace prefSQL.SQLSkyline
             Helper.addToWindow(dataReader, operators, resultCollection, resultstringCollection, record, dtResult);
         }
 
-        protected override bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i)
+        protected override bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i, int[] resultToTupleMapping)
         {
             long?[] result = (long?[])resultCollection[i];
             string[] strResult = (string[])resultstringCollection[i];

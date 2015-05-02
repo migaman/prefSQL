@@ -11,6 +11,8 @@ using System.Text;
 
 namespace prefSQL.SQLSkyline
 {
+    using Microsoft.SqlServer.Server;
+
     public class SkylineBNL : SkylineStrategy
     {
         public override bool isNative()
@@ -45,25 +47,31 @@ namespace prefSQL.SQLSkyline
             }
             return strSQLReturn;
         }
+
         public override DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        {
+            var skyline = getSP_Skyline(hasIncomparable);
+            DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
+            timeMilliseconds = skyline.timeInMs;
+            return dt;         
+        }
+
+        internal override DataTable getSkylineTable(List<object[]> dataTable, SqlDataRecord record, string strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters, DataTable dtResult)
+        {
+            var skyline = getSP_Skyline(hasIncomparable);
+            var dt = skyline.getSkylineTable(dataTable, record, strOperators, numberOfRecords, dtResult);
+            timeMilliseconds = skyline.timeInMs;
+            return dt;
+        }     
+
+        private TemplateBNL getSP_Skyline(bool hasIncomparable)
         {
             if (hasIncomparable)
             {
-                SP_SkylineBNL skyline = new SP_SkylineBNL();
-                skyline.UseDataTable = UseDataTable;
-                DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
-                timeMilliseconds = skyline.timeInMs;
-                return dt;
-            }
-            else
-            {
-                SP_SkylineBNLLevel skyline = new SP_SkylineBNLLevel();
-                skyline.UseDataTable = UseDataTable;
-                DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
-                timeMilliseconds = skyline.timeInMs;
-                return dt;
+                return new SP_SkylineBNL();
             }
 
+            return new SP_SkylineBNLLevel();
         }
     }
 }

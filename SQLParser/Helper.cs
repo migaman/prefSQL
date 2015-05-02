@@ -14,8 +14,7 @@ using prefSQL.SQLParser.Models;
 
 namespace prefSQL.SQLParser
 {
-    //internal class
-    class Helper
+    internal class Helper
     {
         /// <summary>
         /// Driver-String, i.e. System.Data.SqlClient
@@ -60,20 +59,27 @@ namespace prefSQL.SQLParser
         /// <param name="algorithm"></param>
         /// <returns></returns>
         public DataTable getResults(String strPrefSQL, SkylineStrategy strategy, PrefSQLModel model)
-        {
+        {     
             DataTable dt = new DataTable();
             //Default Parameter
             string strQuery = "";
             string strOperators = "";
             int numberOfRecords = 0;
             string[] parameter = null;
-            
+
 
             //Native SQL algorithm is already a valid SQL statement
             if (strPrefSQL.StartsWith("SELECT"))
             {
-                //If query doesn't need skyline calculation (i.e. query without preference clause) --> set algorithm to nativeSQL
-                strategy = new SkylineSQL();
+                if (!model.HasSkylineSample)
+                {
+                    //If query doesn't need skyline calculation (i.e. query without preference clause) --> set algorithm to nativeSQL
+                    strategy = new SkylineSQL();
+                }              
+                else
+                {
+                    throw new Exception("native SQL not yet supported."); // TODO: consider native SQL support
+                }
             }
             else
             {
@@ -96,33 +102,35 @@ namespace prefSQL.SQLParser
                 //}
             }
 
-            //Stopwatch sw = new Stopwatch();
-
-            //sw.Start();
-
             try
             {
                 if (strategy.isNative())
                 {
-                    //Native SQL
+                    if (!model.HasSkylineSample)
+                    {
+                        //Native SQL
 
-                    //Generic database provider
-                    //Create the provider factory from the namespace provider, you could create any other provider factory.. for Oracle, MySql, etc...
-                    DbProviderFactory factory = DbProviderFactories.GetFactory(DriverString);
+                        //Generic database provider
+                        //Create the provider factory from the namespace provider, you could create any other provider factory.. for Oracle, MySql, etc...
+                        DbProviderFactory factory = DbProviderFactories.GetFactory(DriverString);
 
-                    // use the factory object to create Data access objects.
-                    DbConnection connection = factory.CreateConnection(); // will return the connection object, in this case, SqlConnection ...
-                    connection.ConnectionString = ConnectionString;
+                        // use the factory object to create Data access objects.
+                        DbConnection connection = factory.CreateConnection(); // will return the connection object, in this case, SqlConnection ...
+                        connection.ConnectionString = ConnectionString;
 
-                    connection.Open();
-                    DbCommand command = connection.CreateCommand();
-                    command.CommandTimeout = 0; //infinite timeout
-                    command.CommandText = strPrefSQL;
-                    DbDataAdapter db = factory.CreateDataAdapter();
-                    db.SelectCommand = command;
-                    db.Fill(dt);
+                        connection.Open();
+                        DbCommand command = connection.CreateCommand();
+                        command.CommandText = strPrefSQL;
+                        DbDataAdapter db = factory.CreateDataAdapter();
+                        db.SelectCommand = command;
+                        db.Fill(dt);
+                    }
+                    else
+                    {
+                        throw new Exception("native SQL not yet supported."); // TODO: consider native SQL support
+                    }
                 }
-                else 
+                else
                 {
                     if (strategy.supportImplicitPreference() == false && model.ContainsOpenPreference == true)
                     {
@@ -130,15 +138,25 @@ namespace prefSQL.SQLParser
                     }
                     if (strategy.supportIncomparable() == false && model.WithIncomparable == true)
                     {
-                        throw new Exception(strategy.GetType() +  " does not support incomparale tuples");
+                        throw new Exception(strategy.GetType() + " does not support incomparale tuples");
                     }
 
                     //Set the database provider
                     strategy.Provider = DriverString;
 
-
-                    dt = strategy.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords, model.WithIncomparable, parameter);
-                    timeInMilliseconds = strategy.timeMilliseconds;
+                    if (!model.HasSkylineSample)
+                    {
+                        dt = strategy.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords, model.WithIncomparable, parameter);
+                        timeInMilliseconds = strategy.timeMilliseconds;
+                    }
+                    else
+                    {
+                        var skylineSample = new SkylineSample();
+                        skylineSample.Provider = DriverString;
+                        dt = skylineSample.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords,
+                            model.WithIncomparable, parameter, strategy, model.SkylineSampleCount, model.SkylineSampleDimension);
+                        timeInMilliseconds = skylineSample.timeMilliseconds;                        
+                    }
                 }
 
             }
@@ -147,9 +165,7 @@ namespace prefSQL.SQLParser
                 Debug.WriteLine(e.Message);
             }
 
-
-            return dt;
+            return dt;            
         }
-
     }
 }

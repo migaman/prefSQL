@@ -103,7 +103,7 @@ namespace prefSQL.SQLSkyline
 
                 //Write all attributes to a Object-Array
                 //Profiling: This is much faster (factor 2) than working with the SQLReader
-                List<object[]> listObjects = Helper.fillObjectFromDataReader(dataTableReader);
+                List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
 
                 //Replace the database values to ranks of the values
                 long[] maxValues = new long[amountOfPreferences];
@@ -621,5 +621,11 @@ namespace prefSQL.SQLSkyline
         protected abstract void add(object[] dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable);
 
         protected abstract void calculateOperators(ref string strOperators, string strSelectIncomparable, DbProviderFactory factory, DbConnection connection, ref string strSQL);
+
+        protected override DataTable getSkylineTable(List<object[]> listObjects, SqlDataRecord record, string strOperators, int numberOfRecords,
+            bool isIndependent, DataTable dtResult)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

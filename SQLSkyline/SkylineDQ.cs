@@ -11,6 +11,8 @@ using System.Threading;
 
 namespace prefSQL.SQLSkyline
 {
+    using Microsoft.SqlServer.Server;
+
     public class SkylineDQ : SkylineStrategy
     {
         public override bool isNative()
@@ -28,6 +30,12 @@ namespace prefSQL.SQLSkyline
             return false;
         }
 
+        internal override DataTable getSkylineTable(List<object[]> dataTable, SqlDataRecord record, string strOperators, int numberOfRecords,
+            bool hasIncomparable, string[] additionalParameters, DataTable dtResult)
+        {
+            throw new NotImplementedException();
+        }
+
         public override string getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
         {
             //usual sort clause
@@ -41,13 +49,12 @@ namespace prefSQL.SQLSkyline
 
         public override DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
-
             DataTable dt = null;
             prefSQL.SQLSkyline.SP_SkylineDQ skyline = new SQLSkyline.SP_SkylineDQ();
             dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
             timeMilliseconds = skyline.timeInMs;
             return dt;
-
         }
+
     }
 }

@@ -13,7 +13,6 @@ using System.Threading;
 using System.Data.Common;
 using System.Windows.Forms;
 using prefSQL.SQLSkyline;
-using Npgsql;
 
 namespace Utility
 {

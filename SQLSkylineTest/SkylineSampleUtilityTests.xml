@@ -1,0 +1,36 @@
+<TestData>
+  <TestDataRow>
+    <comment>2 samples, each of dimension 1 (e.g., (cs.price), (cs.mileage))</comment>
+    <attributesCount>2</attributesCount>
+    <sampleCount>2</sampleCount>
+    <sampleDimension>1</sampleDimension>
+    <useSubspaces>
+      <subspace>
+        <dimension>0</dimension>
+      </subspace>
+      <subspace>
+        <dimension>1</dimension>
+      </subspace>
+    </useSubspaces>
+  </TestDataRow>
+  <TestDataRow>
+    <comment>3 samples, each of dimension 2 (e.g., (cs.price, cs.mileage), (cs.mileage, cs.horsepower), (cs.price, cs.horsepower))</comment>
+    <attributesCount>3</attributesCount>
+    <sampleCount>3</sampleCount>
+    <sampleDimension>2</sampleDimension>
+    <useSubspaces>
+      <subspace>
+        <dimension>0</dimension>
+        <dimension>1</dimension>
+      </subspace>
+      <subspace>
+        <dimension>0</dimension>
+        <dimension>2</dimension>
+      </subspace>
+      <subspace>
+        <dimension>1</dimension>
+        <dimension>2</dimension>
+      </subspace>
+    </useSubspaces>
+  </TestDataRow>
+</TestData>

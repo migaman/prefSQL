@@ -40,6 +40,7 @@ namespace prefSQL.SQLSkyline
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.ToString().Split(';');
             DataTable dtResult = new DataTable();
+            var resultToTupleMapping = Helper.ResultToTupleMapping(operators);
 
             DbProviderFactory factory = null;
             DbConnection connection = null;
@@ -87,14 +88,8 @@ namespace prefSQL.SQLSkyline
                 }
 
                 int iMaxLevel = 0;
-                //Read all records only once. (SqlDataReader works forward only!!)
-                DataTableReader dataTableReader = dt.CreateDataReader();
-
-                //Write all attributes to a Object-Array
-                //Profiling: This is much faster (factor 2) than working with the SQLReader
-                List<object[]> listObjects = Helper.fillObjectFromDataReader(dataTableReader);
                 
-
+                List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
 
                 foreach (object[] dbValuesObject in listObjects)
                 {
@@ -124,7 +119,7 @@ namespace prefSQL.SQLSkyline
                                     long[] result = (long[])resultCollection[i];
 
                                     //Dominanz
-                                    if (Helper.isTupleDominated(result, dbValuesObject) == true)
+                                    if (Helper.isTupleDominated(result, dbValuesObject, resultToTupleMapping) == true)
                                     {
                                         //Dominated in this level. Next level
                                         isDominated = true;
