@@ -32,7 +32,7 @@ namespace prefSQL.SQLSkyline
         }     
 
         public DataTable getSkylineTable(string strConnection, string strQuery, string strOperators, int numberOfRecords,
-            bool hasIncomparable, string[] additionalParameters, SkylineStrategy algorithm, int count, int dimension)
+            bool hasIncomparable, string[] additionalParameters, SkylineStrategy algorithm, int count, int dimension, int uniqueIdColumnIndex)
         {
             var dataTableResult = new DataTable();
 
@@ -45,7 +45,7 @@ namespace prefSQL.SQLSkyline
             var fullDataTable = Helper.GetSkylineDataTable(strQuery, true, strConnection, Provider);
             var objectArrayFromDataTableOrig = Helper.GetObjectArrayFromDataTable(fullDataTable);
             var objectArrayFromDataTable =
-                objectArrayFromDataTableOrig.ToDictionary(dataRow => (int) dataRow[Utility.AllPreferencesCount]);
+                objectArrayFromDataTableOrig.ToDictionary(dataRow => (int)dataRow[Utility.AllPreferencesCount + uniqueIdColumnIndex]);
             var sqlDataRecord = Helper.buildDataRecord(fullDataTable, operators, dataTableResult);
 
             return GetSkyline(objectArrayFromDataTable, algorithm, sqlDataRecord, operators, dataTableResult,

@@ -138,7 +138,7 @@ namespace prefSQL.SQLParser
                         var skylineSample = new SkylineSample();
                         skylineSample.Provider = DriverString;
                         dt = skylineSample.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords,
-                            model.WithIncomparable, parameter, strategy, model.SkylineSampleCount, model.SkylineSampleDimension);
+                            model.WithIncomparable, parameter, strategy, model.SkylineSampleCount, model.SkylineSampleDimension, 0);
                         timeInMilliseconds = skylineSample.timeMilliseconds;                        
                     }
                 }
