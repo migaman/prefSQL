@@ -51,10 +51,23 @@ namespace Utility
             {
                 parser.SkylineType = new SkylineHexagon();
             }
+            else if (this.optDQ.Checked == true)
+            {
+                parser.SkylineType = new SkylineDQ();
+            }
+
+            if (this.chkShowSkyline.Checked == true)
+            {
+                parser.ShowSkylineAttributes = true;
+            }
+            else
+            {
+                parser.ShowSkylineAttributes = false;
+            }
 
             DataTable dt = parser.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, this.txtPrefSQL.Text);
             System.Diagnostics.Debug.WriteLine(dt.Rows.Count);
-
+            
 
             BindingSource SBind = new BindingSource();
             SBind.DataSource = dt;
@@ -65,12 +78,14 @@ namespace Utility
             gridSkyline.DataSource = SBind;
             gridSkyline.Refresh();
 
+            sw.Stop();
+            
+            this.txtTime.Text = sw.ElapsedMilliseconds.ToString();
+            this.txtTimeAlgo.Text = parser.TimeInMilliseconds.ToString();
+            this.txtRecords.Text = dt.Rows.Count.ToString();
+
 
             this.btnExecute.Enabled = true;
-
-
-
-            this.txtTime.Text = sw.Elapsed.ToString();          
         }
 
     }

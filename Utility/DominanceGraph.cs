@@ -81,7 +81,7 @@ namespace Utility
 
 
             sw.Stop();
-            System.Diagnostics.Debug.WriteLine("Elapsed={0}", sw.Elapsed);
+            System.Diagnostics.Debug.WriteLine("Elapsed={0}", sw.ElapsedMilliseconds);
 
 
         }
