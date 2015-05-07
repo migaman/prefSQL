@@ -34,7 +34,7 @@ namespace Utility
     class Performance
     {
 
-        private const string path = "E:\\Doc\\Studies\\PRJ_Thesis\\43 Correlation\\";
+        private const string path = "E:\\Doc\\Studies\\PRJ_Thesis\\15 Performance\\Output\\";
         private int trials = 5;                 //How many times each preferene query is executed
         private int dimensions = 6;             //Up to this amount of dimension should be tested
         private int randomDraws = 25;          //Only used for the shuffle set. How many random set will be generated
@@ -244,7 +244,7 @@ namespace Utility
             preferences.Add("bodies.name ('bus' >> 'cabriolet' >> 'limousine' >> 'coupé' >> 'van' >> 'estate car' >> OTHERS EQUAL)");
             preferences.Add("fuels.name ('petrol' >> 'diesel' >> 'bioethanol' >> 'electro' >> 'gas' >> 'hybrid' >> OTHERS EQUAL)");
             preferences.Add("makes.name ('BENTLEY' >> 'DAIMLER' >> 'FIAT'>> 'FORD'  >> OTHERS EQUAL)");
-            preferences.Add("conditions.name ('new' >> 'occasion' >> 'demonstraction car' >> 'oldtimer' >> OTHERS EQUAL)");
+            preferences.Add("conditions.name ('new' >> 'occasion' >> 'demonstration car' >> 'oldtimer' >> OTHERS EQUAL)");
             preferences.Add("drives.name ('front wheel' >> 'all wheel' >> 'rear wheel' >> OTHERS EQUAL)");
             preferences.Add("transmissions.name ('manual' >> 'automatic' >> OTHERS EQUAL)");
 
@@ -259,7 +259,7 @@ namespace Utility
             //Categorical preferences with a cardinality from 2 to 8 (descending)
             preferences.Add("cars.doors HIGH");
             preferences.Add("fuels.name ('petrol' >> 'diesel' >> 'bioethanol' >> 'elektro' >> 'gas' >> 'hybrid' >> OTHERS EQUAL)");
-            preferences.Add("conditions.name ('new' >> 'occasion' >> 'demonstration model' >> 'oldtimer' >> OTHERS EQUAL)");
+            preferences.Add("conditions.name ('new' >> 'occasion' >> 'demonstration car' >> 'oldtimer' >> OTHERS EQUAL)");
             preferences.Add("drives.name ('front wheel' >> 'all wheel' >> 'rear wheel' >> OTHERS EQUAL)");
             preferences.Add("transmissions.name ('manual' >> 'automatic' >> OTHERS EQUAL)");
 
