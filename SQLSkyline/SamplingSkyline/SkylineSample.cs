@@ -1,4 +1,4 @@
-namespace prefSQL.SQLSkyline
+namespace prefSQL.SQLSkyline.SamplingSkyline
 {
     using System;
     using System.Collections.Generic;
@@ -39,8 +39,8 @@ namespace prefSQL.SQLSkyline
             var operators = strOperators.ToString(CultureInfo.InvariantCulture).Split(';');
 
             Utility.AllPreferencesCount = operators.Length;
-            Utility.SampleCount = count;
-            Utility.SampleDimension = dimension;
+            Utility.SubspacesCount = count;
+            Utility.SubspaceDimension = dimension;
 
             var fullDataTable = Helper.GetSkylineDataTable(strQuery, true, strConnection, Provider);
             var objectArrayFromDataTable = Helper.GetDictionaryFromDataTable(fullDataTable, Utility.AllPreferencesCount + uniqueIdColumnIndex);

@@ -7,6 +7,7 @@
     using prefSQL.SQLParser;
     using prefSQL.SQLParser.Models;
     using prefSQL.SQLSkyline;
+    using prefSQL.SQLSkyline.SamplingSkyline;
 
     [TestClass]
     public class SqlParserSkylineSamplingIntegrationTests

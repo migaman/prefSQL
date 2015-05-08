@@ -6,6 +6,7 @@
     using System.Linq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using prefSQL.SQLSkyline;
+    using prefSQL.SQLSkyline.SamplingSkyline;
 
     [TestClass]
     public class SkylineSampleUtilityTests
@@ -22,14 +23,14 @@
             Debug.WriteLine(testComment);
 
             var attributesCount = int.Parse(TestContext.DataRow["attributesCount"].ToString());
-            var sampleCount = int.Parse(TestContext.DataRow["sampleCount"].ToString());
-            var sampleDimension = int.Parse(TestContext.DataRow["sampleDimension"].ToString());
+            var subspacesCount = int.Parse(TestContext.DataRow["subspacesCount"].ToString());
+            var subspaceDimension = int.Parse(TestContext.DataRow["subspaceDimension"].ToString());
 
             var subjectUnderTest = new SkylineSampleUtility
             {
                 AllPreferencesCount = attributesCount,
-                SampleCount = sampleCount,
-                SampleDimension = sampleDimension
+                SubspacesCount = subspacesCount,
+                SubspaceDimension = subspaceDimension
             };
 
             var preferencesInProducedSubspaces = subjectUnderTest.Subspaces;
@@ -88,14 +89,14 @@
             Debug.WriteLine(testComment);
 
             var attributesCount = int.Parse(TestContext.DataRow["attributesCount"].ToString());
-            var sampleCount = int.Parse(TestContext.DataRow["sampleCount"].ToString());
-            var sampleDimension = int.Parse(TestContext.DataRow["sampleDimension"].ToString());
+            var subspacesCount = int.Parse(TestContext.DataRow["subspacesCount"].ToString());
+            var subspaceDimension = int.Parse(TestContext.DataRow["subspaceDimension"].ToString());
 
             var subjectUnderTest = new SkylineSampleUtility
             {
                 AllPreferencesCount = attributesCount,
-                SampleCount = sampleCount,
-                SampleDimension = sampleDimension
+                SubspacesCount = subspacesCount,
+                SubspaceDimension = subspaceDimension
             };
 
             try

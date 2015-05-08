@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using prefSQL.SQLSkyline;
+    using prefSQL.SQLSkyline.SamplingSkyline;
 
     public sealed class FixedSamplingSkylineSubspacesProducer : ISamplingSkylineSubspacesProducer
     {

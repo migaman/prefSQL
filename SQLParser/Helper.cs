@@ -14,6 +14,8 @@ using prefSQL.SQLParser.Models;
 
 namespace prefSQL.SQLParser
 {
+    using prefSQL.SQLSkyline.SamplingSkyline;
+
     internal class Helper
     {
         /// <summary>

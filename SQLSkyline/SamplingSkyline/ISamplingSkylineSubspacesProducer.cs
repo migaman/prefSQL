@@ -1,4 +1,4 @@
-namespace prefSQL.SQLSkyline
+namespace prefSQL.SQLSkyline.SamplingSkyline
 {
     using System.Collections.Generic;
 
