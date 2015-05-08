@@ -61,7 +61,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="SkylineSamplingHelper.cs" />
-    <Compile Include="FixedSubspacesProducer.cs" />
+    <Compile Include="FixedSamplingSkylineSubspacesProducer.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="SetCoverage.cs" />
     <Compile Include="SQLParserRankingTest.cs" />

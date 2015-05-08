@@ -73,11 +73,11 @@
             var common = new SQLCommon {SkylineType = new SkylineBNL()};
 
             var prefSqlModel = common.GetPrefSqlModelFromPreferenceSql(SkylineSampleSql);
-            var randomSubspacesesProducer = new RandomSubspacesProducer
+            var randomSubspacesesProducer = new RandomSamplingSkylineSubspacesProducer
             {
                 AllPreferencesCount = prefSqlModel.Skyline.Count,
-                SampleCount = prefSqlModel.SkylineSampleCount,
-                SampleDimension = prefSqlModel.SkylineSampleDimension
+                SubspacesCount = prefSqlModel.SkylineSampleCount,
+                SubspaceDimension = prefSqlModel.SkylineSampleDimension
             };
 
             //var dataTable = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
@@ -115,7 +115,7 @@
 
             foreach (var subspace in producedSubspaces)
             {
-                var subspacesProducer = new FixedSubspacesProducer(subspace);
+                var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(subspace);
                 var utility = new SkylineSampleUtility(subspacesProducer);
                 var skylineSample = new SkylineSample(utility) {Provider = Helper.ProviderName};
 

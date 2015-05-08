@@ -15,14 +15,14 @@ namespace prefSQL.SQLSkyline
     internal interface ISamplingSkylineSubspacesProducer
     {
         /// <summary>
+        ///     Number of desired subspaces.
+        /// </summary>
+        int SubspacesCount { get; set; }
+
+        /// <summary>
         ///     Dimensionality of each subspace.
         /// </summary>
         int SubspaceDimension { get; set; }
-
-        /// <summary>
-        ///     Number of desired subspaces.
-        /// </summary>
-        int SubspaceCount { get; set; }
 
         /// <summary>
         ///     Number of all preferences requested in original skyline query.
