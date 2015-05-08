@@ -628,5 +628,132 @@ namespace prefSQL.SQLSkyline
             }
             return resultToTupleMapping;
         }
+
+
+        //Sort BySum (for algorithms)
+        public static DataTable sortBySum(DataTable dt, ArrayList skylineValues)
+        {
+            //Add a column for each skyline attribute and a sort column
+            long[] firstSkylineValues = (long[])skylineValues[0];
+            int preferences = firstSkylineValues.GetUpperBound(0);
+
+            for (int i = 0; i <= preferences; i++)
+            {
+                dt.Columns.Add("Skyline" + i, typeof(long));
+            }
+            dt.Columns.Add("SortOrder", typeof(int));
+
+            //Add values to datatable
+            for (int iRow = 0; iRow < dt.Rows.Count; iRow++)
+            {
+                long[] values = (long[])skylineValues[iRow];
+                for (int i = 0; i <= preferences; i++)
+                {
+                    dt.Rows[iRow]["Skyline" + i] = values[i];
+                }
+            }
+            dt = dt.DefaultView.ToTable();
+            int preferenceStart = dt.Columns.Count - preferences - 2;
+
+            //Now sort the table for each skyline table and calculate sortorder
+            for (int iCol = preferenceStart; iCol < dt.Columns.Count - 1; iCol++)
+            {
+                //Sort by column and work with sorted table
+                dt.DefaultView.Sort = dt.Columns[iCol].ColumnName + " ASC";
+                dt = dt.DefaultView.ToTable();
+
+                //Now replace values beginning from 0
+                //int value = (int)dtResult.Rows[0][iCol];
+                long rank = 0;
+                long value = (long)dt.Rows[0][iCol];
+                for (int iRow = 0; iRow < dt.Rows.Count; iRow++)
+                {
+                    if (value < (long)dt.Rows[iRow][iCol])
+                    {
+                        value = (long)dt.Rows[iRow][iCol];
+                        rank++;
+                    }
+                    
+                    if (dt.Rows[iRow]["SortOrder"] == DBNull.Value)
+                    {
+                        dt.Rows[iRow]["SortOrder"] = rank;
+                    }
+                    else
+                    {
+                        dt.Rows[iRow]["SortOrder"] = (int)dt.Rows[iRow]["SortOrder"] + rank;
+                    }
+
+                }
+            }
+            dt.DefaultView.Sort = "SortOrder ASC";
+            dt = dt.DefaultView.ToTable();
+
+            //Remove rows
+            for (int i = 0; i <= preferences; i++)
+            {
+                dt.Columns.Remove("Skyline" + i);
+            }
+            dt.Columns.Remove("SortOrder");
+
+            return dt;
+        }
+
+
+        //Sort ByRank (for algorithms)
+        public static DataTable sortByRank(DataTable dt, ArrayList skylineValues)
+        {
+            //Add a column for each skyline attribute and a sort column
+            long[] firstSkylineValues = (long[])skylineValues[0];
+            int preferences = firstSkylineValues.GetUpperBound(0);
+            
+            for (int i = 0; i <= preferences; i++)
+            {
+                dt.Columns.Add("Skyline" + i, typeof(long));
+            }
+            dt.Columns.Add("SortOrder", typeof(int));
+
+            //Add values to datatable
+            for(int iRow = 0; iRow < dt.Rows.Count; iRow++) {
+                long[] values = (long[])skylineValues[iRow];
+                for (int i = 0; i <= preferences; i++)
+                {
+                    dt.Rows[iRow]["Skyline" + i] = values[i];
+                }
+            }
+            dt = dt.DefaultView.ToTable();
+            int preferenceStart = dt.Columns.Count - preferences - 2;
+            
+            //Now sort the table for each skyline table and calculate sortorder
+            for (int iCol = preferenceStart; iCol < dt.Columns.Count - 1; iCol++)
+            {
+                //Sort by column and work with sorted table
+                dt.DefaultView.Sort = dt.Columns[iCol].ColumnName + " ASC";
+                dt = dt.DefaultView.ToTable();
+
+                //Now replace values beginning from 0
+                //int value = (int)dtResult.Rows[0][iCol];
+                long rank = 0;
+                for (int iRow = 0; iRow < dt.Rows.Count; iRow++)
+                {
+                    rank++;
+                    if (dt.Rows[iRow]["SortOrder"] == DBNull.Value || rank < (long)dt.Rows[iRow]["SortOrder"])
+                    {
+                        dt.Rows[iRow]["SortOrder"] = rank;
+                    }
+
+                }
+            }
+            dt.DefaultView.Sort = "SortOrder ASC";
+            dt = dt.DefaultView.ToTable();
+
+            //Remove rows
+            for (int i = 0; i <= preferences; i++)
+            {
+                dt.Columns.Remove("Skyline" + i);
+            }
+            dt.Columns.Remove("SortOrder");
+
+            return dt;
+        }
     }
 }
