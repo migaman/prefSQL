@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using prefSQL.SQLSkyline;
 
@@ -111,6 +112,49 @@
             {
                 Assert.Fail("Syntactically incorrect SQL Query should have thrown an Exception.");
             }
+        }
+
+        [TestMethod]
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
+            "SkylineSampleUtilityTests_BinomialCoefficient.xml",
+            "TestDataRow", DataAccessMethod.Sequential),
+         DeploymentItem("SkylineSampleUtilityTests_BinomialCoefficient.xml")]
+        public void TestBinomialCoefficient()
+        {
+            int n = int.Parse(TestContext.DataRow["n"].ToString());
+            int[] coefficients = TestContext.DataRow["coefficients"].ToString().Split(',').Select(int.Parse).ToArray();
+
+            for (var k = 0; k <= n; k++)
+            {
+                int expected = coefficients[k];
+                int actual = SkylineSampleUtility.BinomialCoefficient(n, k);
+                Assert.AreEqual(expected, actual);
+            }
+        }
+
+        [TestMethod]
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
+            "SkylineSampleUtilityTests_BinomialCoefficient.xml",
+            "TestDataRow", DataAccessMethod.Sequential),
+         DeploymentItem("SkylineSampleUtilityTests_BinomialCoefficient.xml")]
+        public void TestOutsideOfValidIntervalParametersForBinomialCoefficient()
+        {
+            int n = int.Parse(TestContext.DataRow["n"].ToString());
+            int[] coefficients = TestContext.DataRow["coefficients"].ToString().Split(',').Select(int.Parse).ToArray();
+
+            const int expected = 0;
+
+            int actual = SkylineSampleUtility.BinomialCoefficient(n, -1);
+            Assert.AreEqual(expected, actual);
+
+            actual = SkylineSampleUtility.BinomialCoefficient(n, -2);
+            Assert.AreEqual(expected, actual);
+
+            actual = SkylineSampleUtility.BinomialCoefficient(n, n + 1);
+            Assert.AreEqual(expected, actual);
+
+            actual = SkylineSampleUtility.BinomialCoefficient(n, n + 2);
+            Assert.AreEqual(expected, actual);
         }
     }
 }

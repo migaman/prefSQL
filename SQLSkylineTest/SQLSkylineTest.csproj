@@ -56,6 +56,9 @@
     <Content Include="SkylineSampleUtilityTests.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="SkylineSampleUtilityTests_BinomialCoefficient.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="SkylineSampleUtilityTests_Incorrect.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
