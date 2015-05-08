@@ -1,4 +1,4 @@
-﻿namespace SQLSkylineTest
+﻿namespace prefSQL.SQLSkylineTest
 {
     using System;
     using System.Collections.Generic;

@@ -9,7 +9,7 @@
     <ProjectGuid>{E72ACC4B-70B8-448E-9B41-A8FE0460014E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SQLSkylineTest</RootNamespace>
+    <RootNamespace>prefSQL.SQLSkylineTest</RootNamespace>
     <AssemblyName>SQLSkylineTest</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
