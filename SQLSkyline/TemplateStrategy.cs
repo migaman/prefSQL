@@ -23,6 +23,16 @@ namespace prefSQL.SQLSkyline
 
         protected abstract DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider);
 
-        protected abstract DataTable getSkylineTable(List<object[]> listObjects, SqlDataRecord record, string strOperators, int numberOfRecords, bool isIndependent, DataTable dtResult);
+        /// <summary>
+        /// TODO: comment
+        /// </summary>
+        /// <param name="database"></param>
+        /// <param name="dataRecordTemplate"></param>
+        /// <param name="operators"></param>
+        /// <param name="numberOfRecords"></param>
+        /// <param name="isIndependent"></param>
+        /// <param name="dataTableTemplate"></param>
+        /// <returns></returns>
+        protected abstract DataTable getSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, DataTable dataTableTemplate);
     }
 }

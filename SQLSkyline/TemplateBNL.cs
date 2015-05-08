@@ -40,19 +40,21 @@ namespace prefSQL.SQLSkyline
             return getSkylineTable(listObjects, record, strOperators, numberOfRecords, isIndependent, dtResult);
         }
 
-        public DataTable getSkylineTable(List<object[]> listObjects, SqlDataRecord record, string strOperators,
-            int numberOfRecords, DataTable dtResult)
+        public DataTable getSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators,
+            int numberOfRecords, DataTable dataTableTemplate)
         {
-            return getSkylineTable(listObjects, record, strOperators, numberOfRecords, true, dtResult);
+            return getSkylineTable(database, dataRecordTemplate, operators, numberOfRecords, true, dataTableTemplate);
         }
 
-        protected override DataTable getSkylineTable(List<object[]> listObjects, SqlDataRecord record, string strOperators, int numberOfRecords, bool isIndependent, DataTable dtResult)
+        protected override DataTable getSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, DataTable dataTableTemplate)
         {
+            DataTable dataTableReturn = dataTableTemplate.Clone();
+
             Stopwatch sw = new Stopwatch();
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
-            string[] operators = strOperators.ToString().Split(';');
-            var resultToTupleMapping = Helper.ResultToTupleMapping(operators);
+            string[] operatorsArray = operators.ToString().Split(';');
+            int[] resultToTupleMapping = Helper.ResultToTupleMapping(operatorsArray);
         
             try
             {
@@ -60,14 +62,14 @@ namespace prefSQL.SQLSkyline
                 sw.Start();
 
                 //For each tuple
-                foreach (object[] dbValuesObject in listObjects)
+                foreach (object[] dbValuesObject in database)
                 {
 
                     //Check if window list is empty
                     if (resultCollection.Count == 0)
                     {
                         // Build our SqlDataRecord and start the results 
-                        addtoWindow(dbValuesObject, operators, resultCollection, resultstringCollection, record, true, dtResult);
+                        addtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
                     }
                     else
                     {
@@ -76,7 +78,7 @@ namespace prefSQL.SQLSkyline
                         //check if record is dominated (compare against the records in the window)
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
                         {
-                            if (tupleDomination(dbValuesObject, resultCollection, resultstringCollection, operators, dtResult, i, resultToTupleMapping) == true)
+                            if (tupleDomination(dbValuesObject, resultCollection, resultstringCollection, operatorsArray, dataTableReturn, i, resultToTupleMapping) == true)
                             {
                                 isDominated = true;
                                 break;
@@ -84,28 +86,28 @@ namespace prefSQL.SQLSkyline
                         }
                         if (isDominated == false)
                         {
-                            addtoWindow(dbValuesObject, operators, resultCollection, resultstringCollection, record, true, dtResult);
+                            addtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
                         }
 
                     }
                 }
 
                 //Remove certain amount of rows if query contains TOP Keyword
-                Helper.getAmountOfTuples(dtResult, numberOfRecords);
+                Helper.getAmountOfTuples(dataTableReturn, numberOfRecords);
 
                 if (isIndependent == false)
                 {
                     //Send results to client
-                    SqlContext.Pipe.SendResultsStart(record);
+                    SqlContext.Pipe.SendResultsStart(dataRecordTemplate);
 
                     //foreach (SqlDataRecord recSkyline in btg[iItem])
-                    foreach (DataRow recSkyline in dtResult.Rows)
+                    foreach (DataRow recSkyline in dataTableReturn.Rows)
                     {
                         for (int i = 0; i < recSkyline.Table.Columns.Count; i++)
                         {
-                            record.SetValue(i, recSkyline[i]);
+                            dataRecordTemplate.SetValue(i, recSkyline[i]);
                         }
-                        SqlContext.Pipe.SendResultsRow(record);
+                        SqlContext.Pipe.SendResultsRow(dataRecordTemplate);
                     }
                     SqlContext.Pipe.SendResultsEnd();
                 }
@@ -128,7 +130,7 @@ namespace prefSQL.SQLSkyline
          
             sw.Stop();
             timeInMs = sw.ElapsedMilliseconds;
-            return dtResult;
+            return dataTableReturn;
         }
 
         protected abstract bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i, int[] resultToTupleMapping);

@@ -31,8 +31,8 @@ namespace prefSQL.SQLSkyline
             return true;
         }
       
-        internal override DataTable getSkylineTable(List<object[]> dataTable, SqlDataRecord record, string strOperators, int numberOfRecords,
-            bool hasIncomparable, string[] additionalParameters, DataTable dtResult)
+        internal override DataTable getSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords,
+            bool hasIncomparable, string[] additionalParameters, DataTable dataTableTemplate)
         {
             throw new NotImplementedException();
         }

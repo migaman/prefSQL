@@ -118,9 +118,9 @@
             {
                 var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(subspace);
                 var utility = new SamplingSkylineUtility(subspacesProducer);
-                var skylineSample = new SamplingSkyline(utility) {Provider = Helper.ProviderName};
+                var skylineSample = new SamplingSkyline(utility) {DbProvider = Helper.ProviderName};
 
-                var dataTable = skylineSample.getSkylineTable(Helper.ConnectionString, baseQuery, operators,
+                var dataTable = skylineSample.GetSkylineTable(Helper.ConnectionString, baseQuery, operators,
                     numberOfRecords, prefSqlModel.WithIncomparable, parameter, common.SkylineType,
                     prefSqlModel.SkylineSampleCount, prefSqlModel.SkylineSampleDimension, 0);
 

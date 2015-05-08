@@ -18,7 +18,19 @@ namespace prefSQL.SQLSkyline
         public string Provider { get; set; }
         public long timeMilliseconds;
         public abstract DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters);
-        internal abstract DataTable getSkylineTable(List<object[]> dataTable, SqlDataRecord record, string strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters, DataTable dtResult);
+        
+        /// <summary>
+        /// TODO: comment
+        /// </summary>
+        /// <param name="database"></param>
+        /// <param name="dataRecordTemplate"></param>
+        /// <param name="operators"></param>
+        /// <param name="numberOfRecords"></param>
+        /// <param name="hasIncomparable"></param>
+        /// <param name="additionalParameters"></param>
+        /// <param name="dataTableTemplate"></param>
+        /// <returns></returns>
+        internal abstract DataTable getSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters, DataTable dataTableTemplate);
 
         public abstract String getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters);
 
