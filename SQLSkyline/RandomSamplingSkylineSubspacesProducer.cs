@@ -4,13 +4,13 @@ namespace prefSQL.SQLSkyline
     using System.Collections.Generic;
     using System.Linq;
 
-    internal sealed class RandomSubspacesProducer : ISubspacesProducer
+    internal sealed class RandomSamplingSkylineSubspacesProducer : ISamplingSkylineSubspacesProducer
     {
         private static readonly Random MyRandom = new Random();
 
-        public int SampleDimension { get; set; }
+        public int SubspaceDimension { get; set; }
 
-        public int SampleCount { get; set; }
+        public int SubspaceCount { get; set; }
 
         public int AllPreferencesCount { get; set; }
      
@@ -21,7 +21,7 @@ namespace prefSQL.SQLSkyline
             var done = false;
             while (!done)
             {
-                if (subspacesReturn.Count >= SampleCount)
+                if (subspacesReturn.Count >= SubspaceCount)
                 {
                     if (AreAllPreferencesAtLeastOnceContainedInSubspaces(subspacesReturn))
                     {
@@ -73,7 +73,7 @@ namespace prefSQL.SQLSkyline
             {
                 subspaceQueryCandidate = new HashSet<int>();
 
-                while (subspaceQueryCandidate.Count < SampleDimension)
+                while (subspaceQueryCandidate.Count < SubspaceDimension)
                 {
                     subspaceQueryCandidate.Add(MyRandom.Next(AllPreferencesCount));
                 }

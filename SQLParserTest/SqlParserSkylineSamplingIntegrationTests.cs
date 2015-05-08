@@ -60,7 +60,7 @@
                 out numberOfRecords);
 
             var useSubspaces = UseSubspaces(prefSqlModelSkylineSample);
-            var subspacesProducer = new FixedSubspacesProducer(useSubspaces);
+            var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(useSubspaces);
             var utility = new SkylineSampleUtility(subspacesProducer);
             var skylineSample = new SkylineSample(utility) {Provider = Helper.ProviderName};
 
