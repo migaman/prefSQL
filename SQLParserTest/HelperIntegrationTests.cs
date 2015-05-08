@@ -19,16 +19,16 @@
          DeploymentItem("HelperIntegrationTests.xml")]
         public void TestOnlyNonDominatedObjectsWithinSampleSkylineViaGetSkyline()
         {
-            var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
-            var entireSkylineSql = TestContext.DataRow["entireSkylineSQL"].ToString();
-            var testComment = TestContext.DataRow["comment"].ToString();
+            string skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
+            string entireSkylineSQL = TestContext.DataRow["entireSkylineSQL"].ToString();
+            string testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
-            Debug.WriteLine(skylineSampleSql);
+            Debug.WriteLine(skylineSampleSQL);
 
             var common = new SQLCommon {SkylineType = new SkylineBNL()};
 
-            var prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSql);
-            var prefSqlModelEntireSkyline = common.GetPrefSqlModelFromPreferenceSql(entireSkylineSql);
+            var prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSQL);
+            var prefSqlModelEntireSkyline = common.GetPrefSqlModelFromPreferenceSql(entireSkylineSQL);
 
             var subjectUnderTest = new prefSQL.SQLParser.Helper
             {
@@ -77,16 +77,16 @@
          DeploymentItem("HelperIntegrationTests.xml")]
         public void TestObjectsWithinEntireSkylineCount()
         {
-            var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
-            var entireSkylineSql = TestContext.DataRow["entireSkylineSQL"].ToString();
+            var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
+            var entireSkylineSQL = TestContext.DataRow["entireSkylineSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
-            Debug.WriteLine(skylineSampleSql);
+            Debug.WriteLine(skylineSampleSQL);
 
             var common = new SQLCommon {SkylineType = new SkylineBNL()};
 
-            var prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSql);
-            var prefSqlModelEntireSkyline = common.GetPrefSqlModelFromPreferenceSql(entireSkylineSql);
+            var prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSQL);
+            var prefSqlModelEntireSkyline = common.GetPrefSqlModelFromPreferenceSql(entireSkylineSQL);
             var subjectUnderTest = new prefSQL.SQLParser.Helper
             {
                 ConnectionString = Helper.ConnectionString,

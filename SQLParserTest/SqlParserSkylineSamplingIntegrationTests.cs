@@ -10,7 +10,7 @@
     using prefSQL.SQLSkyline.SamplingSkyline;
 
     [TestClass]
-    public class SqlParserSkylineSamplingIntegrationTests
+    public class SQLParserSkylineSamplingIntegrationTests
     {
         public TestContext TestContext { get; set; }
 
@@ -20,16 +20,16 @@
          DeploymentItem("SQLParserSkylineSamplingIntegrationTests.xml")]
         public void TestNumberOfObjectsWithinEntireSkyline()
         {
-            var entireSkylineSql = TestContext.DataRow["entireSkylineSQL"].ToString();
+            var entireSkylineSQL = TestContext.DataRow["entireSkylineSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
             var expectedNumberOfEntireSkylineObjects =
                 int.Parse(TestContext.DataRow["expectedNumberOfEntireSkylineObjects"].ToString());
             Debug.WriteLine(testComment);
-            Debug.WriteLine(entireSkylineSql);
+            Debug.WriteLine(entireSkylineSQL);
 
             var common = new SQLCommon {SkylineType = new SkylineBNL()};
 
-            var skyline = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, entireSkylineSql);
+            var skyline = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, entireSkylineSQL);
 
             Assert.AreEqual(expectedNumberOfEntireSkylineObjects, skyline.Rows.Count,
                 "Unexpected number of Skyline objects.");
