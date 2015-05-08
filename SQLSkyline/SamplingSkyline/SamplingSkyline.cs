@@ -8,25 +8,25 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
     using System.Linq;
     using Microsoft.SqlServer.Server;
 
-    public sealed class SkylineSample
+    public sealed class SamplingSkyline
     {
-        private readonly SkylineSampleUtility _utility;
+        private readonly SamplingSkylineUtility _utility;
 
         public string Provider { get; set; }
 
-        private SkylineSampleUtility Utility
+        private SamplingSkylineUtility Utility
         {
             get { return _utility; }
         }
 
         public long timeMilliseconds;
 
-        public SkylineSample() : this(new SkylineSampleUtility())
+        public SamplingSkyline() : this(new SamplingSkylineUtility())
         {
             
         }
 
-        internal SkylineSample(SkylineSampleUtility utility)
+        internal SamplingSkyline(SamplingSkylineUtility utility)
         {
             _utility = utility;
         }     

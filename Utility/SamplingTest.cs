@@ -117,8 +117,8 @@
             foreach (var subspace in producedSubspaces)
             {
                 var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(subspace);
-                var utility = new SkylineSampleUtility(subspacesProducer);
-                var skylineSample = new SkylineSample(utility) {Provider = Helper.ProviderName};
+                var utility = new SamplingSkylineUtility(subspacesProducer);
+                var skylineSample = new SamplingSkyline(utility) {Provider = Helper.ProviderName};
 
                 var dataTable = skylineSample.getSkylineTable(Helper.ConnectionString, baseQuery, operators,
                     numberOfRecords, prefSqlModel.WithIncomparable, parameter, common.SkylineType,

@@ -4,7 +4,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
     using System.Collections.Generic;
     using System.Linq;
 
-    internal sealed class SkylineSampleUtility
+    internal sealed class SamplingSkylineUtility
     {
         private HashSet<HashSet<int>> _subspaces;
         private readonly ISamplingSkylineSubspacesProducer _subspacesProducer;
@@ -47,12 +47,12 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             get { return _subspacesProducer; }
         }
 
-        public SkylineSampleUtility()
+        public SamplingSkylineUtility()
             : this(new RandomSamplingSkylineSubspacesProducer())
         {
         }
 
-        public SkylineSampleUtility(ISamplingSkylineSubspacesProducer subspacesProducer)
+        public SamplingSkylineUtility(ISamplingSkylineSubspacesProducer subspacesProducer)
         {
             _subspacesProducer = subspacesProducer;
         }

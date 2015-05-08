@@ -137,7 +137,7 @@ namespace prefSQL.SQLParser
                     }
                     else
                     {
-                        var skylineSample = new SkylineSample();
+                        var skylineSample = new SamplingSkyline();
                         skylineSample.Provider = DriverString;
                         dt = skylineSample.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords,
                             model.WithIncomparable, parameter, strategy, model.SkylineSampleCount, model.SkylineSampleDimension, 0);

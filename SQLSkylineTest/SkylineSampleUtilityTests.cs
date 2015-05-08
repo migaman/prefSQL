@@ -26,7 +26,7 @@
             var subspacesCount = int.Parse(TestContext.DataRow["subspacesCount"].ToString());
             var subspaceDimension = int.Parse(TestContext.DataRow["subspaceDimension"].ToString());
 
-            var subjectUnderTest = new SkylineSampleUtility
+            var subjectUnderTest = new SamplingSkylineUtility
             {
                 AllPreferencesCount = attributesCount,
                 SubspacesCount = subspacesCount,
@@ -92,7 +92,7 @@
             var subspacesCount = int.Parse(TestContext.DataRow["subspacesCount"].ToString());
             var subspaceDimension = int.Parse(TestContext.DataRow["subspaceDimension"].ToString());
 
-            var subjectUnderTest = new SkylineSampleUtility
+            var subjectUnderTest = new SamplingSkylineUtility
             {
                 AllPreferencesCount = attributesCount,
                 SubspacesCount = subspacesCount,
@@ -128,7 +128,7 @@
             for (var k = 0; k <= n; k++)
             {
                 int expected = coefficients[k];
-                int actual = SkylineSampleUtility.BinomialCoefficient(n, k);
+                int actual = SamplingSkylineUtility.BinomialCoefficient(n, k);
                 Assert.AreEqual(expected, actual);
             }
         }
@@ -145,16 +145,16 @@
 
             const int expected = 0;
 
-            int actual = SkylineSampleUtility.BinomialCoefficient(n, -1);
+            int actual = SamplingSkylineUtility.BinomialCoefficient(n, -1);
             Assert.AreEqual(expected, actual);
 
-            actual = SkylineSampleUtility.BinomialCoefficient(n, -2);
+            actual = SamplingSkylineUtility.BinomialCoefficient(n, -2);
             Assert.AreEqual(expected, actual);
 
-            actual = SkylineSampleUtility.BinomialCoefficient(n, n + 1);
+            actual = SamplingSkylineUtility.BinomialCoefficient(n, n + 1);
             Assert.AreEqual(expected, actual);
 
-            actual = SkylineSampleUtility.BinomialCoefficient(n, n + 2);
+            actual = SamplingSkylineUtility.BinomialCoefficient(n, n + 2);
             Assert.AreEqual(expected, actual);
         }
     }

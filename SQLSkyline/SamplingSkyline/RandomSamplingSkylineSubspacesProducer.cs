@@ -35,10 +35,10 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         ///     The produced subspaces. Each stored integer is an index referring the zero-based position of a preference of
         ///     the original skyline query.
         /// </returns>
-        /// <exception cref="Exception">Thrown on invocation of SkylineSampleUtility.CheckValidityOfCountAndDimension.</exception>
+        /// <exception cref="Exception">Thrown on invocation of SamplingSkylineUtility.CheckValidityOfCountAndDimension.</exception>
         public HashSet<HashSet<int>> GetSubspaces()
         {
-            SkylineSampleUtility.CheckValidityOfCountAndDimension(SubspacesCount, SubspaceDimension, AllPreferencesCount);
+            SamplingSkylineUtility.CheckValidityOfCountAndDimension(SubspacesCount, SubspaceDimension, AllPreferencesCount);
 
             var subspacesReturn = new HashSet<HashSet<int>>();
 

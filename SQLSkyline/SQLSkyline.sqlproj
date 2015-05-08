@@ -99,7 +99,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SamplingSkyline\ISamplingSkylineSubspacesProducer.cs" />
     <Compile Include="SamplingSkyline\RandomSamplingSkylineSubspacesProducer.cs" />
-    <Compile Include="SamplingSkyline\SkylineSample.cs" />
-    <Compile Include="SamplingSkyline\SkylineSampleUtility.cs" />
+    <Compile Include="SamplingSkyline\SamplingSkyline.cs" />
+    <Compile Include="SamplingSkyline\SamplingSkylineUtility.cs" />
   </ItemGroup>
 </Project>
