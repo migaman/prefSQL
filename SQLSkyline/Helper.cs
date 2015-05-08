@@ -560,6 +560,12 @@ namespace prefSQL.SQLSkyline
             return dataTableRowList.Select(dataRow => dataRow.ItemArray).ToList();
         }
 
+        public static Dictionary<int, object[]> GetDictionaryFromDataTable(DataTable dataTable, int uniqueIdColumnIndex)
+        {
+            var objectArrayFromDataTableOrig = GetObjectArrayFromDataTable(dataTable);
+            return objectArrayFromDataTableOrig.ToDictionary(dataRow => (int)dataRow[uniqueIdColumnIndex]);
+        }
+
         public static DataTable GetSkylineDataTable(string strQuery, bool isIndependent, string strConnection,
             string strProvider)
         {

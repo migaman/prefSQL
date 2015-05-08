@@ -43,9 +43,7 @@ namespace prefSQL.SQLSkyline
             Utility.SampleDimension = dimension;
 
             var fullDataTable = Helper.GetSkylineDataTable(strQuery, true, strConnection, Provider);
-            var objectArrayFromDataTableOrig = Helper.GetObjectArrayFromDataTable(fullDataTable);
-            var objectArrayFromDataTable =
-                objectArrayFromDataTableOrig.ToDictionary(dataRow => (int)dataRow[Utility.AllPreferencesCount + uniqueIdColumnIndex]);
+            var objectArrayFromDataTable = Helper.GetDictionaryFromDataTable(fullDataTable, Utility.AllPreferencesCount + uniqueIdColumnIndex);
             var sqlDataRecord = Helper.buildDataRecord(fullDataTable, operators, dataTableResult);
 
             return GetSkyline(objectArrayFromDataTable, algorithm, sqlDataRecord, operators, dataTableResult,
