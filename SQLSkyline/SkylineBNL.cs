@@ -56,7 +56,7 @@ namespace prefSQL.SQLSkyline
             return dt;         
         }
 
-        internal override DataTable getSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters, DataTable dataTableTemplate)
+        internal override DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
             TemplateBNL skyline = getSP_Skyline(hasIncomparable);
             DataTable dt = skyline.getSkylineTable(database, dataRecordTemplate, operators, numberOfRecords, dataTableTemplate.Clone());

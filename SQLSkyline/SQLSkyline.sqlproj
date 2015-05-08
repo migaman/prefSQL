@@ -101,5 +101,6 @@
     <Compile Include="SamplingSkyline\RandomSamplingSkylineSubspacesProducer.cs" />
     <Compile Include="SamplingSkyline\SamplingSkyline.cs" />
     <Compile Include="SamplingSkyline\SamplingSkylineUtility.cs" />
+    <Compile Include="SamplingSkyline\SkylineAlgorithmParameters.cs" />
   </ItemGroup>
 </Project>

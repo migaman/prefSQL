@@ -19,8 +19,8 @@
 
         public static void Main(string[] args)
         {
-            //TestExecutionForPerformance();
-            TestForSetCoverage();
+            TestExecutionForPerformance();
+            //TestForSetCoverage();
         }
 
         private static void TestForSetCoverage()

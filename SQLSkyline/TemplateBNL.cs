@@ -37,16 +37,16 @@ namespace prefSQL.SQLSkyline
             DataTable dtResult = new DataTable();
             SqlDataRecord record = Helper.buildDataRecord(dt, operators, dtResult);
 
-            return getSkylineTable(listObjects, record, strOperators, numberOfRecords, isIndependent, dtResult);
+            return getSkylineTable(listObjects, dtResult, record, strOperators, numberOfRecords, isIndependent);
         }
 
         public DataTable getSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators,
             int numberOfRecords, DataTable dataTableTemplate)
         {
-            return getSkylineTable(database, dataRecordTemplate, operators, numberOfRecords, true, dataTableTemplate);
+            return getSkylineTable(database, dataTableTemplate, dataRecordTemplate, operators, numberOfRecords, true);
         }
 
-        protected override DataTable getSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, DataTable dataTableTemplate)
+        protected override DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent)
         {
             DataTable dataTableReturn = dataTableTemplate.Clone();
 

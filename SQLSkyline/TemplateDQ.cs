@@ -139,8 +139,7 @@ namespace prefSQL.SQLSkyline
             return dtResult;
         }
 
-        protected override DataTable getSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords,
-            bool isIndependent, DataTable dataTableTemplate)
+        protected override DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent)
         {
             throw new NotImplementedException();
         }

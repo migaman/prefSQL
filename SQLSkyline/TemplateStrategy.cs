@@ -27,12 +27,12 @@ namespace prefSQL.SQLSkyline
         /// TODO: comment
         /// </summary>
         /// <param name="database"></param>
+        /// <param name="dataTableTemplate"></param>
         /// <param name="dataRecordTemplate"></param>
         /// <param name="operators"></param>
         /// <param name="numberOfRecords"></param>
         /// <param name="isIndependent"></param>
-        /// <param name="dataTableTemplate"></param>
         /// <returns></returns>
-        protected abstract DataTable getSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, DataTable dataTableTemplate);
+        protected abstract DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent);
     }
 }
