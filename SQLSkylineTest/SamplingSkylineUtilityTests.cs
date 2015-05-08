@@ -5,18 +5,17 @@
     using System.Diagnostics;
     using System.Linq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using prefSQL.SQLSkyline;
     using prefSQL.SQLSkyline.SamplingSkyline;
 
     [TestClass]
-    public class SkylineSampleUtilityTests
+    public class SamplingSkylineUtilityTests
     {
         public TestContext TestContext { get; set; }
 
         [TestMethod]
-        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SkylineSampleUtilityTests.xml", "TestDataRow",
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SamplingSkylineUtilityTests.xml", "TestDataRow",
             DataAccessMethod.Sequential),
-         DeploymentItem("SkylineSampleUtilityTests.xml")]
+         DeploymentItem("SamplingSkylineUtilityTests.xml")]
         public void TestProducedSubspaces()
         {
             var testComment = TestContext.DataRow["comment"].ToString();
@@ -78,9 +77,9 @@
         }
 
         [TestMethod]
-        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SkylineSampleUtilityTests_Incorrect.xml",
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SamplingSkylineUtilityTests_Incorrect.xml",
             "TestDataRow", DataAccessMethod.Sequential),
-         DeploymentItem("SkylineSampleUtilityTests_Incorrect.xml")]
+         DeploymentItem("SamplingSkylineUtilityTests_Incorrect.xml")]
         public void TestIncorrectSubspaceQueries()
         {
             var hasExceptionBeenRaised = false;
@@ -117,9 +116,8 @@
 
         [TestMethod]
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
-            "SkylineSampleUtilityTests_BinomialCoefficient.xml",
-            "TestDataRow", DataAccessMethod.Sequential),
-         DeploymentItem("SkylineSampleUtilityTests_BinomialCoefficient.xml")]
+            "SamplingSkylineUtilityTests_BinomialCoefficient.xml", "TestDataRow", DataAccessMethod.Sequential),
+         DeploymentItem("SamplingSkylineUtilityTests_BinomialCoefficient.xml")]
         public void TestBinomialCoefficient()
         {
             int n = int.Parse(TestContext.DataRow["n"].ToString());
@@ -135,9 +133,8 @@
 
         [TestMethod]
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
-            "SkylineSampleUtilityTests_BinomialCoefficient.xml",
-            "TestDataRow", DataAccessMethod.Sequential),
-         DeploymentItem("SkylineSampleUtilityTests_BinomialCoefficient.xml")]
+            "SamplingSkylineUtilityTests_BinomialCoefficient.xml", "TestDataRow", DataAccessMethod.Sequential),
+         DeploymentItem("SamplingSkylineUtilityTests_BinomialCoefficient.xml")]
         public void TestOutsideOfValidIntervalParametersForBinomialCoefficient()
         {
             int n = int.Parse(TestContext.DataRow["n"].ToString());
