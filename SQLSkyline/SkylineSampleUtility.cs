@@ -7,18 +7,28 @@ namespace prefSQL.SQLSkyline
     internal sealed class SkylineSampleUtility
     {
         private HashSet<HashSet<int>> _subspaces;
-        private readonly ISubspacesProducer _subspacesProducer;
-        private int _sampleDimension;
+        private readonly ISamplingSkylineSubspacesProducer _subspacesProducer;
+        private int _subspacesCount;
+        private int _subspaceDimension;
         private int _allPreferencesCount;
-        private int _sampleCount;
 
-        internal int SampleDimension
+        internal int SubspacesCount
         {
-            get { return _sampleDimension; }
+            get { return _subspacesCount; }
             set
             {
-                _sampleDimension = value;
-                SubspacesProducer.SampleDimension = value;
+                _subspacesCount = value;
+                SubspacesProducer.SubspacesCount = value;
+            }
+        }
+
+        internal int SubspaceDimension
+        {
+            get { return _subspaceDimension; }
+            set
+            {
+                _subspaceDimension = value;
+                SubspacesProducer.SubspaceDimension = value;
             }
         }
 
@@ -32,27 +42,17 @@ namespace prefSQL.SQLSkyline
             }
         }
 
-        internal int SampleCount
-        {
-            get { return _sampleCount; }
-            set
-            {
-                _sampleCount = value;
-                SubspacesProducer.SampleCount = value;
-            }
-        }
-
-        internal ISubspacesProducer SubspacesProducer
+        internal ISamplingSkylineSubspacesProducer SubspacesProducer
         {
             get { return _subspacesProducer; }
         }
 
         public SkylineSampleUtility()
-            : this(new RandomSubspacesProducer())
+            : this(new RandomSamplingSkylineSubspacesProducer())
         {
         }
 
-        public SkylineSampleUtility(ISubspacesProducer subspacesProducer)
+        public SkylineSampleUtility(ISamplingSkylineSubspacesProducer subspacesProducer)
         {
             _subspacesProducer = subspacesProducer;
         }
@@ -66,32 +66,16 @@ namespace prefSQL.SQLSkyline
 
         private HashSet<HashSet<int>> DetermineSubspaces()
         {
-            if (SampleCount*SampleDimension < AllPreferencesCount)
-            {
-                throw new Exception(
-                    string.Format(
-                        "Every preference has to be included in at least one subspace. This is not possible, since there are {0} preferences and at most COUNT (= {1}) * DIMENSION (= {2}) = {3} of them are included",
-                        AllPreferencesCount, SampleCount, SampleDimension, SampleCount*SampleDimension));
-            }
-
-            var binomialCoefficient = QuickBinomialCoefficient(AllPreferencesCount, SampleDimension);
-
-            if (SampleCount > binomialCoefficient)
-            {
-                throw new Exception(
-                    string.Format(
-                        "Cannot choose {0} from {1} in order to gain {2} subspaces, at most {3} subspaces possible.",
-                        SampleDimension, AllPreferencesCount, SampleCount, binomialCoefficient));
-            }
+            CheckValidityOfCountAndDimension(SubspacesCount, SubspaceDimension, AllPreferencesCount);
 
             var subspacesReturn = SubspacesProducer.GetSubspaces();
 
-            if (subspacesReturn.Count != SampleCount)
+            if (subspacesReturn.Count != SubspacesCount)
             {
                 throw new Exception("Not produced the correct number of subspaces.");
             }
 
-            if (subspacesReturn.Any(subspace => subspace.Count != SampleDimension))
+            if (subspacesReturn.Any(subspace => subspace.Count != SubspaceDimension))
             {
                 throw new Exception("Produced subspace of incorrect dimension.");
             }
@@ -103,7 +87,9 @@ namespace prefSQL.SQLSkyline
 
             foreach (var subspaceReturn in subspacesReturn)
             {
-                if (subspacesReturn.Where(element => element != subspaceReturn).Any(element => element.SetEquals(subspaceReturn)))
+                if (
+                    subspacesReturn.Where(element => element != subspaceReturn)
+                        .Any(element => element.SetEquals(subspaceReturn)))
                 {
                     throw new Exception("Same subspace contained multiple times.");
                 }
@@ -112,14 +98,51 @@ namespace prefSQL.SQLSkyline
             return subspacesReturn;
         }
 
+        /// <summary>
+        ///     Checks whether the provided parameters are valid for the production of the requested subspaces.
+        /// </summary>
+        /// <remarks>
+        ///     The provided parameters are valid if all preferences requested in the original skyline can be included in
+        ///     at least one subspace (i.e., subspacesCount * subspaceDimension is larger than or equal to allPreferencesCount) and
+        ///     if there are not more distinct subspaces requested than can possibly be produced (i.e., subspacesCount is lower
+        ///     than or equal to the binomial coefficient ("n choose k", i.e. "allPreferencesCount choose subspaceDimension")).
+        /// </remarks>
+        /// <param name="subspacesCount">Number of desired subspaces.</param>
+        /// <param name="subspaceDimension">Dimensionality of each subspace.</param>
+        /// <param name="allPreferencesCount">Number of all preferences requested in original skyline query.</param>
+        /// <exception cref="Exception">
+        ///     Thrown when the provided parameters are not valid according to the conditions specified in the remarks.
+        /// </exception>
+        internal static void CheckValidityOfCountAndDimension(int subspacesCount, int subspaceDimension,
+            int allPreferencesCount)
+        {
+            if (subspacesCount * subspaceDimension < allPreferencesCount)
+            {
+                throw new Exception(
+                    string.Format(
+                        "Every preference has to be included in at least one subspace. This is not possible, since there are {0} preferences and at most COUNT (= {1}) * DIMENSION (= {2}) = {3} of them are included",
+                        allPreferencesCount, subspacesCount, subspaceDimension, subspacesCount * subspaceDimension));
+            }
+
+            int binomialCoefficient = BinomialCoefficient(allPreferencesCount, subspaceDimension);
+
+            if (subspacesCount > binomialCoefficient)
+            {
+                throw new Exception(
+                    string.Format(
+                        "Cannot choose {0} from {1} in order to gain {2} subspaces, at most {3} subspaces possible.",
+                        subspaceDimension, allPreferencesCount, subspacesCount, binomialCoefficient));
+            }
+        }
+
         private bool AreAllPreferencesAtLeastOnceContainedInSubspaces(
             IEnumerable<HashSet<int>> subspaceQueries)
         {
             var containedPreferences = new HashSet<int>();
 
-            foreach (var subspaceQueryPreferences in subspaceQueries)
+            foreach (HashSet<int> subspaceQueryPreferences in subspaceQueries)
             {
-                foreach (var subspaceQueryPreference in subspaceQueryPreferences)
+                foreach (int subspaceQueryPreference in subspaceQueryPreferences)
                 {
                     containedPreferences.Add(subspaceQueryPreference);
                 }
@@ -133,21 +156,31 @@ namespace prefSQL.SQLSkyline
         }
 
         /// <summary>
-        ///     calculate binomial coefficient (n choose k).
+        ///     Calculate the binomial coefficient (n choose k).
         /// </summary>
         /// <remarks>
-        ///     implemented via a multiplicative formula, see
+        ///     Implemented via a multiplicative formula, see
         ///     http://en.wikipedia.org/wiki/Binomial_coefficient#Multiplicative_formula
         /// </remarks>
-        /// <param name="nUpper">choose from set n</param>
-        /// <param name="kLower">choose k elements from set n</param>
-        /// <returns>binomial coefficient from n choose k</returns>
-        private static decimal QuickBinomialCoefficient(int nUpper, int kLower)
+        /// <param name="n">choose from set n</param>
+        /// <param name="k">choose k elements from set n</param>
+        /// <returns>Binomial coefficient from n choose k. Returns 0 if n &lt;= 0 or k &gt; n or k &lt; 0.</returns>
+        internal static int BinomialCoefficient(int n, int k)
         {
-            var binomialCoefficient = 1;
-            for (var i = 1; i <= kLower; i++)
+            if (n <= 0)
             {
-                binomialCoefficient *= nUpper + 1 - i;
+                return 0;
+            }
+
+            if (k > n || k < 0)
+            {
+                return 0;
+            }
+
+            var binomialCoefficient = 1;
+            for (var i = 1; i <= k; i++)
+            {
+                binomialCoefficient *= n + 1 - i;
                 binomialCoefficient /= i;
             }
             return binomialCoefficient;
