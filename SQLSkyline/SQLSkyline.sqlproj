@@ -98,5 +98,6 @@
     <Compile Include="SkylineSample.cs" />
     <Compile Include="SkylineSampleUtility.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SkylineDecisionTree.cs" />
   </ItemGroup>
 </Project>

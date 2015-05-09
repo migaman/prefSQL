@@ -65,9 +65,7 @@ namespace Utility
                 parser.ShowSkylineAttributes = false;
             }
 
-            DataTable dt = parser.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, this.txtPrefSQL.Text);
-            System.Diagnostics.Debug.WriteLine(dt.Rows.Count);
-            
+            DataTable dt = parser.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, this.txtPrefSQL.Text);           
 
             BindingSource SBind = new BindingSource();
             SBind.DataSource = dt;

@@ -27,6 +27,8 @@ namespace prefSQL.SQLParser
 
         public long timeInMilliseconds { get; set; }
 
+        public long Cardinality { get; set; }
+
         public DataTable executeStatement(String strSQL)
         {
             DataTable dt = new DataTable();
@@ -143,7 +145,7 @@ namespace prefSQL.SQLParser
 
                     //Set the database provider
                     strategy.Provider = DriverString;
-
+                    strategy.cardinality = Cardinality;
                     if (!model.HasSkylineSample)
                     {
                         dt = strategy.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords, model.WithIncomparable, parameter);

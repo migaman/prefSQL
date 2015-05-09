@@ -46,6 +46,8 @@ namespace Utility
         private Size tableSize;
         private bool useCLR = false;
 
+
+
         public enum Size
         {
             Small,
@@ -639,6 +641,9 @@ namespace Utility
 
                                 try
                                 {
+                                    double correlation = searchCorrelation(subPreferences, correlationMatrix);
+                                    double cardinality = searchCardinality(subPreferences, listCardinality);
+                                    
 
                                     sw.Start();
                                     if (useCLR == true)
@@ -647,18 +652,15 @@ namespace Utility
                                         SqlDataAdapter dap = new SqlDataAdapter(strSP, cnnSQL);
                                         dt.Clear(); //clear datatable
                                         dap.Fill(dt);
-
-
-                                        
                                     }
                                     else
                                     {
+                                        parser.Cardinality = (long)cardinality;
                                         dt = parser.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strSQL);
                                     }
                                     long timeAlgorithm = parser.TimeInMilliseconds;
                                     sw.Stop();
-                                    double correlation = searchCorrelation(subPreferences, correlationMatrix);
-                                    double cardinality = searchCardinality(subPreferences, listCardinality);
+                                    
                                     reportDimensions.Add(i);
                                     reportSkylineSize.Add(dt.Rows.Count);
                                     reportTimeTotal.Add(sw.ElapsedMilliseconds);

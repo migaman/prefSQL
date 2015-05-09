@@ -24,14 +24,15 @@ namespace Utility
         {
             Program prg = new Program();
             //prg.measurePerformance();
-            //prg.Run();
+            prg.Run();
 
 
             /*
             DominanceGraph graph = new DominanceGraph();
             graph.run();
             */
-            Application.Run(new FrmSQLParser());
+            
+            //Application.Run(new FrmSQLParser());
             
         }
 
@@ -45,7 +46,7 @@ namespace Utility
             //p.UseCLR = true;
             p.UseCLR = false;
             p.Trials = 1;           //Amount of trials for each single sql preference statement
-            p.Dimensions = 3;       //Up to x dimensions
+            p.Dimensions = 7;       //Up to x dimensions
             p.RandomDraws = 50;    //Amount of draws (x times randomly choose a some preferences)
             
             //p.TableSize = Performance.Size.Small;
@@ -60,12 +61,12 @@ namespace Utility
             //p.Set = Performance.PreferenceSet.Barra;
             //p.Set = Performance.PreferenceSet.Shuffle;
             //p.Set = Performance.PreferenceSet.Combination;
-            //p.Set = Performance.PreferenceSet.CombinationNumeric;
+            p.Set = Performance.PreferenceSet.CombinationNumeric;
             //p.Set = Performance.PreferenceSet.CombinationCategoric;
             //p.Set = Performance.PreferenceSet.Correlation;
             //p.Set = Performance.PreferenceSet.AntiCorrelation;
             //p.Set = Performance.PreferenceSet.Independent;
-            p.Set = Performance.PreferenceSet.CombinationMinCardinality;
+            //p.Set = Performance.PreferenceSet.CombinationMinCardinality;
 
             //p.Strategy = null; //all algorithms should be tested
             //p.Strategy = new SkylineSQL();
@@ -73,7 +74,7 @@ namespace Utility
             //p.Strategy = new SkylineBNLSort();
             p.Strategy = new SkylineDQ();
             //p.Strategy = new SkylineHexagon();
-            
+            //p.Strategy = new SkylineDecisionTree();
             
 
             p.generatePerformanceQueries();
@@ -98,7 +99,10 @@ namespace Utility
                 strPrefSQL = "SELECT *                              FROM cars           SKYLINE OF cars.registrationnumeric HIGH, cars.mileage LOW, cars.horsepower HIGH 100 EQUAL";
                 strPrefSQL = "SELECT cars.id, cars.horsepower       FROM cars           SKYLINE OF cars.horsepower HIGH, cars.mileage LOW";
                 strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars t1        LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
-                strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars t1        SKYLINE OF t1.price LOW, t1.mileage LOW";
+                strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t1.enginesize           FROM cars t1        SKYLINE OF t1.price LOW, t1.mileage LOW, t1.enginesize HIGH ORDER BY SUM_RANK()";
+                strPrefSQL = "SELECT t1.id                          FROM cars t1        LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
+
+                //strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars t1        SKYLINE OF t1.price LOW, t1.mileage LOW ORDER BY SUM_RANK()";
                 
                 Debug.WriteLine(strPrefSQL);
                 SQLCommon parser = new SQLCommon();

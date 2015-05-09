@@ -93,12 +93,16 @@ namespace prefSQL.SQLSkyline
                 //Remove certain amount of rows if query contains TOP Keyword
                 Helper.getAmountOfTuples(dtResult, numberOfRecords);
 
+                
+                //Sort ByRank
+                //dtResult = Helper.sortByRank(dtResult, resultCollection);
+                //dtResult = Helper.sortBySum(dtResult, resultCollection);
+
                 if (isIndependent == false)
                 {
                     //Send results to client
                     SqlContext.Pipe.SendResultsStart(record);
 
-                    //foreach (SqlDataRecord recSkyline in btg[iItem])
                     foreach (DataRow recSkyline in dtResult.Rows)
                     {
                         for (int i = 0; i < recSkyline.Table.Columns.Count; i++)
@@ -130,6 +134,8 @@ namespace prefSQL.SQLSkyline
             timeInMs = sw.ElapsedMilliseconds;
             return dtResult;
         }
+
+
 
         protected abstract bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i, int[] resultToTupleMapping);
 

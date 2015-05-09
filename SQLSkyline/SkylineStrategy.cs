@@ -29,5 +29,7 @@ namespace prefSQL.SQLSkyline
         
         //If the algorithm supports incomparable values
         public abstract bool supportIncomparable();
+
+        public long cardinality;
     }
 }

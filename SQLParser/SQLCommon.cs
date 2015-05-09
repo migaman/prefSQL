@@ -29,6 +29,8 @@ namespace prefSQL.SQLParser
         private readonly Helper _helper = new Helper();
         private long _timeInMilliseconds = 0;
 
+        public long Cardinality {get; set;}
+
         internal Helper Helper {
             get { return _helper;} 
         }
@@ -95,7 +97,7 @@ namespace prefSQL.SQLParser
         {
             Helper.ConnectionString = connectionString;
             Helper.DriverString = driverString;
-
+            Helper.Cardinality = Cardinality;
             DataTable dt = Helper.getResults(parsePreferenceSQL(prefSqlModel), SkylineType, prefSqlModel);
             TimeInMilliseconds = Helper.timeInMilliseconds;
 
