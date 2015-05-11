@@ -14,6 +14,8 @@ using prefSQL.SQLParser.Models;
 
 namespace prefSQL.SQLParser
 {
+    using prefSQL.SQLSkyline.SamplingSkyline;
+
     internal class Helper
     {
         /// <summary>
@@ -85,23 +87,7 @@ namespace prefSQL.SQLParser
             }
             else
             {
-                //if (strategy != SQLCommon.Algorithm.NativeSQL)
-                //{
-                //Store Parameters in Array (Take care to single quotes inside parameters)
-                int iPosStart = strPrefSQL.IndexOf("'");
-                String strtmp = strPrefSQL.Substring(iPosStart);
-                parameter = Regex.Split(strtmp, ",(?=(?:[^']*'[^']*')*[^']*$)");
-
-                //All other algorithms are developed as stored procedures
-                //Resolve now each parameter from this SP calls to single pieces
-
-                //Default parameter
-                strQuery = parameter[0].Trim();
-                strOperators = parameter[1].Trim();
-                numberOfRecords = int.Parse(parameter[2].Trim());
-                strQuery = strQuery.Replace("''", "'").Trim('\'');
-                strOperators = strOperators.Replace("''", "'").Trim('\'');
-                //}
+                DetermineParameters(strPrefSQL, out parameter, out strQuery, out strOperators, out numberOfRecords);
             }
 
             try
@@ -153,10 +139,10 @@ namespace prefSQL.SQLParser
                     }
                     else
                     {
-                        var skylineSample = new SkylineSample();
-                        skylineSample.Provider = DriverString;
-                        dt = skylineSample.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords,
-                            model.WithIncomparable, parameter, strategy, model.SkylineSampleCount, model.SkylineSampleDimension);
+                        var skylineSample = new SamplingSkyline();
+                        skylineSample.DbProvider = DriverString;
+                        dt = skylineSample.GetSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords,
+                            model.WithIncomparable, parameter, strategy, model.SkylineSampleCount, model.SkylineSampleDimension, 0);
                         timeInMilliseconds = skylineSample.timeMilliseconds;                        
                     }
                 }
@@ -168,6 +154,25 @@ namespace prefSQL.SQLParser
             }
 
             return dt;            
+        }
+
+        internal static void DetermineParameters(string strPrefSQL, out string[] parameter, out string strQuery, out string strOperators,
+            out int numberOfRecords)
+        {
+            //Store Parameters in Array (Take care to single quotes inside parameters)
+            int iPosStart = strPrefSQL.IndexOf("'");
+            String strtmp = strPrefSQL.Substring(iPosStart);
+            parameter = Regex.Split(strtmp, ",(?=(?:[^']*'[^']*')*[^']*$)");
+
+            //All other algorithms are developed as stored procedures
+            //Resolve now each parameter from this SP calls to single pieces
+
+            //Default parameter
+            strQuery = parameter[0].Trim();
+            strOperators = parameter[1].Trim();
+            numberOfRecords = int.Parse(parameter[2].Trim());
+            strQuery = strQuery.Replace("''", "'").Trim('\'');
+            strOperators = strOperators.Replace("''", "'").Trim('\'');
         }
     }
 }
