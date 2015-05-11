@@ -30,7 +30,7 @@ namespace prefSQL.SQLParser
                     strSQL = ""; //Return no ORDER BY Clause
                     break;
                 case SQLCommon.Ordering.Random:
-                    strSQL = GetSortRandomClause(model);
+                    strSQL = GetSortRandomClause();
                     break;
             }
 
@@ -123,7 +123,7 @@ namespace prefSQL.SQLParser
                 else
                 {
                     strSQL += "WHEN ";
-                    var strRanking = strRankingExpression;
+                    string strRanking = strRankingExpression;
                     for (int iSubChild = iChild + 1; iSubChild < model.Skyline.Count; iSubChild++)
                     {
                         string strSubRanking = "DENSE_RANK() OVER (ORDER BY " + model.Skyline[iSubChild].Expression + ")";
@@ -143,14 +143,13 @@ namespace prefSQL.SQLParser
             return strSQL;
         }
 
-    
+
         /// <summary>
         /// Sorts the results according to their best ranking of all attributes
         /// For example a tuple has the best, 5th and 7th rank in three attributes. This leads to a ranking of 1.
         /// </summary>
-        /// <param name="model"></param>
         /// <returns></returns>
-        private string GetSortRandomClause(PrefSQLModel model)
+        private string GetSortRandomClause()
         {
             string strSQL = "NEWID()";            
 

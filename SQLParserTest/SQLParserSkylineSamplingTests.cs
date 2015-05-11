@@ -1,11 +1,11 @@
-﻿namespace prefSQL.SQLParserTest
-{
-    using System;
-    using System.Diagnostics;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using SQLParser;
-    using SQLSkyline;
+﻿using System;
+using System.Diagnostics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using prefSQL.SQLParser;
+using prefSQL.SQLSkyline;
 
+namespace prefSQL.SQLParserTest
+{
     [TestClass]
     public class SQLParserSkylineSamplingTests
     {

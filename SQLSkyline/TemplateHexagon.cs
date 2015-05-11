@@ -53,10 +53,10 @@ namespace prefSQL.SQLSkyline
             long maxID = 0;
             DataTable dtResult = new DataTable();
 
-            var factory = DbProviderFactories.GetFactory(strProvider);
+            DbProviderFactory factory = DbProviderFactories.GetFactory(strProvider);
 
             // use the factory object to create Data access objects.
-            var connection = factory.CreateConnection();
+            DbConnection connection = factory.CreateConnection();
             if (connection != null)
             {
                 connection.ConnectionString = strConnection;

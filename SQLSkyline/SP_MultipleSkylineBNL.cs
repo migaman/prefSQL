@@ -18,6 +18,8 @@ namespace prefSQL.SQLSkyline
         /// </summary>
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
+        /// <param name="numberOfRecords"></param>
+        /// <param name="upToLevel"></param>
         [SqlProcedure(Name = "SP_MultipleSkylineBNL")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 upToLevel)
         {

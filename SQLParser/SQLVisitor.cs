@@ -2,22 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Text;
-using System.Threading.Tasks;
 using Antlr4.Runtime.Tree;
 using prefSQL.SQLParser.Models;
-
 
 namespace prefSQL.SQLParser
 {
     //internal class
     class SQLVisitor : SQLBaseVisitor<PrefSQLModel>
     {
-        private Dictionary<string, string> tables = new Dictionary<string, string>();   //contains all tables from the query
-        private int _numberOfRecords = 0;                        //Specifies the number of records to return (TOP Clause), 0 = all records
+        private Dictionary<string, string> _tables = new Dictionary<string, string>();   //contains all tables from the query
+        private int _numberOfRecords;                        //Specifies the number of records to return (TOP Clause), 0 = all records
         private const string InnerTableSuffix = "_INNER";       //Table suffix for the inner query
-        private const string RankingFunction = "ROW_NUMBER()";  //Default Ranking function
-        private PrefSQLModel _model;                             //Preference SQL Model, contains i.e. the skyline attributes
         private bool _hasIncomparableTuples;             //True if the skyline must be checked for incomparable tuples
         private bool _containsOpenPreference;            //True if the skyline contains a categorical preference without an explicit OTHERS statement
 
@@ -25,14 +20,7 @@ namespace prefSQL.SQLParser
         public bool IsNative { get; set; }
 
 
-        public PrefSQLModel Model
-        {
-            get { return _model; }
-            set { _model = value; }
-        }
-
-
-        
+        public PrefSQLModel Model { get; set; }
 
 
         /// <summary>
@@ -66,7 +54,7 @@ namespace prefSQL.SQLParser
                 //ALIAS introduced with "AS"-Keyword
                 strTableAlias = context.GetChild(2).GetText();
             }
-            tables.Add(strTable, strTableAlias);
+            _tables.Add(strTable, strTableAlias);
 
             return base.VisitTable_List_Item(context);
         }
@@ -87,9 +75,9 @@ namespace prefSQL.SQLParser
             PrefSQLModel pref = new PrefSQLModel();
             pref.Ranking.AddRange(left.Ranking);
             pref.Ranking.AddRange(right.Ranking);
-            pref.Tables = tables;
+            pref.Tables = _tables;
             pref.ContainsOpenPreference = _containsOpenPreference;
-            _model = pref;
+            Model = pref;
             return pref;
         }
 
@@ -105,14 +93,13 @@ namespace prefSQL.SQLParser
         {
             PrefSQLModel pref = new PrefSQLModel();
             string strTableAlias = "";
-            string strSelectExtrema;
             string strFullColumnName;
 
             //Separate Column and Table
             strFullColumnName = strTable + "." + strColumnName;           
 
             //Search if table name is just an alias
-            var myValue = tables.FirstOrDefault(x => x.Value == strTable).Key;
+            string myValue = _tables.FirstOrDefault(x => x.Value == strTable).Key;
             if (myValue != null)
             {
                 //Its an alias, replace it with the real table name
@@ -121,14 +108,14 @@ namespace prefSQL.SQLParser
             }
 
             //Select Statement to read the extrem values of the preference
-            strSelectExtrema = "SELECT MIN(" + strExpression + "), MAX(" + strExpression + ") FROM " + strTable + " " + strTableAlias;
+            string strSelectExtrema = "SELECT MIN(" + strExpression + "), MAX(" + strExpression + ") FROM " + strTable + " " + strTableAlias;
             
 
             //Add the preference to the list               
             pref.Ranking.Add(new RankingModel(strFullColumnName, strColumnName, strExpression, weight, strSelectExtrema));
-            pref.Tables = tables;
+            pref.Tables = _tables;
             pref.ContainsOpenPreference = _containsOpenPreference;
-            _model = pref;
+            Model = pref;
             return pref;
         }
 
@@ -140,14 +127,13 @@ namespace prefSQL.SQLParser
         public override PrefSQLModel VisitWeightedsumLowHigh(SQLParser.WeightedsumLowHighContext context)
         {
             //Keyword LOW or HIGH
-            string strColumnName;
             string strTable;
             string strExpression;
             double weight;
             
             //Separate Column and Table
-            strColumnName = getColumnName(context.GetChild(0));
-            strTable = getTableName(context.GetChild(0));
+            string strColumnName = GetColumnName(context.GetChild(0));
+            strTable = GetTableName(context.GetChild(0));
             strExpression = strTable + "." + strColumnName;
             if (context.op.Type == SQLParser.K_HIGH)
             {
@@ -168,14 +154,14 @@ namespace prefSQL.SQLParser
         public override PrefSQLModel VisitWeightedsumAround(SQLParser.WeightedsumAroundContext context)
         {
             //Keyword AROUND, FAVOUR, DISFAVOUR
-            string strColumnName = "";
-            string strTable = "";
+            string strColumnName;
+            string strTable;
             string strExpression = "";
-            double weight = 0.0;
+            double weight;
 
             //Separate Column and Table
-            strColumnName = getColumnName(context.GetChild(0));
-            strTable = getTableName(context.GetChild(0));
+            strColumnName = GetColumnName(context.GetChild(0));
+            strTable = GetTableName(context.GetChild(0));
             
             switch (context.op.Type)
             {
@@ -211,18 +197,14 @@ namespace prefSQL.SQLParser
         public override PrefSQLModel VisitWeightedsumCategory(SQLParser.WeightedsumCategoryContext context)
         {
             //It is a text --> Text text must be converted in a given sortorder
-            string strColumnName = "";
-            string strTable;
-            string strExpression;
-            double weight;
 
             //Build CASE ORDER with arguments
             string strCaseWhen = "";
             string strCaseElse = "";
 
             //Separate Column and Table
-            strColumnName = getColumnName(context.GetChild(0));
-            strTable = getTableName(context.GetChild(0));
+            string strColumnName = GetColumnName(context.GetChild(0));
+            string strTable = GetTableName(context.GetChild(0));
 
             //Define sort order value for each attribute
             int iWeight = 0;
@@ -276,13 +258,13 @@ namespace prefSQL.SQLParser
 
             }
 
-            weight = double.Parse(context.GetChild(context.ChildCount-1).GetText());
+            double weight = double.Parse(context.GetChild(context.ChildCount-1).GetText());
 
             if(strCaseElse.Equals(""))
             {
                 _containsOpenPreference = true;
             }
-            strExpression = "CASE" + strCaseWhen + strCaseElse + " END";
+            string strExpression = "CASE" + strCaseWhen + strCaseElse + " END";
             
 
             //Add the ranking to the list               
@@ -308,34 +290,29 @@ namespace prefSQL.SQLParser
             PrefSQLModel pref = new PrefSQLModel();
             pref.Skyline.AddRange(left.Skyline);
             pref.Skyline.AddRange(right.Skyline);
-            pref.Tables = tables;
+            pref.Tables = _tables;
             pref.NumberOfRecords = _numberOfRecords;
             pref.WithIncomparable = _hasIncomparableTuples;
             pref.ContainsOpenPreference = _containsOpenPreference;
-            _model = pref;
+            Model = pref;
             return pref;
         }
-
 
 
         /// <summary>
         /// Base function to handle skyline preferences
         /// </summary>
-        /// <param name="strColumnName"></param>
-        /// <param name="strTable"></param>
-        /// <param name="strExpression"></param>
-        /// <param name="weight"></param>
         /// <returns></returns>
-        private PrefSQLModel addSkyline(AttributeModel attributeModel)
+        private PrefSQLModel AddSkyline(AttributeModel attributeModel)
         {
             //Add the preference to the list               
             PrefSQLModel pref = new PrefSQLModel();
             pref.Skyline.Add(attributeModel);
             pref.NumberOfRecords = _numberOfRecords;
-            pref.Tables = tables;
+            pref.Tables = _tables;
             pref.WithIncomparable = _hasIncomparableTuples;
             pref.ContainsOpenPreference = _containsOpenPreference;
-            _model = pref;
+            Model = pref;
             return pref;
         }
 
@@ -348,11 +325,11 @@ namespace prefSQL.SQLParser
         public override PrefSQLModel VisitSkylinePreferenceLowHigh(SQLParser.SkylinePreferenceLowHighContext context)
         {
             bool isLevelStepEqual = true;
-            string strColumnName = "";
+            string strColumnName;
             string strColumnExpression = "";
             string strInnerColumnExpression = "";
-            string strFullColumnName = "";
-            string strTable = "";
+            string strFullColumnName;
+            string strTable;
             string strLevelStep = "";
             string strLevelAdd = "";
             string strLevelMinus = "";
@@ -362,8 +339,8 @@ namespace prefSQL.SQLParser
             string strOpposite = "";
             
             //Separate Column and Table
-            strColumnName = getColumnName(context.GetChild(0));
-            strTable = getTableName(context.GetChild(0));
+            strColumnName = GetColumnName(context.GetChild(0));
+            strTable = GetTableName(context.GetChild(0));
             strFullColumnName = strTable + "." + strColumnName;
             
             if (context.ChildCount == 4)
@@ -374,12 +351,7 @@ namespace prefSQL.SQLParser
                 strLevelStep = " / " + context.GetChild(2).GetText();
                 strLevelAdd = " + " + context.GetChild(2).GetText();
                 strLevelMinus = " - " + context.GetChild(2).GetText();
-                if (context.GetChild(3).GetText().Equals("EQUAL"))
-                {
-                    isLevelStepEqual = true;
-                    bComparable = true;
-                }
-                else
+                if (!context.GetChild(3).GetText().Equals("EQUAL"))
                 {
                     isLevelStepEqual = false;
                     bComparable = false;
@@ -402,7 +374,7 @@ namespace prefSQL.SQLParser
                 //Don't use Functions like DENSE_RANK() for the preferences --> slows down SQL performance!
                 strColumnExpression = "CAST(" + strFullColumnName + strLevelStep + strOpposite + " AS bigint)";
                 strExpression = strFullColumnName + strLevelStep + strOpposite;
-                if (isLevelStepEqual == true)
+                if (isLevelStepEqual)
                 {
                     strInnerColumnExpression = strTable + InnerTableSuffix + "." + strColumnName + strLevelStep + strOpposite;
                 }
@@ -418,7 +390,7 @@ namespace prefSQL.SQLParser
 
 
             //Add the preference to the list      
-            return addSkyline(new AttributeModel(strColumnExpression, strInnerColumnExpression, strFullColumnName, "", bComparable, strIncomporableAttribute, false, "", 0, 0, strExpression));
+            return AddSkyline(new AttributeModel(strColumnExpression, strInnerColumnExpression, strFullColumnName, "", bComparable, strIncomporableAttribute, false, "", 0, 0, strExpression));
         }
 
 
@@ -431,32 +403,30 @@ namespace prefSQL.SQLParser
         public override PrefSQLModel VisitSkylinePreferenceCategory(SQLParser.SkylinePreferenceCategoryContext context)
         {
             //It is a text --> Text text must be converted in a given sortordez
-            string strColumnName = "";
-            string strTable = "";
+            string strColumnName;
+            string strTable;
             string strHexagonIncomparable = "";
             int amountOfIncomparable = 0;
-            string strFullColumnName = "";
             //Build CASE ORDER with arguments
             string strExpr = context.exprCategory().GetText();
-            string strColumnExpression = "";
+            string strColumnExpression;
 
             //Separate Column and Table
-            strColumnName = getColumnName(context.GetChild(0));
-            strTable = getTableName(context.GetChild(0));
-            strFullColumnName = strTable +  "." + strColumnName;
+            strColumnName = GetColumnName(context.GetChild(0));
+            strTable = GetTableName(context.GetChild(0));
 
 
             string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split signs are == and >>
             string strSQLOrderBy = "";
-            string strSQLELSE = "";
-            string strSQLInnerELSE = "";
+            string strSqlelse = "";
+            string strSQLInnerElse = "";
             string strSQLInnerOrderBy = "";
-            string strInnerColumn = "";
-            string strSingleColumn = strTable + "." + getColumnName(context.GetChild(0));
-            string strInnerSingleColumn = strTable + InnerTableSuffix + "." + getColumnName(context.GetChild(0));
+            string strInnerColumn;
+            string strSingleColumn = strTable + "." + GetColumnName(context.GetChild(0));
+            string strInnerSingleColumn = strTable + InnerTableSuffix + "." + GetColumnName(context.GetChild(0));
             string strSQLIncomparableAttribute = "";
-            string strIncomporableAttribute = "";
-            string strIncomporableAttributeELSE = "";
+            string strIncomporableAttribute;
+            string strIncomporableAttributeElse = "";
             bool bComparable = true;
             int weightHexagonIncomparable = 0;
 
@@ -473,9 +443,9 @@ namespace prefSQL.SQLParser
                         break;  //Gewicht bleibt gleich da == Operator
                     case "OTHERSINCOMPARABLE":
                         ////Add one, so that equal-clause cannot be true with same level-values, but other names
-                        strSQLELSE = " ELSE " + (iWeight);
-                        strSQLInnerELSE = " ELSE " + (iWeight + 1);
-                        strIncomporableAttributeELSE = " ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
+                        strSqlelse = " ELSE " + (iWeight);
+                        strSQLInnerElse = " ELSE " + (iWeight + 1);
+                        strIncomporableAttributeElse = " ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
                         bComparable = false;
                         amountOfIncomparable = 99; //set a certain amount
                         strHexagonIncomparable = "CALCULATEINCOMPARABLE";
@@ -484,9 +454,9 @@ namespace prefSQL.SQLParser
                         break;
                     case "OTHERSEQUAL":
                         //Special word OTHERS EQUAL = all other attributes are defined with this order by value
-                        strSQLELSE = " ELSE " + iWeight;
-                        strSQLInnerELSE = " ELSE " + iWeight;
-                        strIncomporableAttributeELSE = " ELSE ''"; //Comparable give empty column
+                        strSqlelse = " ELSE " + iWeight;
+                        strSQLInnerElse = " ELSE " + iWeight;
+                        strIncomporableAttributeElse = " ELSE ''"; //Comparable give empty column
                         break;
                     default:
                         //Check if it contains multiple values
@@ -527,31 +497,31 @@ namespace prefSQL.SQLParser
 
             }
 
-            if (strSQLELSE.Equals(""))
+            if (strSqlelse.Equals(""))
             {
                 //There is a categorical preference without an OTHER statement!! (Not all algorithms can handle that)
                 _containsOpenPreference = true;
             }
 
             //Add others incomparable clause at the top-level if not OTHERS was specified
-            if (strSQLELSE.Equals("") && IsNative == false)
+            if (strSqlelse.Equals("") && IsNative == false)
             {
-                strIncomporableAttributeELSE = " ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
-                strSQLELSE = " ELSE NULL"; //if no OTHERS is present all other values are on the top level
+                strIncomporableAttributeElse = " ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
+                strSqlelse = " ELSE NULL"; //if no OTHERS is present all other values are on the top level
                 bComparable = false;
                 _hasIncomparableTuples = true;
             }
 
-            string strExpression = "CASE" + strSQLOrderBy + strSQLELSE + " END";
-            strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLInnerELSE + " END";
-            strIncomporableAttribute = "CASE" + strSQLIncomparableAttribute + strIncomporableAttributeELSE + " END";
+            string strExpression = "CASE" + strSQLOrderBy + strSqlelse + " END";
+            strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLInnerElse + " END";
+            strIncomporableAttribute = "CASE" + strSQLIncomparableAttribute + strIncomporableAttributeElse + " END";
             strColumnExpression = "CAST(" + strExpression + " AS bigint)";
 
 
 
 
             //Add the preference to the list               
-            return addSkyline(new AttributeModel(strColumnExpression, strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, true, strHexagonIncomparable, amountOfIncomparable, weightHexagonIncomparable, strExpression));
+            return AddSkyline(new AttributeModel(strColumnExpression, strInnerColumn, strSingleColumn, strInnerSingleColumn, bComparable, strIncomporableAttribute, true, strHexagonIncomparable, amountOfIncomparable, weightHexagonIncomparable, strExpression));
         }
 
         /// <summary>
@@ -561,16 +531,16 @@ namespace prefSQL.SQLParser
         /// <returns></returns>
         public override PrefSQLModel VisitSkylinePreferenceAround(SQLParser.SkylinePreferenceAroundContext context)
         {
-            string strColumnName = "";
-            string strFullColumnName = "";
+            string strColumnName;
+            string strFullColumnName;
             string strColumnExpression = "";
-            string strTable = "";
+            string strTable;
             string strInnerColumnExpression = "";
             string strExpression = "";
 
             //Separate Column and Table
-            strColumnName = getColumnName(context.GetChild(0));
-            strTable = getTableName(context.GetChild(0));
+            strColumnName = GetColumnName(context.GetChild(0));
+            strTable = GetTableName(context.GetChild(0));
             strFullColumnName = strTable + "." + strColumnName;
 
             switch (context.op.Type)
@@ -579,28 +549,28 @@ namespace prefSQL.SQLParser
                     
                     //Value should be as close as possible to a given numeric value
                     strColumnExpression = "CAST(ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ") AS bigint)";
-                    strInnerColumnExpression = "ABS(" + getTableName(context.GetChild(0)) + InnerTableSuffix + "." + getColumnName(context.GetChild(0))  + " - " + context.GetChild(2).GetText() + ")";
+                    strInnerColumnExpression = "ABS(" + GetTableName(context.GetChild(0)) + InnerTableSuffix + "." + GetColumnName(context.GetChild(0))  + " - " + context.GetChild(2).GetText() + ")";
                     strExpression = "ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ")";
                     break;
 
                 case SQLParser.K_FAVOUR:
                     //Value should be as close as possible to a given string value
                     strColumnExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
-                    strInnerColumnExpression = "CASE WHEN " + getTableName(context.GetChild(0)) + InnerTableSuffix + "." + getColumnName(context.GetChild(0)) + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
+                    strInnerColumnExpression = "CASE WHEN " + GetTableName(context.GetChild(0)) + InnerTableSuffix + "." + GetColumnName(context.GetChild(0)) + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
                     strExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
                     break;
 
                 case SQLParser.K_DISFAVOUR:
                     //Value should be as far away as possible to a given string value
                     strColumnExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
-                    strInnerColumnExpression = "CASE WHEN " + getTableName(context.GetChild(0)) + InnerTableSuffix + "." + getColumnName(context.GetChild(0)) + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END * -1";
+                    strInnerColumnExpression = "CASE WHEN " + GetTableName(context.GetChild(0)) + InnerTableSuffix + "." + GetColumnName(context.GetChild(0)) + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END * -1";
                     strExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END * -1";
                     break;
             }
             
 
             //Add the preference to the list     
-            return addSkyline(new AttributeModel(strColumnExpression, strInnerColumnExpression, strFullColumnName, "", true, "", false, "", 0, 0, strExpression));
+            return AddSkyline(new AttributeModel(strColumnExpression, strInnerColumnExpression, strFullColumnName, "", true, "", false, "", 0, 0, strExpression));
         }
 
 
@@ -617,24 +587,16 @@ namespace prefSQL.SQLParser
             //Preference with Priorization --> visit left and right node
             PrefSQLModel left = Visit(context.GetChild(0));
             PrefSQLModel right = Visit(context.GetChild(5));
-
-            //
-            string strSortOrder = left.Skyline[0].Expression + "," + right.Skyline[0].Expression;
-            string strColumnALIAS = left.Skyline[0].FullColumnName.Replace(".", "") + right.Skyline[0].FullColumnName.Replace(".", "");
-            string strSkyline = "DENSE_RANK()" + " OVER (ORDER BY " + strSortOrder + ")";
-
-            //left.Skyline[0].ColumnExpression = strSkyline;
-            //left.Skyline[0].ColumnName = strColumnALIAS;
             left.Skyline[0].Comparable = left.Skyline[0].Comparable && right.Skyline[0].Comparable;
 
             //Add the columns to the preference model
             PrefSQLModel pref = new PrefSQLModel();
             pref.Skyline.AddRange(left.Skyline);
-            pref.Tables = tables;
+            pref.Tables = _tables;
             pref.NumberOfRecords = _numberOfRecords;
             pref.WithIncomparable = _hasIncomparableTuples;
             pref.ContainsOpenPreference = _containsOpenPreference;
-            _model = pref;
+            Model = pref;
             return pref;
         }
 
@@ -646,7 +608,7 @@ namespace prefSQL.SQLParser
         /// <returns></returns>
         public override PrefSQLModel VisitOrderByDefault(SQLParser.OrderByDefaultContext context)
         {
-            _model.Ordering = SQLCommon.Ordering.AsIs;
+            Model.Ordering = SQLCommon.Ordering.AsIs;
             return base.VisitOrderByDefault(context);
         }
 
@@ -666,7 +628,7 @@ namespace prefSQL.SQLParser
             {
                 ordering = SQLCommon.Ordering.RankingBestOf;
             }
-            _model.Ordering = ordering;
+            Model.Ordering = ordering;
 
             return base.VisitOrderBySpecial(context);
         }
@@ -682,16 +644,16 @@ namespace prefSQL.SQLParser
         public override PrefSQLModel VisitOrderbyCategory(SQLParser.OrderbyCategoryContext context)
         {
             string strSQL = "";
-            string strColumnName = "";
-            string strTable = "";
+            string strColumnName;
+            string strTable;
 
             //Build CASE ORDER with arguments
             string strExpr = context.exprCategory().GetText();
-            strColumnName = getColumnName(context.GetChild(0));
-            strTable = getTableName(context.GetChild(0));
+            strColumnName = GetColumnName(context.GetChild(0));
+            strTable = GetTableName(context.GetChild(0));
             string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split signs are == and >>
             string strSQLOrderBy = "";
-            string strSQLELSE = "";
+            string strSqlelse = "";
 
 
 
@@ -708,11 +670,11 @@ namespace prefSQL.SQLParser
                         break;  //Gewicht bleibt gleich da == Operator
                     case "OTHERSINCOMPARABLE":
                         ////Add one, so that equal-clause cannot be true with same level-values, but other names
-                        strSQLELSE = " ELSE " + (iWeight);
+                        strSqlelse = " ELSE " + (iWeight);
                         break;
                     case "OTHERSEQUAL":
                         //Special word OTHERS EQUAL = all other attributes are defined with this order by value
-                        strSQLELSE = " ELSE " + iWeight;
+                        strSqlelse = " ELSE " + iWeight;
                         break;
                     default:
                         //Check if it contains multiple values
@@ -731,14 +693,14 @@ namespace prefSQL.SQLParser
                 }
 
                 //Always Sort ASCENDING
-                strSQL = "CASE" + strSQLOrderBy + strSQLELSE + " END ASC";
+                strSQL = "CASE" + strSQLOrderBy + strSqlelse + " END ASC";
             }
 
             OrderByModel orderByModel = new OrderByModel();
-            orderByModel.start = context.start.StartIndex;
-            orderByModel.stop = context.stop.StopIndex + 1;
-            orderByModel.text = strSQL;
-            _model.OrderBy.Add(orderByModel);
+            orderByModel.Start = context.start.StartIndex;
+            orderByModel.Stop = context.stop.StopIndex + 1;
+            orderByModel.Text = strSQL;
+            Model.OrderBy.Add(orderByModel);
             return base.VisitOrderbyCategory(context);
         }
 
@@ -748,7 +710,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="tree"></param>
         /// <returns></returns>
-        private string getColumnName(IParseTree tree)
+        private string GetColumnName(IParseTree tree)
         {
             if (tree.ChildCount == 1)
             {
@@ -767,7 +729,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="tree"></param>
         /// <returns></returns>
-        private string getTableName(IParseTree tree)
+        private string GetTableName(IParseTree tree)
         {
             if (tree.ChildCount == 1)
             {
@@ -783,9 +745,9 @@ namespace prefSQL.SQLParser
 
         public override PrefSQLModel VisitExprSampleSkyline(SQLParser.ExprSampleSkylineContext context)
         {
-            _model.SkylineSampleCount = int.Parse(context.GetChild(4).GetText());
-            _model.SkylineSampleDimension = int.Parse(context.GetChild(6).GetText());
-            _model.HasSkylineSample = true;
+            Model.SkylineSampleCount = int.Parse(context.GetChild(4).GetText());
+            Model.SkylineSampleDimension = int.Parse(context.GetChild(6).GetText());
+            Model.HasSkylineSample = true;
             return base.VisitExprSampleSkyline(context);
         }
 

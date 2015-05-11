@@ -30,7 +30,7 @@ namespace prefSQL.SQLSkyline
         /// <returns></returns>
         internal abstract DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters);
 
-        public abstract String GetStoredProcedureCommand(string strSQLReturn, string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters);
+        public abstract String GetStoredProcedureCommand(string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters);
 
         public abstract bool IsNative();
 

@@ -1,21 +1,17 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using prefSQL.SQLParser;
-using System.IO;
-using System.Diagnostics;
 using System.Data;
 using System.Data.SqlClient;
-using System.Data.SqlTypes;
-using Microsoft.SqlServer.Server;
-using prefSQL.SQLSkyline;
-using System.Collections;
-using Utility.Model;
-using prefSQL.SQLParser.Models;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading;
-using System.Data.Common;
+using prefSQL.SQLParser;
+using prefSQL.SQLParser.Models;
+using prefSQL.SQLSkyline;
+using Utility.Model;
 
 namespace Utility
 {
@@ -34,18 +30,17 @@ namespace Utility
     class Performance
     {
 
-        private const string path = "E:\\Doc\\Studies\\PRJ_Thesis\\15 Performance\\Output\\";
-        private int trials = 5;                 //How many times each preferene query is executed
-        private int dimensions = 6;             //Up to this amount of dimension should be tested
-        private int randomDraws = 25;          //Only used for the shuffle set. How many random set will be generated
-        private PreferenceSet set;              //Which preference set (see enum) that should be tested
-        private bool generateScript = false;   
-        private SkylineStrategy strategy;
-        static Random rnd = new Random();
-        private int minDimensions = 2;
-        private Size tableSize;
-        private bool useCLR = false;
+        private const string Path = "E:\\Doc\\Studies\\PRJ_Thesis\\15 Performance\\Output\\";
+        private int _trials = 5;                 //How many times each preferene query is executed
+        private int _dimensions = 6;             //Up to this amount of dimension should be tested
+        private int _randomDraws = 25;          //Only used for the shuffle set. How many random set will be generated
+        static Random _rnd = new Random();
+        private int _minDimensions = 2;
 
+        public Performance()
+        {
+            UseCLR = false;
+        }
 
 
         public enum Size
@@ -77,53 +72,33 @@ namespace Utility
 
         #region getter/setters
 
-        public bool UseCLR
-        {
-            get { return useCLR; }
-            set { useCLR = value; }
-        }
+        public bool UseCLR { get; set; }
 
-        internal Size TableSize
-        {
-            get { return tableSize; }
-            set { tableSize = value; }
-        }
+        internal Size TableSize { get; set; }
 
         public int Dimensions
         {
-            get { return dimensions; }
-            set { dimensions = value; }
+            get { return _dimensions; }
+            set { _dimensions = value; }
         }
         
 
-        public SkylineStrategy Strategy
-        {
-            get { return strategy; }
-            set { strategy = value; }
-        }
+        public SkylineStrategy Strategy { get; set; }
 
-        public bool GenerateScript
-        {
-            get { return generateScript; }
-            set { generateScript = value; }
-        }
+        public bool GenerateScript { get; set; }
 
-        internal PreferenceSet Set
-        {
-            get { return set; }
-            set { set = value; }
-        }
+        internal PreferenceSet Set { get; set; }
 
         public int Trials
         {
-            get { return trials; }
-            set { trials = value; }
+            get { return _trials; }
+            set { _trials = value; }
         }
 
         public int RandomDraws
         {
-            get { return randomDraws; }
-            set { randomDraws = value; }
+            get { return _randomDraws; }
+            set { _randomDraws = value; }
         }
 
         #endregion
@@ -132,7 +107,7 @@ namespace Utility
         #region preferences
 
 
-        private ArrayList getArchiveComparablePreferences()
+        private ArrayList GetArchiveComparablePreferences()
         {
             ArrayList preferences = new ArrayList();
 
@@ -153,7 +128,7 @@ namespace Utility
             return preferences;
         }
 
-        private ArrayList getArchiveIncomparablePreferences()
+        private ArrayList GetArchiveIncomparablePreferences()
         {
             ArrayList preferences = new ArrayList();
 
@@ -176,7 +151,7 @@ namespace Utility
         }
 
 
-        private ArrayList getJonsPreferences()
+        private ArrayList GetJonsPreferences()
         {
             ArrayList preferences = new ArrayList();
 
@@ -193,7 +168,7 @@ namespace Utility
             return preferences;
         }
 
-        private ArrayList getMyasPreferences()
+        private ArrayList GetMyasPreferences()
         {
             ArrayList preferences = new ArrayList();
             preferences.Add("fuels.name ('petrol' >> OTHERS EQUAL)");
@@ -203,7 +178,7 @@ namespace Utility
             return preferences;
         }
 
-        private ArrayList getBarrasPreferences()
+        private ArrayList GetBarrasPreferences()
         {
             ArrayList preferences = new ArrayList();
             preferences.Add("cars.price LOW 3000");
@@ -218,7 +193,7 @@ namespace Utility
             return preferences;
         }
 
-        private ArrayList getNumericPreferences()
+        private ArrayList GetNumericPreferences()
         {
             ArrayList preferences = new ArrayList();
 
@@ -237,7 +212,7 @@ namespace Utility
             return preferences;
         }
 
-        private ArrayList getCategoricalPreferences()
+        private ArrayList GetCategoricalPreferences()
         {
             ArrayList preferences = new ArrayList();
 
@@ -254,7 +229,7 @@ namespace Utility
             return preferences;
         }
 
-        private ArrayList getSpecialHexagonPreferences()
+        private ArrayList GetSpecialHexagonPreferences()
         {
             ArrayList preferences = new ArrayList();
 
@@ -270,18 +245,18 @@ namespace Utility
 
 
 
-        private ArrayList getAllPreferences()
+        private ArrayList GetAllPreferences()
         {
             ArrayList preferences = new ArrayList();
-            preferences.AddRange(getNumericPreferences());
-            preferences.AddRange(getCategoricalPreferences());
+            preferences.AddRange(GetNumericPreferences());
+            preferences.AddRange(GetCategoricalPreferences());
             return preferences;
         }
 
         #endregion
 
 
-        public void generatePerformanceQueries()
+        public void GeneratePerformanceQueries()
         {
             //Open DBConnection --> Otherwise first query is slower as usual, because DBConnection is not open
             SQLCommon parser = new SQLCommon();
@@ -292,149 +267,149 @@ namespace Utility
             ArrayList correlationMatrix = new ArrayList();
             ArrayList listCardinality = new ArrayList();
             SqlConnection cnnSQL = new SqlConnection(Helper.ConnectionString); //for CLR performance tets
-            if (useCLR == true)
+            if (UseCLR)
             {
                 cnnSQL.Open();
             }
 
-            if (set == PreferenceSet.ArchiveComparable)
+            if (Set == PreferenceSet.ArchiveComparable)
             {
-                ArrayList preferences = getArchiveComparablePreferences();
-                correlationMatrix = getCorrelationMatrix(preferences);
-                listCardinality = getCardinalityOfPreferences(preferences);
+                ArrayList preferences = GetArchiveComparablePreferences();
+                correlationMatrix = GetCorrelationMatrix(preferences);
+                listCardinality = GetCardinalityOfPreferences(preferences);
                 //Only one set
                 listPreferences.Add(preferences);
             }
-            else if (set == PreferenceSet.ArchiveIncomparable)
+            else if (Set == PreferenceSet.ArchiveIncomparable)
             {
-                ArrayList preferences = getArchiveIncomparablePreferences();
-                correlationMatrix = getCorrelationMatrix(preferences);
-                listCardinality = getCardinalityOfPreferences(preferences);
+                ArrayList preferences = GetArchiveIncomparablePreferences();
+                correlationMatrix = GetCorrelationMatrix(preferences);
+                listCardinality = GetCardinalityOfPreferences(preferences);
                 //Only one set
                 listPreferences.Add(preferences);
             }
-            else if (set == PreferenceSet.Jon)
+            else if (Set == PreferenceSet.Jon)
             {
-                ArrayList preferences = getJonsPreferences();
-                correlationMatrix = getCorrelationMatrix(preferences);
-                listCardinality = getCardinalityOfPreferences(preferences);
+                ArrayList preferences = GetJonsPreferences();
+                correlationMatrix = GetCorrelationMatrix(preferences);
+                listCardinality = GetCardinalityOfPreferences(preferences);
                 //Only one set
                 listPreferences.Add(preferences);
 
             }
-            else if (set == PreferenceSet.Mya)
+            else if (Set == PreferenceSet.Mya)
             {
-                ArrayList preferences = getMyasPreferences();
-                correlationMatrix = getCorrelationMatrix(preferences);
-                listCardinality = getCardinalityOfPreferences(preferences);
+                ArrayList preferences = GetMyasPreferences();
+                correlationMatrix = GetCorrelationMatrix(preferences);
+                listCardinality = GetCardinalityOfPreferences(preferences);
                 //Only one set
                 listPreferences.Add(preferences);
             }
-            else if (set == PreferenceSet.Barra)
+            else if (Set == PreferenceSet.Barra)
             {
-                ArrayList preferences = getBarrasPreferences();
-                correlationMatrix = getCorrelationMatrix(preferences);
-                listCardinality = getCardinalityOfPreferences(preferences);
+                ArrayList preferences = GetBarrasPreferences();
+                correlationMatrix = GetCorrelationMatrix(preferences);
+                listCardinality = GetCardinalityOfPreferences(preferences);
                 //Only one set
                 listPreferences.Add(preferences);
             }
-            else if (set == PreferenceSet.Combination)
+            else if (Set == PreferenceSet.Combination)
             {
                 //Tests every possible combination with y preferences from the whole set of preferences
-                ArrayList preferences = getAllPreferences();
-                correlationMatrix = getCorrelationMatrix(preferences);
-                listCardinality = getCardinalityOfPreferences(preferences);
+                ArrayList preferences = GetAllPreferences();
+                correlationMatrix = GetCorrelationMatrix(preferences);
+                listCardinality = GetCardinalityOfPreferences(preferences);
 
-                if (dimensions > preferences.Count)
+                if (_dimensions > preferences.Count)
                 {
                     Debug.WriteLine("Combination with more dimensions than preferences. Please reduce dimensions!");
                     return;
                 }
 
                 //create all possible combinations and add it to listPreferences
-                getCombinations(preferences, dimensions, 0, new ArrayList(), ref listPreferences);
+                GetCombinations(preferences, _dimensions, 0, new ArrayList(), ref listPreferences);
                 
                 //set mindimensions to maxdimension (test with fixed amount of preferences)
-                minDimensions = dimensions;
+                _minDimensions = _dimensions;
 
             }
-            else if (set == PreferenceSet.CombinationNumeric)
+            else if (Set == PreferenceSet.CombinationNumeric)
             {
                 //Tests every possible combination with y preferences from the whole set of preferences
-                ArrayList preferences = getNumericPreferences();
-                correlationMatrix = getCorrelationMatrix(preferences);
-                listCardinality = getCardinalityOfPreferences(preferences);
+                ArrayList preferences = GetNumericPreferences();
+                correlationMatrix = GetCorrelationMatrix(preferences);
+                listCardinality = GetCardinalityOfPreferences(preferences);
 
-                if (dimensions > preferences.Count)
+                if (_dimensions > preferences.Count)
                 {
                     Debug.WriteLine("Combination with more dimensions than preferences. Please reduce dimensions!");
                     return;
                 }
 
                 //create all possible combinations and add it to listPreferences
-                getCombinations(preferences, dimensions, 0, new ArrayList(), ref listPreferences);
+                GetCombinations(preferences, _dimensions, 0, new ArrayList(), ref listPreferences);
                 
                 //set mindimensions to maxdimension (test with fixed amount of preferences)
-                minDimensions = dimensions;
+                _minDimensions = _dimensions;
 
             }
-            else if (set == PreferenceSet.CombinationCategoric)
+            else if (Set == PreferenceSet.CombinationCategoric)
             {
                 //Tests every possible combination with y preferences from the whole set of preferences
-                ArrayList preferences = getCategoricalPreferences();
-                correlationMatrix = getCorrelationMatrix(preferences);
-                listCardinality = getCardinalityOfPreferences(preferences);
+                ArrayList preferences = GetCategoricalPreferences();
+                correlationMatrix = GetCorrelationMatrix(preferences);
+                listCardinality = GetCardinalityOfPreferences(preferences);
 
-                if (dimensions > preferences.Count)
+                if (_dimensions > preferences.Count)
                 {
                     Debug.WriteLine("Combination with more dimensions than preferences. Please reduce dimensions!");
                     return;
                 }
 
                 //create all possible combinations and add it to listPreferences
-                getCombinations(preferences, dimensions, 0, new ArrayList(), ref listPreferences);
+                GetCombinations(preferences, _dimensions, 0, new ArrayList(), ref listPreferences);
                 
                 //set mindimensions to maxdimension (test with fixed amount of preferences)
-                minDimensions = dimensions;
+                _minDimensions = _dimensions;
 
             }
-            else if (set == PreferenceSet.CombinationMinCardinality)
+            else if (Set == PreferenceSet.CombinationMinCardinality)
             {
                 //Tests every possible combination with y preferences from the whole set of preferences
-                ArrayList preferences = getSpecialHexagonPreferences();
-                correlationMatrix = getCorrelationMatrix(preferences);
-                listCardinality = getCardinalityOfPreferences(preferences);
+                ArrayList preferences = GetSpecialHexagonPreferences();
+                correlationMatrix = GetCorrelationMatrix(preferences);
+                listCardinality = GetCardinalityOfPreferences(preferences);
 
-                if (dimensions > preferences.Count)
+                if (_dimensions > preferences.Count)
                 {
                     Debug.WriteLine("Combination with more dimensions than preferences. Please reduce dimensions!");
                     return;
                 }
 
                 //create all possible combinations and add it to listPreferences
-                getCombinations(preferences, dimensions, 0, new ArrayList(), ref listPreferences);
+                GetCombinations(preferences, _dimensions, 0, new ArrayList(), ref listPreferences);
 
                 //set mindimensions to maxdimension (test with fixed amount of preferences)
-                minDimensions = dimensions;
+                _minDimensions = _dimensions;
             }
             
-            else if (set == PreferenceSet.Shuffle)
+            else if (Set == PreferenceSet.Shuffle)
             {
                 //Tests x times randomly y preferences
 
-                ArrayList preferences = getAllPreferences();
-                correlationMatrix = getCorrelationMatrix(preferences);
-                listCardinality = getCardinalityOfPreferences(preferences);
+                ArrayList preferences = GetAllPreferences();
+                correlationMatrix = GetCorrelationMatrix(preferences);
+                listCardinality = GetCardinalityOfPreferences(preferences);
 
-                for (int iChoose = 0; iChoose < randomDraws; iChoose++)
+                for (int iChoose = 0; iChoose < _randomDraws; iChoose++)
                 {
                     ArrayList preferencesRandom = new ArrayList();
                     ArrayList preferencesChoose = (ArrayList)preferences.Clone();
 
                     //Choose x preferences randomly
-                    for (int i = 0; i < dimensions; i++)
+                    for (int i = 0; i < _dimensions; i++)
                     {
-                        int r = rnd.Next(preferencesChoose.Count);
+                        int r = _rnd.Next(preferencesChoose.Count);
                         preferencesRandom.Add(preferencesChoose[r]);
                         preferencesChoose.RemoveAt(r);
                     }
@@ -445,14 +420,14 @@ namespace Utility
                 }
 
                 //set mindimensions to maxdimension (test with fixed amount of preferences)
-                minDimensions = dimensions;
+                _minDimensions = _dimensions;
             }
-            else if (set == PreferenceSet.Correlation)
+            else if (Set == PreferenceSet.Correlation)
             {
                 //Tests every possible combination with y preferences from the whole set of preferences
-                ArrayList preferences = getAllPreferences();
-                correlationMatrix = getCorrelationMatrix(preferences);
-                listCardinality = getCardinalityOfPreferences(preferences);
+                ArrayList preferences = GetAllPreferences();
+                correlationMatrix = GetCorrelationMatrix(preferences);
+                listCardinality = GetCardinalityOfPreferences(preferences);
 
                 //Sort correlations to find the strongest
                 correlationMatrix.Sort(new CorrelationModel());
@@ -465,16 +440,16 @@ namespace Utility
                 listPreferences.Add(preferences);
                 
                 //only the two dimensions should be tested
-                minDimensions = 2;
-                dimensions = 2;
+                _minDimensions = 2;
+                _dimensions = 2;
 
             }
-            else if (set == PreferenceSet.AntiCorrelation)
+            else if (Set == PreferenceSet.AntiCorrelation)
             {
                 //Tests every possible combination with y preferences from the whole set of preferences
-                ArrayList preferences = getAllPreferences();
-                correlationMatrix = getCorrelationMatrix(preferences);
-                listCardinality = getCardinalityOfPreferences(preferences);
+                ArrayList preferences = GetAllPreferences();
+                correlationMatrix = GetCorrelationMatrix(preferences);
+                listCardinality = GetCardinalityOfPreferences(preferences);
 
                 //Sort correlations ascending
                 correlationMatrix.Sort(new CorrelationModel());
@@ -487,15 +462,15 @@ namespace Utility
                 listPreferences.Add(preferences);
 
                 //only the two dimensions should be tested
-                minDimensions = 2;
-                dimensions = 2;
+                _minDimensions = 2;
+                _dimensions = 2;
             }
-            else if (set == PreferenceSet.Independent)
+            else if (Set == PreferenceSet.Independent)
             {
                 //Tests every possible combination with y preferences from the whole set of preferences
-                ArrayList preferences = getAllPreferences();
-                correlationMatrix = getCorrelationMatrix(preferences);
-                listCardinality = getCardinalityOfPreferences(preferences);
+                ArrayList preferences = GetAllPreferences();
+                correlationMatrix = GetCorrelationMatrix(preferences);
+                listCardinality = GetCardinalityOfPreferences(preferences);
 
                 //Sort correlations to find the strongest
                 correlationMatrix.Sort(new CorrelationModel());
@@ -537,13 +512,13 @@ namespace Utility
 
 
                 //only the two dimensions should be tested
-                minDimensions = 2;
-                dimensions = 2;
+                _minDimensions = 2;
+                _dimensions = 2;
             }
 
 
             List<SkylineStrategy> listStrategy = new List<SkylineStrategy>();
-            if (strategy == null)
+            if (Strategy == null)
             {
                 //If no strategy is defined --> Take all possible algorithms
                 //listStrategy.Add(new SkylineSQL());
@@ -553,7 +528,7 @@ namespace Utility
             }
             else
             {
-                listStrategy.Add(strategy);
+                listStrategy.Add(Strategy);
             }
             foreach(SkylineStrategy currentStrategy in listStrategy)
             {
@@ -562,22 +537,22 @@ namespace Utility
 
 
                 StringBuilder sb = new StringBuilder();
-                string strSeparatorLine = formatLineString('-', "", "", "", "", "", "", "", "");
+                string strSeparatorLine = FormatLineString('-', "", "", "", "", "", "", "", "");
                 if (GenerateScript == false)
                 {
                     //Header
-                    sb.AppendLine("               Algorithm: " + currentStrategy.ToString());
-                    sb.AppendLine("          Preference Set: " + set.ToString());
-                    sb.AppendLine("                    Host: " + System.Environment.MachineName);
+                    sb.AppendLine("               Algorithm: " + currentStrategy);
+                    sb.AppendLine("          Preference Set: " + Set.ToString());
+                    sb.AppendLine("                    Host: " + Environment.MachineName);
                     sb.AppendLine("      Set of Preferences: " + listPreferences.Count);
                     sb.AppendLine("                  Trials: " + Trials);
-                    sb.AppendLine("              Table size: " + tableSize.ToString());
-                    sb.AppendLine("          Dimension from: " + minDimensions.ToString());
-                    sb.AppendLine("            Dimension to: " + dimensions.ToString());
+                    sb.AppendLine("              Table size: " + TableSize.ToString());
+                    sb.AppendLine("          Dimension from: " + _minDimensions.ToString());
+                    sb.AppendLine("            Dimension to: " + _dimensions.ToString());
                     //sb.AppendLine("Correlation Coefficients:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
                     //sb.AppendLine("           Cardinalities:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
                     sb.AppendLine("");
-                    sb.AppendLine(formatLineString(' ', "preference set", "trial", "dimensions", "skyline size", "time total", "time algorithm", "sum correlation*", "product cardinality"));
+                    sb.AppendLine(FormatLineString(' ', "preference set", "trial", "dimensions", "skyline size", "time total", "time algorithm", "sum correlation*", "product cardinality"));
                     sb.AppendLine(strSeparatorLine);
                     Debug.Write(sb);
                 }
@@ -597,7 +572,7 @@ namespace Utility
                 {
                     ArrayList preferences = (ArrayList)listPreferences[iPreferenceIndex];
                     //Go only down two 3 dimension (because there are special algorithms for 1 and 2 dimensional skyline)
-                    for (int i = minDimensions; i <= preferences.Count; i++)
+                    for (int i = _minDimensions; i <= preferences.Count; i++)
                     {
                         //ADD Preferences to SKYLINE
                         ArrayList subPreferences = preferences.GetRange(0, i);
@@ -605,21 +580,21 @@ namespace Utility
 
                         //SELECT FROM
                         string strSQL = "SELECT cars.id FROM ";
-                        if (tableSize == Size.Small)
+                        if (TableSize == Size.Small)
                         {
                             strSQL += "cars_small";
                         }
-                        else if (tableSize == Size.Medium)
+                        else if (TableSize == Size.Medium)
                         {
                             strSQL += "cars_medium";
                         }
-                        else if (tableSize == Size.Large)
+                        else if (TableSize == Size.Large)
                         {
                             strSQL += "cars_large";
                         }
                         strSQL += " cars ";
                         //Add Joins
-                        strSQL += getJoinsForPreferences(strSkylineOf);
+                        strSQL += GetJoinsForPreferences(strSkylineOf);
 
 
 
@@ -641,12 +616,12 @@ namespace Utility
 
                                 try
                                 {
-                                    double correlation = searchCorrelation(subPreferences, correlationMatrix);
-                                    double cardinality = searchCardinality(subPreferences, listCardinality);
+                                    double correlation = SearchCorrelation(subPreferences, correlationMatrix);
+                                    double cardinality = SearchCardinality(subPreferences, listCardinality);
                                     
 
                                     sw.Start();
-                                    if (useCLR == true)
+                                    if (UseCLR)
                                     {
                                         string strSP = parser.ParsePreferenceSQL(strSQL);
                                         SqlDataAdapter dap = new SqlDataAdapter(strSP, cnnSQL);
@@ -669,11 +644,11 @@ namespace Utility
                                     reportCardinality.Add(cardinality);
 
                                     //trial|dimensions|skyline size|time total|time algorithm
-                                    string strTrial = iTrial + 1 + " / " + trials;
+                                    string strTrial = iTrial + 1 + " / " + _trials;
                                     string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
 
 
-                                    string strLine = formatLineString(strPreferenceSet, strTrial, i, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality);
+                                    string strLine = FormatLineString(strPreferenceSet, strTrial, i, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality);
 
 
                                     Debug.WriteLine(strLine);
@@ -721,7 +696,7 @@ namespace Utility
                 ///////////////////////////////
                 if (GenerateScript == false)
                 {
-                    addSummary(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportCorrelation, reportCardinality);
+                    AddSummary(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportCorrelation, reportCardinality);
                 }
 
                 //Write some empty lines (clarification in output window)
@@ -731,10 +706,10 @@ namespace Utility
 
 
                 //Write in file
-                string strFileName = "";
-                string strFiletype = "";
+                string strFileName;
+                string strFiletype;
 
-                if (generateScript == false)
+                if (GenerateScript == false)
                 {
                     strFiletype = ".csv";
                 }
@@ -743,7 +718,7 @@ namespace Utility
                     strFiletype = ".sql";
                 }
                 //create filename
-                strFileName = path + "Performance_" + set.ToString() + "_" + currentStrategy.ToString() + strFiletype;
+                strFileName = Path + "Performance_" + Set.ToString() + "_" + currentStrategy + strFiletype;
 
                 StreamWriter outfile = new StreamWriter(strFileName);
                 outfile.Write(sb.ToString());
@@ -751,26 +726,26 @@ namespace Utility
             }
 
             //close connection
-            if (useCLR == true)
+            if (UseCLR)
             {
                 cnnSQL.Close();
             }
             
         }
 
-        private DataTable getSQLFromPreferences(ArrayList preferences, bool cardinality)
+        private DataTable GetSQLFromPreferences(ArrayList preferences, bool cardinality)
         {
             SQLCommon common = new SQLCommon();
             string strPrefSQL = "SELECT cars.id FROM ";
-            if (tableSize == Size.Small)
+            if (TableSize == Size.Small)
             {
                 strPrefSQL += "cars_small";
             }
-            else if (tableSize == Size.Medium)
+            else if (TableSize == Size.Medium)
             {
                 strPrefSQL += "cars_medium";
             }
-            else if (tableSize == Size.Large)
+            else if (TableSize == Size.Large)
             {
                 strPrefSQL += "cars_large";
             }
@@ -780,7 +755,7 @@ namespace Utility
 
             for (int i = 0; i < preferences.Count; i++)
             {
-                strPrefSQL += preferences[i].ToString() + ",";
+                strPrefSQL += preferences[i] + ",";
             }
             strPrefSQL = strPrefSQL.TrimEnd(',');
 
@@ -790,7 +765,7 @@ namespace Utility
 
             for (int i = 0; i < prefModel.Skyline.Count; i++)
             {
-                if (cardinality == true)
+                if (cardinality)
                 {
                     strSQL += "COUNT(DISTINCT " + prefModel.Skyline[i].Expression + "),";
                 }
@@ -800,49 +775,49 @@ namespace Utility
                 }
             }
             strSQL = strSQL.TrimEnd(',') + " FROM cars ";
-            strSQL += getJoinsForPreferences(strSQL);
+            strSQL += GetJoinsForPreferences(strSQL);
 
 
 
 
 
-            DataTable dt = Helper.executeStatement(strSQL);
+            DataTable dt = Helper.ExecuteStatement(strSQL);
 
             return dt;
         }
 
-        private string getJoinsForPreferences(string strSkylineOf)
+        private string GetJoinsForPreferences(string strSkylineOf)
         {
             string strSQL = "";
-            if (strSkylineOf.IndexOf("colors") > 0)
+            if (strSkylineOf.IndexOf("colors", StringComparison.Ordinal) > 0)
             {
                 strSQL += "LEFT OUTER JOIN colors ON cars.color_id = colors.ID ";
             }
-            if (strSkylineOf.IndexOf("fuels") > 0)
+            if (strSkylineOf.IndexOf("fuels", StringComparison.Ordinal) > 0)
             {
                 strSQL += "LEFT OUTER JOIN fuels ON cars.fuel_id = fuels.ID ";
             }
-            if (strSkylineOf.IndexOf("bodies") > 0)
+            if (strSkylineOf.IndexOf("bodies", StringComparison.Ordinal) > 0)
             {
                 strSQL += "LEFT OUTER JOIN bodies ON cars.body_id = bodies.ID ";
             }
-            if (strSkylineOf.IndexOf("makes") > 0)
+            if (strSkylineOf.IndexOf("makes", StringComparison.Ordinal) > 0)
             {
                 strSQL += "LEFT OUTER JOIN makes ON cars.make_id = makes.ID ";
             }
-            if (strSkylineOf.IndexOf("conditions") > 0)
+            if (strSkylineOf.IndexOf("conditions", StringComparison.Ordinal) > 0)
             {
                 strSQL += "LEFT OUTER JOIN conditions ON cars.condition_id = conditions.ID ";
             }
-            if (strSkylineOf.IndexOf("models") > 0)
+            if (strSkylineOf.IndexOf("models", StringComparison.Ordinal) > 0)
             {
                 strSQL += "LEFT OUTER JOIN models ON cars.model_id = models.ID ";
             }
-            if (strSkylineOf.IndexOf("transmissions") > 0)
+            if (strSkylineOf.IndexOf("transmissions", StringComparison.Ordinal) > 0)
             {
                 strSQL += "LEFT OUTER JOIN transmissions ON cars.transmission_id = transmissions.ID ";
             }
-            if (strSkylineOf.IndexOf("drives") > 0)
+            if (strSkylineOf.IndexOf("drives", StringComparison.Ordinal) > 0)
             {
                 strSQL += "LEFT OUTER JOIN drives ON cars.drive_id = drives.ID ";
             }
@@ -851,10 +826,10 @@ namespace Utility
             return strSQL;
         }
 
-        private ArrayList getCorrelationMatrix(ArrayList preferences)
+        private ArrayList GetCorrelationMatrix(ArrayList preferences)
         {
             Mathematic mathematic = new Mathematic();
-            DataTable dt = getSQLFromPreferences(preferences, false);
+            DataTable dt = GetSQLFromPreferences(preferences, false);
             double[] colA = new double[dt.Rows.Count];
             double[] colB = new double[dt.Rows.Count];
 
@@ -873,8 +848,8 @@ namespace Utility
                             colB[i] = (int)dt.Rows[i][iPref];
                         }
 
-                        double correlation = mathematic.getPearson(colA, colB);
-                        Utility.Model.CorrelationModel model = new Model.CorrelationModel(preferences[iIndex].ToString(), preferences[iPref].ToString(), correlation);
+                        double correlation = mathematic.GetPearson(colA, colB);
+                        CorrelationModel model = new CorrelationModel(preferences[iIndex].ToString(), preferences[iPref].ToString(), correlation);
                         listCorrelation.Add(model);
                     }
 
@@ -888,9 +863,9 @@ namespace Utility
 
 
 
-        private ArrayList getCardinalityOfPreferences(ArrayList preferences)
+        private ArrayList GetCardinalityOfPreferences(ArrayList preferences)
         {
-            DataTable dt = getSQLFromPreferences(preferences, true);
+            DataTable dt = GetSQLFromPreferences(preferences, true);
 
             //Calculate correlation between the attributes
             ArrayList listCardinality = new ArrayList();
@@ -904,7 +879,7 @@ namespace Utility
             return listCardinality;
         }
 
-        private double searchCorrelation(ArrayList preferences, ArrayList correlationMatrix)
+        private double SearchCorrelation(ArrayList preferences, ArrayList correlationMatrix)
         {
 
             double sumCorrelation = 0;
@@ -940,7 +915,7 @@ namespace Utility
 
 
 
-        private double searchCardinality(ArrayList preferences, ArrayList cardinality)
+        private double SearchCardinality(ArrayList preferences, ArrayList cardinality)
         {
 
             double product = 1;
@@ -967,7 +942,7 @@ namespace Utility
 
 
         
-        private void getCombinations(ArrayList arr, int len, int startPosition, ArrayList result, ref ArrayList returnArray)
+        private void GetCombinations(ArrayList arr, int len, int startPosition, ArrayList result, ref ArrayList returnArray)
         {
             if(result.Count == 0)
             {
@@ -987,7 +962,7 @@ namespace Utility
             for (int i = startPosition; i <= arr.Count - len; i++)
             {
                 result[result.Count - len] = (string)arr[i];
-                getCombinations(arr, len - 1, i + 1, result, ref returnArray);
+                GetCombinations(arr, len - 1, i + 1, result, ref returnArray);
             }
         }
 
@@ -997,18 +972,18 @@ namespace Utility
         #region formatOutput
 
 
-        private void addSummary(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions, List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, List<double> reportCorrelation, List<double> reportCardinality)
+        private void AddSummary(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions, List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, List<double> reportCorrelation, List<double> reportCardinality)
         {
             //Separator Line
             Debug.WriteLine(strSeparatorLine);
             sb.AppendLine(strSeparatorLine);
 
             Mathematic mathematic = new Mathematic();
-            string strAverage = formatLineString("average", "", reportDimensions.Average(), reportSkylineSize.Average(), reportTimeTotal.Average(), reportTimeAlgorithm.Average(), reportCorrelation.Average(), reportCardinality.Average());
-            string strMin = formatLineString("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(), reportTimeTotal.Min(), reportTimeAlgorithm.Min(), reportCorrelation.Min(), reportCardinality.Min());
-            string strMax = formatLineString("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), reportCorrelation.Max(), reportCardinality.Max());
-            string strVar = formatLineString("variance", "", mathematic.getVariance(reportDimensions), mathematic.getVariance(reportSkylineSize), mathematic.getVariance(reportTimeTotal), mathematic.getVariance(reportTimeAlgorithm), mathematic.getVariance(reportCorrelation), mathematic.getVariance(reportCardinality));
-            string strStd = formatLineString("stddeviation", "", mathematic.getStdDeviation(reportDimensions), mathematic.getStdDeviation(reportSkylineSize), mathematic.getStdDeviation(reportTimeTotal), mathematic.getStdDeviation(reportTimeAlgorithm), mathematic.getStdDeviation(reportCorrelation), mathematic.getStdDeviation(reportCardinality));
+            string strAverage = FormatLineString("average", "", reportDimensions.Average(), reportSkylineSize.Average(), reportTimeTotal.Average(), reportTimeAlgorithm.Average(), reportCorrelation.Average(), reportCardinality.Average());
+            string strMin = FormatLineString("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(), reportTimeTotal.Min(), reportTimeAlgorithm.Min(), reportCorrelation.Min(), reportCardinality.Min());
+            string strMax = FormatLineString("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), reportCorrelation.Max(), reportCardinality.Max());
+            string strVar = FormatLineString("variance", "", mathematic.GetVariance(reportDimensions), mathematic.GetVariance(reportSkylineSize), mathematic.GetVariance(reportTimeTotal), mathematic.GetVariance(reportTimeAlgorithm), mathematic.GetVariance(reportCorrelation), mathematic.GetVariance(reportCardinality));
+            string strStd = FormatLineString("stddeviation", "", mathematic.GetStdDeviation(reportDimensions), mathematic.GetStdDeviation(reportSkylineSize), mathematic.GetStdDeviation(reportTimeTotal), mathematic.GetStdDeviation(reportTimeAlgorithm), mathematic.GetStdDeviation(reportCorrelation), mathematic.GetStdDeviation(reportCardinality));
 
             sb.AppendLine(strAverage);
             sb.AppendLine(strMin);
@@ -1028,7 +1003,7 @@ namespace Utility
 
 
 
-        private string formatLineString(char paddingChar, string strTitle, string strTrial, string strDimension, string strSkyline, string strTimeTotal, string strTimeAlgo, string strCorrelation, string strCardinality)
+        private string FormatLineString(char paddingChar, string strTitle, string strTrial, string strDimension, string strSkyline, string strTimeTotal, string strTimeAlgo, string strCorrelation, string strCardinality)
         {
             //average line
             //trial|dimensions|skyline size|time total|time algorithm|correlation|
@@ -1045,9 +1020,9 @@ namespace Utility
             return string.Join("|", line);
         }
 
-        private string formatLineString(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double correlation, double cardinality)
+        private string FormatLineString(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double correlation, double cardinality)
         {
-            return formatLineString(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(), Math.Round(skyline, 2).ToString(), Math.Round(timeTotal, 2).ToString(), Math.Round(timeAlgo, 2).ToString(), Math.Round(correlation, 2).ToString(), ToLongString(Math.Round(cardinality, 2)));
+            return FormatLineString(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(), Math.Round(skyline, 2).ToString(), Math.Round(timeTotal, 2).ToString(), Math.Round(timeAlgo, 2).ToString(), Math.Round(correlation, 2).ToString(), ToLongString(Math.Round(cardinality, 2)));
         }
 
 
@@ -1079,7 +1054,7 @@ namespace Utility
             string[] decimalParts = exponentParts[0].Split(decSeparator);
 
             // fix missing decimal point:
-            if (decimalParts.Length == 1) decimalParts = new string[] { exponentParts[0], "0" };
+            if (decimalParts.Length == 1) decimalParts = new[] { exponentParts[0], "0" };
 
             int exponentValue = int.Parse(exponentParts[1]);
 

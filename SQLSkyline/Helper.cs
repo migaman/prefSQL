@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.SqlServer.Server;
+
 //------------------------------------------------------------------------------
 // <copyright file="CSSqlClassFile.cs" company="Microsoft">
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -82,7 +83,7 @@ namespace prefSQL.SQLSkyline
         /// <returns></returns>
         public static SqlDataRecord BuildDataRecord(DataTable dt, string[] operators, DataTable dtSkyline)
         {           
-            var outputColumns = BuildRecordSchema(dt, operators, dtSkyline);
+            List<SqlMetaData> outputColumns = BuildRecordSchema(dt, operators, dtSkyline);
             return new SqlDataRecord(outputColumns.ToArray());
         }
 
@@ -92,6 +93,8 @@ namespace prefSQL.SQLSkyline
         /// Better values are smaller!
         /// </summary>
         /// <param name="result"></param>
+        /// <param name="tupletoCheck"></param>
+        /// <param name="resultToTupleMapping"></param>
         /// <returns></returns>
         public static bool IsTupleDominated(long[] result, object[] tupletoCheck, int[] resultToTupleMapping)
         {
@@ -142,8 +145,8 @@ namespace prefSQL.SQLSkyline
         /// <param name="dataReader"></param>
         /// <param name="operators"></param>
         /// <param name="result"></param>
+        /// <param name="resultToTupleMapping"></param>
         /// <returns></returns>
-
         public static bool DoesTupleDominate(object[] dataReader, string[] operators, long[] result, int[] resultToTupleMapping)
         {
             bool greaterThan = false;
@@ -194,6 +197,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="operators"></param>
         /// <param name="result"></param>
         /// <param name="stringResult"></param>
+        /// <param name="tupletoCheck"></param>
         /// <returns></returns>
         public static bool IsTupleDominated(string[] operators, long?[] result, string[] stringResult, object[] tupletoCheck)
         {
@@ -422,7 +426,7 @@ namespace prefSQL.SQLSkyline
         {
             
             long[] recordInt = new long[operators.Count(op => op != "IGNORE")];
-            var nextRecordIndex = 0;
+            int nextRecordIndex = 0;
             DataRow row = dtResult.NewRow();
 
             //for (int iCol = 0; iCol < dataReader.FieldCount; iCol++)
@@ -542,7 +546,7 @@ namespace prefSQL.SQLSkyline
         public static List<object[]> GetObjectArrayFromDataTable(DataTable dataTable)
         {
             //Read all records only once. (SqlDataReader works forward only!!)
-            var dataTableRowList = dataTable.Rows.Cast<DataRow>().ToList();
+            List<DataRow> dataTableRowList = dataTable.Rows.Cast<DataRow>().ToList();
             //Write all attributes to a Object-Array
             //Profiling: This is much faster (factor 2) than working with the SQLReader
             return dataTableRowList.Select(dataRow => dataRow.ItemArray).ToList();
@@ -550,7 +554,7 @@ namespace prefSQL.SQLSkyline
 
         public static Dictionary<int, object[]> GetDictionaryFromDataTable(DataTable dataTable, int uniqueIdColumnIndex)
         {
-            var objectArrayFromDataTableOrig = GetObjectArrayFromDataTable(dataTable);
+            List<object[]> objectArrayFromDataTableOrig = GetObjectArrayFromDataTable(dataTable);
             return objectArrayFromDataTableOrig.ToDictionary(dataRow => (int)dataRow[uniqueIdColumnIndex]);
         }
 
@@ -590,7 +594,7 @@ namespace prefSQL.SQLSkyline
                 catch (Exception ex)
                 {
                     //Pack Errormessage in a SQL and return the result
-                    var strError = "Fehler in SP_SkylineBNL: ";
+                    string strError = "Fehler in SP_SkylineBNL: ";
                     strError += ex.Message;
 
                     if (isIndependent)
@@ -615,8 +619,8 @@ namespace prefSQL.SQLSkyline
         internal static int[] ResultToTupleMapping(string[] operators)
         {
             int[] resultToTupleMapping = new int[operators.Count(op => op != "IGNORE")];
-            var next = 0;
-            for (var j = 0; j < operators.Length; j++)
+            int next = 0;
+            for (int j = 0; j < operators.Length; j++)
             {
                 if (operators[j] != "IGNORE")
                 {

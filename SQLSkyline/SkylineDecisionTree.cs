@@ -3,15 +3,14 @@
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Text;
+using Microsoft.SqlServer.Server;
 
 namespace prefSQL.SQLSkyline
 {
-    using Microsoft.SqlServer.Server;
-
     public class SkylineDecisionTree : SkylineStrategy
     {
 
@@ -37,12 +36,12 @@ namespace prefSQL.SQLSkyline
 
 
 
-        public override string GetStoredProcedureCommand(string strSQLReturn, string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
+        public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
         {
             strFirstSQL += strOrderByAttributes;
             //Quote quotes because it is a parameter of the stored procedure
             strFirstSQL = strFirstSQL.Replace("'", "''");
-
+            string strSQLReturn;
             if (hasIncomparable == true)
             {
                 strSQLReturn = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords;
@@ -60,7 +59,7 @@ namespace prefSQL.SQLSkyline
             //Calculate cardinality
             long thresholdCardinality = 1000;
 
-            TemplateStrategy strategy = null;
+            TemplateStrategy strategy;
             if (Cardinality <= thresholdCardinality)
             {
                 strategy = new SP_SkylineDQ();
@@ -70,7 +69,6 @@ namespace prefSQL.SQLSkyline
                 strategy = new SP_SkylineBNLSort();
             }
 
-            //var skyline = getSP_Skyline(hasIncomparable);
             DataTable dt = strategy.GetSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
             TimeMilliseconds = strategy.TimeInMs;
             return dt;

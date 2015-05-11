@@ -1,7 +1,7 @@
+using System.Collections.Generic;
+
 namespace prefSQL.SQLSkyline.SamplingSkyline
 {
-    using System.Collections.Generic;
-
     /// <summary>
     ///     Interface to calculate and provide the necessary subspaces to the skyline sampling algorithm.
     /// </summary>

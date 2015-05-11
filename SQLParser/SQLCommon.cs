@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;
 using prefSQL.SQLParser.Models;
 using prefSQL.SQLSkyline;
 
@@ -17,7 +18,6 @@ namespace prefSQL.SQLParser
     {
         private const string SkylineOf = "SKYLINE OF";
         private SkylineStrategy _skylineType = new SkylineSQL();    //Defines with which Algorithm the Skyline should be calculated
-        private bool _showSkylineAttributes = false;                //Defines if the skyline attributes should be added to the SELECT list
         private int _skylineUpToLevel = 3;                          //Defines the maximum level that should be returned for the multiple skyline algorithnmm
         private readonly Helper _helper = new Helper();
 
@@ -49,11 +49,7 @@ namespace prefSQL.SQLParser
             AsIs                    //Without OrderBy-Clause as it comes from the database
         }
 
-        public bool ShowSkylineAttributes
-        {
-            get { return _showSkylineAttributes; }
-            set { _showSkylineAttributes = value; }
-        }
+        public bool ShowSkylineAttributes { get; set; }
 
         public SkylineStrategy SkylineType
         {
@@ -103,14 +99,20 @@ namespace prefSQL.SQLParser
             return ParsePreferenceSQL(prefSQL.OriginalPreferenceSql, prefSQL);
         }
 
-        /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
+        /// <summary>
+        ///  Parses a PREFERENE SQL Statement in an ANSI SQL Statement
+        /// </summary>
+        /// <param name="strInput"></param>
+        /// <param name="prefSQLParam"></param>
         /// <returns>Return the ANSI SQL Statement</returns>
+        /// <exception cref="Exception">This is exception is thrown because the String is not a valid PrefSQL Query</exception>
+       
         internal string ParsePreferenceSQL(string strInput, PrefSQLModel prefSQLParam)
         {
-            var sqlSort = new SQLSort();
-            var sqlCriterion = new SQLCriterion();
+            SQLSort sqlSort = new SQLSort();
+            SQLCriterion sqlCriterion = new SQLCriterion();
             string strSQLReturn = ""; //The SQL-Query that is built on the basis of the prefSQL 
-            var prefSQL = prefSQLParam ?? GetPrefSqlModelFromPreferenceSql(strInput);
+            PrefSQLModel prefSQL = prefSQLParam ?? GetPrefSqlModelFromPreferenceSql(strInput);
 
             try
             {                            
@@ -127,10 +129,10 @@ namespace prefSQL.SQLParser
 
                         //Add Skyline Attributes to select list. This option is i.e. useful to create a dominance graph.
                         //With help of the skyline values it is easier to create this graph
-                        if (_showSkylineAttributes)
+                        if (ShowSkylineAttributes)
                         {
                             //Add the attributes to the existing SELECT clause
-                            string strSQLSelectClause = getSelectClauseForSkylineAttributes(prefSQL);
+                            string strSQLSelectClause = GetSelectClauseForSkylineAttributes(prefSQL);
                             string strSQLBeforeFrom = strSQLReturn.Substring(0, strSQLReturn.IndexOf("FROM", StringComparison.Ordinal));
                             string strSQLAfterFromShow = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM", StringComparison.Ordinal));
                             strSQLReturn = strSQLBeforeFrom + strSQLSelectClause + " " + strSQLAfterFromShow;
@@ -150,7 +152,7 @@ namespace prefSQL.SQLParser
                                 for (int iIndex = prefSQL.OrderBy.Count - 1; iIndex >= 0; iIndex--)
                                 {
                                     OrderByModel model = prefSQL.OrderBy[iIndex];
-                                    strTmpInput = strTmpInput.Substring(0, model.start) + model.text + strTmpInput.Substring(model.stop);
+                                    strTmpInput = strTmpInput.Substring(0, model.Start) + model.Text + strTmpInput.Substring(model.Stop);
                                 }
 
                                 strOrderBy = strTmpInput.Substring(strInput.IndexOf("ORDER BY", StringComparison.Ordinal));
@@ -168,8 +170,8 @@ namespace prefSQL.SQLParser
 
                         ////////////////////////////////////////////
                         //attributes used for other algorithms
-                        string strOperators = "";
-                        string strAttributesSkyline = buildPreferencesBNL(prefSQL, ref strOperators);
+                        string strOperators;
+                        string strAttributesSkyline = BuildPreferencesBNL(prefSQL, out strOperators);
                         //Without SELECT 
 
                         //Remove TOP keyword, expect for the native SQL algorithm
@@ -195,8 +197,8 @@ namespace prefSQL.SQLParser
                         //attributes used for hexagon
                         string[] additionalParameters = new string[4];
 
-                        string strOperatorsHexagon = "";
-                        string strAttributesSkylineHexagon = BuildSelectHexagon(prefSQL, strSQLReturn, ref strOperatorsHexagon);
+                        string strOperatorsHexagon;
+                        string strAttributesSkylineHexagon = BuildSelectHexagon(prefSQL, out strOperatorsHexagon);
                         //Without SELECT 
 
 
@@ -207,7 +209,7 @@ namespace prefSQL.SQLParser
                         //Quote quotes because it is a parameter of the stored procedure
                         //string strSelectDistinctIncomparable = "";
                         int weightHexagonIncomparable = 0;
-                        string strSelectDistinctIncomparable = BuildIncomparableHexagon(prefSQL, strSQLReturn, ref weightHexagonIncomparable);
+                        string strSelectDistinctIncomparable = BuildIncomparableHexagon(prefSQL, ref weightHexagonIncomparable);
                         strSelectDistinctIncomparable = strSelectDistinctIncomparable.Replace("'", "''");
 
                         additionalParameters[0] = strFirstSQLHexagon;
@@ -218,7 +220,7 @@ namespace prefSQL.SQLParser
 
 
                         //Now create the query depending on the Skyline algorithm
-                        strSQLReturn = _skylineType.GetStoredProcedureCommand(strSQLReturn, strWhere, strOrderBy, prefSQL.NumberOfRecords, strFirstSQL, strOperators, _skylineUpToLevel, prefSQL.WithIncomparable, strOrderByAttributes, additionalParameters);
+                        strSQLReturn = _skylineType.GetStoredProcedureCommand(strWhere, strOrderBy, prefSQL.NumberOfRecords, strFirstSQL, strOperators, _skylineUpToLevel, prefSQL.WithIncomparable, strOrderByAttributes, additionalParameters);
 
                         
                     }
@@ -294,7 +296,6 @@ namespace prefSQL.SQLParser
             catch (Exception e)
             {
                 //Parse syntaxerror
-                /// <exception cref="Exception">This is exception is thrown because the String is not a valid PrefSQL Query</exception>
                 throw new Exception(e.Message);
             }
             
@@ -303,13 +304,11 @@ namespace prefSQL.SQLParser
         }
 
 
-
         /// <summary>TODO</summary>
         /// <param name="model">model of parsed Preference SQL Statement</param>
-        /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
         /// <param name="strOperators">Returns the operators</param>
         /// <returns>TODO</returns>
-        private string BuildSelectHexagon(PrefSQLModel model, string strPreSQL, ref string strOperators)
+        private string BuildSelectHexagon(PrefSQLModel model, out string strOperators)
         {
             strOperators = "";
             string strSQL = "";
@@ -349,9 +348,9 @@ namespace prefSQL.SQLParser
 
         /// <summary>TODO</summary>
         /// <param name="model">model of parsed Preference SQL Statement</param>
-        /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
+        /// <param name="weight"></param>
         /// <returns>TODO</returns>
-        private string BuildIncomparableHexagon(PrefSQLModel model, string strPreSQL, ref int weight)
+        private string BuildIncomparableHexagon(PrefSQLModel model, ref int weight)
         {
             string strDistinctSelect = "";
 
@@ -386,7 +385,7 @@ namespace prefSQL.SQLParser
         /// </remarks>
         /// <param name="model">model of parsed Preference SQL Statement</param>
         /// <returns>Return the extended SQL Statement</returns>
-        private string getSelectClauseForSkylineAttributes(PrefSQLModel model)
+        private string GetSelectClauseForSkylineAttributes(PrefSQLModel model)
         {
             string strSQL = "";
 
@@ -414,10 +413,10 @@ namespace prefSQL.SQLParser
 
         /// <summary>TODO</summary>
         /// <param name="model">model of parsed Preference SQL Statement</param>
-        /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
+        /// <param>Preference SQL Statement WITHOUT PREFERENCES</param>
         /// <param name="strOperators">Returns the operators</param>
         /// <returns>TODO</returns>
-        private string buildPreferencesBNL(PrefSQLModel model, ref string strOperators)
+        private string BuildPreferencesBNL(PrefSQLModel model, out string strOperators)
         {
             string strSQL = "";
             strOperators = "";
@@ -447,18 +446,18 @@ namespace prefSQL.SQLParser
 
         internal PrefSQLModel GetPrefSqlModelFromPreferenceSql(string preferenceSql)
         {
-            var parser = new SQLParser(new CommonTokenStream(new SQLLexer(new AntlrInputStream(preferenceSql))));
+            SQLParser parser = new SQLParser(new CommonTokenStream(new SQLLexer(new AntlrInputStream(preferenceSql))));
 
             // An error listener helps to return detailed parser syntax errors
-            var listener = new ErrorListener();
+            ErrorListener listener = new ErrorListener();
             parser.AddErrorListener(listener);
 
-            var tree = parser.parse();
-
+            IParseTree tree = parser.parse();
+            
             // PrefSQLModel is built during the visit of the parse tree
-            var visitor = new SQLVisitor {IsNative = _skylineType.IsNative()};
+            SQLVisitor visitor = new SQLVisitor {IsNative = _skylineType.IsNative()};
             visitor.Visit(tree);
-            var prefSql = visitor.Model;
+            PrefSQLModel prefSql = visitor.Model;
             if (prefSql != null)
             {
                 prefSql.OriginalPreferenceSql = preferenceSql;

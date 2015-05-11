@@ -1,13 +1,13 @@
-﻿namespace prefSQL.SQLParserTest
-{
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Diagnostics;
-    using System.Globalization;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using prefSQL.SQLParser;
-    using prefSQL.SQLSkyline;
+﻿using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using prefSQL.SQLParser;
+using prefSQL.SQLSkyline;
 
+namespace prefSQL.SQLParserTest
+{
     [TestClass]
     public class HelperIntegrationTests
     {
@@ -30,7 +30,7 @@
             var prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSQL);
             var prefSqlModelEntireSkyline = common.GetPrefSqlModelFromPreferenceSql(entireSkylineSQL);
 
-            var subjectUnderTest = new prefSQL.SQLParser.Helper
+            var subjectUnderTest = new SQLParser.Helper
             {
                 ConnectionString = Helper.ConnectionString,
                 DriverString = Helper.ProviderName
@@ -87,7 +87,7 @@
 
             var prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSQL);
             var prefSqlModelEntireSkyline = common.GetPrefSqlModelFromPreferenceSql(entireSkylineSQL);
-            var subjectUnderTest = new prefSQL.SQLParser.Helper
+            var subjectUnderTest = new SQLParser.Helper
             {
                 ConnectionString = Helper.ConnectionString,
                 DriverString = Helper.ProviderName

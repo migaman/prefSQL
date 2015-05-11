@@ -1,9 +1,9 @@
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+
 namespace prefSQL.SQLSkyline.SamplingSkyline
 {
-    using System;
-    using System.Collections.ObjectModel;
-    using System.Linq;
-
     internal sealed class SkylineAlgorithmParameters
     {
         private readonly string _operators;

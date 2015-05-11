@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Data;
-using System.Data.SqlTypes;
-using Microsoft.SqlServer.Server;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
-using System.Data.Common;
-using System.IO;
 using System.Text;
-
-
 
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace Utility
@@ -30,18 +24,26 @@ namespace Utility
     /// </remarks>
     public class BNLTest2
     {
-        public long timeInMs { get; set; }
+        public long TimeInMs { get; set; }
+
+        public long Moves { get; set; }
+
+        public long TotalComparisions { get; set; }
+
         //For each tuple
-        long imoves = 0;
-        long iTotalComparisions = 0;
+
+        public BNLTest2()
+        {
+            TotalComparisions = 0;
+            Moves = 0;
+        }
 
 
         public DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider)
         {
             StringBuilder sb = new StringBuilder();
 
-            string[] operators = strOperators.ToString().Split(';');
-            var dt = PerformanceTestHelper.GetSkylineDataTable(strQuery, isIndependent, strConnection, strProvider);
+            DataTable dt = PerformanceTestHelper.GetSkylineDataTable(strQuery, isIndependent, strConnection, strProvider);
             sb.AppendLine("query: " + strQuery);
             sb.AppendLine("isIndependent: " + isIndependent);
             sb.AppendLine("conn: " + strConnection);
@@ -64,33 +66,25 @@ namespace Utility
             dt.DefaultView.Sort = "Sort DESC";
             dt = dt.DefaultView.ToTable();
             */
-            var listObjects = PerformanceTestHelper.fillObjectFromDataReader(dt.CreateDataReader());
+            List<object[]> listObjects = PerformanceTestHelper.FillObjectFromDataReader(dt.CreateDataReader());
 
 
             DataTable dtResult = new DataTable();
-            SqlDataRecord record = PerformanceTestHelper.buildDataRecord(dt, operators, dtResult);
+            
 
 
-
-
-
-            return GetSkylineTable(listObjects, record, strOperators, numberOfRecords, isIndependent, dtResult);
+            return GetSkylineTable(listObjects, dtResult);
         }
 
 
-        private DataTable GetSkylineTable(List<object[]> listObjects, SqlDataRecord record, string strOperators, int numberOfRecords, bool isIndependent, DataTable dtResult)
+        private DataTable GetSkylineTable(List<object[]> listObjects, DataTable dtResult)
         {
             Stopwatch sw = new Stopwatch();
             //ArrayList resultCollection = new ArrayList();
             List<float[]> resultCollection = new List<float[]>();
             //ArrayList resultstringCollection = new ArrayList();
-            string[] operators = strOperators.ToString().Split(';');
-            var resultToTupleMapping = PerformanceTestHelper.ResultToTupleMapping(operators);
-
-
-
-
-
+            
+            
 
             try
             {
@@ -121,14 +115,14 @@ namespace Utility
 
                 foreach (float[] dataPoint in floats)
                 {
-                    bnlOperation(resultCollection, dataPoint);
+                    BNLOperation(resultCollection, dataPoint);
                 }
 
               
 
 
                 sw.Stop();
-                timeInMs = sw.ElapsedMilliseconds;
+                TimeInMs = sw.ElapsedMilliseconds;
 
 
 
@@ -142,40 +136,29 @@ namespace Utility
                 string strError = "Fehler in SP_SkylineBNL: ";
                 strError += ex.Message;
 
-                if (isIndependent == true)
-                {
-                    System.Diagnostics.Debug.WriteLine(strError);
-                }
-                else
-                {
-                    SqlContext.Pipe.Send(strError);
-                }
+                    Debug.WriteLine(strError);
+              
             }
 
             sw.Stop();
-            timeInMs = sw.ElapsedMilliseconds;
+            TimeInMs = sw.ElapsedMilliseconds;
             return dtResult;
         }
 
-        private void bnlOperation(List<float[]> resultCollection, float[] dataPoint)
+        private void BNLOperation(List<float[]> resultCollection, float[] dataPoint)
         {
-            bool isDominated = false;
-
+            
             //check if record is dominated (compare against the records in the window)
             //TODO: sehr entscheidend ob man hinten oder vorne anfängt
             for (int i = resultCollection.Count - 1; i >= 0; i--)
             {
-                if (isTupleDominated(resultCollection[i], dataPoint, 6))
+                if (IsTupleDominated(resultCollection[i], dataPoint, 6))
                 {
-                    isDominated = true;
-                    //break;
                     return;
                 }
             }
-            if (isDominated == false)
-            {
-                addToWindow(dataPoint, resultCollection);
-            }
+            AddToWindow(dataPoint, resultCollection);
+            
 
 
         }
@@ -215,12 +198,8 @@ namespace Utility
         /// Adds a tuple to the existing window. cannot handle incomparable values
         /// </summary>
         /// <param name="dataReader"></param>
-        /// <param name="operators"></param>
         /// <param name="resultCollection"></param>
-        /// <param name="record"></param>
-        /// <param name="isFrameworkMode"></param>
-        /// <param name="dtResult"></param>
-        private void addToWindow(float[] dataReader, List<float[]> resultCollection)
+        private void AddToWindow(float[] dataReader, List<float[]> resultCollection)
         {
 
             //Erste Spalte ist die ID
@@ -242,20 +221,12 @@ namespace Utility
         }
 
 
-
-
-
-
-
         /// <summary>
         /// Compares a tuple against another tuple according to preference logic. Cannot handle incomparable values
         /// Better values are smaller!
         /// </summary>
-        /// <param name="dataReader"></param>
-        /// <param name="operators"></param>
-        /// <param name="result"></param>
         /// <returns></returns>
-        private bool isTupleDominated(float[] pointA, float[] pointB, int upperbound)
+        private bool IsTupleDominated(float[] pointA, float[] pointB, int upperbound)
         {
             bool greaterThan = false;
 
@@ -270,7 +241,7 @@ namespace Utility
                 float value = pointB[iCol]; //.Value;
 
 
-                int comparison = compareValue(value, pointA[iCol]);
+                int comparison = CompareValue(value, pointA[iCol]);
 
                 if (comparison >= 1)
                 {
@@ -289,7 +260,7 @@ namespace Utility
 
 
             //all equal and at least one must be greater than
-            if (greaterThan == true)
+            if (greaterThan)
                 return true;
             else
                 return false;
@@ -298,7 +269,7 @@ namespace Utility
 
 
 
-        private static int compareValue(float value1, float value2)
+        private static int CompareValue(float value1, float value2)
         {
 
             if (value1 >= value2)

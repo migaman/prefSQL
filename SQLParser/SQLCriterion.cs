@@ -17,13 +17,13 @@ namespace prefSQL.SQLParser
         public string GetCriterionClause(PrefSQLModel model, string strPreSQL)
         {
             //Build Skyline only if more than one attribute
-            var strSQL = GetCriterionSkylineClause(model, strPreSQL);
+            string strSQL = GetCriterionSkylineClause(model, strPreSQL);
 
             //Check if a WHERE-Clause was built
             if (strSQL.Length > 0)
             {
                 //Only add WHERE if there is not already a where clause
-                var isWherePresent = strPreSQL.IndexOf("WHERE", StringComparison.Ordinal) > 0;
+                bool isWherePresent = strPreSQL.IndexOf("WHERE", StringComparison.Ordinal) > 0;
                 if (isWherePresent)
                 {
                     strSQL = " AND " + strSQL;
@@ -52,7 +52,7 @@ namespace prefSQL.SQLParser
             string strSQL = "";
 
             //Only add WHERE if there is not already a where clause
-            var isWherePresent = strPreSQL.IndexOf("WHERE", StringComparison.Ordinal) > 0;
+            bool isWherePresent = strPreSQL.IndexOf("WHERE", StringComparison.Ordinal) > 0;
             if (isWherePresent)
             {
                 strWhereEqual = " AND ";
@@ -66,10 +66,10 @@ namespace prefSQL.SQLParser
             //Build the where clause with each column in the skyline
             for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
-                bool needsTextORClause = false;
+                bool needsTextOrClause;
 
                 //Competition
-                needsTextORClause = model.Skyline[iChild].IsCategorical;
+                needsTextOrClause = model.Skyline[iChild].IsCategorical;
 
                 //First child doesn't need an OR/AND
                 if (iChild > 0)
@@ -79,7 +79,7 @@ namespace prefSQL.SQLParser
                 }
 
                 //Falls Text-Spalte ein zusätzliches OR einbauen für den Vergleich Farbe = Farbe
-                if (needsTextORClause)
+                if (needsTextOrClause)
                 {
                     strWhereEqual += "(";
                 }
@@ -93,7 +93,7 @@ namespace prefSQL.SQLParser
                 strWhereBetter = strWhereBetter.Replace("{column}", model.Skyline[iChild].Expression);
 
                 //Falls Text-Spalte ein zusätzliches OR einbauen für den Vergleich Farbe = Farbe
-                if (needsTextORClause)
+                if (needsTextOrClause)
                 {
                     strWhereEqual += " OR " + model.Skyline[iChild].InnerFullColumnName + " = " + model.Skyline[iChild].FullColumnName;
                     strWhereEqual += ")";
@@ -133,8 +133,8 @@ namespace prefSQL.SQLParser
                 //Remove Top Keyword in inner clause
                 int iPosTop = strPreSQL.IndexOf("TOP", StringComparison.Ordinal);
                 int iPosTopEnd = strPreSQL.Substring(iPosTop + 3).TrimStart().IndexOf(" ", StringComparison.Ordinal);
-                string strSQLAfterTOP = strPreSQL.Substring(iPosTop + 3).TrimStart();
-                strPreSQL = strPreSQL.Substring(0, iPosTop) + strSQLAfterTOP.Substring(iPosTopEnd + 1);
+                string strSQLAfterTop = strPreSQL.Substring(iPosTop + 3).TrimStart();
+                strPreSQL = strPreSQL.Substring(0, iPosTop) + strSQLAfterTop.Substring(iPosTopEnd + 1);
             }
 
 

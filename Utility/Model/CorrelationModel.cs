@@ -1,47 +1,42 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections;
 
 namespace Utility.Model
 {
     class CorrelationModel : IComparer
     {
-        private string colA;
-        private string colB;
-        private double correlation;
-
         public CorrelationModel()
         {
 
         }
 
-        public CorrelationModel(string _colA, string _colB, double _correlation)
+        public CorrelationModel(string colA, string colB, double correlation)
         {
-            colA = _colA;
-            colB = _colB;
-            correlation = _correlation;
+            ColA = colA;
+            ColB = colB;
+            Correlation = correlation;
         }
 
         public int Compare(object x, object y)
         {
-            if (x is CorrelationModel && y is CorrelationModel)
+            CorrelationModel correlationModelX = x as CorrelationModel;
+            CorrelationModel correlationModelY = y as CorrelationModel;
+            if (correlationModelX != null && correlationModelY != null)
             {
-                return Compare((CorrelationModel)x, (CorrelationModel)y);
+                return Compare(correlationModelX, correlationModelY);
             }
             else
             {
                 return 0;
             }
+
+           
         }
         
         public int Compare(CorrelationModel x, CorrelationModel y)
         {
-            if (x.correlation > y.correlation)
+            if (x.Correlation > y.Correlation)
                 return -1;
-            if (x.correlation == y.correlation)
+            if (x.Correlation == y.Correlation)
                 return 0;
             return 1;
         }
@@ -51,24 +46,11 @@ namespace Utility.Model
 
 
 
-        public string ColA
-        {
-            get { return colA; }
-            set { colA = value; }
-        }
-        
+        public string ColA { get; set; }
 
-        public string ColB
-        {
-            get { return colB; }
-            set { colB = value; }
-        }
 
-        public double Correlation
-        {
-            get { return correlation; }
-            set { correlation = value; }
-        }
+        public string ColB { get; set; }
 
+        public double Correlation { get; set; }
     }
 }

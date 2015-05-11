@@ -33,10 +33,10 @@ namespace prefSQL.SQLSkyline
             throw new NotImplementedException();
         }
 
-        public override string GetStoredProcedureCommand(string strSQLReturn, string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
+        public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
         {
             //string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strSQLReturn);
-            strSQLReturn += strWhere;
+            string strSQLReturn = strFirstSQL + strWhere;
             strSQLReturn += strOrderBy;
             return strSQLReturn;
         }

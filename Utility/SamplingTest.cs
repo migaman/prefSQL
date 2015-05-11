@@ -1,13 +1,13 @@
-﻿namespace Utility
-{
-    using System;
-    using System.Collections.Generic;
-    using prefSQL.SQLParser;
-    using prefSQL.SQLParser.Models;
-    using prefSQL.SQLParserTest;
-    using prefSQL.SQLSkyline;
-    using prefSQL.SQLSkyline.SamplingSkyline;
+﻿using System;
+using System.Collections.Generic;
+using prefSQL.SQLParser;
+using prefSQL.SQLParser.Models;
+using prefSQL.SQLParserTest;
+using prefSQL.SQLSkyline;
+using prefSQL.SQLSkyline.SamplingSkyline;
 
+namespace Utility
+{
     public class SamplingTest
     {
         private const string SkylineSampleSql =

@@ -33,14 +33,14 @@ namespace prefSQL.SQLSkyline
             throw new NotImplementedException();
         }
 
-        public override string GetStoredProcedureCommand(string strSQLReturn, string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
+        public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
         {
 
             strFirstSQL = additionalParameters[0];
             strOperators = additionalParameters[1];
             string strSelectDistinctIncomparable = additionalParameters[2];
             int weightHexagonIncomparable = int.Parse(additionalParameters[3]);
-
+            string strSQLReturn;
             if (hasIncomparable)
             {
                 strSQLReturn = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords + ", '" + strSelectDistinctIncomparable + "'," + weightHexagonIncomparable;

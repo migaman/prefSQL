@@ -1,9 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 namespace prefSQL.SQLSkyline.SamplingSkyline
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-
     internal sealed class SamplingSkylineUtility
     {
         private HashSet<HashSet<int>> _subspaces;

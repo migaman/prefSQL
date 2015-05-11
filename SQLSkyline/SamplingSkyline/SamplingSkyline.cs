@@ -1,12 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.SqlServer.Server;
+
 namespace prefSQL.SQLSkyline.SamplingSkyline
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.SqlServer.Server;
-
     /// <summary>
     ///     Implementation of sampling skyline algorithm according to the algorithm pseudocode in Balke, W.-T., Zheng, J. X., &
     ///     Güntzer, U. (2005).
@@ -102,10 +102,6 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// <param name="dataTableTemplate"></param>
         /// <param name="dataRecordTemplate"></param>
         /// <param name="skylineStrategy"></param>
-        /// <param name="operators"></param>
-        /// <param name="numberOfRecords"></param>
-        /// <param name="hasIncomparable"></param>
-        /// <param name="additionalParameters"></param>
         /// <param name="skylineAlgorithmParameters"></param>
         /// <returns></returns>
         internal DataTable GetSkyline(Dictionary<int, object[]> database, DataTable dataTableTemplate,

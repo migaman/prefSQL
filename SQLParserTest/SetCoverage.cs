@@ -1,8 +1,8 @@
-﻿namespace prefSQL.SQLParserTest
-{
-    using System;
-    using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
+namespace prefSQL.SQLParserTest
+{
     internal sealed class SetCoverage
     {
         public static double GetCoverage(Dictionary<int, object[]> normalizedBaseData,

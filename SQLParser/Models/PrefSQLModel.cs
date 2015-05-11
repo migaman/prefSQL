@@ -1,28 +1,16 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace prefSQL.SQLParser.Models
 {
     internal class PrefSQLModel
     {
-        private int _numberOfRecords = 0;                                               //Number of records that should be returned (0 = all)
         private List<AttributeModel> _skyline = new List<AttributeModel>();             //skyline preference attributes
         private List<RankingModel> _ranking = new List<RankingModel>();                 //weightedsum preference attributes
         private List<OrderByModel> _orderBy = new List<OrderByModel>();                 //the category order by and the calculated sql
         private Dictionary<string, string> _tables = new Dictionary<string, string>();  //the tablename and its alias
-        private SQLCommon.Ordering _ordering = SQLCommon.Ordering.AsIs;
-        private bool _withIncomparable = false;                                         //True if the skyline must be checked for incomparable tuples
-        private bool _containsOpenPreference = false;                                   //True if the skyline contains a categorical preference without an explicit OTHERS statement
+        
 
-        public bool ContainsOpenPreference
-        {
-            get { return _containsOpenPreference; }
-            set { _containsOpenPreference = value; }
-        }
+        public bool ContainsOpenPreference { get; set; }
 
         public PrefSQLModel()
         {
@@ -31,23 +19,12 @@ namespace prefSQL.SQLParser.Models
             HasSkylineSample = false;
         }
 
-        public int NumberOfRecords
-        {
-            get { return _numberOfRecords; }
-            set { _numberOfRecords = value; }
-        }
+        public int NumberOfRecords { get; set; }
 
-        public bool WithIncomparable
-        {
-            get { return _withIncomparable; }
-            set { _withIncomparable = value; }
-        }
+        public bool WithIncomparable { get; set; }
 
-        public SQLCommon.Ordering Ordering
-        {
-            get { return _ordering;  }
-            set { _ordering = value;  }
-        }
+        public SQLCommon.Ordering Ordering { get; set; }
+        
 
         public Dictionary<string, string> Tables
         {

@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Configuration;
-
-using System.Collections;
-using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.SqlServer.Server;
-using System.IO;
+using prefSQL.SQLSkyline;
 
 namespace Utility
 {
@@ -28,7 +23,7 @@ namespace Utility
         /// <param name="dt"></param>
         /// <param name="numberOfRecords"></param>
         /// <returns></returns>
-        public static DataTable getAmountOfTuples(DataTable dt, int numberOfRecords)
+        public static DataTable GetAmountOfTuples(DataTable dt, int numberOfRecords)
         {
             if (numberOfRecords > 0)
             {
@@ -44,8 +39,8 @@ namespace Utility
         internal static int[] ResultToTupleMapping(string[] operators)
         {
             int[] resultToTupleMapping = new int[operators.Count(op => op != "IGNORE")];
-            var next = 0;
-            for (var j = 0; j < operators.Length; j++)
+            int next = 0;
+            for (int j = 0; j < operators.Length; j++)
             {
                 if (operators[j] != "IGNORE")
                 {
@@ -59,67 +54,59 @@ namespace Utility
 
         public static DataTable GetSkylineDataTable(string strQuery, bool isIndependent, string strConnection, string strProvider)
         {
-            DbProviderFactory factory = null;
-            DbConnection connection = null;
-            factory = DbProviderFactories.GetFactory(strProvider);
+            DbProviderFactory factory = DbProviderFactories.GetFactory(strProvider);
+            DataTable dt = new DataTable();
 
             // use the factory object to create Data access objects.
-            connection = factory.CreateConnection(); // will return the connection object (i.e. SqlConnection ...)
-            connection.ConnectionString = strConnection;
-
-            var dt = new DataTable();
-
-            try
+            DbConnection connection = factory.CreateConnection();
+            if (connection != null)
             {
-                //Some checks
-                if (strQuery.ToString().Length == MaxSize)
+                connection.ConnectionString = strConnection;
+
+                
+
+                try
                 {
-                    throw new Exception("Query is too long. Maximum size is " + MaxSize);
+                    //Some checks
+                    if (strQuery.Length == MaxSize)
+                    {
+                        throw new Exception("Query is too long. Maximum size is " + MaxSize);
+                    }
+                    connection.Open();
+
+                    DbDataAdapter dap = factory.CreateDataAdapter();
+                    DbCommand selectCommand = connection.CreateCommand();
+                    selectCommand.CommandTimeout = 0; //infinite timeout
+                    selectCommand.CommandText = strQuery;
+                    if (dap != null)
+                    {
+                        dap.SelectCommand = selectCommand;
+                        dt = new DataTable();
+
+                        dap.Fill(dt);
+                    }
                 }
-                connection.Open();
-
-                DbDataAdapter dap = factory.CreateDataAdapter();
-                DbCommand selectCommand = connection.CreateCommand();
-                selectCommand.CommandTimeout = 0; //infinite timeout
-                selectCommand.CommandText = strQuery.ToString();
-                dap.SelectCommand = selectCommand;
-                dt = new DataTable();
-
-                dap.Fill(dt);
-            }
-            catch (Exception ex)
-            {
-                //Pack Errormessage in a SQL and return the result
-                var strError = "Fehler in SP_SkylineBNL: ";
-                strError += ex.Message;
-
-                if (isIndependent == true)
+                catch (Exception ex)
                 {
+                    //Pack Errormessage in a SQL and return the result
+                    string strError = "Fehler in SP_SkylineBNL: ";
+                    strError += ex.Message;
+
                     Debug.WriteLine(strError);
+                    
                 }
-                else
+                finally
                 {
-                    SqlContext.Pipe.Send(strError);
+                    connection.Close();
                 }
-            }
-            finally
-            {
-                connection.Close();
-            }
 
+                
+            }
             return dt;
         }
 
-        /*public static List<object[]> GetObjectArrayFromDataTable(DataTable dataTable)
-        {
-            //Read all records only once. (SqlDataReader works forward only!!)
-            var dataTableRowList = dataTable.Rows.Cast<DataRow>().ToList();
-            //Write all attributes to a Object-Array
-            //Profiling: This is much faster (factor 2) than working with the SQLReader
-            return dataTableRowList.Select(dataRow => dataRow.ItemArray).ToList();
-        }*/
 
-        public static List<object[]> fillObjectFromDataReader(DataTableReader reader)
+        public static List<object[]> FillObjectFromDataReader(DataTableReader reader)
         {
             List<object[]> listObjects = new List<object[]>();
             while (reader.Read())
@@ -142,9 +129,9 @@ namespace Utility
         /// <param name="operators"></param>
         /// <param name="dtSkyline"></param>
         /// <returns></returns>
-        public static SqlDataRecord buildDataRecord(DataTable dt, string[] operators, DataTable dtSkyline)
+        public static SqlDataRecord BuildDataRecord(DataTable dt, string[] operators, DataTable dtSkyline)
         {
-            var outputColumns = buildRecordSchema(dt, operators, dtSkyline);
+            List<SqlMetaData> outputColumns = BuildRecordSchema(dt, operators, dtSkyline);
             return new SqlDataRecord(outputColumns.ToArray());
 
 
@@ -160,7 +147,7 @@ namespace Utility
         /// <param name="operators"></param>
         /// <param name="dtSkyline"></param>
         /// <returns></returns>
-        public static List<SqlMetaData> buildRecordSchema(DataTable dt, string[] operators, DataTable dtSkyline)
+        public static List<SqlMetaData> BuildRecordSchema(DataTable dt, string[] operators, DataTable dtSkyline)
         {
             List<SqlMetaData> outputColumns = new List<SqlMetaData>(dt.Columns.Count - (operators.GetUpperBound(0) + 1));
             int iCol = 0;
@@ -169,16 +156,16 @@ namespace Utility
                 //Only the real columns (skyline columns are not output fields)
                 if (iCol > operators.GetUpperBound(0))
                 {
-                    SqlMetaData OutputColumn;
-                    if (col.DataType.Equals(typeof(Int32)) || col.DataType.Equals(typeof(Int64)) || col.DataType.Equals(typeof(DateTime)))
+                    SqlMetaData outputColumn;
+                    if (col.DataType == typeof(Int32) || col.DataType == typeof(Int64) || col.DataType == typeof(DateTime))
                     {
-                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType));
+                        outputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType));
                     }
                     else
                     {
-                        OutputColumn = new SqlMetaData(col.ColumnName, prefSQL.SQLSkyline.TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
+                        outputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
                     }
-                    outputColumns.Add(OutputColumn);
+                    outputColumns.Add(outputColumn);
                     dtSkyline.Columns.Add(col.ColumnName, col.DataType);
                 }
                 iCol++;
@@ -187,7 +174,7 @@ namespace Utility
         }
 
 
-        public static DataTable executeStatement(String strSQL)
+        public static DataTable ExecuteStatement(String strSQL)
         {
             DataTable dt = new DataTable();
 
@@ -197,15 +184,21 @@ namespace Utility
 
             // use the factory object to create Data access objects.
             DbConnection connection = factory.CreateConnection(); // will return the connection object, in this case, SqlConnection ...
-            connection.ConnectionString = Helper.ConnectionString;
+            if (connection != null)
+            {
+                connection.ConnectionString = Helper.ConnectionString;
 
-            connection.Open();
-            DbCommand command = connection.CreateCommand();
-            command.CommandTimeout = 0; //infinite timeout
-            command.CommandText = strSQL;
-            DbDataAdapter db = factory.CreateDataAdapter();
-            db.SelectCommand = command;
-            db.Fill(dt);
+                connection.Open();
+                DbCommand command = connection.CreateCommand();
+                command.CommandTimeout = 0; //infinite timeout
+                command.CommandText = strSQL;
+                DbDataAdapter db = factory.CreateDataAdapter();
+                if (db != null)
+                {
+                    db.SelectCommand = command;
+                    db.Fill(dt);
+                }
+            }
 
             return dt;
         }

@@ -1,11 +1,14 @@
-﻿namespace Utility
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+
+namespace Utility
 {
     partial class FrmSQLParser
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -221,20 +224,20 @@
 
         #endregion
 
-        private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.RadioButton optBNL;
-        private System.Windows.Forms.RadioButton optSQL;
-        private System.Windows.Forms.CheckBox chkShowSkyline;
-        private System.Windows.Forms.Button btnExecute;
-        private System.Windows.Forms.TextBox txtPrefSQL;
-        private System.Windows.Forms.DataGridView gridSkyline;
-        private System.Windows.Forms.RadioButton optHexagon;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox txtTimeAlgo;
-        private System.Windows.Forms.RadioButton optDQ;
-        private System.Windows.Forms.TextBox txtTime;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox txtRecords;
-        private System.Windows.Forms.Label label3;
+        private GroupBox groupBox1;
+        private RadioButton optBNL;
+        private RadioButton optSQL;
+        private CheckBox chkShowSkyline;
+        private Button btnExecute;
+        private TextBox txtPrefSQL;
+        private DataGridView gridSkyline;
+        private RadioButton optHexagon;
+        private Label label1;
+        private TextBox txtTimeAlgo;
+        private RadioButton optDQ;
+        private TextBox txtTime;
+        private Label label2;
+        private TextBox txtRecords;
+        private Label label3;
     }
 }

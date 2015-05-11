@@ -1,14 +1,14 @@
-﻿namespace prefSQL.SQLParserTest
-{
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Diagnostics;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using SQLParser;
-    using SQLParser.Models;
-    using SQLSkyline;
-    using SQLSkyline.SamplingSkyline;
+﻿using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using prefSQL.SQLParser;
+using prefSQL.SQLParser.Models;
+using prefSQL.SQLSkyline;
+using prefSQL.SQLSkyline.SamplingSkyline;
 
+namespace prefSQL.SQLParserTest
+{
     [TestClass]
     public class SQLParserSkylineSamplingIntegrationTests
     {
@@ -57,7 +57,7 @@
             var prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSQL);
             var ansiSql = common.GetAnsiSqlFromPrefSqlModel(prefSqlModelSkylineSample);
 
-            prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out baseQuery, out operators,
+            SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out baseQuery, out operators,
                 out numberOfRecords);
 
             var useSubspaces = UseSubspaces(prefSqlModelSkylineSample);

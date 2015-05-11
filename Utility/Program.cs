@@ -22,8 +22,8 @@ namespace Utility
 
             Program prg = new Program();
             //prg.PerformanceTestBNL();
-            //prg.MeasurePerformance();
-            prg.Run();
+            prg.MeasurePerformance();
+            //prg.Run();
 
 
             /*
@@ -78,7 +78,7 @@ namespace Utility
             //p.Strategy = new SkylineDecisionTree();
             
 
-            p.generatePerformanceQueries();
+            p.GeneratePerformanceQueries();
         }
 
 
@@ -89,9 +89,8 @@ namespace Utility
             try
             {
                 //Playground --> Test here your queries
-                string strPrefSQL = "";
-                strPrefSQL = "SELECT c.id, c.price, b.name          FROM cars_small c   LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
-                strPrefSQL = "SELECT c.id, c.price                  FROM cars_small c   LEFT OUTER JOIN colors cc ON c.color_id = cc.id RANKING OF c.price LOW 0.5, cc.name ('brown' >> 'green') 0.5";
+                string strPrefSQL = "SELECT c.id, c.price, b.name          FROM cars_small c   LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
+                /*strPrefSQL = "SELECT c.id, c.price                  FROM cars_small c   LEFT OUTER JOIN colors cc ON c.color_id = cc.id RANKING OF c.price LOW 0.5, cc.name ('brown' >> 'green') 0.5";
                 strPrefSQL = "SELECT c.id, c.price                  FROM cars_small c   LEFT OUTER JOIN colors cc ON c.color_id = cc.id SKYLINE OF c.horsepower HIGH, cc.name ('red' >> 'blue' >> 'yellow')";
                 strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars_small t1  LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('red' >> 'blue' >> OTHERS INCOMPARABLE)";
                 strPrefSQL = "SELECT t1.id                          FROM cars t1        RANKING OF t1.price HIGH 0.5, t1.mileage HIGH 0.5, t1.horsepower LOW 0.5, t1.enginesize LOW 0.5, t1.consumption HIGH 0.5, t1.doors LOW 0.5, t1.cylinders LOW 0.5";
@@ -104,7 +103,7 @@ namespace Utility
                 strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars t1        LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
                 strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t1.enginesize           FROM cars t1        SKYLINE OF t1.price LOW, t1.mileage LOW, t1.enginesize HIGH ORDER BY SUM_RANK()";
                 strPrefSQL = "SELECT t1.id                          FROM cars t1  SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
-                //strPrefSQL = "SELECT t1.id                          FROM cars_norm t1   SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower LOW, t1.enginesize LOW, t1.doors LOW, t1.consumption LOW, t1.cylinders LOW";
+                *///strPrefSQL = "SELECT t1.id                          FROM cars_norm t1   SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower LOW, t1.enginesize LOW, t1.doors LOW, t1.consumption LOW, t1.cylinders LOW";
 
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars t1        SKYLINE OF t1.price LOW, t1.mileage LOW ORDER BY SUM_RANK()";
                 
@@ -178,7 +177,7 @@ namespace Utility
                  * Variante bisher 
                 */
                 sw.Start();
-                DataTable dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL);
+                parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL);
                 sw.Stop();
                 long elapsedTime1 = sw.ElapsedMilliseconds;
                 long elpasedTimeAlgo1 = parser.TimeInMilliseconds;
@@ -191,10 +190,10 @@ namespace Utility
                 string str3 = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
                 string str4 = "System.Data.SqlClient";
                 sw.Start();
-                dt = test1.GetSkylineTable(str1, str2, 0, true, str3, str4);
+                test1.GetSkylineTable(str1, str2, 0, true, str3, str4);
                 sw.Stop();
                 long elapsedTime2 = sw.ElapsedMilliseconds;
-                long elpasedTimeAlgo2 = test1.timeInMs;
+                long elpasedTimeAlgo2 = test1.TimeInMs;
 
                 // Variante BNL Test (Meine Logik aber mit float statt object, einige andere optimierungen)
                 BNLTest2 test2 = new BNLTest2();
@@ -203,10 +202,10 @@ namespace Utility
                 str3 = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
                 str4 = "System.Data.SqlClient";
                 sw.Start();
-                dt = test2.GetSkylineTable(str1, str2, 0, true, str3, str4);
+                test2.GetSkylineTable(str1, str2, 0, true, str3, str4);
                 sw.Stop();
                 long elapsedTime3 = sw.ElapsedMilliseconds;
-                long elpasedTimeAlgo3 = test2.timeInMs;
+                long elpasedTimeAlgo3 = test2.TimeInMs;
 
                 // Variante BNL Test (Logik von CLOFI, MoveToHead, aber mit meiner vergleichsklasse)
                 BNLTest3 test3 = new BNLTest3();
@@ -215,10 +214,10 @@ namespace Utility
                 str3 = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
                 str4 = "System.Data.SqlClient";
                 sw.Start();
-                dt = test3.GetSkylineTable(str1, str2, 0, true, str3, str4);
+                test3.GetSkylineTable(str1, str2, 0, true, str3, str4);
                 sw.Stop();
                 long elapsedTime4 = sw.ElapsedMilliseconds;
-                long elpasedTimeAlgo4 = test3.timeInMs;
+                long elpasedTimeAlgo4 = test3.TimeInMs;
 
 
 

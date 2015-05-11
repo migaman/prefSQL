@@ -28,8 +28,8 @@ namespace prefSQL.SQLSkyline
             bool isIndependent, string strConnection, string strProvider)
         {
             string[] operators = strOperators.Split(';');
-            var dt = Helper.GetSkylineDataTable(strQuery, isIndependent, strConnection, strProvider);
-            var listObjects = Helper.GetObjectArrayFromDataTable(dt);
+            DataTable dt = Helper.GetSkylineDataTable(strQuery, isIndependent, strConnection, strProvider);
+            List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
             DataTable dtResult = new DataTable();
             SqlDataRecord record = Helper.BuildDataRecord(dt, operators, dtResult);
 

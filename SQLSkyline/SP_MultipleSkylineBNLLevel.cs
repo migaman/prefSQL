@@ -18,6 +18,8 @@ namespace prefSQL.SQLSkyline
         /// </summary>
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
+        /// <param name="numberOfRecords"></param>
+        /// <param name="upToLevel"></param>
         [SqlProcedure(Name = "SP_MultipleSkylineBNLLevel")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 upToLevel)
         {
@@ -39,7 +41,7 @@ namespace prefSQL.SQLSkyline
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.Split(';');
             DataTable dtResult = new DataTable();
-            var resultToTupleMapping = Helper.ResultToTupleMapping(operators);
+            int[] resultToTupleMapping = Helper.ResultToTupleMapping(operators);
 
             DbProviderFactory factory;
             DbConnection connection;

@@ -1,14 +1,13 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using prefSQL.SQLParser;
-using System.Data.SqlClient;
 using System.Collections;
 using System.Collections.Generic;
-using prefSQL.SQLSkyline;
 using System.Data;
-using prefSQL.SQLParser.Models;
 using System.Data.Common;
-
+using System.Data.SqlClient;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using prefSQL.SQLParser;
+using prefSQL.SQLParser.Models;
+using prefSQL.SQLSkyline;
 
 namespace prefSQL.SQLParserTest
 {
@@ -28,7 +27,7 @@ namespace prefSQL.SQLParserTest
          DeploymentItem("SQLParserSkylineTest.xml")]
         public void TestSKYLINEAmountOfTupels_MSSQLCLR()
         {
-            var skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
+            string skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
 
             SQLCommon common = new SQLCommon();
             common.SkylineType = new SkylineSQL();
@@ -134,7 +133,7 @@ namespace prefSQL.SQLParserTest
                 Assert.Fail("Connection failed:" + ex.Message);
             }
 
-            var currentDataRowIndex = TestContext.DataRow.Table.Rows.IndexOf(TestContext.DataRow);
+            int currentDataRowIndex = TestContext.DataRow.Table.Rows.IndexOf(TestContext.DataRow);
 
             //Check tuples (every algorithm should deliver the same amount of tuples)
             Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNLSort, 0,
@@ -164,9 +163,9 @@ namespace prefSQL.SQLParserTest
          DeploymentItem("SQLParserSkylineTest.xml")]
         public void TestSkylineParseResults()
         {
-            var skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
+            string skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
 
-            var allResultTypes = new Dictionary<string, SkylineStrategy>
+            Dictionary<string, SkylineStrategy> allResultTypes = new Dictionary<string, SkylineStrategy>
             {
                 {"parsePreferenceSQLSkylineSQLExpectedResult", new SkylineSQL()},
                 {"parsePreferenceSQLSkylineBNLExpectedResult", new SkylineBNL()},
@@ -176,13 +175,13 @@ namespace prefSQL.SQLParserTest
                 {"parsePreferenceSQLMultipleSkylineBNLExpectedResult", new MultipleSkylineBNL()}
             };
 
-            var currentDataRowIndex = TestContext.DataRow.Table.Rows.IndexOf(TestContext.DataRow);
+            int currentDataRowIndex = TestContext.DataRow.Table.Rows.IndexOf(TestContext.DataRow);
 
-            var common = new SQLCommon();
-            foreach (var resultType in allResultTypes)
+            SQLCommon common = new SQLCommon();
+            foreach (KeyValuePair<string, SkylineStrategy> resultType in allResultTypes)
             {
                 common.SkylineType = resultType.Value;
-                var parsedSql = common.ParsePreferenceSQL(skylineSampleSql);
+                string parsedSql = common.ParsePreferenceSQL(skylineSampleSql);
                 Assert.AreEqual(TestContext.DataRow[resultType.Key].ToString().Trim(), parsedSql.Trim(),
                     "Parsed result in data row " + currentDataRowIndex + " for " + resultType.Key + " is incorrect.");
             }
@@ -200,9 +199,9 @@ namespace prefSQL.SQLParserTest
          DeploymentItem("SQLParserSkylineTest.xml")]
         public void TestSKYLINEAmountOfTupels_DataTable()
         {
-            var skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
+            string skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
 
-            var common = new SQLCommon();
+            SQLCommon common = new SQLCommon();
             common.SkylineType = new SkylineSQL();
             PrefSQLModel model = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSql);
             DataTable dtNative = common.ExecuteFromPrefSqlModel(Helper.ConnectionString, Helper.ProviderName, model);
@@ -211,7 +210,7 @@ namespace prefSQL.SQLParserTest
             common.SkylineType = new SkylineBNLSort();
             DataTable dtBNLSort = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, skylineSampleSql);
 
-            var dtHexagon = new DataTable();
+            DataTable dtHexagon = new DataTable();
             if (model.ContainsOpenPreference == false)
             {
                 common.SkylineType = new SkylineHexagon();
@@ -226,7 +225,7 @@ namespace prefSQL.SQLParserTest
                 dtDQ = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, skylineSampleSql);
             }
 
-            var currentDataRowIndex = TestContext.DataRow.Table.Rows.IndexOf(TestContext.DataRow);
+            int currentDataRowIndex = TestContext.DataRow.Table.Rows.IndexOf(TestContext.DataRow);
 
             //Check tuples (every algorithm should deliver the same amount of tuples)
             Assert.AreEqual(dtNative.Rows.Count, dtBNL.Rows.Count, 0,

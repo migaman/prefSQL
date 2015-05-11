@@ -1,9 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 namespace prefSQL.SQLSkyline.SamplingSkyline
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-
     /// <summary>
     ///     Produces randomly chosen subsets out of the preferences requested in original skyline query.
     /// </summary>
