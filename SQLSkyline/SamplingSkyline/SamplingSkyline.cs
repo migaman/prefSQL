@@ -81,7 +81,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             Dictionary<int, object[]> database = Helper.GetDictionaryFromDataTable(fullDataTable,
                 Utility.AllPreferencesCount + uniqueIdColumnIndex);
             var dataTableTemplate = new DataTable();
-            SqlDataRecord dataRecordTemplate = Helper.buildDataRecord(fullDataTable,
+            SqlDataRecord dataRecordTemplate = Helper.BuildDataRecord(fullDataTable,
                 skylineAlgorithmParameters.OperatorsCollection.ToArray(), dataTableTemplate);
 
             return GetSkyline(database, dataTableTemplate, dataRecordTemplate, skylineStrategy,
@@ -130,7 +130,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                 timeMilliseconds += sw.ElapsedMilliseconds;
                 DataTable subspaceDataTable = GetSkylineTable(database, dataTableTemplate, dataRecordTemplate,
                     skylineStrategy, skylineAlgorithmSubspaceParameters);
-                timeMilliseconds += skylineStrategy.timeMilliseconds;
+                timeMilliseconds += skylineStrategy.TimeMilliseconds;
                 sw.Restart();
 
                 Dictionary<int, object[]> subspaceDatabase = GetDatabaseFromDataTable(database, subspaceDataTable);
@@ -150,7 +150,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                     timeMilliseconds += sw.ElapsedMilliseconds;
                     DataTable subspaceComplementDataTable = GetSkylineTable(subspaceDatabase, dataTableTemplate,
                         dataRecordTemplate, skylineStrategy, skylineAlgorithmSubspaceParameters);
-                    timeMilliseconds += skylineStrategy.timeMilliseconds;
+                    timeMilliseconds += skylineStrategy.TimeMilliseconds;
                     sw.Restart();
 
                     Dictionary<int, object[]> subspaceComplementDatabase = GetDatabaseFromDataTable(database,
@@ -184,7 +184,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             SkylineAlgorithmParameters skylineAlgorithmParameters)
         {
             DataTable skylineDataTable =
-                skylineStrategy.getSkylineTable(subspaceDatabase.Values.ToList(),
+                skylineStrategy.GetSkylineTable(subspaceDatabase.Values.ToList(),
                     dataTableTemplate, dataRecordTemplate, skylineAlgorithmParameters.Operators,
                     skylineAlgorithmParameters.NumberOfRecords,
                     skylineAlgorithmParameters.HasIncomparable,

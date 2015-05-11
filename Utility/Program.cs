@@ -1,20 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using prefSQL.SQLParser;
 using System.Data;
-using System.Data.SqlClient;
-using System.Data.SqlTypes;
-using Microsoft.SqlServer.Server;
-using System.Threading;
-using System.Data.Common;
-using System.Windows.Forms;
-using prefSQL.SQLSkyline;
+using System.Diagnostics;
 using System.IO;
-
+using System.Text;
+using prefSQL.SQLParser;
+using prefSQL.SQLSkyline;
 
 namespace Utility
 {
@@ -32,7 +22,7 @@ namespace Utility
 
             Program prg = new Program();
             //prg.PerformanceTestBNL();
-            //prg.measurePerformance();
+            //prg.MeasurePerformance();
             prg.Run();
 
 
@@ -47,7 +37,7 @@ namespace Utility
 
         
 
-        private void measurePerformance()
+        private void MeasurePerformance()
         {
             Performance p = new Performance();
 
@@ -82,10 +72,10 @@ namespace Utility
             //p.Strategy = null; //all algorithms should be tested
             //p.Strategy = new SkylineSQL();
             //p.Strategy = new SkylineBNL();
-            //p.Strategy = new SkylineBNLSort();
+            p.Strategy = new SkylineBNLSort();
             //p.Strategy = new SkylineDQ();
             //p.Strategy = new SkylineHexagon();
-            p.Strategy = new SkylineDecisionTree();
+            //p.Strategy = new SkylineDecisionTree();
             
 
             p.generatePerformanceQueries();
@@ -136,13 +126,13 @@ namespace Utility
 
                 
                 //First parse only (to get the parsed string for CLR)
-                string strSQL = parser.parsePreferenceSQL(strPrefSQL);
+                string strSQL = parser.ParsePreferenceSQL(strPrefSQL);
                 Debug.WriteLine(strSQL);
 
                 //Now parse and execute
                 Stopwatch sw = new Stopwatch();
                 sw.Start();
-                DataTable dt = parser.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL);
+                DataTable dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL);
                 sw.Stop();
 
                 
@@ -153,7 +143,7 @@ namespace Utility
                 sb.AppendLine("         skyline size:" + dt.Rows.Count.ToString().PadLeft(6));
                 sb.AppendLine("algo  time elapsed ms:" + parser.TimeInMilliseconds.ToString().PadLeft(6));
                 sb.AppendLine("total time elapsed ms:" + sw.ElapsedMilliseconds.ToString().PadLeft(6));
-                System.Diagnostics.Debug.Write(sb);
+                Debug.Write(sb);
 
             }
             catch (Exception ex)
@@ -188,7 +178,7 @@ namespace Utility
                  * Variante bisher 
                 */
                 sw.Start();
-                DataTable dt = parser.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL);
+                DataTable dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL);
                 sw.Stop();
                 long elapsedTime1 = sw.ElapsedMilliseconds;
                 long elpasedTimeAlgo1 = parser.TimeInMilliseconds;
@@ -201,7 +191,7 @@ namespace Utility
                 string str3 = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
                 string str4 = "System.Data.SqlClient";
                 sw.Start();
-                dt = test1.getSkylineTable(str1, str2, 0, true, str3, str4);
+                dt = test1.GetSkylineTable(str1, str2, 0, true, str3, str4);
                 sw.Stop();
                 long elapsedTime2 = sw.ElapsedMilliseconds;
                 long elpasedTimeAlgo2 = test1.timeInMs;
@@ -213,7 +203,7 @@ namespace Utility
                 str3 = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
                 str4 = "System.Data.SqlClient";
                 sw.Start();
-                dt = test2.getSkylineTable(str1, str2, 0, true, str3, str4);
+                dt = test2.GetSkylineTable(str1, str2, 0, true, str3, str4);
                 sw.Stop();
                 long elapsedTime3 = sw.ElapsedMilliseconds;
                 long elpasedTimeAlgo3 = test2.timeInMs;
@@ -225,7 +215,7 @@ namespace Utility
                 str3 = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
                 str4 = "System.Data.SqlClient";
                 sw.Start();
-                dt = test3.getSkylineTable(str1, str2, 0, true, str3, str4);
+                dt = test3.GetSkylineTable(str1, str2, 0, true, str3, str4);
                 sw.Stop();
                 long elapsedTime4 = sw.ElapsedMilliseconds;
                 long elpasedTimeAlgo4 = test3.timeInMs;
@@ -246,7 +236,7 @@ namespace Utility
                 sb.AppendLine("ClofiMe algo  time elapsed ms:" + elpasedTimeAlgo4);
                 sb.AppendLine("ClofiMe total time elapsed ms:" + elapsedTime4);
 
-                System.Diagnostics.Debug.Write(sb);
+                Debug.Write(sb);
 
 
                 //create filename

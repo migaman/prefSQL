@@ -18,19 +18,19 @@ namespace prefSQL.SQLSkyline
     public class SP_SkylineHexagonLevel : TemplateHexagon
     {
         [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineHexagonLevel")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
+        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
         {
             SP_SkylineHexagonLevel skyline = new SP_SkylineHexagonLevel();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.cnnStringSQLCLR, Helper.ProviderCLR, "", 0);
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, "", 0);
         }
 
-        protected override void calculateOperators(ref string strOperators, string strSelectIncomparable, DbProviderFactory factory, DbConnection connection, ref string strSQL)
+        protected override void CalculateOperators(ref string strOperators, string strSelectIncomparable, DbProviderFactory factory, DbConnection connection, ref string strSQL)
         {
             //No Operation
             return;
         }
 
-        protected override void add(object[] dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable)
+        protected override void Add(object[] dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable)
         {
             ArrayList al = new ArrayList();
 

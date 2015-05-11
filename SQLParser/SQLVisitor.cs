@@ -14,26 +14,21 @@ namespace prefSQL.SQLParser
     class SQLVisitor : SQLBaseVisitor<PrefSQLModel>
     {
         private Dictionary<string, string> tables = new Dictionary<string, string>();   //contains all tables from the query
-        private int numberOfRecords = 0;                        //Specifies the number of records to return (TOP Clause), 0 = all records
+        private int _numberOfRecords = 0;                        //Specifies the number of records to return (TOP Clause), 0 = all records
         private const string InnerTableSuffix = "_INNER";       //Table suffix for the inner query
         private const string RankingFunction = "ROW_NUMBER()";  //Default Ranking function
-        private PrefSQLModel model;                             //Preference SQL Model, contains i.e. the skyline attributes
-        private bool isNative;                                  //True if the skyline algorithm is native                 
-        private bool hasIncomparableTuples = false;             //True if the skyline must be checked for incomparable tuples
-        private bool containsOpenPreference = false;            //True if the skyline contains a categorical preference without an explicit OTHERS statement
+        private PrefSQLModel _model;                             //Preference SQL Model, contains i.e. the skyline attributes
+        private bool _hasIncomparableTuples;             //True if the skyline must be checked for incomparable tuples
+        private bool _containsOpenPreference;            //True if the skyline contains a categorical preference without an explicit OTHERS statement
 
 
-        public bool IsNative
-        {
-            get { return isNative; }
-            set { isNative = value; }
-        }
+        public bool IsNative { get; set; }
 
 
         public PrefSQLModel Model
         {
-            get { return model; }
-            set { model = value; }
+            get { return _model; }
+            set { _model = value; }
         }
 
 
@@ -47,7 +42,7 @@ namespace prefSQL.SQLParser
         /// <returns></returns>
         public override PrefSQLModel VisitTop_keyword(SQLParser.Top_keywordContext context)
         {
-            numberOfRecords = int.Parse(context.GetChild(1).GetText());
+            _numberOfRecords = int.Parse(context.GetChild(1).GetText());
             return base.VisitTop_keyword(context);
         }
 
@@ -93,8 +88,8 @@ namespace prefSQL.SQLParser
             pref.Ranking.AddRange(left.Ranking);
             pref.Ranking.AddRange(right.Ranking);
             pref.Tables = tables;
-            pref.ContainsOpenPreference = containsOpenPreference;
-            model = pref;
+            pref.ContainsOpenPreference = _containsOpenPreference;
+            _model = pref;
             return pref;
         }
 
@@ -106,12 +101,12 @@ namespace prefSQL.SQLParser
         /// <param name="strExpression"></param>
         /// <param name="weight"></param>
         /// <returns></returns>
-        private PrefSQLModel addWeightedSum(string strColumnName, string strTable, string strExpression, double weight)
+        private PrefSQLModel AddWeightedSum(string strColumnName, string strTable, string strExpression, double weight)
         {
             PrefSQLModel pref = new PrefSQLModel();
-            string strTableAlias = ""; ;
-            string strSelectExtrema = "";
-            string strFullColumnName = "";
+            string strTableAlias = "";
+            string strSelectExtrema;
+            string strFullColumnName;
 
             //Separate Column and Table
             strFullColumnName = strTable + "." + strColumnName;           
@@ -132,8 +127,8 @@ namespace prefSQL.SQLParser
             //Add the preference to the list               
             pref.Ranking.Add(new RankingModel(strFullColumnName, strColumnName, strExpression, weight, strSelectExtrema));
             pref.Tables = tables;
-            pref.ContainsOpenPreference = containsOpenPreference;
-            model = pref;
+            pref.ContainsOpenPreference = _containsOpenPreference;
+            _model = pref;
             return pref;
         }
 
@@ -145,10 +140,10 @@ namespace prefSQL.SQLParser
         public override PrefSQLModel VisitWeightedsumLowHigh(SQLParser.WeightedsumLowHighContext context)
         {
             //Keyword LOW or HIGH
-            string strColumnName = "";
-            string strTable = "";
-            string strExpression = "";
-            double weight = 0.0;
+            string strColumnName;
+            string strTable;
+            string strExpression;
+            double weight;
             
             //Separate Column and Table
             strColumnName = getColumnName(context.GetChild(0));
@@ -162,7 +157,7 @@ namespace prefSQL.SQLParser
             weight = double.Parse(context.GetChild(2).GetText());
 
             //Add the preference to the list               
-            return addWeightedSum(strColumnName, strTable, strExpression, weight);
+            return AddWeightedSum(strColumnName, strTable, strExpression, weight);
         }
 
         /// <summary>
@@ -203,7 +198,7 @@ namespace prefSQL.SQLParser
             weight = double.Parse(context.GetChild(3).GetText());
 
             //Add the preference to the list               
-            return addWeightedSum(strColumnName, strTable, strExpression, weight);
+            return AddWeightedSum(strColumnName, strTable, strExpression, weight);
         }
 
 
@@ -217,9 +212,9 @@ namespace prefSQL.SQLParser
         {
             //It is a text --> Text text must be converted in a given sortorder
             string strColumnName = "";
-            string strTable = "";
-            string strExpression = "";
-            double weight = 0.0;
+            string strTable;
+            string strExpression;
+            double weight;
 
             //Build CASE ORDER with arguments
             string strCaseWhen = "";
@@ -285,13 +280,13 @@ namespace prefSQL.SQLParser
 
             if(strCaseElse.Equals(""))
             {
-                containsOpenPreference = true;
+                _containsOpenPreference = true;
             }
             strExpression = "CASE" + strCaseWhen + strCaseElse + " END";
             
 
             //Add the ranking to the list               
-            return addWeightedSum(strColumnName, strTable, strExpression, weight);
+            return AddWeightedSum(strColumnName, strTable, strExpression, weight);
         }
 
 
@@ -314,10 +309,10 @@ namespace prefSQL.SQLParser
             pref.Skyline.AddRange(left.Skyline);
             pref.Skyline.AddRange(right.Skyline);
             pref.Tables = tables;
-            pref.NumberOfRecords = numberOfRecords;
-            pref.WithIncomparable = hasIncomparableTuples;
-            pref.ContainsOpenPreference = containsOpenPreference;
-            model = pref;
+            pref.NumberOfRecords = _numberOfRecords;
+            pref.WithIncomparable = _hasIncomparableTuples;
+            pref.ContainsOpenPreference = _containsOpenPreference;
+            _model = pref;
             return pref;
         }
 
@@ -336,11 +331,11 @@ namespace prefSQL.SQLParser
             //Add the preference to the list               
             PrefSQLModel pref = new PrefSQLModel();
             pref.Skyline.Add(attributeModel);
-            pref.NumberOfRecords = numberOfRecords;
+            pref.NumberOfRecords = _numberOfRecords;
             pref.Tables = tables;
-            pref.WithIncomparable = hasIncomparableTuples;
-            pref.ContainsOpenPreference = containsOpenPreference;
-            model = pref;
+            pref.WithIncomparable = _hasIncomparableTuples;
+            pref.ContainsOpenPreference = _containsOpenPreference;
+            _model = pref;
             return pref;
         }
 
@@ -388,9 +383,9 @@ namespace prefSQL.SQLParser
                 {
                     isLevelStepEqual = false;
                     bComparable = false;
-                    hasIncomparableTuples = true;
+                    _hasIncomparableTuples = true;
                     //Some algorithms cannot handle this incomparable preference --> It is like a categorical preference without explicit OTHERS
-                    containsOpenPreference = true;
+                    _containsOpenPreference = true;
                 }
                 
             }
@@ -485,7 +480,7 @@ namespace prefSQL.SQLParser
                         amountOfIncomparable = 99; //set a certain amount
                         strHexagonIncomparable = "CALCULATEINCOMPARABLE";
                         weightHexagonIncomparable = iWeight / 100;
-                        hasIncomparableTuples = true;
+                        _hasIncomparableTuples = true;
                         break;
                     case "OTHERSEQUAL":
                         //Special word OTHERS EQUAL = all other attributes are defined with this order by value
@@ -517,7 +512,7 @@ namespace prefSQL.SQLParser
                             }
                             string strBitPatternFull = new String('x', amountOfIncomparable); // string of 20 spaces;
                             strHexagonIncomparable += " ELSE '" + strBitPatternFull + "' END AS HexagonIncomparable" + strSingleColumn.Replace(".", "");
-                            hasIncomparableTuples = true; //the values inside the bracket are incomparable
+                            _hasIncomparableTuples = true; //the values inside the bracket are incomparable
                         }
                         else
                         {
@@ -535,7 +530,7 @@ namespace prefSQL.SQLParser
             if (strSQLELSE.Equals(""))
             {
                 //There is a categorical preference without an OTHER statement!! (Not all algorithms can handle that)
-                containsOpenPreference = true;
+                _containsOpenPreference = true;
             }
 
             //Add others incomparable clause at the top-level if not OTHERS was specified
@@ -544,7 +539,7 @@ namespace prefSQL.SQLParser
                 strIncomporableAttributeELSE = " ELSE " + strTable + "." + strColumnName; //Not comparable --> give string value of field
                 strSQLELSE = " ELSE NULL"; //if no OTHERS is present all other values are on the top level
                 bComparable = false;
-                hasIncomparableTuples = true;
+                _hasIncomparableTuples = true;
             }
 
             string strExpression = "CASE" + strSQLOrderBy + strSQLELSE + " END";
@@ -636,10 +631,10 @@ namespace prefSQL.SQLParser
             PrefSQLModel pref = new PrefSQLModel();
             pref.Skyline.AddRange(left.Skyline);
             pref.Tables = tables;
-            pref.NumberOfRecords = numberOfRecords;
-            pref.WithIncomparable = hasIncomparableTuples;
-            pref.ContainsOpenPreference = containsOpenPreference;
-            model = pref;
+            pref.NumberOfRecords = _numberOfRecords;
+            pref.WithIncomparable = _hasIncomparableTuples;
+            pref.ContainsOpenPreference = _containsOpenPreference;
+            _model = pref;
             return pref;
         }
 
@@ -651,7 +646,7 @@ namespace prefSQL.SQLParser
         /// <returns></returns>
         public override PrefSQLModel VisitOrderByDefault(SQLParser.OrderByDefaultContext context)
         {
-            model.Ordering = SQLCommon.Ordering.AsIs;
+            _model.Ordering = SQLCommon.Ordering.AsIs;
             return base.VisitOrderByDefault(context);
         }
 
@@ -671,7 +666,7 @@ namespace prefSQL.SQLParser
             {
                 ordering = SQLCommon.Ordering.RankingBestOf;
             }
-            model.Ordering = ordering;
+            _model.Ordering = ordering;
 
             return base.VisitOrderBySpecial(context);
         }
@@ -743,7 +738,7 @@ namespace prefSQL.SQLParser
             orderByModel.start = context.start.StartIndex;
             orderByModel.stop = context.stop.StopIndex + 1;
             orderByModel.text = strSQL;
-            model.OrderBy.Add(orderByModel);
+            _model.OrderBy.Add(orderByModel);
             return base.VisitOrderbyCategory(context);
         }
 
@@ -788,9 +783,9 @@ namespace prefSQL.SQLParser
 
         public override PrefSQLModel VisitExprSampleSkyline(SQLParser.ExprSampleSkylineContext context)
         {
-            model.SkylineSampleCount = int.Parse(context.GetChild(4).GetText());
-            model.SkylineSampleDimension = int.Parse(context.GetChild(6).GetText());
-            model.HasSkylineSample = true;
+            _model.SkylineSampleCount = int.Parse(context.GetChild(4).GetText());
+            _model.SkylineSampleDimension = int.Parse(context.GetChild(6).GetText());
+            _model.HasSkylineSample = true;
             return base.VisitExprSampleSkyline(context);
         }
 

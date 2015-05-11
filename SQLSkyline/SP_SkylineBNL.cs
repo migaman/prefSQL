@@ -1,10 +1,7 @@
-using System;
+using System.Collections;
 using System.Data;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
-using System.Collections;
-using System.Collections.Generic;
-
 
 namespace prefSQL.SQLSkyline
 {
@@ -15,26 +12,26 @@ namespace prefSQL.SQLSkyline
         /// </summary>
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
-        [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineBNL")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
+        [SqlProcedure(Name = "SP_SkylineBNL")]
+        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
         {
             SP_SkylineBNL skyline = new SP_SkylineBNL();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.cnnStringSQLCLR, Helper.ProviderCLR);
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr);
         }
 
 
-        protected override void addtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult)
+        protected override void AddtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult)
         {
-            Helper.addToWindow(dataReader, operators, resultCollection, resultstringCollection, record, dtResult);
+            Helper.AddToWindow(dataReader, operators, resultCollection, resultstringCollection, record, dtResult);
         }
 
-        protected override bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i, int[] resultToTupleMapping)
+        protected override bool TupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i, int[] resultToTupleMapping)
         {
             long?[] result = (long?[])resultCollection[i];
             string[] strResult = (string[])resultstringCollection[i];
 
             //Dominanz
-            if (Helper.isTupleDominated(operators, result, strResult, dataReader) == true)
+            if (Helper.IsTupleDominated(operators, result, strResult, dataReader))
             {
                 //New point is dominated. No further testing necessary
                 return true;
@@ -43,7 +40,7 @@ namespace prefSQL.SQLSkyline
 
             //Now, check if the new point dominates the one in the window
             //This is only possible with not sorted data
-            if (Helper.doesTupleDominate(dataReader, operators, result, strResult) == true)
+            if (Helper.DoesTupleDominate(dataReader, operators, result, strResult))
             {
                 //The new record dominates the one in the windows. Remove point from window and test further
                 resultCollection.RemoveAt(i);

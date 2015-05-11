@@ -3,45 +3,44 @@
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Text;
+using Microsoft.SqlServer.Server;
 
 namespace prefSQL.SQLSkyline
 {
-    using Microsoft.SqlServer.Server;
-
     public class SkylineSQL : SkylineStrategy
     {
-        public override bool isNative()
+        public override bool IsNative()
         {
             return true;
         }
 
-        public override bool supportImplicitPreference()
+        public override bool SupportImplicitPreference()
         {
             return true;
         }
 
-        public override bool supportIncomparable()
+        public override bool SupportIncomparable()
         {
             return true;
         }
 
-        internal override DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        internal override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
             throw new NotImplementedException();
         }
 
-        public override string getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
+        public override string GetStoredProcedureCommand(string strSQLReturn, string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
         {
             //string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strSQLReturn);
-            strSQLReturn += strWHERE;
+            strSQLReturn += strWhere;
             strSQLReturn += strOrderBy;
             return strSQLReturn;
         }
-        public override DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        public override DataTable GetSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
             return null;
 

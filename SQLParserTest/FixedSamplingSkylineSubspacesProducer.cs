@@ -1,10 +1,9 @@
-﻿namespace prefSQL.SQLParserTest
-{
-    using System.Collections.Generic;
-    using System.Linq;
-    using prefSQL.SQLSkyline;
-    using prefSQL.SQLSkyline.SamplingSkyline;
+﻿using System.Collections.Generic;
+using System.Linq;
+using prefSQL.SQLSkyline.SamplingSkyline;
 
+namespace prefSQL.SQLParserTest
+{
     public sealed class FixedSamplingSkylineSubspacesProducer : ISamplingSkylineSubspacesProducer
     {
         private readonly HashSet<HashSet<int>> _fixedSubspaces;

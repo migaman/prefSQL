@@ -1,13 +1,9 @@
 using System;
-using System.Data;
-using System.Data.SqlTypes;
-using Microsoft.SqlServer.Server;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
-using System.Data.Common;
-
-
+using Microsoft.SqlServer.Server;
 
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace prefSQL.SQLSkyline
@@ -28,32 +24,32 @@ namespace prefSQL.SQLSkyline
     /// </remarks>
     public abstract class TemplateBNL : TemplateStrategy
     {
-        protected override DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords,
+        protected override DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords,
             bool isIndependent, string strConnection, string strProvider)
         {
-            string[] operators = strOperators.ToString().Split(';');
+            string[] operators = strOperators.Split(';');
             var dt = Helper.GetSkylineDataTable(strQuery, isIndependent, strConnection, strProvider);
             var listObjects = Helper.GetObjectArrayFromDataTable(dt);
             DataTable dtResult = new DataTable();
-            SqlDataRecord record = Helper.buildDataRecord(dt, operators, dtResult);
+            SqlDataRecord record = Helper.BuildDataRecord(dt, operators, dtResult);
 
-            return getSkylineTable(listObjects, dtResult, record, strOperators, numberOfRecords, isIndependent);
+            return GetSkylineTable(listObjects, dtResult, record, strOperators, numberOfRecords, isIndependent);
         }
 
-        public DataTable getSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators,
+        public DataTable GetSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators,
             int numberOfRecords, DataTable dataTableTemplate)
         {
-            return getSkylineTable(database, dataTableTemplate, dataRecordTemplate, operators, numberOfRecords, true);
+            return GetSkylineTable(database, dataTableTemplate, dataRecordTemplate, operators, numberOfRecords, true);
         }
 
-        protected override DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent)
+        protected override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent)
         {
             DataTable dataTableReturn = dataTableTemplate.Clone();
 
             Stopwatch sw = new Stopwatch();
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
-            string[] operatorsArray = operators.ToString().Split(';');
+            string[] operatorsArray = operators.Split(';');
             int[] resultToTupleMapping = Helper.ResultToTupleMapping(operatorsArray);
         
             try
@@ -69,7 +65,7 @@ namespace prefSQL.SQLSkyline
                     if (resultCollection.Count == 0)
                     {
                         // Build our SqlDataRecord and start the results 
-                        addtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
+                        AddtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
                     }
                     else
                     {
@@ -78,7 +74,7 @@ namespace prefSQL.SQLSkyline
                         //check if record is dominated (compare against the records in the window)
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
                         {
-                            if (tupleDomination(dbValuesObject, resultCollection, resultstringCollection, operatorsArray, dataTableReturn, i, resultToTupleMapping) == true)
+                            if (TupleDomination(dbValuesObject, resultCollection, resultstringCollection, operatorsArray, dataTableReturn, i, resultToTupleMapping))
                             {
                                 isDominated = true;
                                 break;
@@ -86,14 +82,14 @@ namespace prefSQL.SQLSkyline
                         }
                         if (isDominated == false)
                         {
-                            addtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
+                            AddtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
                         }
 
                     }
                 }
 
                 //Remove certain amount of rows if query contains TOP Keyword
-                Helper.getAmountOfTuples(dataTableReturn, numberOfRecords);
+                Helper.GetAmountOfTuples(dataTableReturn, numberOfRecords);
 
                 
                 //Sort ByRank
@@ -122,9 +118,9 @@ namespace prefSQL.SQLSkyline
                 string strError = "Fehler in SP_SkylineBNL: ";
                 strError += ex.Message;
 
-                if (isIndependent == true)
+                if (isIndependent)
                 {
-                    System.Diagnostics.Debug.WriteLine(strError);
+                    Debug.WriteLine(strError);
                 }
                 else
                 {
@@ -133,15 +129,15 @@ namespace prefSQL.SQLSkyline
             }
          
             sw.Stop();
-            timeInMs = sw.ElapsedMilliseconds;
+            TimeInMs = sw.ElapsedMilliseconds;
             return dataTableReturn;
         }
 
 
 
-        protected abstract bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i, int[] resultToTupleMapping);
+        protected abstract bool TupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i, int[] resultToTupleMapping);
 
-        protected abstract void addtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
+        protected abstract void AddtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
 
     }
 }

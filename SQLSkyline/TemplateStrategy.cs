@@ -1,27 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using Microsoft.SqlServer.Server;
-using System.Collections;
-
 
 namespace prefSQL.SQLSkyline
 {
-    using System.Collections.Generic;
-    using System.Data.Common;
-    using System.Diagnostics;
-    using System.Linq;
-
     public abstract class TemplateStrategy
     {
-        public long timeInMs = 0;
+        public long TimeInMs = 0;
 
-        public DataTable getSkylineTable(string strQuery, string strOperators, int numberOfRecords, string strConnection,
+        public DataTable GetSkylineTable(string strQuery, string strOperators, int numberOfRecords, string strConnection,
             string strProvider)
         {
-            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strProvider);
+            return GetSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strProvider);
         }
 
-        protected abstract DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider);
+        protected abstract DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider);
 
         /// <summary>
         /// TODO: comment
@@ -33,6 +27,6 @@ namespace prefSQL.SQLSkyline
         /// <param name="numberOfRecords"></param>
         /// <param name="isIndependent"></param>
         /// <returns></returns>
-        protected abstract DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent);
+        protected abstract DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent);
     }
 }

@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Antlr4.Runtime;
-using Antlr4.Runtime.Tree;
-using Antlr4.Runtime.Tree.Pattern;
-using prefSQL.SQLParser.Models;
-using System.Diagnostics;
 using System.Data;
+using Antlr4.Runtime;
+using prefSQL.SQLParser.Models;
 using prefSQL.SQLSkyline;
 
 namespace prefSQL.SQLParser
@@ -23,23 +16,18 @@ namespace prefSQL.SQLParser
     public class SQLCommon
     {
         private const string SkylineOf = "SKYLINE OF";
-        private SkylineStrategy _SkylineType = new SkylineSQL();    //Defines with which Algorithm the Skyline should be calculated
-        private bool _ShowSkylineAttributes = false;                //Defines if the skyline attributes should be added to the SELECT list
-        private int _SkylineUpToLevel = 3;                          //Defines the maximum level that should be returned for the multiple skyline algorithnmm
+        private SkylineStrategy _skylineType = new SkylineSQL();    //Defines with which Algorithm the Skyline should be calculated
+        private bool _showSkylineAttributes = false;                //Defines if the skyline attributes should be added to the SELECT list
+        private int _skylineUpToLevel = 3;                          //Defines the maximum level that should be returned for the multiple skyline algorithnmm
         private readonly Helper _helper = new Helper();
-        private long _timeInMilliseconds = 0;
 
         public long Cardinality {get; set;}
 
         internal Helper Helper {
             get { return _helper;} 
         }
-        public long TimeInMilliseconds
-        {
-            get { return _timeInMilliseconds; }
-            set { _timeInMilliseconds = value; }
-        }
-        
+        public long TimeInMilliseconds { get; set; }
+
 
         /*
         public enum Algorithm
@@ -63,20 +51,20 @@ namespace prefSQL.SQLParser
 
         public bool ShowSkylineAttributes
         {
-            get { return _ShowSkylineAttributes; }
-            set { _ShowSkylineAttributes = value; }
+            get { return _showSkylineAttributes; }
+            set { _showSkylineAttributes = value; }
         }
 
         public SkylineStrategy SkylineType
         {
-            get { return _SkylineType; }
-            set { _SkylineType = value; }
+            get { return _skylineType; }
+            set { _skylineType = value; }
         }
 
         public int SkylineUpToLevel
         {
-            get { return _SkylineUpToLevel; }
-            set { _SkylineUpToLevel = value; }
+            get { return _skylineUpToLevel; }
+            set { _skylineUpToLevel = value; }
         }
 
         /// <summary>
@@ -85,21 +73,19 @@ namespace prefSQL.SQLParser
         /// <param name="connectionString"></param>
         /// <param name="driverString"></param>
         /// <param name="strPrefSql"></param>
-        /// <param name="algorithm"></param>
-        /// <param name="upToLevel"></param>
         /// <returns>Returns a DataTable with the requested values</returns>
-        public DataTable parseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSql)
+        public DataTable ParseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSql)
         {
-            return parseAndExecutePrefSQL(connectionString, driverString, GetPrefSqlModelFromPreferenceSql(strPrefSql));
+            return ParseAndExecutePrefSQL(connectionString, driverString, GetPrefSqlModelFromPreferenceSql(strPrefSql));
         }
 
-        internal DataTable parseAndExecutePrefSQL(string connectionString, string driverString, PrefSQLModel prefSqlModel)
+        internal DataTable ParseAndExecutePrefSQL(string connectionString, string driverString, PrefSQLModel prefSqlModel)
         {
             Helper.ConnectionString = connectionString;
             Helper.DriverString = driverString;
             Helper.Cardinality = Cardinality;
-            DataTable dt = Helper.getResults(parsePreferenceSQL(prefSqlModel), SkylineType, prefSqlModel);
-            TimeInMilliseconds = Helper.timeInMilliseconds;
+            DataTable dt = Helper.GetResults(ParsePreferenceSQL(prefSqlModel), SkylineType, prefSqlModel);
+            TimeInMilliseconds = Helper.TimeInMilliseconds;
 
             return dt;
         }
@@ -107,20 +93,19 @@ namespace prefSQL.SQLParser
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
         /// <param name="strInput">Preference SQL Statement</param>
         /// <returns>Return the ANSI SQL Statement</returns>
-        public string parsePreferenceSQL(string strInput)
+        public string ParsePreferenceSQL(string strInput)
         {
-            return parsePreferenceSQL(strInput, null);
+            return ParsePreferenceSQL(strInput, null);
         }
 
-        internal string parsePreferenceSQL(PrefSQLModel prefSQL)
+        internal string ParsePreferenceSQL(PrefSQLModel prefSQL)
         {
-            return parsePreferenceSQL(prefSQL.OriginalPreferenceSql, prefSQL);
+            return ParsePreferenceSQL(prefSQL.OriginalPreferenceSql, prefSQL);
         }
 
         /// <summary>Parses a PREFERENE SQL Statement in an ANSI SQL Statement</summary>
-        /// <param name="prefSqlModel"></param>
         /// <returns>Return the ANSI SQL Statement</returns>
-        internal string parsePreferenceSQL(string strInput, PrefSQLModel prefSQLParam)
+        internal string ParsePreferenceSQL(string strInput, PrefSQLModel prefSQLParam)
         {
             var sqlSort = new SQLSort();
             var sqlCriterion = new SQLCriterion();
@@ -138,23 +123,23 @@ namespace prefSQL.SQLParser
                         //withIncomparable = prefSQL.WithIncomparable;
 
                         //Add all Syntax before the Skyline-Clause
-                        strSQLReturn = strInput.Substring(0, strInput.IndexOf(SkylineOf) - 1).TrimStart(' ');;
+                        strSQLReturn = strInput.Substring(0, strInput.IndexOf(SkylineOf, StringComparison.Ordinal) - 1).TrimStart(' ');
 
                         //Add Skyline Attributes to select list. This option is i.e. useful to create a dominance graph.
                         //With help of the skyline values it is easier to create this graph
-                        if (_ShowSkylineAttributes == true)
+                        if (_showSkylineAttributes)
                         {
                             //Add the attributes to the existing SELECT clause
                             string strSQLSelectClause = getSelectClauseForSkylineAttributes(prefSQL);
-                            string strSQLBeforeFrom = strSQLReturn.Substring(0, strSQLReturn.IndexOf("FROM"));
-                            string strSQLAfterFromShow = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM"));
+                            string strSQLBeforeFrom = strSQLReturn.Substring(0, strSQLReturn.IndexOf("FROM", StringComparison.Ordinal));
+                            string strSQLAfterFromShow = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM", StringComparison.Ordinal));
                             strSQLReturn = strSQLBeforeFrom + strSQLSelectClause + " " + strSQLAfterFromShow;
 
                         }
 
                         //Add ORDER BY Clause
                         string strOrderBy = "";
-                        if (strInput.IndexOf("ORDER BY") > 0)
+                        if (strInput.IndexOf("ORDER BY", StringComparison.Ordinal) > 0)
                         {
                             if (prefSQL.Ordering == Ordering.AsIs)
                             {
@@ -168,18 +153,18 @@ namespace prefSQL.SQLParser
                                     strTmpInput = strTmpInput.Substring(0, model.start) + model.text + strTmpInput.Substring(model.stop);
                                 }
 
-                                strOrderBy = strTmpInput.Substring(strInput.IndexOf("ORDER BY"));
+                                strOrderBy = strTmpInput.Substring(strInput.IndexOf("ORDER BY", StringComparison.Ordinal));
                             }
                             else
                             {
-                                strOrderBy = sqlSort.getSortClause(prefSQL, prefSQL.Ordering); // sqlSort.getSortClause(prefSQL, _OrderType);
+                                strOrderBy = sqlSort.GetSortClause(prefSQL, prefSQL.Ordering); // sqlSort.getSortClause(prefSQL, _OrderType);
                             }
                         }
 
 
                         ////////////////////////////////////////////
                         //attributes used for native sql algorithm
-                        string strWHERE = sqlCriterion.getCriterionClause(prefSQL, strSQLReturn);
+                        string strWhere = sqlCriterion.GetCriterionClause(prefSQL, strSQLReturn);
 
                         ////////////////////////////////////////////
                         //attributes used for other algorithms
@@ -188,22 +173,22 @@ namespace prefSQL.SQLParser
                         //Without SELECT 
 
                         //Remove TOP keyword, expect for the native SQL algorithm
-                        if (prefSQL.NumberOfRecords != 0 && SkylineType.isNative() == false)
+                        if (prefSQL.NumberOfRecords != 0 && SkylineType.IsNative() == false)
                         {
                             //Remove Top Keyword in inner clause
-                            int iPosTop = strSQLReturn.IndexOf("TOP");
-                            int iPosTopEnd = strSQLReturn.Substring(iPosTop + 3).TrimStart().IndexOf(" ");
-                            string strSQLAfterTOP = strSQLReturn.Substring(iPosTop + 3).TrimStart();
-                            strSQLReturn = strSQLReturn.Substring(0, iPosTop) + strSQLAfterTOP.Substring(iPosTopEnd + 1);
+                            int iPosTop = strSQLReturn.IndexOf("TOP", StringComparison.Ordinal);
+                            int iPosTopEnd = strSQLReturn.Substring(iPosTop + 3).TrimStart().IndexOf(" ", StringComparison.Ordinal);
+                            string strSQLAfterTop = strSQLReturn.Substring(iPosTop + 3).TrimStart();
+                            strSQLReturn = strSQLReturn.Substring(0, iPosTop) + strSQLAfterTop.Substring(iPosTopEnd + 1);
                         }
 
 
-                        string strAttributesOutput = ", " + strSQLReturn.Substring(7, strSQLReturn.IndexOf("FROM") - 7);
-                        string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM"));
+                        string strAttributesOutput = ", " + strSQLReturn.Substring(7, strSQLReturn.IndexOf("FROM", StringComparison.Ordinal) - 7);
+                        string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM", StringComparison.Ordinal));
 
                         string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
 
-                        string strOrderByAttributes = sqlSort.getSortClause(prefSQL, SQLCommon.Ordering.AttributePosition);
+                        string strOrderByAttributes = sqlSort.GetSortClause(prefSQL, Ordering.AttributePosition);
 
 
                         ////////////////////////////////////////////
@@ -211,7 +196,7 @@ namespace prefSQL.SQLParser
                         string[] additionalParameters = new string[4];
 
                         string strOperatorsHexagon = "";
-                        string strAttributesSkylineHexagon = buildSELECTHexagon(prefSQL, strSQLReturn, ref strOperatorsHexagon);
+                        string strAttributesSkylineHexagon = BuildSelectHexagon(prefSQL, strSQLReturn, ref strOperatorsHexagon);
                         //Without SELECT 
 
 
@@ -222,7 +207,7 @@ namespace prefSQL.SQLParser
                         //Quote quotes because it is a parameter of the stored procedure
                         //string strSelectDistinctIncomparable = "";
                         int weightHexagonIncomparable = 0;
-                        string strSelectDistinctIncomparable = buildIncomparableHexagon(prefSQL, strSQLReturn, ref weightHexagonIncomparable);
+                        string strSelectDistinctIncomparable = BuildIncomparableHexagon(prefSQL, strSQLReturn, ref weightHexagonIncomparable);
                         strSelectDistinctIncomparable = strSelectDistinctIncomparable.Replace("'", "''");
 
                         additionalParameters[0] = strFirstSQLHexagon;
@@ -233,20 +218,20 @@ namespace prefSQL.SQLParser
 
 
                         //Now create the query depending on the Skyline algorithm
-                        strSQLReturn = _SkylineType.getStoredProcedureCommand(strSQLReturn, strWHERE, strOrderBy, prefSQL.NumberOfRecords, strFirstSQL, strOperators, _SkylineUpToLevel, prefSQL.WithIncomparable, strOrderByAttributes, additionalParameters);
+                        strSQLReturn = _skylineType.GetStoredProcedureCommand(strSQLReturn, strWhere, strOrderBy, prefSQL.NumberOfRecords, strFirstSQL, strOperators, _skylineUpToLevel, prefSQL.WithIncomparable, strOrderByAttributes, additionalParameters);
 
                         
                     }
                     if(prefSQL.Ranking.Count > 0)
                     {
-                        if(prefSQL.ContainsOpenPreference == true)
+                        if(prefSQL.ContainsOpenPreference)
                         {
                             throw new Exception("WeightedSum cannot handle implicit INCOMPARABLE values. Please add the explicit OTHERS EQUAL to the preference");
                         }
 
 
                         //Add all Syntax before the RANKING OF-Clause
-                        strSQLReturn = strInput.Substring(0, strInput.IndexOf("RANKING OF") - 1);
+                        strSQLReturn = strInput.Substring(0, strInput.IndexOf("RANKING OF", StringComparison.Ordinal) - 1);
 
 
                         //Create  ORDER BY clause with help of the ranking model
@@ -255,17 +240,15 @@ namespace prefSQL.SQLParser
                         foreach (RankingModel model in prefSQL.Ranking)
                         {
                             //Read min and max value of the preference
-                            DataTable dt = _helper.executeStatement(model.SelectExtrema);
-                            double min = 0;
-                            double max = 0;
-                            string strMin = "";
-                            string strDividor = "";
+                            DataTable dt = _helper.ExecuteStatement(model.SelectExtrema);
+                            string strMin;
+                            string strDividor;
 
                             //Do correct unboxing from datatable
                             if(dt.Columns[0].DataType == typeof(Int32))
                             {
-                                min = (int)dt.Rows[0][0];
-                                max = (int)dt.Rows[0][1];
+                                double min = (int)dt.Rows[0][0];
+                                double max = (int)dt.Rows[0][1];
                                 
                                 //Write at least one decimal (in order SQL detects the number as double. Otherwise the result will be int values!!)
                                 strMin = string.Format("{0:0.0###########}", min);
@@ -284,7 +267,7 @@ namespace prefSQL.SQLParser
                             
 
                             //Mathematical addition except for the first element
-                            if (bFirst == true)
+                            if (bFirst)
                             {
                                 bFirst = false;
                                 strOrderBy += strNormalization;
@@ -326,7 +309,7 @@ namespace prefSQL.SQLParser
         /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
         /// <param name="strOperators">Returns the operators</param>
         /// <returns>TODO</returns>
-        private string buildSELECTHexagon(PrefSQLModel model, string strPreSQL, ref string strOperators)
+        private string BuildSelectHexagon(PrefSQLModel model, string strPreSQL, ref string strOperators)
         {
             strOperators = "";
             string strSQL = "";
@@ -364,13 +347,11 @@ namespace prefSQL.SQLParser
         }
 
 
-
         /// <summary>TODO</summary>
         /// <param name="model">model of parsed Preference SQL Statement</param>
         /// <param name="strPreSQL">Preference SQL Statement WITHOUT PREFERENCES</param>
-        /// <param name="strOperators">Returns the operators</param>
         /// <returns>TODO</returns>
-        private string buildIncomparableHexagon(PrefSQLModel model, string strPreSQL, ref int weight)
+        private string BuildIncomparableHexagon(PrefSQLModel model, string strPreSQL, ref int weight)
         {
             string strDistinctSelect = "";
 
@@ -475,7 +456,7 @@ namespace prefSQL.SQLParser
             var tree = parser.parse();
 
             // PrefSQLModel is built during the visit of the parse tree
-            var visitor = new SQLVisitor {IsNative = _SkylineType.isNative()};
+            var visitor = new SQLVisitor {IsNative = _skylineType.IsNative()};
             visitor.Visit(tree);
             var prefSql = visitor.Model;
             if (prefSql != null)
@@ -488,12 +469,12 @@ namespace prefSQL.SQLParser
 
         internal string GetAnsiSqlFromPrefSqlModel(PrefSQLModel prefSqlModel)
         {
-            return parsePreferenceSQL(prefSqlModel.OriginalPreferenceSql, prefSqlModel);
+            return ParsePreferenceSQL(prefSqlModel.OriginalPreferenceSql, prefSqlModel);
         }
 
         internal DataTable ExecuteFromPrefSqlModel(string dbConnection, string dbProvider, PrefSQLModel prefSqlModel)
         {
-            return parseAndExecutePrefSQL(dbConnection, dbProvider, prefSqlModel);
+            return ParseAndExecutePrefSQL(dbConnection, dbProvider, prefSqlModel);
         }
     }
 }

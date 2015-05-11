@@ -1,19 +1,9 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using prefSQL.SQLSkyline;
-using System.Data;
-using prefSQL.SQLParser;
-
-namespace prefSQL.SQLParserTest
+﻿namespace prefSQL.SQLParserTest
 {
     class SQLParserRankingTest
     {
 
-        private string[] getPreferences()
+        private string[] GetPreferences()
         {
             string[] strPrefSQL = new string[13];
 

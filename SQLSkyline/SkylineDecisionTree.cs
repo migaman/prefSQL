@@ -15,29 +15,29 @@ namespace prefSQL.SQLSkyline
     public class SkylineDecisionTree : SkylineStrategy
     {
 
-        internal override DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        internal override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
             throw new NotImplementedException();
         }
 
-        public override bool isNative()
+        public override bool IsNative()
         {
             return false;
         }
 
-        public override bool supportImplicitPreference()
+        public override bool SupportImplicitPreference()
         {
             return true;
         }
 
-        public override bool supportIncomparable()
+        public override bool SupportIncomparable()
         {
             return true;
         }
 
 
 
-        public override string getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
+        public override string GetStoredProcedureCommand(string strSQLReturn, string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
         {
             strFirstSQL += strOrderByAttributes;
             //Quote quotes because it is a parameter of the stored procedure
@@ -55,13 +55,13 @@ namespace prefSQL.SQLSkyline
 
         }
 
-        public override DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        public override DataTable GetSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
             //Calculate cardinality
             long thresholdCardinality = 1000;
 
             TemplateStrategy strategy = null;
-            if (cardinality <= thresholdCardinality)
+            if (Cardinality <= thresholdCardinality)
             {
                 strategy = new SP_SkylineDQ();
             }
@@ -71,8 +71,8 @@ namespace prefSQL.SQLSkyline
             }
 
             //var skyline = getSP_Skyline(hasIncomparable);
-            DataTable dt = strategy.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
-            timeMilliseconds = strategy.timeInMs;
+            DataTable dt = strategy.GetSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
+            TimeMilliseconds = strategy.TimeInMs;
             return dt;
         }
 

@@ -38,19 +38,19 @@
 
             var sw = new Stopwatch();
             sw.Start();
-            var entireSkyline = subjectUnderTest.getResults(
+            var entireSkyline = subjectUnderTest.GetResults(
                 common.GetAnsiSqlFromPrefSqlModel(prefSqlModelEntireSkyline), common.SkylineType,
                 prefSqlModelEntireSkyline);
             sw.Stop();
             Debug.WriteLine("ORIG ElapsedMilliseconds={0}", sw.ElapsedMilliseconds);
-            Debug.WriteLine("ORIG Algorithm ElapsedMilliseconds={0}", subjectUnderTest.timeInMilliseconds);
+            Debug.WriteLine("ORIG Algorithm ElapsedMilliseconds={0}", subjectUnderTest.TimeInMilliseconds);
             sw.Restart();
-            var sampleSkyline = subjectUnderTest.getResults(
+            var sampleSkyline = subjectUnderTest.GetResults(
                 common.GetAnsiSqlFromPrefSqlModel(prefSqlModelSkylineSample), common.SkylineType,
                 prefSqlModelSkylineSample);
             sw.Stop();
             Debug.WriteLine("SMPL ElapsedMilliseconds={0}", sw.ElapsedMilliseconds);
-            Debug.WriteLine("SMPL Algorithm ElapsedMilliseconds={0}", subjectUnderTest.timeInMilliseconds);
+            Debug.WriteLine("SMPL Algorithm ElapsedMilliseconds={0}", subjectUnderTest.TimeInMilliseconds);
 
             var entireSkylineObjectsIds = GetHashSetOfIdsFromDataTable(entireSkyline);
             var sampleSkylineObjectsIds = GetHashSetOfIdsFromDataTable(sampleSkyline);
@@ -93,10 +93,10 @@
                 DriverString = Helper.ProviderName
             };
 
-            var entireSkyline = subjectUnderTest.getResults(
+            var entireSkyline = subjectUnderTest.GetResults(
                 common.GetAnsiSqlFromPrefSqlModel(prefSqlModelEntireSkyline), common.SkylineType,
                 prefSqlModelEntireSkyline);
-            var sampleSkyline = subjectUnderTest.getResults(
+            var sampleSkyline = subjectUnderTest.GetResults(
                 common.GetAnsiSqlFromPrefSqlModel(prefSqlModelSkylineSample), common.SkylineType,
                 prefSqlModelSkylineSample);
 

@@ -47,7 +47,7 @@ namespace Utility
                         strIDs = "WHERE t1.id NOT IN (" + strIDs.TrimEnd(',') + ")";
                     }
                     //Parse PreferenceSQL into SQL
-                    sqlNative = common.parsePreferenceSQL(strSQL + strIDs + strPreference);
+                    sqlNative = common.ParsePreferenceSQL(strSQL + strIDs + strPreference);
 
                     //Execute SQL
                     DbCommand command = cnnSQL.CreateCommand();

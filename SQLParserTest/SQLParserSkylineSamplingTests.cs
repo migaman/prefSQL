@@ -3,8 +3,8 @@
     using System;
     using System.Diagnostics;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using prefSQL.SQLParser;
-    using prefSQL.SQLSkyline;
+    using SQLParser;
+    using SQLSkyline;
 
     [TestClass]
     public class SQLParserSkylineSamplingTests
@@ -26,7 +26,7 @@
 
             try
             {
-                common.parsePreferenceSQL(skylineSampleSQL);
+                common.ParsePreferenceSQL(skylineSampleSQL);
             }
             catch (Exception exception)
             {
@@ -47,8 +47,8 @@
             Debug.WriteLine(skylineSampleSQL);
 
             var common = new SQLCommon {SkylineType = new SkylineSQL()};
-            
-            var parsedSql = common.parsePreferenceSQL(skylineSampleSQL);
+
+            var parsedSql = common.ParsePreferenceSQL(skylineSampleSQL);
             var parsedSqlExpected = TestContext.DataRow["parsePreferenceSQLSkylineSQLExpectedResult"].ToString();
 
             Assert.AreEqual(parsedSqlExpected.Trim(), parsedSql.Trim(), "SQL not built correctly");
@@ -67,7 +67,7 @@
 
             var common = new SQLCommon {SkylineType = new SkylineBNL()};
 
-            var parsedSql = common.parsePreferenceSQL(skylineSampleSQL);
+            var parsedSql = common.ParsePreferenceSQL(skylineSampleSQL);
             var parsedSqlExpected = TestContext.DataRow["parsePreferenceSQLSkylineBNLExpectedResult"].ToString();
 
             Assert.AreEqual(parsedSqlExpected.Trim(), parsedSql.Trim(), "SQL not built correctly");
@@ -86,7 +86,7 @@
 
             var common = new SQLCommon {SkylineType = new SkylineBNLSort()};
 
-            var parsedSql = common.parsePreferenceSQL(skylineSampleSQL);
+            var parsedSql = common.ParsePreferenceSQL(skylineSampleSQL);
             var parsedSqlExpected = TestContext.DataRow["parsePreferenceSQLSkylineBNLSortExpectedResult"].ToString();
 
             Assert.AreEqual(parsedSqlExpected.Trim(), parsedSql.Trim(), "SQL not built correctly");
@@ -105,7 +105,7 @@
 
             var common = new SQLCommon {SkylineType = new SkylineDQ()};
 
-            var parsedSql = common.parsePreferenceSQL(skylineSampleSQL);
+            var parsedSql = common.ParsePreferenceSQL(skylineSampleSQL);
             var parsedSqlExpected = TestContext.DataRow["parsePreferenceSQLSkylineDQExpectedResult"].ToString();
 
             Assert.AreEqual(parsedSqlExpected.Trim(), parsedSql.Trim(), "SQL not built correctly");
@@ -124,7 +124,7 @@
 
             var common = new SQLCommon {SkylineType = new MultipleSkylineBNL()};
 
-            var parsedSql = common.parsePreferenceSQL(skylineSampleSQL);
+            var parsedSql = common.ParsePreferenceSQL(skylineSampleSQL);
             var parsedSqlExpected = TestContext.DataRow["parsePreferenceSQLMultipleSkylineBNLExpectedResult"].ToString();
 
             Assert.AreEqual(parsedSqlExpected.Trim(), parsedSql.Trim(), "SQL not built correctly");
@@ -143,7 +143,7 @@
 
             var common = new SQLCommon {SkylineType = new SkylineHexagon()};
 
-            var parsedSql = common.parsePreferenceSQL(skylineSampleSQL);
+            var parsedSql = common.ParsePreferenceSQL(skylineSampleSQL);
             var parsedSqlExpected = TestContext.DataRow["parsePreferenceSQLSkylineHexagonExpectedResult"].ToString();
 
             Assert.AreEqual(parsedSqlExpected.Trim(), parsedSql.Trim(), "SQL not built correctly");
@@ -164,7 +164,7 @@
 
             try
             {
-                common.parsePreferenceSQL(skylineSampleSQL);
+                common.ParsePreferenceSQL(skylineSampleSQL);
             }
             catch (Exception)
             {

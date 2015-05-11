@@ -31,7 +31,7 @@
                 ShowSkylineAttributes = true
             };
 
-            var entireSkylineDataTable = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+            var entireSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
                 EntireSkylineSampleSql);
             //Console.WriteLine("time entire: " + common.TimeInMilliseconds);
             //Console.WriteLine("count entire: " + entireSkylineDataTable.Rows.Count);
@@ -42,7 +42,7 @@
 
             for (var i = 0; i < 10; i++)
             {
-                var sampleSkylineDataTable = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                var sampleSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
                     SkylineSampleSql);
                 //Console.WriteLine("time sample: " + common.TimeInMilliseconds);
                 //Console.WriteLine("count sample: " + sampleSkylineDataTable.Rows.Count);

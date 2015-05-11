@@ -37,7 +37,7 @@ namespace Utility
         long iTotalComparisions = 0;
 
 
-        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider)
+        public DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -75,11 +75,11 @@ namespace Utility
 
 
 
-            return getSkylineTable(listObjects, record, strOperators, numberOfRecords, isIndependent, dtResult);
+            return GetSkylineTable(listObjects, record, strOperators, numberOfRecords, isIndependent, dtResult);
         }
 
 
-        private DataTable getSkylineTable(List<object[]> listObjects, SqlDataRecord record, string strOperators, int numberOfRecords, bool isIndependent, DataTable dtResult)
+        private DataTable GetSkylineTable(List<object[]> listObjects, SqlDataRecord record, string strOperators, int numberOfRecords, bool isIndependent, DataTable dtResult)
         {
             Stopwatch sw = new Stopwatch();
             //ArrayList resultCollection = new ArrayList();

@@ -285,7 +285,7 @@ namespace Utility
         {
             //Open DBConnection --> Otherwise first query is slower as usual, because DBConnection is not open
             SQLCommon parser = new SQLCommon();
-            DataTable dt = parser.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, "SELECT cars.id FROM cars SKYLINE OF cars.price LOW");
+            DataTable dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, "SELECT cars.id FROM cars SKYLINE OF cars.price LOW");
 
             //Use the correct line, depending on how incomparable items should be compared
             ArrayList listPreferences = new ArrayList();
@@ -648,7 +648,7 @@ namespace Utility
                                     sw.Start();
                                     if (useCLR == true)
                                     {
-                                        string strSP = parser.parsePreferenceSQL(strSQL);
+                                        string strSP = parser.ParsePreferenceSQL(strSQL);
                                         SqlDataAdapter dap = new SqlDataAdapter(strSP, cnnSQL);
                                         dt.Clear(); //clear datatable
                                         dap.Fill(dt);
@@ -656,7 +656,7 @@ namespace Utility
                                     else
                                     {
                                         parser.Cardinality = (long)cardinality;
-                                        dt = parser.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strSQL);
+                                        dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strSQL);
                                     }
                                     long timeAlgorithm = parser.TimeInMilliseconds;
                                     sw.Stop();
@@ -694,7 +694,7 @@ namespace Utility
                         {
 
 
-                            strSQL = parser.parsePreferenceSQL(strSQL);
+                            strSQL = parser.ParsePreferenceSQL(strSQL);
 
                             string[] sizes = { "small", "medium", "large", "superlarge" };
 

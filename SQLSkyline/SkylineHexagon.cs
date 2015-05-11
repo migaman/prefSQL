@@ -3,40 +3,37 @@
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.SqlServer.Server;
 
 namespace prefSQL.SQLSkyline
 {
-    using Microsoft.SqlServer.Server;
-
     public class SkylineHexagon : SkylineStrategy
     {
-        public override bool isNative()
+        public override bool IsNative()
         {
             return false;
         }
 
-        public override bool supportImplicitPreference()
+        public override bool SupportImplicitPreference()
         {
             return false;
         }
 
-        public override bool supportIncomparable()
+        public override bool SupportIncomparable()
         {
             return true;
         }
-      
-        internal override DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+
+        internal override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
             throw new NotImplementedException();
         }
 
-        public override string getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
+        public override string GetStoredProcedureCommand(string strSQLReturn, string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
         {
 
             strFirstSQL = additionalParameters[0];
@@ -44,7 +41,7 @@ namespace prefSQL.SQLSkyline
             string strSelectDistinctIncomparable = additionalParameters[2];
             int weightHexagonIncomparable = int.Parse(additionalParameters[3]);
 
-            if (hasIncomparable == true)
+            if (hasIncomparable)
             {
                 strSQLReturn = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords + ", '" + strSelectDistinctIncomparable + "'," + weightHexagonIncomparable;
             }
@@ -54,23 +51,23 @@ namespace prefSQL.SQLSkyline
             }
             return strSQLReturn;
         }
-        public override DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        public override DataTable GetSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
-            DataTable dt = null;
-            if (hasIncomparable == true)
+            DataTable dt;
+            if (hasIncomparable)
             {
                 //Hexagon incomparable needs additional parameters
                 String strHexagonSelectIncomparable = additionalParameters[3].Trim().Replace("''", "'").Trim('\'');
                 int weightHexagonIncomparable = int.Parse(additionalParameters[4].Trim());
-                prefSQL.SQLSkyline.SP_SkylineHexagon skyline = new SQLSkyline.SP_SkylineHexagon();
-                dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider, strHexagonSelectIncomparable, weightHexagonIncomparable);
-                timeMilliseconds = skyline.timeInMs;
+                SP_SkylineHexagon skyline = new SP_SkylineHexagon();
+                dt = skyline.GetSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider, strHexagonSelectIncomparable, weightHexagonIncomparable);
+                TimeMilliseconds = skyline.TimeInMs;
             }
             else
             {
-                prefSQL.SQLSkyline.SP_SkylineHexagonLevel skyline = new SQLSkyline.SP_SkylineHexagonLevel();
-                dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider, "", 0);
-                timeMilliseconds = skyline.timeInMs;
+                SP_SkylineHexagonLevel skyline = new SP_SkylineHexagonLevel();
+                dt = skyline.GetSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider, "", 0);
+                TimeMilliseconds = skyline.TimeInMs;
             }
             return dt;
         }

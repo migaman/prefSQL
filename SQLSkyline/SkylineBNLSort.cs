@@ -16,27 +16,27 @@ namespace prefSQL.SQLSkyline
     {
         
 
-        public override bool isNative()
+        public override bool IsNative()
         {
             return false;
         }
 
-        public override bool supportImplicitPreference()
+        public override bool SupportImplicitPreference()
         {
             return true;
         }
 
-        public override bool supportIncomparable()
+        public override bool SupportIncomparable()
         {
             return true;
         }
 
-        internal override DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        internal override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
             throw new NotImplementedException();
         }
 
-        public override string getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
+        public override string GetStoredProcedureCommand(string strSQLReturn, string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
         {
             strFirstSQL += strOrderByAttributes;
             //Quote quotes because it is a parameter of the stored procedure
@@ -54,11 +54,11 @@ namespace prefSQL.SQLSkyline
             
         }
 
-        public override DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        public override DataTable GetSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
             var skyline = getSP_Skyline(hasIncomparable);
-            DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
-            timeMilliseconds = skyline.timeInMs;
+            DataTable dt = skyline.GetSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
+            TimeMilliseconds = skyline.TimeInMs;
             return dt;         
         }
 
