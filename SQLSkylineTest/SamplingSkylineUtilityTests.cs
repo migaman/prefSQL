@@ -1,30 +1,36 @@
-﻿namespace SQLSkylineTest
+﻿namespace prefSQL.SQLSkylineTest
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using prefSQL.SQLSkyline;
+    using prefSQL.SQLSkyline.SamplingSkyline;
 
     [TestClass]
-    public class SkylineSampleUtilityTests
+    public class SamplingSkylineUtilityTests
     {
         public TestContext TestContext { get; set; }
 
         [TestMethod]
-        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SkylineSampleUtilityTests.xml", "TestDataRow",
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SamplingSkylineUtilityTests.xml", "TestDataRow",
             DataAccessMethod.Sequential),
-         DeploymentItem("SkylineSampleUtilityTests.xml")]
+         DeploymentItem("SamplingSkylineUtilityTests.xml")]
         public void TestProducedSubspaces()
         {
             var testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
 
             var attributesCount = int.Parse(TestContext.DataRow["attributesCount"].ToString());
-            var sampleCount = int.Parse(TestContext.DataRow["sampleCount"].ToString());
-            var sampleDimension = int.Parse(TestContext.DataRow["sampleDimension"].ToString());
+            var subspacesCount = int.Parse(TestContext.DataRow["subspacesCount"].ToString());
+            var subspaceDimension = int.Parse(TestContext.DataRow["subspaceDimension"].ToString());
 
-            var subjectUnderTest = new SkylineSampleUtility(attributesCount, sampleCount, sampleDimension);
+            var subjectUnderTest = new SamplingSkylineUtility
+            {
+                AllPreferencesCount = attributesCount,
+                SubspacesCount = subspacesCount,
+                SubspaceDimension = subspaceDimension
+            };
 
             var preferencesInProducedSubspaces = subjectUnderTest.Subspaces;
             var preferencesInExpectedSubspaces = ExpectedSubspaces();
@@ -71,9 +77,9 @@
         }
 
         [TestMethod]
-        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SkylineSampleUtilityTests_Incorrect.xml",
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SamplingSkylineUtilityTests_Incorrect.xml",
             "TestDataRow", DataAccessMethod.Sequential),
-         DeploymentItem("SkylineSampleUtilityTests_Incorrect.xml")]
+         DeploymentItem("SamplingSkylineUtilityTests_Incorrect.xml")]
         public void TestIncorrectSubspaceQueries()
         {
             var hasExceptionBeenRaised = false;
@@ -82,10 +88,15 @@
             Debug.WriteLine(testComment);
 
             var attributesCount = int.Parse(TestContext.DataRow["attributesCount"].ToString());
-            var sampleCount = int.Parse(TestContext.DataRow["sampleCount"].ToString());
-            var sampleDimension = int.Parse(TestContext.DataRow["sampleDimension"].ToString());
+            var subspacesCount = int.Parse(TestContext.DataRow["subspacesCount"].ToString());
+            var subspaceDimension = int.Parse(TestContext.DataRow["subspaceDimension"].ToString());
 
-            var subjectUnderTest = new SkylineSampleUtility(attributesCount, sampleCount, sampleDimension);
+            var subjectUnderTest = new SamplingSkylineUtility
+            {
+                AllPreferencesCount = attributesCount,
+                SubspacesCount = subspacesCount,
+                SubspaceDimension = subspaceDimension
+            };
 
             try
             {
@@ -101,6 +112,47 @@
             {
                 Assert.Fail("Syntactically incorrect SQL Query should have thrown an Exception.");
             }
+        }
+
+        [TestMethod]
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
+            "SamplingSkylineUtilityTests_BinomialCoefficient.xml", "TestDataRow", DataAccessMethod.Sequential),
+         DeploymentItem("SamplingSkylineUtilityTests_BinomialCoefficient.xml")]
+        public void TestBinomialCoefficient()
+        {
+            int n = int.Parse(TestContext.DataRow["n"].ToString());
+            int[] coefficients = TestContext.DataRow["coefficients"].ToString().Split(',').Select(int.Parse).ToArray();
+
+            for (var k = 0; k <= n; k++)
+            {
+                int expected = coefficients[k];
+                int actual = SamplingSkylineUtility.BinomialCoefficient(n, k);
+                Assert.AreEqual(expected, actual);
+            }
+        }
+
+        [TestMethod]
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
+            "SamplingSkylineUtilityTests_BinomialCoefficient.xml", "TestDataRow", DataAccessMethod.Sequential),
+         DeploymentItem("SamplingSkylineUtilityTests_BinomialCoefficient.xml")]
+        public void TestOutsideOfValidIntervalParametersForBinomialCoefficient()
+        {
+            int n = int.Parse(TestContext.DataRow["n"].ToString());
+            int[] coefficients = TestContext.DataRow["coefficients"].ToString().Split(',').Select(int.Parse).ToArray();
+
+            const int expected = 0;
+
+            int actual = SamplingSkylineUtility.BinomialCoefficient(n, -1);
+            Assert.AreEqual(expected, actual);
+
+            actual = SamplingSkylineUtility.BinomialCoefficient(n, -2);
+            Assert.AreEqual(expected, actual);
+
+            actual = SamplingSkylineUtility.BinomialCoefficient(n, n + 1);
+            Assert.AreEqual(expected, actual);
+
+            actual = SamplingSkylineUtility.BinomialCoefficient(n, n + 2);
+            Assert.AreEqual(expected, actual);
         }
     }
 }
