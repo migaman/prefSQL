@@ -49,18 +49,19 @@ namespace prefSQL.SQLSkyline
         public override DataTable GetSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
             TemplateBNL skyline = getSP_Skyline(hasIncomparable);
-            DataTable dt = skyline.GetSkylineTableIndependent(strQuery, strOperators, numberOfRecords, strConnection, Provider, additionalParameters);
+            DataTable dt = skyline.GetSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, Provider, additionalParameters);
             TimeMilliseconds = skyline.TimeInMs;
             return dt;         
         }
 
-        internal override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        internal override DataTable GetSkylineTableBackdoorSample(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
             TemplateBNL skyline = getSP_Skyline(hasIncomparable);
-            DataTable dt = skyline.GetSkylineTable(database, dataTableTemplate.Clone(), dataRecordTemplate, operators, numberOfRecords, true, additionalParameters);
+            DataTable dt = skyline.GetSkylineTableBackdoorSample(database, dataTableTemplate.Clone(), dataRecordTemplate, operators, numberOfRecords, true, additionalParameters);
             TimeMilliseconds = skyline.TimeInMs;
             return dt;
-        }     
+        } 
+
 
         private static TemplateBNL getSP_Skyline(bool hasIncomparable)
         {

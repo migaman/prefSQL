@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using Microsoft.SqlServer.Server;
 
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
@@ -24,70 +23,42 @@ namespace prefSQL.SQLSkyline
     /// </remarks>
     public abstract class TemplateBNL : TemplateStrategy
     {
-        /*protected override DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords,
-            bool isIndependent, string strConnection, string strProvider)
-        {
-            string[] operators = strOperators.Split(';');
-            DataTable dt = Helper.GetSkylineDataTable(strQuery, isIndependent, strConnection, strProvider);
-            List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
-            DataTable dtResult = new DataTable();
-            SqlDataRecord record = Helper.BuildDataRecord(dt, operators, dtResult);
 
-            return GetSkylineTable(listObjects, dtResult, record, strOperators, numberOfRecords, isIndependent);
-        }*/
-
-        /*public DataTable GetSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators,
-            int numberOfRecords, DataTable dataTableTemplate)
-        {
-            return GetSkylineTable(database, dataTableTemplate, dataRecordTemplate, operators, numberOfRecords, true);
-        }*/
-
-
-        protected override DataTable GetCompleteSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, string[] additionalParameters)
+        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string[] operatorsArray, string[] additionalParameters)
         {
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
-            string[] operatorsArray = operators.Split(';');
             DataTable dataTableReturn = dataTableTemplate.Clone();
             int[] resultToTupleMapping = Helper.ResultToTupleMapping(operatorsArray);
 
-            try
+            //For each tuple
+            foreach (object[] dbValuesObject in database)
             {
 
-
-                //For each tuple
-                foreach (object[] dbValuesObject in database)
+                //Check if window list is empty
+                if (resultCollection.Count == 0)
                 {
+                    // Build our SqlDataRecord and start the results 
+                    AddtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
+                } else
+                {
+                    bool isDominated = false;
 
-                    //Check if window list is empty
-                    if (resultCollection.Count == 0)
+                    //check if record is dominated (compare against the records in the window)
+                    for (int i = resultCollection.Count - 1; i >= 0; i--)
                     {
-                        // Build our SqlDataRecord and start the results 
-                        AddtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
-                    } else
-                    {
-                        bool isDominated = false;
-
-                        //check if record is dominated (compare against the records in the window)
-                        for (int i = resultCollection.Count - 1; i >= 0; i--)
+                        if (TupleDomination(dbValuesObject, resultCollection, resultstringCollection, operatorsArray, dataTableReturn, i, resultToTupleMapping))
                         {
-                            if (TupleDomination(dbValuesObject, resultCollection, resultstringCollection, operatorsArray, dataTableReturn, i, resultToTupleMapping))
-                            {
-                                isDominated = true;
-                                break;
-                            }
+                            isDominated = true;
+                            break;
                         }
-                        if (isDominated == false)
-                        {
-                            AddtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
-                        }
-
                     }
+                    if (isDominated == false)
+                    {
+                        AddtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
+                    }
+
                 }
-            }
-            catch (Exception e)
-            {
-                throw e;
             }
             return dataTableReturn;
         }

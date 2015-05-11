@@ -36,17 +36,19 @@ namespace prefSQL.SQLSkyline
             return GetSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strProvider, additionalParameters);
         }
 
-        protected override DataTable GetCompleteSkylineTable(List<object[]> database, DataTable dataTableTemplate,
-            SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, string[] additionalParameters)
+        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate,
+            SqlDataRecord dataRecordTemplate, string[] operators, string[] additionalParameters)
         {
             String strSelectIncomparable = "";
             int weightHexagonIncomparable = 0;
             DbConnection connection = null;
             DbProviderFactory factory = null;
+            string strOperators = "";
             if(additionalParameters.GetUpperBound(0) > 3)
             {
                 strSelectIncomparable = additionalParameters[3].Trim().Replace("''", "'").Trim('\'');    
                 weightHexagonIncomparable = int.Parse(additionalParameters[4].Trim());
+                strOperators = additionalParameters[5];
             }
             
             
@@ -54,8 +56,8 @@ namespace prefSQL.SQLSkyline
             
             string strSQL = null;
 
-            DataTable dtResult = new DataTable();
-            string strOperators = operators;
+            DataTable dtResult = dataTableTemplate.Clone();
+            
             ArrayList[] btg = null;
             int[] next = null;
             int[] prev = null;
@@ -134,7 +136,7 @@ namespace prefSQL.SQLSkyline
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
 
 
             }
@@ -187,106 +189,98 @@ namespace prefSQL.SQLSkyline
 
         private void Construction(int amountOfPreferences, long[] maxValues, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight)
         {
-            try
-            {                
-                int[] maxPreferenceLevel = new int[amountOfPreferences];
-                for (int i = 0; i < amountOfPreferences; i++)
-                {
-                    maxPreferenceLevel[i] = (int)maxValues[i];
-                }
-
-                //calculate edge weights
-                weight = new int[amountOfPreferences];
-                weight[amountOfPreferences - 1] = 1;
-
-                for (int i = amountOfPreferences - 2; i >= 0; i--)
-                {
-                    weight[i] = weight[i + 1] * (maxPreferenceLevel[i + 1] + 1);
-                }
-
-
-                // calculate the BTG size
-                long sizeNodes = 1;
-                for (int i = 0; i < amountOfPreferences; i++)
-                {
-                    sizeNodes *= (maxPreferenceLevel[i] + 1);
-                }                
-
-                //Because we have 4 objects to save the tree state
-                if (sizeNodes > (Int32.MaxValue / 4))
-                {
-                    throw new Exception("Berechnung nicht möglich mit Hexagon. Baum wäre zu gross");
-                }
-
-                btg = new ArrayList[sizeNodes];
-                next = new int[sizeNodes];
-                prev = new int[sizeNodes];
-                level = new int[sizeNodes];
-
-                int workSize = 1;
-                for (int i = 0; i < amountOfPreferences; i++)
-                {
-                    workSize += maxPreferenceLevel[i];
-                }
-
-
-                // arrays needed for init computation
-
-                // stores highest ID found for each level by now
-                int[] work = new int[workSize]; //int[max(P) + 1]
-
-                // stores first ID found for each level by now
-                int[] first = new int[workSize]; //int[max(P) + 1]
-
-                // initialize the arrays
-                next[0] = 1;
-
-                //loop over the node IDs
-                for (int id = 1; id <= sizeNodes - 1; id++)
-                {
-                    // compute level of the node (with help of weights)
-                    int curLvl = 0;
-                    int tmpID = id; //wrong code in paper --> use of id inside de id-loop
-                    for (int i = 0; i <= amountOfPreferences - 1; i++)
-                    {
-                        double dblLevel = (double)tmpID / weight[i];
-                        curLvl = curLvl + (int)Math.Floor(dblLevel);
-                        tmpID = tmpID - ((int)Math.Floor((dblLevel)) * weight[i]);
-                    }
-
-                    if (first[curLvl] == 0)
-                    {
-                        first[curLvl] = id;
-                    }
-                    // set next node in the level
-                    //the current node is n’s next node and n is the current node’s previous node
-                    next[work[curLvl]] = id;
-                    prev[id] = work[curLvl];
-                    work[curLvl] = id; //wrong code in paper
-
-                    //For each ID, we determine to which level the corresponding node belongs
-                    level[id] = curLvl;
-                }
-
-                // init next relation for last nodes in the levels
-                for (int curLvl = 0; curLvl < workSize - 1; curLvl++)
-                {
-                    next[work[curLvl]] = first[curLvl + 1];
-
-                    //
-                    prev[first[curLvl + 1]] = work[curLvl];
-                }
-
-                //set next node of bottom node
-                next[sizeNodes - 1] = -1;
-                //set previous node of top node
-                prev[0] = -1;
-            }
-            catch (Exception e)
+            int[] maxPreferenceLevel = new int[amountOfPreferences];
+            for (int i = 0; i < amountOfPreferences; i++)
             {
-                throw e;
+                maxPreferenceLevel[i] = (int)maxValues[i];
             }
 
+            //calculate edge weights
+            weight = new int[amountOfPreferences];
+            weight[amountOfPreferences - 1] = 1;
+
+            for (int i = amountOfPreferences - 2; i >= 0; i--)
+            {
+                weight[i] = weight[i + 1] * (maxPreferenceLevel[i + 1] + 1);
+            }
+
+
+            // calculate the BTG size
+            long sizeNodes = 1;
+            for (int i = 0; i < amountOfPreferences; i++)
+            {
+                sizeNodes *= (maxPreferenceLevel[i] + 1);
+            }                
+
+            //Because we have 4 objects to save the tree state
+            if (sizeNodes > (Int32.MaxValue / 4))
+            {
+                throw new Exception("Berechnung nicht möglich mit Hexagon. Baum wäre zu gross");
+            }
+
+            btg = new ArrayList[sizeNodes];
+            next = new int[sizeNodes];
+            prev = new int[sizeNodes];
+            level = new int[sizeNodes];
+
+            int workSize = 1;
+            for (int i = 0; i < amountOfPreferences; i++)
+            {
+                workSize += maxPreferenceLevel[i];
+            }
+
+
+            // arrays needed for init computation
+
+            // stores highest ID found for each level by now
+            int[] work = new int[workSize]; //int[max(P) + 1]
+
+            // stores first ID found for each level by now
+            int[] first = new int[workSize]; //int[max(P) + 1]
+
+            // initialize the arrays
+            next[0] = 1;
+
+            //loop over the node IDs
+            for (int id = 1; id <= sizeNodes - 1; id++)
+            {
+                // compute level of the node (with help of weights)
+                int curLvl = 0;
+                int tmpID = id; //wrong code in paper --> use of id inside de id-loop
+                for (int i = 0; i <= amountOfPreferences - 1; i++)
+                {
+                    double dblLevel = (double)tmpID / weight[i];
+                    curLvl = curLvl + (int)Math.Floor(dblLevel);
+                    tmpID = tmpID - ((int)Math.Floor((dblLevel)) * weight[i]);
+                }
+
+                if (first[curLvl] == 0)
+                {
+                    first[curLvl] = id;
+                }
+                // set next node in the level
+                //the current node is n’s next node and n is the current node’s previous node
+                next[work[curLvl]] = id;
+                prev[id] = work[curLvl];
+                work[curLvl] = id; //wrong code in paper
+
+                //For each ID, we determine to which level the corresponding node belongs
+                level[id] = curLvl;
+            }
+
+            // init next relation for last nodes in the levels
+            for (int curLvl = 0; curLvl < workSize - 1; curLvl++)
+            {
+                next[work[curLvl]] = first[curLvl + 1];
+
+                //
+                prev[first[curLvl + 1]] = work[curLvl];
+            }
+
+            //set next node of bottom node
+            next[sizeNodes - 1] = -1;
+            //set previous node of top node
+            prev[0] = -1;
         }
 
         

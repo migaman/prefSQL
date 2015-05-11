@@ -14,11 +14,6 @@ namespace prefSQL.SQLSkyline
     public class SkylineDecisionTree : SkylineStrategy
     {
 
-        internal override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
-        {
-            throw new NotImplementedException();
-        }
-
         public override bool IsNative()
         {
             return false;
@@ -69,9 +64,14 @@ namespace prefSQL.SQLSkyline
                 strategy = new SPSkylineBNLSort();
             }
 
-            DataTable dt = strategy.GetSkylineTableIndependent(strQuery, strOperators, numberOfRecords, strConnection, Provider, additionalParameters);
+            DataTable dt = strategy.GetSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, Provider, additionalParameters);
             TimeMilliseconds = strategy.TimeInMs;
             return dt;
+        }
+
+        internal override DataTable GetSkylineTableBackdoorSample(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        {
+            throw new NotImplementedException();
         }
 
 

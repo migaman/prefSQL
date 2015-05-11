@@ -180,7 +180,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             SkylineAlgorithmParameters skylineAlgorithmParameters)
         {
             DataTable skylineDataTable =
-                skylineStrategy.GetSkylineTable(subspaceDatabase.Values.ToList(),
+                skylineStrategy.GetSkylineTableBackdoorSample(subspaceDatabase.Values.ToList(),
                     dataTableTemplate, dataRecordTemplate, skylineAlgorithmParameters.Operators,
                     skylineAlgorithmParameters.NumberOfRecords,
                     skylineAlgorithmParameters.HasIncomparable,

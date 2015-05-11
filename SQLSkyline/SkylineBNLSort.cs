@@ -30,10 +30,6 @@ namespace prefSQL.SQLSkyline
             return true;
         }
 
-        internal override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
-        {
-            throw new NotImplementedException();
-        }
 
         public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
         {
@@ -53,12 +49,18 @@ namespace prefSQL.SQLSkyline
             
         }
 
-        public override DataTable GetSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        public override DataTable GetSkylineTable(string strConnection, string strQuery, string strOperators, int numberOfRecords,
+            bool hasIncomparable, string[] additionalParameters)
         {
             TemplateBNL skyline = getSP_Skyline(hasIncomparable);
-            DataTable dt = skyline.GetSkylineTableIndependent(strQuery, strOperators, numberOfRecords, strConnection, Provider, additionalParameters);
+            DataTable dt = skyline.GetSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, Provider, additionalParameters);
             TimeMilliseconds = skyline.TimeInMs;
             return dt;         
+        }
+
+        internal override DataTable GetSkylineTableBackdoorSample(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        {
+            throw new NotImplementedException();
         }
 
         private TemplateBNL getSP_Skyline(bool hasIncomparable)

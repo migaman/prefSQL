@@ -18,8 +18,8 @@ namespace prefSQL.SQLSkyline
     public abstract class TemplateS : TemplateStrategy
     {
 
-        protected override DataTable GetCompleteSkylineTable(List<object[]> database, DataTable dataTableTemplate,
-            SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, string[] additionalParameters)
+        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate,
+            SqlDataRecord dataRecordTemplate, string[] operators, string[] additionalParameters)
         {
             throw new NotImplementedException();
         }

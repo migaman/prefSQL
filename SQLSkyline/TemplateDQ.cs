@@ -26,53 +26,24 @@ namespace prefSQL.SQLSkyline
     /// </remarks>
     public class TemplateDQ : TemplateStrategy
     {
-        protected override DataTable GetCompleteSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate,
-            string operators, int numberOfRecords, bool isIndependent, string[] additionalParameters)
+        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate,
+            string[] operatorsArray, string[] additionalParameters)
         {
-            string[] operatorsArray = operators.Split(';');
             DataTable dataTableReturn = dataTableTemplate.Clone();
 
-            /*Stopwatch sw = new Stopwatch();
-            string[] operators = strOperators.Split(';');
-            DataTable dtResult = new DataTable();
+            //Work with object[]-array (more than 10 times faster than datatable)
+            List<object[]> listResult = ComputeSkyline(database, operatorsArray, operatorsArray.GetUpperBound(0));
 
-            DbProviderFactory factory = DbProviderFactories.GetFactory(strProvider);
-
-            // use the factory object to create Data access objects.
-            DbConnection connection = factory.CreateConnection();
-            if (connection != null)
+            //Write object in datatable
+            foreach (object[] row in listResult)
             {
-                connection.ConnectionString = strConnection;
-            */
-            try
-            {
-                
-                // Build our record schema 
-                //SqlDataRecord record = Helper.BuildDataRecord(dt, operators, dtResult);
 
-                //List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
-
-                //Work with object[]-array (more than 10 times faster than datatable)
-                List<object[]> listResult = ComputeSkyline(database, operatorsArray, operatorsArray.GetUpperBound(0));
-
-                //Write object in datatable
-                foreach (object[] row in listResult)
-                {
-
-                    //int validDataFrom = dataTableReturn.Columns.Count - operatorsArray.GetUpperBound(0) - 1;
-                    int validDataFrom = dataTableReturn.Columns.Count;
-                    object[] resultArray = new object[validDataFrom];
-                    //First columns are skyline columns, there start with index after skyline column
-                    Array.Copy(row, operatorsArray.GetUpperBound(0) + 1, resultArray, 0, validDataFrom);
-                    dataTableReturn.Rows.Add(resultArray);
-
-                }
-
-                
-            }
-            catch (Exception ex)
-            {
-                throw ex;
+                //int validDataFrom = dataTableReturn.Columns.Count - operatorsArray.GetUpperBound(0) - 1;
+                int validDataFrom = dataTableReturn.Columns.Count;
+                object[] resultArray = new object[validDataFrom];
+                //First columns are skyline columns, there start with index after skyline column
+                Array.Copy(row, operatorsArray.GetUpperBound(0) + 1, resultArray, 0, validDataFrom);
+                dataTableReturn.Rows.Add(resultArray);
 
             }
 

@@ -28,10 +28,6 @@ namespace prefSQL.SQLSkyline
             return true;
         }
 
-        internal override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
-        {
-            throw new NotImplementedException();
-        }
 
         public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
         {
@@ -44,6 +40,11 @@ namespace prefSQL.SQLSkyline
         {
             return null;
 
+        }
+
+        internal override DataTable GetSkylineTableBackdoorSample(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        {
+            throw new NotImplementedException();
         }
       
     }
