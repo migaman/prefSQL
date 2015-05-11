@@ -622,8 +622,7 @@ namespace prefSQL.SQLSkyline
 
         protected abstract void calculateOperators(ref string strOperators, string strSelectIncomparable, DbProviderFactory factory, DbConnection connection, ref string strSQL);
 
-        protected override DataTable getSkylineTable(List<object[]> listObjects, SqlDataRecord record, string strOperators, int numberOfRecords,
-            bool isIndependent, DataTable dtResult)
+        protected override DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent)
         {
             throw new NotImplementedException();
         }

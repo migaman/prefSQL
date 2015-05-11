@@ -7,7 +7,7 @@
     using prefSQL.SQLSkyline;
 
     [TestClass]
-    public class SqlParserSkylineSamplingTests
+    public class SQLParserSkylineSamplingTests
     {
         public TestContext TestContext { get; set; }
 
@@ -17,16 +17,16 @@
          DeploymentItem("SQLParserSkylineSamplingTests_CorrectSyntax.xml")]
         public void TestSyntaxValidityOfSyntacticallyCorrectSqlStatements()
         {
-            var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
+            var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
-            Debug.WriteLine(skylineSampleSql);
+            Debug.WriteLine(skylineSampleSQL);
 
             var common = new SQLCommon {SkylineType = new SkylineSQL()};
 
             try
             {
-                common.parsePreferenceSQL(skylineSampleSql);
+                common.parsePreferenceSQL(skylineSampleSQL);
             }
             catch (Exception exception)
             {
@@ -41,14 +41,14 @@
          DeploymentItem("SQLParserSkylineSamplingTests_CorrectSyntax.xml")]
         public void TestParsedSkylineSqlCorrectness()
         {
-            var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
+            var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
-            Debug.WriteLine(skylineSampleSql);
+            Debug.WriteLine(skylineSampleSQL);
 
             var common = new SQLCommon {SkylineType = new SkylineSQL()};
             
-            var parsedSql = common.parsePreferenceSQL(skylineSampleSql);
+            var parsedSql = common.parsePreferenceSQL(skylineSampleSQL);
             var parsedSqlExpected = TestContext.DataRow["parsePreferenceSQLSkylineSQLExpectedResult"].ToString();
 
             Assert.AreEqual(parsedSqlExpected.Trim(), parsedSql.Trim(), "SQL not built correctly");
@@ -60,14 +60,14 @@
          DeploymentItem("SQLParserSkylineSamplingTests_CorrectSyntax.xml")]
         public void TestParsedSkylineBnlCorrectness()
         {
-            var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
+            var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
-            Debug.WriteLine(skylineSampleSql);
+            Debug.WriteLine(skylineSampleSQL);
 
             var common = new SQLCommon {SkylineType = new SkylineBNL()};
 
-            var parsedSql = common.parsePreferenceSQL(skylineSampleSql);
+            var parsedSql = common.parsePreferenceSQL(skylineSampleSQL);
             var parsedSqlExpected = TestContext.DataRow["parsePreferenceSQLSkylineBNLExpectedResult"].ToString();
 
             Assert.AreEqual(parsedSqlExpected.Trim(), parsedSql.Trim(), "SQL not built correctly");
@@ -79,14 +79,14 @@
          DeploymentItem("SQLParserSkylineSamplingTests_CorrectSyntax.xml")]
         public void TestParsedSkylineBnlSortCorrectness()
         {
-            var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
+            var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
-            Debug.WriteLine(skylineSampleSql);
+            Debug.WriteLine(skylineSampleSQL);
 
             var common = new SQLCommon {SkylineType = new SkylineBNLSort()};
 
-            var parsedSql = common.parsePreferenceSQL(skylineSampleSql);
+            var parsedSql = common.parsePreferenceSQL(skylineSampleSQL);
             var parsedSqlExpected = TestContext.DataRow["parsePreferenceSQLSkylineBNLSortExpectedResult"].ToString();
 
             Assert.AreEqual(parsedSqlExpected.Trim(), parsedSql.Trim(), "SQL not built correctly");
@@ -98,14 +98,14 @@
          DeploymentItem("SQLParserSkylineSamplingTests_CorrectSyntax.xml")]
         public void TestParsedSkylineDqCorrectness()
         {
-            var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
+            var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
-            Debug.WriteLine(skylineSampleSql);
+            Debug.WriteLine(skylineSampleSQL);
 
             var common = new SQLCommon {SkylineType = new SkylineDQ()};
 
-            var parsedSql = common.parsePreferenceSQL(skylineSampleSql);
+            var parsedSql = common.parsePreferenceSQL(skylineSampleSQL);
             var parsedSqlExpected = TestContext.DataRow["parsePreferenceSQLSkylineDQExpectedResult"].ToString();
 
             Assert.AreEqual(parsedSqlExpected.Trim(), parsedSql.Trim(), "SQL not built correctly");
@@ -117,14 +117,14 @@
          DeploymentItem("SQLParserSkylineSamplingTests_CorrectSyntax.xml")]
         public void TestParsedMultipleSkylineBnlCorrectness()
         {
-            var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
+            var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
-            Debug.WriteLine(skylineSampleSql);
+            Debug.WriteLine(skylineSampleSQL);
 
             var common = new SQLCommon {SkylineType = new MultipleSkylineBNL()};
 
-            var parsedSql = common.parsePreferenceSQL(skylineSampleSql);
+            var parsedSql = common.parsePreferenceSQL(skylineSampleSQL);
             var parsedSqlExpected = TestContext.DataRow["parsePreferenceSQLMultipleSkylineBNLExpectedResult"].ToString();
 
             Assert.AreEqual(parsedSqlExpected.Trim(), parsedSql.Trim(), "SQL not built correctly");
@@ -136,14 +136,14 @@
          DeploymentItem("SQLParserSkylineSamplingTests_CorrectSyntax.xml")]
         public void TestParsedSkylineHexagonCorrectness()
         {
-            var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
+            var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
-            Debug.WriteLine(skylineSampleSql);
+            Debug.WriteLine(skylineSampleSQL);
 
             var common = new SQLCommon {SkylineType = new SkylineHexagon()};
 
-            var parsedSql = common.parsePreferenceSQL(skylineSampleSql);
+            var parsedSql = common.parsePreferenceSQL(skylineSampleSQL);
             var parsedSqlExpected = TestContext.DataRow["parsePreferenceSQLSkylineHexagonExpectedResult"].ToString();
 
             Assert.AreEqual(parsedSqlExpected.Trim(), parsedSql.Trim(), "SQL not built correctly");
@@ -157,14 +157,14 @@
         {
             var hasExceptionBeenRaised = false;
 
-            var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
-            Debug.WriteLine(skylineSampleSql);
+            var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
+            Debug.WriteLine(skylineSampleSQL);
 
             var common = new SQLCommon {SkylineType = new SkylineSQL()};
 
             try
             {
-                common.parsePreferenceSQL(skylineSampleSql);
+                common.parsePreferenceSQL(skylineSampleSQL);
             }
             catch (Exception)
             {

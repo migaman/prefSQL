@@ -37,22 +37,24 @@ namespace prefSQL.SQLSkyline
             DataTable dtResult = new DataTable();
             SqlDataRecord record = Helper.buildDataRecord(dt, operators, dtResult);
 
-            return getSkylineTable(listObjects, record, strOperators, numberOfRecords, isIndependent, dtResult);
+            return getSkylineTable(listObjects, dtResult, record, strOperators, numberOfRecords, isIndependent);
         }
 
-        public DataTable getSkylineTable(List<object[]> listObjects, SqlDataRecord record, string strOperators,
-            int numberOfRecords, DataTable dtResult)
+        public DataTable getSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators,
+            int numberOfRecords, DataTable dataTableTemplate)
         {
-            return getSkylineTable(listObjects, record, strOperators, numberOfRecords, true, dtResult);
+            return getSkylineTable(database, dataTableTemplate, dataRecordTemplate, operators, numberOfRecords, true);
         }
 
-        protected override DataTable getSkylineTable(List<object[]> listObjects, SqlDataRecord record, string strOperators, int numberOfRecords, bool isIndependent, DataTable dtResult)
+        protected override DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent)
         {
+            DataTable dataTableReturn = dataTableTemplate.Clone();
+
             Stopwatch sw = new Stopwatch();
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
-            string[] operators = strOperators.ToString().Split(';');
-            var resultToTupleMapping = Helper.ResultToTupleMapping(operators);
+            string[] operatorsArray = operators.ToString().Split(';');
+            int[] resultToTupleMapping = Helper.ResultToTupleMapping(operatorsArray);
         
             try
             {
@@ -60,14 +62,14 @@ namespace prefSQL.SQLSkyline
                 sw.Start();
 
                 //For each tuple
-                foreach (object[] dbValuesObject in listObjects)
+                foreach (object[] dbValuesObject in database)
                 {
 
                     //Check if window list is empty
                     if (resultCollection.Count == 0)
                     {
                         // Build our SqlDataRecord and start the results 
-                        addtoWindow(dbValuesObject, operators, resultCollection, resultstringCollection, record, true, dtResult);
+                        addtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
                     }
                     else
                     {
@@ -76,7 +78,7 @@ namespace prefSQL.SQLSkyline
                         //check if record is dominated (compare against the records in the window)
                         for (int i = resultCollection.Count - 1; i >= 0; i--)
                         {
-                            if (tupleDomination(dbValuesObject, resultCollection, resultstringCollection, operators, dtResult, i, resultToTupleMapping) == true)
+                            if (tupleDomination(dbValuesObject, resultCollection, resultstringCollection, operatorsArray, dataTableReturn, i, resultToTupleMapping) == true)
                             {
                                 isDominated = true;
                                 break;
@@ -84,14 +86,14 @@ namespace prefSQL.SQLSkyline
                         }
                         if (isDominated == false)
                         {
-                            addtoWindow(dbValuesObject, operators, resultCollection, resultstringCollection, record, true, dtResult);
+                            addtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
                         }
 
                     }
                 }
 
                 //Remove certain amount of rows if query contains TOP Keyword
-                Helper.getAmountOfTuples(dtResult, numberOfRecords);
+                Helper.getAmountOfTuples(dataTableReturn, numberOfRecords);
 
                 
                 //Sort ByRank
@@ -101,15 +103,15 @@ namespace prefSQL.SQLSkyline
                 if (isIndependent == false)
                 {
                     //Send results to client
-                    SqlContext.Pipe.SendResultsStart(record);
+                    SqlContext.Pipe.SendResultsStart(dataRecordTemplate);
 
-                    foreach (DataRow recSkyline in dtResult.Rows)
+                    foreach (DataRow recSkyline in dataTableReturn.Rows)
                     {
                         for (int i = 0; i < recSkyline.Table.Columns.Count; i++)
                         {
-                            record.SetValue(i, recSkyline[i]);
+                            dataRecordTemplate.SetValue(i, recSkyline[i]);
                         }
-                        SqlContext.Pipe.SendResultsRow(record);
+                        SqlContext.Pipe.SendResultsRow(dataRecordTemplate);
                     }
                     SqlContext.Pipe.SendResultsEnd();
                 }
@@ -132,7 +134,7 @@ namespace prefSQL.SQLSkyline
          
             sw.Stop();
             timeInMs = sw.ElapsedMilliseconds;
-            return dtResult;
+            return dataTableReturn;
         }
 
 

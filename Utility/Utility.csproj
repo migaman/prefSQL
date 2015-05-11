@@ -47,7 +47,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>Utility.Program</StartupObject>
+    <StartupObject>Utility.SamplingTest</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -88,6 +88,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SQLParserTest\SQLParserTest.csproj">
+      <Project>{A16FED8B-5148-43FD-9A94-B795457346CC}</Project>
+      <Name>SQLParserTest</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SQLParser\SQLParser.csproj">
       <Project>{125a1438-e65a-4f43-a9ec-23a7bc7e68d7}</Project>
       <Name>SQLParser</Name>
