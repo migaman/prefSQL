@@ -15,6 +15,11 @@ namespace prefSQL.SQLSkyline
     public class SkylineDecisionTree : SkylineStrategy
     {
 
+        internal override DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool isNative()
         {
             return false;
@@ -30,11 +35,7 @@ namespace prefSQL.SQLSkyline
             return true;
         }
 
-        internal override DataTable getSkylineTable(List<object[]> dataTable, SqlDataRecord record, string strOperators, int numberOfRecords,
-            bool hasIncomparable, string[] additionalParameters, DataTable dtResult)
-        {
-            throw new NotImplementedException();
-        }
+
 
         public override string getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
         {
