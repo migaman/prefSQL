@@ -13,6 +13,8 @@ using System.Threading;
 using System.Data.Common;
 using System.Windows.Forms;
 using prefSQL.SQLSkyline;
+using System.IO;
+
 
 namespace Utility
 {
@@ -22,7 +24,14 @@ namespace Utility
 
         static void Main(string[] args)
         {
+
+
+
+
+
+
             Program prg = new Program();
+            //prg.PerformanceTestBNL();
             //prg.measurePerformance();
             prg.Run();
 
@@ -35,6 +44,8 @@ namespace Utility
             //Application.Run(new FrmSQLParser());
             
         }
+
+        
 
         private void measurePerformance()
         {
@@ -72,9 +83,9 @@ namespace Utility
             //p.Strategy = new SkylineSQL();
             //p.Strategy = new SkylineBNL();
             //p.Strategy = new SkylineBNLSort();
-            p.Strategy = new SkylineDQ();
+            //p.Strategy = new SkylineDQ();
             //p.Strategy = new SkylineHexagon();
-            //p.Strategy = new SkylineDecisionTree();
+            p.Strategy = new SkylineDecisionTree();
             
 
             p.generatePerformanceQueries();
@@ -83,6 +94,8 @@ namespace Utility
 
         public void Run()
         {
+
+
             try
             {
                 //Playground --> Test here your queries
@@ -100,7 +113,8 @@ namespace Utility
                 strPrefSQL = "SELECT cars.id, cars.horsepower       FROM cars           SKYLINE OF cars.horsepower HIGH, cars.mileage LOW";
                 strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars t1        LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
                 strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t1.enginesize           FROM cars t1        SKYLINE OF t1.price LOW, t1.mileage LOW, t1.enginesize HIGH ORDER BY SUM_RANK()";
-                strPrefSQL = "SELECT t1.id                          FROM cars t1        LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
+                strPrefSQL = "SELECT t1.id                          FROM cars t1  SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
+                //strPrefSQL = "SELECT t1.id                          FROM cars_norm t1   SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower LOW, t1.enginesize LOW, t1.doors LOW, t1.consumption LOW, t1.cylinders LOW";
 
                 //strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars t1        SKYLINE OF t1.price LOW, t1.mileage LOW ORDER BY SUM_RANK()";
                 
@@ -132,10 +146,15 @@ namespace Utility
                 sw.Stop();
 
                 
-                Debug.WriteLine("\n------------------------------------------\nSTATISTIC\n------------------------------------------");
-                System.Diagnostics.Debug.WriteLine("         skyline size:" + dt.Rows.Count.ToString().PadLeft(6));
-                System.Diagnostics.Debug.WriteLine("algo  time elapsed ms:" + parser.TimeInMilliseconds.ToString().PadLeft(6));
-                System.Diagnostics.Debug.WriteLine("total time elapsed ms:" + sw.ElapsedMilliseconds.ToString().PadLeft(6));
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("------------------------------------------");
+                sb.AppendLine("STATISTIC");
+                sb.AppendLine("------------------------------------------");
+                sb.AppendLine("         skyline size:" + dt.Rows.Count.ToString().PadLeft(6));
+                sb.AppendLine("algo  time elapsed ms:" + parser.TimeInMilliseconds.ToString().PadLeft(6));
+                sb.AppendLine("total time elapsed ms:" + sw.ElapsedMilliseconds.ToString().PadLeft(6));
+                System.Diagnostics.Debug.Write(sb);
+
             }
             catch (Exception ex)
             {
@@ -143,6 +162,104 @@ namespace Utility
             }
 
             Environment.Exit(0);
+        }
+
+
+
+
+
+
+        private void PerformanceTestBNL()
+        {
+
+            try
+            {
+                string strPrefSQL = "SELECT t1.id                          FROM cars t1  SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
+                Debug.WriteLine(strPrefSQL);
+                SQLCommon parser = new SQLCommon();
+                parser.SkylineType = new SkylineBNLSort();
+
+                //Now parse and execute
+                Stopwatch sw = new Stopwatch();
+
+
+
+                /*
+                 * Variante bisher 
+                */
+                sw.Start();
+                DataTable dt = parser.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL);
+                sw.Stop();
+                long elapsedTime1 = sw.ElapsedMilliseconds;
+                long elpasedTimeAlgo1 = parser.TimeInMilliseconds;
+
+
+                //Variante BNL Test (Logik von CLOFI, MoveToHead)
+                BNLTest test1 = new BNLTest();
+                string str1 = "SELECT  CAST(t1.price as decimal(10,9)) AS SkylineAttribute0, CAST(t1.mileage as decimal(10,9)) AS SkylineAttribute1, CAST(t1.horsepower as decimal(10,9)) AS SkylineAttribute2, CAST(t1.enginesize as decimal(10,9)) AS SkylineAttribute3, CAST(t1.doors as decimal(10,9)) AS SkylineAttribute4, CAST(t1.consumption as decimal(10,9)) AS SkylineAttribute5, CAST(t1.cylinders as decimal(10,9)) AS SkylineAttribute6 , t1.id                          FROM cars_norm t1   ORDER BY t1.price, t1.mileage, t1.horsepower, t1.enginesize, t1.doors, t1.consumption, t1.cylinders";
+                string str2 = "LOW;LOW;LOW;LOW;LOW;LOW;LOW";
+                string str3 = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
+                string str4 = "System.Data.SqlClient";
+                sw.Start();
+                dt = test1.getSkylineTable(str1, str2, 0, true, str3, str4);
+                sw.Stop();
+                long elapsedTime2 = sw.ElapsedMilliseconds;
+                long elpasedTimeAlgo2 = test1.timeInMs;
+
+                // Variante BNL Test (Meine Logik aber mit float statt object, einige andere optimierungen)
+                BNLTest2 test2 = new BNLTest2();
+                str1 = "SELECT  CAST(t1.price as decimal(10,2)) AS SkylineAttribute0, CAST(t1.mileage as decimal(10,2)) AS SkylineAttribute1, CAST(t1.horsepower as decimal(10,2))*-1 AS SkylineAttribute2, CAST(t1.enginesize as decimal(10,2))*-1 AS SkylineAttribute3, CAST(t1.doors as decimal(10,2))*-1 AS SkylineAttribute4, CAST(t1.consumption as decimal(10,2)) AS SkylineAttribute5, CAST(t1.cylinders as decimal(10,2))*-1 AS SkylineAttribute6 , t1.id                          FROM cars t1   ORDER BY t1.price, t1.mileage, t1.horsepower*-1, t1.enginesize*-1, t1.doors*-1, t1.consumption, t1.cylinders*-1";
+                str2 = "LOW;LOW;LOW;LOW;LOW;LOW;LOW";
+                str3 = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
+                str4 = "System.Data.SqlClient";
+                sw.Start();
+                dt = test2.getSkylineTable(str1, str2, 0, true, str3, str4);
+                sw.Stop();
+                long elapsedTime3 = sw.ElapsedMilliseconds;
+                long elpasedTimeAlgo3 = test2.timeInMs;
+
+                // Variante BNL Test (Logik von CLOFI, MoveToHead, aber mit meiner vergleichsklasse)
+                BNLTest3 test3 = new BNLTest3();
+                str1 = "SELECT  CAST(t1.price as decimal(10,9)) AS SkylineAttribute0, CAST(t1.mileage as decimal(10,9)) AS SkylineAttribute1, CAST(t1.horsepower as decimal(10,9)) AS SkylineAttribute2, CAST(t1.enginesize as decimal(10,9)) AS SkylineAttribute3, CAST(t1.doors as decimal(10,9)) AS SkylineAttribute4, CAST(t1.consumption as decimal(10,9)) AS SkylineAttribute5, CAST(t1.cylinders as decimal(10,9)) AS SkylineAttribute6 , t1.id                          FROM cars_norm t1   ORDER BY t1.price, t1.mileage, t1.horsepower, t1.enginesize, t1.doors, t1.consumption, t1.cylinders";
+                str2 = "LOW;LOW;LOW;LOW;LOW;LOW;LOW";
+                str3 = "Data Source=localhost;Initial Catalog=eCommerce;Integrated Security=True";
+                str4 = "System.Data.SqlClient";
+                sw.Start();
+                dt = test3.getSkylineTable(str1, str2, 0, true, str3, str4);
+                sw.Stop();
+                long elapsedTime4 = sw.ElapsedMilliseconds;
+                long elpasedTimeAlgo4 = test3.timeInMs;
+
+
+
+
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("------------------------------------------");
+                sb.AppendLine("STATISTIC");
+                sb.AppendLine("------------------------------------------");
+                sb.AppendLine("Current algo  time elapsed ms:" + elpasedTimeAlgo1);
+                sb.AppendLine("Current total time elapsed ms:" + elapsedTime1);
+                sb.AppendLine("ClofiMovetoFront algo  time elapsed ms:" + elpasedTimeAlgo2);
+                sb.AppendLine("ClofiMovetoFront total time elapsed ms:" + elapsedTime2);
+                sb.AppendLine("MeFloat algo  time elapsed ms:" + elpasedTimeAlgo3);
+                sb.AppendLine("MeFloat total time elapsed ms:" + elapsedTime3);
+                sb.AppendLine("ClofiMe algo  time elapsed ms:" + elpasedTimeAlgo4);
+                sb.AppendLine("ClofiMe total time elapsed ms:" + elapsedTime4);
+
+                System.Diagnostics.Debug.Write(sb);
+
+
+                //create filename
+                string strFileName = "E:\\Doc\\Studies\\PRJ_Thesis\\70 Release\\Performance_2.txt";
+                StreamWriter outfile = new StreamWriter(strFileName, true);
+                outfile.Write(sb.ToString());
+                outfile.Close();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("ERROR: " + ex);
+            }
+
         }
 
     }
