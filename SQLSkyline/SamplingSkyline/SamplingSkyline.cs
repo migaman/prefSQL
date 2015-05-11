@@ -36,7 +36,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// <summary>
         ///     TODO: comment
         /// </summary>
-        public long timeMilliseconds;
+        public long TimeMilliseconds;
 
         /// <summary>
         ///     TODO: comment
@@ -111,7 +111,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             DataTable skylineSampleReturn = dataTableTemplate.Clone();
             var skylineSampleFinalDatabase = new Dictionary<int, object[]>();
 
-            timeMilliseconds = 0;
+            TimeMilliseconds = 0;
             var sw = new Stopwatch();
             sw.Start();
 
@@ -123,10 +123,10 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                     skylineAlgorithmParameters);
 
                 sw.Stop();
-                timeMilliseconds += sw.ElapsedMilliseconds;
+                TimeMilliseconds += sw.ElapsedMilliseconds;
                 DataTable subspaceDataTable = GetSkylineTable(database, dataTableTemplate, dataRecordTemplate,
                     skylineStrategy, skylineAlgorithmSubspaceParameters);
-                timeMilliseconds += skylineStrategy.TimeMilliseconds;
+                TimeMilliseconds += skylineStrategy.TimeMilliseconds;
                 sw.Restart();
 
                 Dictionary<int, object[]> subspaceDatabase = GetDatabaseFromDataTable(database, subspaceDataTable);
@@ -143,10 +143,10 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                         skylineAlgorithmParameters);
 
                     sw.Stop();
-                    timeMilliseconds += sw.ElapsedMilliseconds;
+                    TimeMilliseconds += sw.ElapsedMilliseconds;
                     DataTable subspaceComplementDataTable = GetSkylineTable(subspaceDatabase, dataTableTemplate,
                         dataRecordTemplate, skylineStrategy, skylineAlgorithmSubspaceParameters);
-                    timeMilliseconds += skylineStrategy.TimeMilliseconds;
+                    TimeMilliseconds += skylineStrategy.TimeMilliseconds;
                     sw.Restart();
 
                     Dictionary<int, object[]> subspaceComplementDatabase = GetDatabaseFromDataTable(database,
@@ -170,7 +170,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             }
 
             sw.Stop();
-            timeMilliseconds += sw.ElapsedMilliseconds;
+            TimeMilliseconds += sw.ElapsedMilliseconds;
 
             return skylineSampleReturn;
         }

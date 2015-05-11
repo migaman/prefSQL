@@ -31,174 +31,118 @@ namespace prefSQL.SQLSkyline
         
 
         //Incomparable version has some attributes more
-        public DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection, string strProvider, string strSelectIncomparable, int weightHexagonIncomparable)
+        public DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection, string strProvider, string[] additionalParameters)
         {
-            return GetSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strProvider, strSelectIncomparable, weightHexagonIncomparable);
+            return GetSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strProvider, additionalParameters);
         }
 
-        protected override DataTable GetSkylineTable(string strQuery, string strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider)
+        protected override DataTable GetCompleteSkylineTable(List<object[]> database, DataTable dataTableTemplate,
+            SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, string[] additionalParameters)
         {
-            return GetSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strProvider, "", 0);
-        }
+            String strSelectIncomparable = "";
+            int weightHexagonIncomparable = 0;
+            DbConnection connection = null;
+            DbProviderFactory factory = null;
+            if(additionalParameters.GetUpperBound(0) > 3)
+            {
+                strSelectIncomparable = additionalParameters[3].Trim().Replace("''", "'").Trim('\'');    
+                weightHexagonIncomparable = int.Parse(additionalParameters[4].Trim());
+            }
+            
+            
+            //TODO: diese variablen von additional parameter laden
+            
+            string strSQL = null;
 
-
-        protected DataTable GetSkylineTable(string strQuery, string strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, string strSelectIncomparable, int weightHexagonIncomparable)
-        {
-            Stopwatch sw = new Stopwatch();
+            DataTable dtResult = new DataTable();
+            string strOperators = operators;
             ArrayList[] btg = null;
             int[] next = null;
             int[] prev = null;
             int[] level = null;
             int[] weight = null;
             long maxID = 0;
-            DataTable dtResult = new DataTable();
+            
 
-            DbProviderFactory factory = DbProviderFactories.GetFactory(strProvider);
 
-            // use the factory object to create Data access objects.
-            DbConnection connection = factory.CreateConnection();
-            if (connection != null)
+            CalculateOperators(ref strOperators, strSelectIncomparable, factory, connection, ref strSQL);
+
+            string[] operatorsArray = strOperators.Split(';');
+            int amountOfPreferences = operatorsArray.GetUpperBound(0) + 1;
+
+
+            try
             {
-                connection.ConnectionString = strConnection;
-
-                String strSQL = strQuery;
 
 
-                CalculateOperators(ref strOperators, strSelectIncomparable, factory, connection, ref strSQL);
-
-                string[] operators = strOperators.Split(';');
-                int amountOfPreferences = operators.GetUpperBound(0) + 1;
+                // Build our record schema 
+                //List<SqlMetaData> outputColumns = Helper.BuildRecordSchema(dt, operators, dtResult);
 
 
-                try
+                //Write all attributes to a Object-Array
+                //Profiling: This is much faster (factor 2) than working with the SQLReader
+                //List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
+
+                //Replace the database values to ranks of the values
+                long[] maxValues = new long[amountOfPreferences];
+                database = ReplaceValuesToRankValues(database, operatorsArray, ref maxValues);
+
+
+                Construction(amountOfPreferences, maxValues, ref btg, ref next, ref prev, ref level, ref weight);
+
+
+                //Read all records only once.
+                foreach (object[] dbValuesObject in database)
                 {
-                    //Some checks
-                    if (strSQL.Length == Helper.MaxSize)
+                    Add(dbValuesObject, amountOfPreferences, operatorsArray, ref btg, ref weight, ref maxID, weightHexagonIncomparable);
+                }
+
+                FindBmo(amountOfPreferences, ref btg, ref next, ref prev, ref level, ref weight);
+
+                //Now read next list
+                int iItem = 0;
+                
+                //Benötigt viele Zeit im CLR-Modus (Deshalb erst hier und nur einmal initialisieren)
+                //SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
+
+                //Until no more nodes are found
+                while (iItem != -1)
+                {
+                    //Add all records of this node
+                    if (btg[iItem] != null)
                     {
-                        throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
-                    }
-                    connection.Open();
-
-                    DbDataAdapter dap = factory.CreateDataAdapter();
-                    DbCommand selectCommand = connection.CreateCommand();
-                    selectCommand.CommandTimeout = 0; //infinite timeout
-                    selectCommand.CommandText = strSQL;
-                    if (dap != null)
-                    {
-                        dap.SelectCommand = selectCommand;
-                        DataTable dt = new DataTable();
-                        dap.Fill(dt);
-
-                        //Time the algorithm needs (afer query to the database)
-                        sw.Start();
-
-
-                        // Build our record schema 
-                        List<SqlMetaData> outputColumns = Helper.BuildRecordSchema(dt, operators, dtResult);
-
-
-                        //Write all attributes to a Object-Array
-                        //Profiling: This is much faster (factor 2) than working with the SQLReader
-                        List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
-
-                        //Replace the database values to ranks of the values
-                        long[] maxValues = new long[amountOfPreferences];
-                        listObjects = ReplaceValuesToRankValues(listObjects, operators, ref maxValues);
-
-
-                        Construction(amountOfPreferences, maxValues, ref btg, ref next, ref prev, ref level, ref weight);
-
-
-                        //Read all records only once.
-                        foreach (object[] dbValuesObject in listObjects)
+                        //foreach (SqlDataRecord recSkyline in btg[iItem])
+                        foreach (ArrayList recSkyline in btg[iItem])
                         {
-                            Add(dbValuesObject, amountOfPreferences, operators, ref btg, ref weight, ref maxID, weightHexagonIncomparable);
-                        }
-
-                        FindBmo(amountOfPreferences, ref btg, ref next, ref prev, ref level, ref weight);
-
-                        //Now read next list
-                        int iItem = 0;
-                        //Benötigt viele Zeit im CLR-Modus (Deshalb erst hier und nur einmal initialisieren)
-                        SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
-
-                        //Until no more nodes are found
-                        while (iItem != -1)
-                        {
-                            //Add all records of this node
-                            if (btg[iItem] != null)
+                            DataRow row = dtResult.NewRow();
+                            for (int i = 0; i < recSkyline.Count; i++)
                             {
-                                //foreach (SqlDataRecord recSkyline in btg[iItem])
-                                foreach (ArrayList recSkyline in btg[iItem])
-                                {
-                                    DataRow row = dtResult.NewRow();
-                                    for (int i = 0; i < recSkyline.Count; i++)
-                                    {
-                                        record.SetValue(i, recSkyline[i]);
-                                        row[i] = recSkyline[i];
-                                    }
-
-                                    dtResult.Rows.Add(row);
-                                }
+                                dataRecordTemplate.SetValue(i, recSkyline[i]);
+                                row[i] = recSkyline[i];
                             }
 
-                            //Goto the next node
-                            iItem = next[iItem];
-
-                        }
-
-                        //Remove certain amount of rows if query contains TOP Keyword
-                        Helper.GetAmountOfTuples(dtResult, numberOfRecords);
-
-
-                        if (isIndependent == false)
-                        {
-                            //Send results to client
-                            SqlContext.Pipe.SendResultsStart(record);
-
-                            //foreach (SqlDataRecord recSkyline in btg[iItem])
-                            foreach (DataRow recSkyline in dtResult.Rows)
-                            {
-                                for (int i = 0; i < recSkyline.Table.Columns.Count; i++)
-                                {
-                                    record.SetValue(i, recSkyline[i]);
-                                }
-                                SqlContext.Pipe.SendResultsRow(record);
-                            }
-                            SqlContext.Pipe.SendResultsEnd();
+                            dtResult.Rows.Add(row);
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    //Pack Errormessage in a SQL and return the result
-                    string strError = "Fehler in SP_SkylineHexagon: ";
-                    strError += ex.Message;
 
-                    if (isIndependent)
-                    {
-                        Debug.WriteLine(strError);
-
-                    }
-                    else
-                    {
-                        SqlContext.Pipe.Send(strError);
-                    }
-
+                    //Goto the next node
+                    iItem = next[iItem];
 
                 }
-                finally
-                {
-                    if (connection != null)
-                        connection.Close();
-                }
+
+                
             }
+            catch (Exception ex)
+            {
+                throw ex;
 
-            sw.Stop();
-            TimeInMs = sw.ElapsedMilliseconds;
+
+            }
+            
             return dtResult;
-
         }
+
+
 
         /// <summary>
         /// Replace the database values to ranks (this is much faster than directly with SQL, i.e. with the DENSE_RANK() function
@@ -384,9 +328,9 @@ namespace prefSQL.SQLSkyline
                                     //removeRecursive(cur + weight[i], i, ref btg, ref next, ref prev, ref level, ref weight, 0);
 
                                     HexagonRemoveModel modelOut = RemoveIterative(modelIn, levelUpperBound);
-                                    btg = modelOut.btg;
-                                    next = modelOut.next;
-                                    prev = modelOut.prev;
+                                    btg = modelOut.Btg;
+                                    next = modelOut.Next;
+                                    prev = modelOut.Prev;
                                     
                                 }
                             }
@@ -435,12 +379,12 @@ namespace prefSQL.SQLSkyline
                         // Do something
                         returnModel = (HexagonRemoveModel)stack.Pop();
 
-                        int id = returnModel.id;
-                        ArrayList[] btg = returnModel.btg;
-                        int[] next = returnModel.next;
-                        int[] prev = returnModel.prev;
-                        int[] level = returnModel.level;
-                        int[] weight = returnModel.weight;
+                        int id = returnModel.ID;
+                        ArrayList[] btg = returnModel.Btg;
+                        int[] next = returnModel.Next;
+                        int[] prev = returnModel.Prev;
+                        int[] level = returnModel.Level;
+                        int[] weight = returnModel.Weight;
                         
                         
                         //check if the node has already been removed
@@ -474,7 +418,7 @@ namespace prefSQL.SQLSkyline
                         
 
 
-                        bool containsChilds = false;
+                        
 
                         //remove followers
                         // follow the edge for preference i (only if not already on last level)
@@ -483,10 +427,10 @@ namespace prefSQL.SQLSkyline
                         if (id + weight[0] <= levelUpperBound && level[id + weight[0]] == level[id] + 1)
                         {                               
                             //Push current object to stack
-                            returnModel.loopindex = 1;  //important: raise loop Index!! new position in position loop!!
-                            returnModel.next = next;
-                            returnModel.prev = prev;
-                            returnModel.btg = btg;
+                            returnModel.Loopindex = 1;  //important: raise loop Index!! new position in position loop!!
+                            returnModel.Next = next;
+                            returnModel.Prev = prev;
+                            returnModel.Btg = btg;
                             stack.Push(returnModel);
                             stack.Push(20);
 
@@ -498,17 +442,16 @@ namespace prefSQL.SQLSkyline
                         }
 
 
-                        if (containsChilds == false)
-                        {
-                            //Contains no childs --> goto next address
-                            //The base case
-                            address = (int)stack.Pop();
-                            returnModel.next = next;
-                            returnModel.prev = prev;
-                            returnModel.btg = btg;
-                            stack.Push(returnModel);
+                        
+                        //Contains no childs --> goto next address
+                        //The base case
+                        address = (int)stack.Pop();
+                        returnModel.Next = next;
+                        returnModel.Prev = prev;
+                        returnModel.Btg = btg;
+                        stack.Push(returnModel);
 
-                        }
+                        
                         break;
                     }
                     case 20:
@@ -518,14 +461,14 @@ namespace prefSQL.SQLSkyline
                         returnModel = (HexagonRemoveModel)stack.Pop();
                         
                         //Read
-                        int id = returnModel.id;
-                        int index = returnModel.index;
-                        ArrayList[] btg = returnModel.btg;
-                        int[] next = returnModel.next;
-                        int[] prev = returnModel.prev;
-                        int[] level = returnModel.level;
-                        int[] weight = returnModel.weight;
-                        int iLoopIndex = returnModel.loopindex;
+                        int id = returnModel.ID;
+                        int index = returnModel.Index;
+                        ArrayList[] btg = returnModel.Btg;
+                        int[] next = returnModel.Next;
+                        int[] prev = returnModel.Prev;
+                        int[] level = returnModel.Level;
+                        int[] weight = returnModel.Weight;
+                        int iLoopIndex = returnModel.Loopindex;
 
 
                         bool isEndOfLoop = true;
@@ -538,7 +481,7 @@ namespace prefSQL.SQLSkyline
                             {
                                 //Push current object to stack
                                 //important: raise loop Index!! new position in position loop!! --> The next time i will be initialized by this index
-                                returnModel.loopindex = i + 1;  
+                                returnModel.Loopindex = i + 1;  
                                 stack.Push(returnModel);
                                 stack.Push(20);
 
@@ -618,9 +561,6 @@ namespace prefSQL.SQLSkyline
 
         protected abstract void CalculateOperators(ref string strOperators, string strSelectIncomparable, DbProviderFactory factory, DbConnection connection, ref string strSQL);
 
-        protected override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent)
-        {
-            throw new NotImplementedException();
-        }
+        
     }
 }

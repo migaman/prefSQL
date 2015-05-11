@@ -66,10 +66,8 @@ namespace prefSQL.SQLParser
             //Build the where clause with each column in the skyline
             for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
-                bool needsTextOrClause;
-
                 //Competition
-                needsTextOrClause = model.Skyline[iChild].IsCategorical;
+                bool needsTextOrClause = model.Skyline[iChild].IsCategorical;
 
                 //First child doesn't need an OR/AND
                 if (iChild > 0)

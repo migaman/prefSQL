@@ -41,7 +41,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestLOWLevel()
+        public void TestLowLevel()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW 10000 EQUAL";
 
@@ -53,7 +53,7 @@ namespace prefSQL.SQLParserTest
         }
 
         [TestMethod]
-        public void TestLOW()
+        public void TestLow()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.mileage LOW";
 
@@ -66,7 +66,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestHIGH()
+        public void TestHigh()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.horsepower HIGH";
 
@@ -78,7 +78,7 @@ namespace prefSQL.SQLParserTest
         }
 
         [TestMethod]
-        public void TestHIGHCustom()
+        public void TestHighCustom()
         {
             string strPrefSQL = "SELECT * FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF colors.name ('red' >> 'blue' >> OTHERS EQUAL >> 'gray') ";
 
@@ -91,7 +91,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestAROUND()
+        public void TestAround()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price AROUND 15000";
 
@@ -106,7 +106,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestFAVOUR()
+        public void TestFavour()
         {
             string strPrefSQL = "SELECT * FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF colors.name FAVOUR 'red'";
 
@@ -121,7 +121,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestDISFAVOUR()
+        public void TestDisfavour()
         {
             string strPrefSQL = "SELECT * FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF colors.name DISFAVOUR 'red'";
 

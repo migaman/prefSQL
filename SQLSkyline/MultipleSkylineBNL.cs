@@ -50,12 +50,12 @@ namespace prefSQL.SQLSkyline
 
             if (hasIncomparable)
             {
-                SP_MultipleSkylineBNL skyline = new SP_MultipleSkylineBNL();
+                SPMultipleSkylineBNL skyline = new SPMultipleSkylineBNL();
                 return skyline.GetSkylineTable(strQuery, strOperators, strConnection, Provider, numberOfRecords, upToLevel);
             }
             else
             {
-                SP_MultipleSkylineBNLLevel skyline = new SP_MultipleSkylineBNLLevel();
+                SPMultipleSkylineBNLLevel skyline = new SPMultipleSkylineBNLLevel();
                 return skyline.GetSkylineTable(strQuery, strOperators, strConnection, Provider, numberOfRecords, upToLevel);
             }
             

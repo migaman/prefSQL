@@ -41,7 +41,7 @@ namespace prefSQL.SQLSkyline
             //Quote quotes because it is a parameter of the stored procedure
             strFirstSQL = strFirstSQL.Replace("'", "''");
             string strSQLReturn;
-            if (hasIncomparable == true)
+            if (hasIncomparable)
             {
                 strSQLReturn = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords;
             }
@@ -56,7 +56,7 @@ namespace prefSQL.SQLSkyline
         public override DataTable GetSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
             TemplateBNL skyline = getSP_Skyline(hasIncomparable);
-            DataTable dt = skyline.GetSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
+            DataTable dt = skyline.GetSkylineTableIndependent(strQuery, strOperators, numberOfRecords, strConnection, Provider, additionalParameters);
             TimeMilliseconds = skyline.TimeInMs;
             return dt;         
         }
@@ -65,10 +65,10 @@ namespace prefSQL.SQLSkyline
         {
             if (hasIncomparable)
             {
-                return new SP_SkylineBNLSort();
+                return new SPSkylineBNLSort();
             }
 
-            return new SP_SkylineBNLSortLevel();
+            return new SPSkylineBNLSortLevel();
         }
     }
 }

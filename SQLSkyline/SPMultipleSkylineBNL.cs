@@ -11,7 +11,7 @@ using Microsoft.SqlServer.Server;
 //Important: Only use equal for comparing text (otherwise performance issues)
 namespace prefSQL.SQLSkyline
 {
-    public class SP_MultipleSkylineBNLLevel
+    public class SPMultipleSkylineBNL
     {
         /// <summary>
         /// Calculate the skyline points from a dataset
@@ -20,11 +20,11 @@ namespace prefSQL.SQLSkyline
         /// <param name="strOperators"></param>
         /// <param name="numberOfRecords"></param>
         /// <param name="upToLevel"></param>
-        [SqlProcedure(Name = "SP_MultipleSkylineBNLLevel")]
+        [SqlProcedure(Name = "SP_MultipleSkylineBNL")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 upToLevel)
         {
             int up = upToLevel.Value;
-            SP_MultipleSkylineBNLLevel skyline = new SP_MultipleSkylineBNLLevel();
+            SPMultipleSkylineBNL skyline = new SPMultipleSkylineBNL();
             skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, up);
 
         }
@@ -39,19 +39,18 @@ namespace prefSQL.SQLSkyline
         private DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, int upToLevel)
         {
             ArrayList resultCollection = new ArrayList();
+            ArrayList resultstringCollection = new ArrayList();
             string[] operators = strOperators.Split(';');
             DataTable dtResult = new DataTable();
-            int[] resultToTupleMapping = Helper.ResultToTupleMapping(operators);
 
-            DbProviderFactory factory;
-            DbConnection connection;
-            factory = DbProviderFactories.GetFactory(strProvider);
+            DbProviderFactory factory = DbProviderFactories.GetFactory(strProvider);
 
             // use the factory object to create Data access objects.
-            connection = factory.CreateConnection(); // will return the connection object (i.e. SqlConnection ...)
+            DbConnection connection = factory.CreateConnection();
             if (connection != null)
             {
                 connection.ConnectionString = strConnection;
+                
 
                 try
                 {
@@ -92,18 +91,17 @@ namespace prefSQL.SQLSkyline
 
                         int iMaxLevel = 0;
                 
-                        List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
+                        List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);               
 
                         foreach (object[] dbValuesObject in listObjects)
                         {
-
                             //Check if window list is empty
                             if (resultCollection.Count == 0)
                             {
                                 // Build our SqlDataRecord and start the results 
                                 levels.Add(0);
                                 iMaxLevel = 0;
-                                AddToWindow(dbValuesObject, operators, ref resultCollection, record, isIndependent, levels[levels.Count - 1], ref dtResult);
+                                AddToWindow(dbValuesObject, operators, resultCollection, resultstringCollection, record, isIndependent, levels[levels.Count - 1], dtResult);
                             }
                             else
                             {
@@ -112,17 +110,18 @@ namespace prefSQL.SQLSkyline
                                 bool bFound = false;
 
                                 //Start wie level 0 nodes (until uptolevels or maximum levels)
-                                for (int iLevel = 0; iLevel <= iMaxLevel && bFound == false && iLevel < upToLevel; iLevel++)
+                                for (int iLevel = 0; iLevel <= iMaxLevel && iLevel < upToLevel; iLevel++)
                                 {
                                     bool isDominated = false;
                                     for (int i = 0; i < resultCollection.Count; i++)
                                     {
                                         if (levels[i] == iLevel)
                                         {
-                                            long[] result = (long[])resultCollection[i];
+                                            long?[] result = (long?[])resultCollection[i];
+                                            string[] strResult = (string[])resultstringCollection[i];
 
                                             //Dominanz
-                                            if (Helper.IsTupleDominated(result, dbValuesObject, resultToTupleMapping) == true)
+                                            if (Helper.IsTupleDominated(operators, result, strResult, dbValuesObject))
                                             {
                                                 //Dominated in this level. Next level
                                                 isDominated = true;
@@ -144,12 +143,12 @@ namespace prefSQL.SQLSkyline
                                     if (iMaxLevel < upToLevel)
                                     {
                                         levels.Add(iMaxLevel);
-                                        AddToWindow(dbValuesObject, operators, ref resultCollection, record, isIndependent, levels[levels.Count - 1], ref dtResult);
+                                        AddToWindow(dbValuesObject, operators, resultCollection, resultstringCollection, record, isIndependent, levels[levels.Count - 1], dtResult);
                                     }
                                 }
                                 else
                                 {
-                                    AddToWindow(dbValuesObject, operators, ref resultCollection, record, isIndependent, levels[levels.Count - 1], ref dtResult);
+                                    AddToWindow(dbValuesObject, operators, resultCollection, resultstringCollection, record, isIndependent, levels[levels.Count - 1], dtResult);
                                 }
                             }
                         }
@@ -182,19 +181,19 @@ namespace prefSQL.SQLSkyline
                 }
                 finally
                 {
-                    if (connection != null)
-                        connection.Close();
+                    connection.Close();
                 }
             }
             return dtResult;
         }
 
 
-        private void AddToWindow(object[] dataReader, string[] operators, ref ArrayList resultCollection, SqlDataRecord record, SqlBoolean isFrameworkMode, int level, ref DataTable dtResult)
+        private void AddToWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, SqlBoolean isFrameworkMode, int level, DataTable dtResult)
         {
 
             //Erste Spalte ist die ID
-            long[] recordInt = new long[operators.GetUpperBound(0) + 1];
+            long?[] recordInt = new long?[operators.GetUpperBound(0) + 1];
+            string[] recordstring = new string[operators.GetUpperBound(0) + 1];
             DataRow row = dtResult.NewRow();
 
             for (int iCol = 0; iCol <= dataReader.GetUpperBound(0); iCol++)
@@ -202,7 +201,22 @@ namespace prefSQL.SQLSkyline
                 //Only the real columns (skyline columns are not output fields)
                 if (iCol <= operators.GetUpperBound(0))
                 {
-                    recordInt[iCol] = (long)dataReader[iCol];
+                    //LOW und HIGH Spalte in record abfüllen
+                    if (operators[iCol].Equals("LOW"))
+                    {
+                        if (dataReader[iCol] == DBNull.Value)
+                            recordInt[iCol] = null;
+                        else
+                            recordInt[iCol] = (long)dataReader[iCol];
+                        
+                        //Check if long value is incomparable
+                        if (iCol + 1 <= recordInt.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
+                        {
+                            //Incomparable field is always the next one
+                            recordstring[iCol] = (string)dataReader[iCol + 1];
+                        }
+                    }
+
                 }
                 else
                 {
@@ -222,6 +236,7 @@ namespace prefSQL.SQLSkyline
                 SqlContext.Pipe.SendResultsRow(record);
             }
             resultCollection.Add(recordInt);
+            resultstringCollection.Add(recordstring);
         }
 
 

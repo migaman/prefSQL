@@ -93,10 +93,9 @@ namespace prefSQL.SQLParser
         {
             PrefSQLModel pref = new PrefSQLModel();
             string strTableAlias = "";
-            string strFullColumnName;
 
             //Separate Column and Table
-            strFullColumnName = strTable + "." + strColumnName;           
+            string strFullColumnName = strTable + "." + strColumnName;           
 
             //Search if table name is just an alias
             string myValue = _tables.FirstOrDefault(x => x.Value == strTable).Key;
@@ -127,20 +126,17 @@ namespace prefSQL.SQLParser
         public override PrefSQLModel VisitWeightedsumLowHigh(SQLParser.WeightedsumLowHighContext context)
         {
             //Keyword LOW or HIGH
-            string strTable;
-            string strExpression;
-            double weight;
-            
+
             //Separate Column and Table
             string strColumnName = GetColumnName(context.GetChild(0));
-            strTable = GetTableName(context.GetChild(0));
-            strExpression = strTable + "." + strColumnName;
+            string strTable = GetTableName(context.GetChild(0));
+            string strExpression = strTable + "." + strColumnName;
             if (context.op.Type == SQLParser.K_HIGH)
             {
                 //Multiply with -1 (result: every value can be minimized!)
                 strExpression += " * -1";
             }
-            weight = double.Parse(context.GetChild(2).GetText());
+            double weight = double.Parse(context.GetChild(2).GetText());
 
             //Add the preference to the list               
             return AddWeightedSum(strColumnName, strTable, strExpression, weight);
@@ -154,14 +150,11 @@ namespace prefSQL.SQLParser
         public override PrefSQLModel VisitWeightedsumAround(SQLParser.WeightedsumAroundContext context)
         {
             //Keyword AROUND, FAVOUR, DISFAVOUR
-            string strColumnName;
-            string strTable;
             string strExpression = "";
-            double weight;
 
             //Separate Column and Table
-            strColumnName = GetColumnName(context.GetChild(0));
-            strTable = GetTableName(context.GetChild(0));
+            string strColumnName = GetColumnName(context.GetChild(0));
+            string strTable = GetTableName(context.GetChild(0));
             
             switch (context.op.Type)
             {
@@ -181,7 +174,7 @@ namespace prefSQL.SQLParser
                     strExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
                     break;
             }
-            weight = double.Parse(context.GetChild(3).GetText());
+            double weight = double.Parse(context.GetChild(3).GetText());
 
             //Add the preference to the list               
             return AddWeightedSum(strColumnName, strTable, strExpression, weight);
@@ -325,11 +318,8 @@ namespace prefSQL.SQLParser
         public override PrefSQLModel VisitSkylinePreferenceLowHigh(SQLParser.SkylinePreferenceLowHighContext context)
         {
             bool isLevelStepEqual = true;
-            string strColumnName;
             string strColumnExpression = "";
             string strInnerColumnExpression = "";
-            string strFullColumnName;
-            string strTable;
             string strLevelStep = "";
             string strLevelAdd = "";
             string strLevelMinus = "";
@@ -339,9 +329,9 @@ namespace prefSQL.SQLParser
             string strOpposite = "";
             
             //Separate Column and Table
-            strColumnName = GetColumnName(context.GetChild(0));
-            strTable = GetTableName(context.GetChild(0));
-            strFullColumnName = strTable + "." + strColumnName;
+            string strColumnName = GetColumnName(context.GetChild(0));
+            string strTable = GetTableName(context.GetChild(0));
+            string strFullColumnName = strTable + "." + strColumnName;
             
             if (context.ChildCount == 4)
             {
@@ -403,17 +393,14 @@ namespace prefSQL.SQLParser
         public override PrefSQLModel VisitSkylinePreferenceCategory(SQLParser.SkylinePreferenceCategoryContext context)
         {
             //It is a text --> Text text must be converted in a given sortordez
-            string strColumnName;
-            string strTable;
             string strHexagonIncomparable = "";
             int amountOfIncomparable = 0;
             //Build CASE ORDER with arguments
             string strExpr = context.exprCategory().GetText();
-            string strColumnExpression;
 
             //Separate Column and Table
-            strColumnName = GetColumnName(context.GetChild(0));
-            strTable = GetTableName(context.GetChild(0));
+            string strColumnName = GetColumnName(context.GetChild(0));
+            string strTable = GetTableName(context.GetChild(0));
 
 
             string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split signs are == and >>
@@ -421,11 +408,9 @@ namespace prefSQL.SQLParser
             string strSqlelse = "";
             string strSQLInnerElse = "";
             string strSQLInnerOrderBy = "";
-            string strInnerColumn;
             string strSingleColumn = strTable + "." + GetColumnName(context.GetChild(0));
             string strInnerSingleColumn = strTable + InnerTableSuffix + "." + GetColumnName(context.GetChild(0));
             string strSQLIncomparableAttribute = "";
-            string strIncomporableAttribute;
             string strIncomporableAttributeElse = "";
             bool bComparable = true;
             int weightHexagonIncomparable = 0;
@@ -513,9 +498,9 @@ namespace prefSQL.SQLParser
             }
 
             string strExpression = "CASE" + strSQLOrderBy + strSqlelse + " END";
-            strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLInnerElse + " END";
-            strIncomporableAttribute = "CASE" + strSQLIncomparableAttribute + strIncomporableAttributeElse + " END";
-            strColumnExpression = "CAST(" + strExpression + " AS bigint)";
+            string strInnerColumn = "CASE" + strSQLInnerOrderBy + strSQLInnerElse + " END";
+            string strIncomporableAttribute = "CASE" + strSQLIncomparableAttribute + strIncomporableAttributeElse + " END";
+            string strColumnExpression = "CAST(" + strExpression + " AS bigint)";
 
 
 
@@ -531,17 +516,14 @@ namespace prefSQL.SQLParser
         /// <returns></returns>
         public override PrefSQLModel VisitSkylinePreferenceAround(SQLParser.SkylinePreferenceAroundContext context)
         {
-            string strColumnName;
-            string strFullColumnName;
             string strColumnExpression = "";
-            string strTable;
             string strInnerColumnExpression = "";
             string strExpression = "";
 
             //Separate Column and Table
-            strColumnName = GetColumnName(context.GetChild(0));
-            strTable = GetTableName(context.GetChild(0));
-            strFullColumnName = strTable + "." + strColumnName;
+            string strColumnName = GetColumnName(context.GetChild(0));
+            string strTable = GetTableName(context.GetChild(0));
+            string strFullColumnName = strTable + "." + strColumnName;
 
             switch (context.op.Type)
             {
@@ -644,13 +626,11 @@ namespace prefSQL.SQLParser
         public override PrefSQLModel VisitOrderbyCategory(SQLParser.OrderbyCategoryContext context)
         {
             string strSQL = "";
-            string strColumnName;
-            string strTable;
 
             //Build CASE ORDER with arguments
             string strExpr = context.exprCategory().GetText();
-            strColumnName = GetColumnName(context.GetChild(0));
-            strTable = GetTableName(context.GetChild(0));
+            string strColumnName = GetColumnName(context.GetChild(0));
+            string strTable = GetTableName(context.GetChild(0));
             string[] strTemp = Regex.Split(strExpr, @"(==|>>)"); //Split signs are == and >>
             string strSQLOrderBy = "";
             string strSqlelse = "";

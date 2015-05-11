@@ -706,7 +706,6 @@ namespace Utility
 
 
                 //Write in file
-                string strFileName;
                 string strFiletype;
 
                 if (GenerateScript == false)
@@ -718,7 +717,7 @@ namespace Utility
                     strFiletype = ".sql";
                 }
                 //create filename
-                strFileName = Path + "Performance_" + Set.ToString() + "_" + currentStrategy + strFiletype;
+                string strFileName = Path + "Performance_" + Set.ToString() + "_" + currentStrategy + strFiletype;
 
                 StreamWriter outfile = new StreamWriter(strFileName);
                 outfile.Write(sb.ToString());

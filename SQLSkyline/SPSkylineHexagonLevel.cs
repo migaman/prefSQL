@@ -8,19 +8,24 @@ using Microsoft.SqlServer.Server;
 namespace prefSQL.SQLSkyline
 {
 
-    public class SP_SkylineHexagonLevel : TemplateHexagon
+    public class SPSkylineHexagonLevel : TemplateHexagon
     {
         [SqlProcedure(Name = "SP_SkylineHexagonLevel")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
         {
-            SP_SkylineHexagonLevel skyline = new SP_SkylineHexagonLevel();
-            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, "", 0);
+            SPSkylineHexagonLevel skyline = new SPSkylineHexagonLevel();
+            string[] additionalParameters = new string[4];
+            //additionalParameters[0] = strFirstSQLHexagon;
+            //additionalParameters[1] = strOperatorsHexagon;
+            additionalParameters[2] = "";
+            additionalParameters[3] = "0";
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, additionalParameters);
         }
 
         protected override void CalculateOperators(ref string strOperators, string strSelectIncomparable, DbProviderFactory factory, DbConnection connection, ref string strSQL)
         {
             //No Operation
-            return;
+            //return;
         }
 
         protected override void Add(object[] dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable)

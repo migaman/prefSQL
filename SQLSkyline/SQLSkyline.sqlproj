@@ -73,16 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TypeConverter.cs" />
-    <Compile Include="SP_SkylineHexagon.cs" />
-    <Compile Include="SP_SkylineDQ.cs" />
-    <Compile Include="SP_SkylineBNLSort.cs" />
-    <Compile Include="SP_SkylineBNLSortLevel.cs" />
     <Compile Include="Helper.cs" />
-    <Compile Include="SP_MultipleSkylineBNL.cs" />
-    <Compile Include="SP_MultipleSkylineBNLLevel.cs" />
-    <Compile Include="SP_SkylineHexagonLevel.cs" />
-    <Compile Include="SP_SkylineBNL.cs" />
-    <Compile Include="SP_SkylineBNLLevel.cs" />
     <Compile Include="SkylineStrategy.cs" />
     <Compile Include="MultipleSkylineBNL.cs" />
     <Compile Include="SkylineBNL.cs" />
@@ -103,5 +94,14 @@
     <Compile Include="SamplingSkyline\SamplingSkylineUtility.cs" />
     <Compile Include="SamplingSkyline\SkylineAlgorithmParameters.cs" />
     <Compile Include="SkylineDecisionTree.cs" />
+    <Compile Include="SPMultipleSkylineBNL.cs" />
+    <Compile Include="SPMultipleSkylineBNLLevel.cs" />
+    <Compile Include="SPSkylineBNL.cs" />
+    <Compile Include="SPSkylineBNLSort.cs" />
+    <Compile Include="SPSkylineDQ.cs" />
+    <Compile Include="SPSkylineBNLLevel.cs" />
+    <Compile Include="SPSkylineBNLSortLevel.cs" />
+    <Compile Include="SPSkylineHexagon.cs" />
+    <Compile Include="SPSkylineHexagonLevel.cs" />
   </ItemGroup>
 </Project>

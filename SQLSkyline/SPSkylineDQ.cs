@@ -7,13 +7,13 @@ using Microsoft.SqlServer.Server;
 namespace prefSQL.SQLSkyline
 {
 
-    public class SP_SkylineDQ : TemplateDQ
+    public class SPSkylineDQ : TemplateDQ
     {
         [SqlProcedure(Name = "SP_SkylineDQ")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
         {
-            SP_SkylineDQ skyline = new SP_SkylineDQ();
-            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr);
+            SPSkylineDQ skyline = new SPSkylineDQ();
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, null);
         }
 
     }

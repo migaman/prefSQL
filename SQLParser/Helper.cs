@@ -150,7 +150,7 @@ namespace prefSQL.SQLParser
                         skylineSample.DbProvider = DriverString;
                         dt = skylineSample.GetSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords,
                             model.WithIncomparable, parameter, strategy, model.SkylineSampleCount, model.SkylineSampleDimension, 0);
-                        TimeInMilliseconds = skylineSample.timeMilliseconds;                        
+                        TimeInMilliseconds = skylineSample.TimeMilliseconds;                        
                     }
                 }
 

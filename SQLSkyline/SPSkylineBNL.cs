@@ -3,11 +3,9 @@ using System.Data;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
 
-//Caution: Attention small changes in this code can lead to performance issues, i.e. using a startswith instead of an equal can increase by 10 times
-//Important: Only use equal for comparing text (otherwise performance issues)
 namespace prefSQL.SQLSkyline
 {
-    public class SP_SkylineBNLSort : TemplateBNL
+    public class SPSkylineBNL : TemplateBNL
     {
         /// <summary>
         /// Calculate the skyline points from a dataset
@@ -15,12 +13,13 @@ namespace prefSQL.SQLSkyline
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
         /// <param name="numberOfRecords"></param>
-        [SqlProcedure(Name = "SP_SkylineBNLSort")]
+        [SqlProcedure(Name = "SP_SkylineBNL")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
         {
-            SP_SkylineBNLSort skyline = new SP_SkylineBNLSort();
-            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr);
+            SPSkylineBNL skyline = new SPSkylineBNL();
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, null);
         }
+
 
         protected override void AddtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult)
         {
@@ -39,11 +38,19 @@ namespace prefSQL.SQLSkyline
                 return true;
             }
 
+
             //Now, check if the new point dominates the one in the window
-            //--> It is not possible that the new point dominates the one in the window --> Reason data is ORDERED
+            //This is only possible with not sorted data
+            if (Helper.DoesTupleDominate(dataReader, operators, result, strResult))
+            {
+                //The new record dominates the one in the windows. Remove point from window and test further
+                resultCollection.RemoveAt(i);
+                resultstringCollection.RemoveAt(i);
+                dtResult.Rows.RemoveAt(i);
+            }
             return false;
         }
-        
 
+        
     }
 }

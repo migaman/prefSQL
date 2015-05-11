@@ -57,16 +57,14 @@ namespace prefSQL.SQLSkyline
             if (hasIncomparable)
             {
                 //Hexagon incomparable needs additional parameters
-                String strHexagonSelectIncomparable = additionalParameters[3].Trim().Replace("''", "'").Trim('\'');
-                int weightHexagonIncomparable = int.Parse(additionalParameters[4].Trim());
-                SP_SkylineHexagon skyline = new SP_SkylineHexagon();
-                dt = skyline.GetSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider, strHexagonSelectIncomparable, weightHexagonIncomparable);
+                SPSkylineHexagon skyline = new SPSkylineHexagon();
+                dt = skyline.GetSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider, additionalParameters);
                 TimeMilliseconds = skyline.TimeInMs;
             }
             else
             {
-                SP_SkylineHexagonLevel skyline = new SP_SkylineHexagonLevel();
-                dt = skyline.GetSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider, "", 0);
+                SPSkylineHexagonLevel skyline = new SPSkylineHexagonLevel();
+                dt = skyline.GetSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider, additionalParameters);
                 TimeMilliseconds = skyline.TimeInMs;
             }
             return dt;

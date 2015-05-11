@@ -24,7 +24,7 @@ namespace prefSQL.SQLSkyline
     /// </remarks>
     public abstract class TemplateBNL : TemplateStrategy
     {
-        protected override DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords,
+        /*protected override DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords,
             bool isIndependent, string strConnection, string strProvider)
         {
             string[] operators = strOperators.Split(';');
@@ -34,28 +34,26 @@ namespace prefSQL.SQLSkyline
             SqlDataRecord record = Helper.BuildDataRecord(dt, operators, dtResult);
 
             return GetSkylineTable(listObjects, dtResult, record, strOperators, numberOfRecords, isIndependent);
-        }
+        }*/
 
-        public DataTable GetSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators,
+        /*public DataTable GetSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators,
             int numberOfRecords, DataTable dataTableTemplate)
         {
             return GetSkylineTable(database, dataTableTemplate, dataRecordTemplate, operators, numberOfRecords, true);
-        }
+        }*/
 
-        protected override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent)
+
+        protected override DataTable GetCompleteSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, string[] additionalParameters)
         {
-            DataTable dataTableReturn = dataTableTemplate.Clone();
-
-            Stopwatch sw = new Stopwatch();
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();
             string[] operatorsArray = operators.Split(';');
+            DataTable dataTableReturn = dataTableTemplate.Clone();
             int[] resultToTupleMapping = Helper.ResultToTupleMapping(operatorsArray);
-        
+
             try
             {
-                //Time the algorithm needs (afer query to the database)
-                sw.Start();
+
 
                 //For each tuple
                 foreach (object[] dbValuesObject in database)
@@ -66,8 +64,7 @@ namespace prefSQL.SQLSkyline
                     {
                         // Build our SqlDataRecord and start the results 
                         AddtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
-                    }
-                    else
+                    } else
                     {
                         bool isDominated = false;
 
@@ -87,49 +84,11 @@ namespace prefSQL.SQLSkyline
 
                     }
                 }
-
-                //Remove certain amount of rows if query contains TOP Keyword
-                Helper.GetAmountOfTuples(dataTableReturn, numberOfRecords);
-
-                
-                //Sort ByRank
-                //dtResult = Helper.sortByRank(dtResult, resultCollection);
-                //dtResult = Helper.sortBySum(dtResult, resultCollection);
-
-                if (isIndependent == false)
-                {
-                    //Send results to client
-                    SqlContext.Pipe.SendResultsStart(dataRecordTemplate);
-
-                    foreach (DataRow recSkyline in dataTableReturn.Rows)
-                    {
-                        for (int i = 0; i < recSkyline.Table.Columns.Count; i++)
-                        {
-                            dataRecordTemplate.SetValue(i, recSkyline[i]);
-                        }
-                        SqlContext.Pipe.SendResultsRow(dataRecordTemplate);
-                    }
-                    SqlContext.Pipe.SendResultsEnd();
-                }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                //Pack Errormessage in a SQL and return the result
-                string strError = "Fehler in SP_SkylineBNL: ";
-                strError += ex.Message;
-
-                if (isIndependent)
-                {
-                    Debug.WriteLine(strError);
-                }
-                else
-                {
-                    SqlContext.Pipe.Send(strError);
-                }
+                throw e;
             }
-         
-            sw.Stop();
-            TimeInMs = sw.ElapsedMilliseconds;
             return dataTableReturn;
         }
 

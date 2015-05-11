@@ -7,7 +7,7 @@ using Microsoft.SqlServer.Server;
 //Important: Only use equal for comparing text (otherwise performance issues)
 namespace prefSQL.SQLSkyline
 {
-    public class SP_SkylineBNLSortLevel : TemplateBNL
+    public class SPSkylineBNLSortLevel : TemplateBNL
     {
         /// <summary>
         /// Calculate the skyline points from a dataset
@@ -18,8 +18,8 @@ namespace prefSQL.SQLSkyline
         [SqlProcedure(Name = "SP_SkylineBNLSortLevel")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
         {
-            SP_SkylineBNLSortLevel skyline = new SP_SkylineBNLSortLevel();
-            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr);
+            SPSkylineBNLSortLevel skyline = new SPSkylineBNLSortLevel();
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, null);
         }
 
 

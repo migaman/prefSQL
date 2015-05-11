@@ -22,8 +22,8 @@ namespace Utility
 
             Program prg = new Program();
             //prg.PerformanceTestBNL();
-            prg.MeasurePerformance();
-            //prg.Run();
+            //prg.MeasurePerformance();
+            prg.Run();
 
 
             /*
@@ -89,7 +89,7 @@ namespace Utility
             try
             {
                 //Playground --> Test here your queries
-                string strPrefSQL = "SELECT c.id, c.price, b.name          FROM cars_small c   LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
+                //string strPrefSQL = "SELECT c.id, c.price, b.name          FROM cars_small c   LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
                 /*strPrefSQL = "SELECT c.id, c.price                  FROM cars_small c   LEFT OUTER JOIN colors cc ON c.color_id = cc.id RANKING OF c.price LOW 0.5, cc.name ('brown' >> 'green') 0.5";
                 strPrefSQL = "SELECT c.id, c.price                  FROM cars_small c   LEFT OUTER JOIN colors cc ON c.color_id = cc.id SKYLINE OF c.horsepower HIGH, cc.name ('red' >> 'blue' >> 'yellow')";
                 strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars_small t1  LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('red' >> 'blue' >> OTHERS INCOMPARABLE)";
@@ -102,10 +102,10 @@ namespace Utility
                 strPrefSQL = "SELECT cars.id, cars.horsepower       FROM cars           SKYLINE OF cars.horsepower HIGH, cars.mileage LOW";
                 strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars t1        LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
                 strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t1.enginesize           FROM cars t1        SKYLINE OF t1.price LOW, t1.mileage LOW, t1.enginesize HIGH ORDER BY SUM_RANK()";
-                strPrefSQL = "SELECT t1.id                          FROM cars t1  SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
-                *///strPrefSQL = "SELECT t1.id                          FROM cars_norm t1   SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower LOW, t1.enginesize LOW, t1.doors LOW, t1.consumption LOW, t1.cylinders LOW";
-
-                //strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars t1        SKYLINE OF t1.price LOW, t1.mileage LOW ORDER BY SUM_RANK()";
+                */
+                //string strPrefSQL = "SELECT t1.id                          FROM cars t1  SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
+                //string strPrefSQL = "SELECT t1.id                          FROM cars_norm t1   SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower LOW, t1.enginesize LOW, t1.doors LOW, t1.consumption LOW, t1.cylinders LOW";
+                string strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars t1        SKYLINE OF t1.price LOW, t1.mileage LOW ORDER BY SUM_RANK()";
                 
                 Debug.WriteLine(strPrefSQL);
                 SQLCommon parser = new SQLCommon();
@@ -114,8 +114,8 @@ namespace Utility
                 //Choose here your algorithm
                 //parser.SkylineType = new SkylineSQL();
                 //parser.SkylineType = new SkylineBNL();
-                parser.SkylineType = new SkylineBNLSort();
-                //parser.SkylineType = new SkylineHexagon();
+                //parser.SkylineType = new SkylineBNLSort();
+                parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new MultipleSkylineBNL();
                 //parser.SkylineType = new SkylineDQ();
                 
@@ -125,8 +125,7 @@ namespace Utility
 
                 
                 //First parse only (to get the parsed string for CLR)
-                string strSQL = parser.ParsePreferenceSQL(strPrefSQL);
-                Debug.WriteLine(strSQL);
+                Debug.WriteLine(parser.ParsePreferenceSQL(strPrefSQL));
 
                 //Now parse and execute
                 Stopwatch sw = new Stopwatch();

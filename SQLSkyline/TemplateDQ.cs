@@ -26,10 +26,13 @@ namespace prefSQL.SQLSkyline
     /// </remarks>
     public class TemplateDQ : TemplateStrategy
     {
-
-        protected override DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider)
+        protected override DataTable GetCompleteSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate,
+            string operators, int numberOfRecords, bool isIndependent, string[] additionalParameters)
         {
-            Stopwatch sw = new Stopwatch();
+            string[] operatorsArray = operators.Split(';');
+            DataTable dataTableReturn = dataTableTemplate.Clone();
+
+            /*Stopwatch sw = new Stopwatch();
             string[] operators = strOperators.Split(';');
             DataTable dtResult = new DataTable();
 
@@ -40,107 +43,45 @@ namespace prefSQL.SQLSkyline
             if (connection != null)
             {
                 connection.ConnectionString = strConnection;
+            */
+            try
+            {
+                
+                // Build our record schema 
+                //SqlDataRecord record = Helper.BuildDataRecord(dt, operators, dtResult);
 
-                try
+                //List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
+
+                //Work with object[]-array (more than 10 times faster than datatable)
+                List<object[]> listResult = ComputeSkyline(database, operatorsArray, operatorsArray.GetUpperBound(0));
+
+                //Write object in datatable
+                foreach (object[] row in listResult)
                 {
-                    //Some checks
-                    if (strQuery.Length == Helper.MaxSize)
-                    {
-                        throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
-                    }
-                    connection.Open();
 
-                    DbDataAdapter dap = factory.CreateDataAdapter();
-                    DbCommand selectCommand = connection.CreateCommand();
-                    selectCommand.CommandTimeout = 0; //infinite timeout
-                    selectCommand.CommandText = strQuery;
-                    if (dap != null)
-                    {
-                        dap.SelectCommand = selectCommand;
-                        DataTable dt = new DataTable();
-                        dap.Fill(dt);
+                    //int validDataFrom = dataTableReturn.Columns.Count - operatorsArray.GetUpperBound(0) - 1;
+                    int validDataFrom = dataTableReturn.Columns.Count;
+                    object[] resultArray = new object[validDataFrom];
+                    //First columns are skyline columns, there start with index after skyline column
+                    Array.Copy(row, operatorsArray.GetUpperBound(0) + 1, resultArray, 0, validDataFrom);
+                    dataTableReturn.Rows.Add(resultArray);
 
-                        //Time the algorithm needs (afer query to the database)
-                        sw.Start();
-
-                        // Build our record schema 
-                        SqlDataRecord record = Helper.BuildDataRecord(dt, operators, dtResult);
-
-                        List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
-
-                        //Work with object[]-array (more than 10 times faster than datatable)
-                        List<object[]> listResult = ComputeSkyline(listObjects, operators, operators.GetUpperBound(0), false);
-
-                        //Write object in datatable
-                        foreach (object[] row in listResult)
-                        {
-                    
-                            int validDataFrom = dt.Columns.Count - operators.GetUpperBound(0) - 1;
-                            object [] resultArray = new object[validDataFrom];
-                            //First columns are skyline columns, there start with index after skyline column
-                            Array.Copy(row, operators.GetUpperBound(0)+1, resultArray, 0, validDataFrom);
-                            dtResult.Rows.Add(resultArray);
-                    
-                        }
-
-                        //Remove certain amount of rows if query contains TOP Keyword
-                        Helper.GetAmountOfTuples(dtResult, numberOfRecords);
+                }
 
                 
-                        if (isIndependent == false)
-                        {                   
-                            SqlContext.Pipe.SendResultsStart(record);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
 
-                            foreach (DataRow row in dtResult.Rows)
-                            {
-                                for (int i = 0; i < dtResult.Columns.Count; i++)
-                                {
-                                    record.SetValue(i, row[i]);
-                                }
-
-                                SqlContext.Pipe.SendResultsRow(record);
-                            }
-
-                            SqlContext.Pipe.SendResultsEnd();
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    //Pack Errormessage in a SQL and return the result
-                    string strError = "Fehler in SP_SkylineDQ: ";
-                    strError += ex.Message;
-
-
-                    if (isIndependent)
-                    {
-                        Debug.WriteLine(strError);
-
-                    }
-                    else
-                    {
-                        SqlContext.Pipe.Send(strError);
-                    }
-
-                }
-                finally
-                {
-                    if (connection != null)
-                        connection.Close();
-                }
             }
 
-            sw.Stop();
-            TimeInMs = sw.ElapsedMilliseconds;
-            return dtResult;
+            return dataTableReturn;
         }
 
-        protected override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent)
-        {
-            throw new NotImplementedException();
-        }
 
-        private List<object[]> ComputeSkyline(List<object[]> listObjects, string[] operators, int dim, bool stopRecursion)
+
+        private List<object[]> ComputeSkyline(List<object[]> listObjects, string[] operators, int dim)
         {
             if (listObjects.Count <= 1)
                 return listObjects;
@@ -169,7 +110,7 @@ namespace prefSQL.SQLSkyline
                     //in dieser dimension nicht weiter splittbar --> versuchen in einer dimension tiefer zu splitten
                     if (dim > 0)
                     {
-                        return ComputeSkyline(listObjects, operators, dim - 1, false);
+                        return ComputeSkyline(listObjects, operators, dim - 1);
                     }
                     else
                     {
@@ -180,21 +121,10 @@ namespace prefSQL.SQLSkyline
             }
 
 
-            //Wenn der Median keine klare Trennung mehr bringt Objekt auch zurückgeben
-            bool bStop1 = false;
-            bool bStop2 = false;
-            if (list1.Count == 0)
-            {
-                bStop1 = true;
-            }
-            if (list2.Count == 0)
-            {
-                bStop2 = true;
-            }
 
             //Rekursiv aufrufen
-            List<object[]> skyline1 = ComputeSkyline(list1, operators, dim, bStop2);
-            List<object[]> skyline2 = ComputeSkyline(list2, operators, dim, bStop1);
+            List<object[]> skyline1 = ComputeSkyline(list1, operators, dim);
+            List<object[]> skyline2 = ComputeSkyline(list2, operators, dim);
 
 
             List<object[]> dtMerge = MergeBasic(skyline1, skyline2, operators, operators.GetUpperBound(0));
@@ -421,7 +351,7 @@ namespace prefSQL.SQLSkyline
             int mid = size / 2;
 
             //compute the double value because if one element is 1 and the other 2, otherwise the tuples are not splitted
-            double median = (size % 2 != 0) ? (long)sortedPNumbers[mid] : (double)(((long)sortedPNumbers[mid] + (long)sortedPNumbers[mid - 1])) / 2;
+            double median = (size % 2 != 0) ? sortedPNumbers[mid] : (double)((sortedPNumbers[mid] + sortedPNumbers[mid - 1])) / 2;
 
             return median;
         }

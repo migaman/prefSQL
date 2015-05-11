@@ -125,7 +125,7 @@ namespace Utility
                     prefSqlModel.SkylineSampleCount, prefSqlModel.SkylineSampleDimension, 0);
 
                 objectsCount += dataTable.Rows.Count;
-                timeSpent += skylineSample.timeMilliseconds;
+                timeSpent += skylineSample.TimeMilliseconds;
             }
 
             Console.WriteLine("time average: " + (double) timeSpent/producedSubspaces.Count);

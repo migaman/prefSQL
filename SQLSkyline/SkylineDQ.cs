@@ -46,8 +46,8 @@ namespace prefSQL.SQLSkyline
 
         public override DataTable GetSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
-            SP_SkylineDQ skyline = new SP_SkylineDQ();
-            DataTable dt = skyline.GetSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
+            SPSkylineDQ skyline = new SPSkylineDQ();
+            DataTable dt = skyline.GetSkylineTableIndependent(strQuery, strOperators, numberOfRecords, strConnection, Provider, additionalParameters);
             TimeMilliseconds = skyline.TimeInMs;
             return dt;
         }

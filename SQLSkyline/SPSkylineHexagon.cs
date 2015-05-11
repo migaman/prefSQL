@@ -10,13 +10,18 @@ using Microsoft.SqlServer.Server;
 namespace prefSQL.SQLSkyline
 {
 
-    public class SP_SkylineHexagon : TemplateHexagon
+    public class SPSkylineHexagon : TemplateHexagon
     {        
         [SqlProcedure(Name = "SP_SkylineHexagon")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlString strSelectIncomparable, int weightHexagonIncomparable)
         {
-            SP_SkylineHexagon skyline = new SP_SkylineHexagon();
-            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, strSelectIncomparable.ToString(), weightHexagonIncomparable);
+            SPSkylineHexagon skyline = new SPSkylineHexagon();
+            string[] additionalParameters = new string[4];
+            //additionalParameters[0] = strFirstSQLHexagon;
+            //additionalParameters[1] = strOperatorsHexagon;
+            additionalParameters[2] = strSelectIncomparable.ToString();
+            additionalParameters[3] = weightHexagonIncomparable.ToString();
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, additionalParameters);
         }
 
 
@@ -96,8 +101,7 @@ namespace prefSQL.SQLSkyline
                     strOperators = strOperators.Replace("CALCULATEINCOMPARABLE", strAddOperators);
                 }
 
-                if (connection != null)
-                    connection.Close();
+                connection.Close();
 
             }
         }

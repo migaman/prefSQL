@@ -19,7 +19,7 @@
 ------------------------------------------------------------------
 
 DECLARE @ASSEMBLY_PATH varchar(400);
-SET @ASSEMBLY_PATH = 'E:\Doc\Studies\PRJ_Thesis\prefSQL\SQLSkyline\bin\Debug\SQLSkyline.dll';
+SET @ASSEMBLY_PATH = 'E:\Doc\Studies\PRJ_Thesis\prefSQL\SQLSkyline\bin\Release\SQLSkyline.dll';
 
 ------------------------------------------------------------------
 ----------- REMOVE ASSEMBLY  -------------------------------------
@@ -66,34 +66,34 @@ GO
 
 --Create SP for BNL (with Incomparable)
 CREATE PROCEDURE SP_SkylineBNL (@Name nvarchar(4000), @Operators nvarchar(200), @NumberOfRecords int)
-AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineBNL].GetSkyline;
+AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SPSkylineBNL].GetSkyline;
 GO
 --Create SP for BNL Levelized (without incomparable)
 CREATE PROCEDURE SP_SkylineBNLLevel (@Name nvarchar(4000), @Operators nvarchar(200), @NumberOfRecords int)
-AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineBNLLevel].GetSkyline;
+AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SPSkylineBNLLevel].GetSkyline;
 GO
 --Create SP for BNLSort (with Incomparable)
 CREATE PROCEDURE SP_SkylineBNLSort (@Name nvarchar(4000), @Operators nvarchar(200), @NumberOfRecords int)
-AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineBNLSort].GetSkyline;
+AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SPSkylineBNLSort].GetSkyline;
 GO
 --Create SP for BNLSort Levelized (without incomparable)
 CREATE PROCEDURE SP_SkylineBNLSortLevel (@Name nvarchar(4000), @Operators nvarchar(200), @NumberOfRecords int)
-AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineBNLSortLevel].GetSkyline;
+AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SPSkylineBNLSortLevel].GetSkyline;
 GO
 --Create SP for DQ
 CREATE PROCEDURE SP_SkylineDQ (@Name nvarchar(4000), @Operators nvarchar(200), @NumberOfRecords int)
-AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineDQ].GetSkyline;
+AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SPSkylineDQ].GetSkyline;
 GO
 --Create SP for Hexagon
 CREATE PROCEDURE SP_SkylineHexagon (@Name nvarchar(4000), @Operators nvarchar(200), @NumberOfRecords int, @DistinctIncomparable nvarchar(4000), @DistinctLevelIncomparable int)
-AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineHexagon].GetSkyline;
+AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SPSkylineHexagon].GetSkyline;
 GO
 --Create SP for Hexagon Level
 CREATE PROCEDURE SP_SkylineHexagonLevel (@Name nvarchar(4000), @Operators nvarchar(200), @NumberOfRecords int)
-AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_SkylineHexagonLevel].GetSkyline;
+AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SPSkylineHexagonLevel].GetSkyline;
 GO
 --Create SP for MultipleSkyline
 CREATE PROCEDURE SP_MultipleSkylineBNL (@Name nvarchar(4000), @Operators nvarchar(200), @NumberOfRecords int, @UpToLevel int)
-AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SP_MultipleSkylineBNL].GetSkyline;
+AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SPMultipleSkylineBNL].GetSkyline;
 GO
 

@@ -9,26 +9,26 @@ namespace prefSQL.SQLSkyline.Models
             
         }
 
-        public HexagonRemoveModel(int _id, int _index, ArrayList[] _btg, int[] _next, int[] _prev, int[] _level, int[] _weight, int _loopindex)
+        public HexagonRemoveModel(int id, int index, ArrayList[] btg, int[] next, int[] prev, int[] level, int[] weight, int loopindex)
         {
-            id = _id;
-            index = _index;
-            btg = _btg;
-            next = _next;
-            prev = _prev;
-            level = _level;
-            weight = _weight;
-            loopindex = _loopindex;
+            ID = id;
+            Index = index;
+            Btg = btg;
+            Next = next;
+            Prev = prev;
+            Level = level;
+            Weight = weight;
+            Loopindex = loopindex;
         }
 
-        public int loopindex; //position in for loop
-        public int id;
-        public int index;
-        public ArrayList[] btg { get; set; }
-        public int[] next;
-        public int[] prev;
-        public int[] level;
-        public int[] weight;
+        public int Loopindex { get; set; }     //position in for loop
+        public int ID { get; set; }
+        public int Index { get; set; }
+        public ArrayList[] Btg { get; set; }
+        public int[] Next { get; set; }
+        public int[] Prev { get; set; }
+        public int[] Level { get; set; }
+        public int[] Weight { get; set; }
 
     }
 }

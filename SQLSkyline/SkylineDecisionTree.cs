@@ -42,7 +42,7 @@ namespace prefSQL.SQLSkyline
             //Quote quotes because it is a parameter of the stored procedure
             strFirstSQL = strFirstSQL.Replace("'", "''");
             string strSQLReturn;
-            if (hasIncomparable == true)
+            if (hasIncomparable)
             {
                 strSQLReturn = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords;
             }
@@ -62,28 +62,18 @@ namespace prefSQL.SQLSkyline
             TemplateStrategy strategy;
             if (Cardinality <= thresholdCardinality)
             {
-                strategy = new SP_SkylineDQ();
+                strategy = new SPSkylineDQ();
             }
             else 
             {
-                strategy = new SP_SkylineBNLSort();
+                strategy = new SPSkylineBNLSort();
             }
 
-            DataTable dt = strategy.GetSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
+            DataTable dt = strategy.GetSkylineTableIndependent(strQuery, strOperators, numberOfRecords, strConnection, Provider, additionalParameters);
             TimeMilliseconds = strategy.TimeInMs;
             return dt;
         }
 
 
-
-        private TemplateBNL getSP_Skyline(bool hasIncomparable)
-        {
-            if (hasIncomparable)
-            {
-                return new SP_SkylineBNLSort();
-            }
-
-            return new SP_SkylineBNLSortLevel();
-        }
     }
 }

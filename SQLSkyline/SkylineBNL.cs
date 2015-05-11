@@ -35,7 +35,7 @@ namespace prefSQL.SQLSkyline
             //Quote quotes because it is a parameter of the stored procedure
             strFirstSQL = strFirstSQL.Replace("'", "''");
             string strSQLReturn;
-            if (hasIncomparable == true)
+            if (hasIncomparable)
             {
                 strSQLReturn = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords;
             }
@@ -49,7 +49,7 @@ namespace prefSQL.SQLSkyline
         public override DataTable GetSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
             TemplateBNL skyline = getSP_Skyline(hasIncomparable);
-            DataTable dt = skyline.GetSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
+            DataTable dt = skyline.GetSkylineTableIndependent(strQuery, strOperators, numberOfRecords, strConnection, Provider, additionalParameters);
             TimeMilliseconds = skyline.TimeInMs;
             return dt;         
         }
@@ -57,7 +57,7 @@ namespace prefSQL.SQLSkyline
         internal override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
             TemplateBNL skyline = getSP_Skyline(hasIncomparable);
-            DataTable dt = skyline.GetSkylineTable(database, dataRecordTemplate, operators, numberOfRecords, dataTableTemplate.Clone());
+            DataTable dt = skyline.GetSkylineTable(database, dataTableTemplate.Clone(), dataRecordTemplate, operators, numberOfRecords, true, additionalParameters);
             TimeMilliseconds = skyline.TimeInMs;
             return dt;
         }     
@@ -66,10 +66,10 @@ namespace prefSQL.SQLSkyline
         {
             if (hasIncomparable)
             {
-                return new SP_SkylineBNL();
+                return new SPSkylineBNL();
             }
 
-            return new SP_SkylineBNLLevel();
+            return new SPSkylineBNLLevel();
         }
     }
 }
