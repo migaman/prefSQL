@@ -29,13 +29,6 @@ namespace prefSQL.SQLSkyline
     public abstract class TemplateHexagon : TemplateStrategy
     {
         
-
-        //Incomparable version has some attributes more
-        public DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection, string strProvider, string[] additionalParameters)
-        {
-            return GetSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strProvider, additionalParameters);
-        }
-
         protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate,
             SqlDataRecord dataRecordTemplate, string[] operators, string[] additionalParameters)
         {
@@ -73,74 +66,64 @@ namespace prefSQL.SQLSkyline
             int amountOfPreferences = operatorsArray.GetUpperBound(0) + 1;
 
 
-            try
+            // Build our record schema 
+            //List<SqlMetaData> outputColumns = Helper.BuildRecordSchema(dt, operators, dtResult);
+
+
+            //Write all attributes to a Object-Array
+            //Profiling: This is much faster (factor 2) than working with the SQLReader
+            //List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
+
+            //Replace the database values to ranks of the values
+            long[] maxValues = new long[amountOfPreferences];
+            database = ReplaceValuesToRankValues(database, operatorsArray, ref maxValues);
+
+
+            Construction(amountOfPreferences, maxValues, ref btg, ref next, ref prev, ref level, ref weight);
+
+
+            //Read all records only once.
+            foreach (object[] dbValuesObject in database)
             {
+                Add(dbValuesObject, amountOfPreferences, operatorsArray, ref btg, ref weight, ref maxID, weightHexagonIncomparable);
+            }
 
+            FindBmo(amountOfPreferences, ref btg, ref next, ref prev, ref level, ref weight);
 
-                // Build our record schema 
-                //List<SqlMetaData> outputColumns = Helper.BuildRecordSchema(dt, operators, dtResult);
-
-
-                //Write all attributes to a Object-Array
-                //Profiling: This is much faster (factor 2) than working with the SQLReader
-                //List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
-
-                //Replace the database values to ranks of the values
-                long[] maxValues = new long[amountOfPreferences];
-                database = ReplaceValuesToRankValues(database, operatorsArray, ref maxValues);
-
-
-                Construction(amountOfPreferences, maxValues, ref btg, ref next, ref prev, ref level, ref weight);
-
-
-                //Read all records only once.
-                foreach (object[] dbValuesObject in database)
-                {
-                    Add(dbValuesObject, amountOfPreferences, operatorsArray, ref btg, ref weight, ref maxID, weightHexagonIncomparable);
-                }
-
-                FindBmo(amountOfPreferences, ref btg, ref next, ref prev, ref level, ref weight);
-
-                //Now read next list
-                int iItem = 0;
+            //Now read next list
+            int iItem = 0;
                 
-                //Benötigt viele Zeit im CLR-Modus (Deshalb erst hier und nur einmal initialisieren)
-                //SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
+            //Benötigt viele Zeit im CLR-Modus (Deshalb erst hier und nur einmal initialisieren)
+            //SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
 
-                //Until no more nodes are found
-                while (iItem != -1)
+            //Until no more nodes are found
+            while (iItem != -1)
+            {
+                //Add all records of this node
+                if (btg[iItem] != null)
                 {
-                    //Add all records of this node
-                    if (btg[iItem] != null)
+                    //foreach (SqlDataRecord recSkyline in btg[iItem])
+                    foreach (ArrayList recSkyline in btg[iItem])
                     {
-                        //foreach (SqlDataRecord recSkyline in btg[iItem])
-                        foreach (ArrayList recSkyline in btg[iItem])
+                        DataRow row = dtResult.NewRow();
+                        for (int i = 0; i < recSkyline.Count; i++)
                         {
-                            DataRow row = dtResult.NewRow();
-                            for (int i = 0; i < recSkyline.Count; i++)
-                            {
-                                dataRecordTemplate.SetValue(i, recSkyline[i]);
-                                row[i] = recSkyline[i];
-                            }
-
-                            dtResult.Rows.Add(row);
+                            dataRecordTemplate.SetValue(i, recSkyline[i]);
+                            row[i] = recSkyline[i];
                         }
+
+                        dtResult.Rows.Add(row);
                     }
-
-                    //Goto the next node
-                    iItem = next[iItem];
-
                 }
 
-                
-            }
-            catch (Exception ex)
-            {
-                throw;
-
+                //Goto the next node
+                iItem = next[iItem];
 
             }
-            
+
+            //TODO: Special orderings need the skyline values. Store it in a property
+            //SkylineValues = resultCollection;
+
             return dtResult;
         }
 

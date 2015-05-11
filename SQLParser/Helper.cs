@@ -138,10 +138,15 @@ namespace prefSQL.SQLParser
 
                     //Set the database provider
                     strategy.Provider = DriverString;
+                    strategy.ConnectionString = ConnectionString;
                     strategy.Cardinality = Cardinality;
+                    strategy.RecordAmountLimit = numberOfRecords;
+                    strategy.HasIncomparablePreferences = model.WithIncomparable;
+                    strategy.AdditionParameters = parameter;
+                    strategy.SortType = (int)model.Ordering; 
                     if (!model.HasSkylineSample)
                     {
-                        dt = strategy.GetSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords, model.WithIncomparable, parameter);
+                        dt = strategy.GetSkylineTable(strQuery, strOperators);
                         TimeInMilliseconds = strategy.TimeMilliseconds;
                     }
                     else

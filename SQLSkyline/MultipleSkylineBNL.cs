@@ -44,20 +44,20 @@ namespace prefSQL.SQLSkyline
             return strSQLReturn;
         }
 
-        public override DataTable GetSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
             //Additional parameter
-            int upToLevel = int.Parse(additionalParameters[3]);
+            int upToLevel = int.Parse(AdditionParameters[3]);
 
-            if (hasIncomparable)
+            if (HasIncomparablePreferences)
             {
                 SPMultipleSkylineBNL skyline = new SPMultipleSkylineBNL();
-                return skyline.GetSkylineTable(strQuery, strOperators, strConnection, Provider, numberOfRecords, upToLevel);
+                return skyline.GetSkylineTable(querySQL, preferenceOperators, ConnectionString, Provider, RecordAmountLimit, upToLevel);
             }
             else
             {
                 SPMultipleSkylineBNLLevel skyline = new SPMultipleSkylineBNLLevel();
-                return skyline.GetSkylineTable(strQuery, strOperators, strConnection, Provider, numberOfRecords, upToLevel);
+                return skyline.GetSkylineTable(querySQL, preferenceOperators, ConnectionString, Provider, RecordAmountLimit, upToLevel);
             }
             
         }

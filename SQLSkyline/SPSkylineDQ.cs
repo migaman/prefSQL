@@ -10,10 +10,10 @@ namespace prefSQL.SQLSkyline
     public class SPSkylineDQ : TemplateDQ
     {
         [SqlProcedure(Name = "SP_SkylineDQ")]
-        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
+        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType)
         {
             SPSkylineDQ skyline = new SPSkylineDQ();
-            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, null);
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, null, sortType.Value);
         }
 
     }

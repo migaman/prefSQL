@@ -10,9 +10,9 @@ namespace prefSQL.SQLSkyline
     public abstract class TemplateStrategy
     {
         public long TimeInMs = 0;
+        public ArrayList SkylineValues;
 
-
-        public DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, string[] additionalParameters)
+        public DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, string[] additionalParameters, int sortType)
         {
             string[] operators = strOperators.Split(';');
             DataTable dt = Helper.GetSkylineDataTable(strQuery, isIndependent, strConnection, strProvider);
@@ -20,7 +20,7 @@ namespace prefSQL.SQLSkyline
             DataTable dtResult = new DataTable();
             SqlDataRecord record = Helper.BuildDataRecord(dt, operators, dtResult);
 
-            return GetSkylineTable(listObjects, dtResult, record, strOperators, numberOfRecords, isIndependent, 0, additionalParameters);
+            return GetSkylineTable(listObjects, dtResult, record, strOperators, numberOfRecords, isIndependent, sortType, additionalParameters);
         }
 
         /// <summary>
@@ -91,11 +91,11 @@ namespace prefSQL.SQLSkyline
                 //Sort ByRank
                 if (sortType == 1)
                 {
-                    dataTableReturn = Helper.SortByRank(dataTableReturn, resultCollection);
+                    dataTableReturn = Helper.SortByRank(dataTableReturn, SkylineValues);
                 } 
                 else if(sortType == 2)
                 {
-                    dataTableReturn = Helper.SortBySum(dataTableReturn, resultCollection);    
+                    dataTableReturn = Helper.SortBySum(dataTableReturn, SkylineValues);    
                 }
                 
                 

@@ -49,7 +49,7 @@ namespace prefSQL.SQLSkyline
 
         }
 
-        public override DataTable GetSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
             //Calculate cardinality
             long thresholdCardinality = 1000;
@@ -64,7 +64,7 @@ namespace prefSQL.SQLSkyline
                 strategy = new SPSkylineBNLSort();
             }
 
-            DataTable dt = strategy.GetSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, Provider, additionalParameters);
+            DataTable dt = strategy.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
             TimeMilliseconds = strategy.TimeInMs;
             return dt;
         }

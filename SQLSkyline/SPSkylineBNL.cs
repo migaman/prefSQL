@@ -13,11 +13,12 @@ namespace prefSQL.SQLSkyline
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
         /// <param name="numberOfRecords"></param>
+        /// <param name="sortType"></param>
         [SqlProcedure(Name = "SP_SkylineBNL")]
-        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
+        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType)
         {
             SPSkylineBNL skyline = new SPSkylineBNL();
-            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, null);
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, null, sortType.Value);
         }
 
 

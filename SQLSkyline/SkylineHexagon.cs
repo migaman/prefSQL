@@ -47,20 +47,20 @@ namespace prefSQL.SQLSkyline
             }
             return strSQLReturn;
         }
-        public override DataTable GetSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
             DataTable dt;
-            if (hasIncomparable)
+            if (HasIncomparablePreferences)
             {
                 //Hexagon incomparable needs additional parameters
                 SPSkylineHexagon skyline = new SPSkylineHexagon();
-                dt = skyline.GetSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider, additionalParameters);
+                dt = skyline.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
                 TimeMilliseconds = skyline.TimeInMs;
             }
             else
             {
                 SPSkylineHexagonLevel skyline = new SPSkylineHexagonLevel();
-                dt = skyline.GetSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider, additionalParameters);
+                dt = skyline.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
                 TimeMilliseconds = skyline.TimeInMs;
             }
             return dt;

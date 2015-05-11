@@ -60,6 +60,8 @@ namespace prefSQL.SQLSkyline
 
                 }
             }
+            //Special orderings need the skyline values. Store it in a property
+            SkylineValues = resultCollection;
             return dataTableReturn;
         }
 

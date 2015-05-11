@@ -39,10 +39,10 @@ namespace prefSQL.SQLSkyline
             return strSQLReturn;
         }
 
-        public override DataTable GetSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
             SPSkylineDQ skyline = new SPSkylineDQ();
-            DataTable dt = skyline.GetSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, Provider, additionalParameters);
+            DataTable dt = skyline.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
             TimeMilliseconds = skyline.TimeInMs;
             return dt;
         }

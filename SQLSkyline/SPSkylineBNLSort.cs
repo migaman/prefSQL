@@ -16,10 +16,10 @@ namespace prefSQL.SQLSkyline
         /// <param name="strOperators"></param>
         /// <param name="numberOfRecords"></param>
         [SqlProcedure(Name = "SP_SkylineBNLSort")]
-        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
+        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType)
         {
             SPSkylineBNLSort skyline = new SPSkylineBNLSort();
-            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, null);
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, null, sortType.Value);
         }
 
         protected override void AddtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult)

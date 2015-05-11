@@ -16,10 +16,10 @@ namespace prefSQL.SQLSkyline
         /// <param name="strOperators"></param>
         /// <param name="numberOfRecords"></param>
         [SqlProcedure(Name = "SP_SkylineBNLLevel")]
-        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
+        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType)
         {
             SPSkylineBNLLevel skyline = new SPSkylineBNLLevel();
-            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, null);
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, null, sortType.Value);
         }
 
 

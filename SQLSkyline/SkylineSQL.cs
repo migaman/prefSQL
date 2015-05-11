@@ -36,7 +36,7 @@ namespace prefSQL.SQLSkyline
             strSQLReturn += strOrderBy;
             return strSQLReturn;
         }
-        public override DataTable GetSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
             return null;
 

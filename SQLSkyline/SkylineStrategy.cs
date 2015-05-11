@@ -14,8 +14,47 @@ namespace prefSQL.SQLSkyline
     public abstract class SkylineStrategy
     {
         public string Provider { get; set; }
-        public long TimeMilliseconds;
-        public abstract DataTable GetSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters);
+
+        public string ConnectionString { get; set; } 
+
+        /// <summary>
+        /// To measure the time that the algorithm needs
+        /// </summary>
+        public long TimeMilliseconds { get; set; }
+
+        /// <summary>
+        /// Product of Cardinality of the preferenes
+        /// </summary>
+        public long Cardinality { get; set; }
+
+        /// <summary>
+        /// To define a special sort order (0=no, 1=SUM_RANK(), 2 = BEST_RANK()
+        /// </summary>
+        public int SortType { get; set; }
+
+        /// <summary>
+        /// Defines if there is an incomparable preference
+        /// </summary>
+        public bool HasIncomparablePreferences { get; set; }
+
+        /// <summary>
+        /// Add here not common parameters like for hexagon
+        /// </summary>
+        public string[] AdditionParameters { get; set; }
+
+        /// <summary>
+        /// Limit the tupels that will be returned
+        /// </summary>
+        public int RecordAmountLimit { get; set; }
+
+        /// <summary>
+        /// Direct call (without MS SQL CLR) to get a skyline.
+        /// Additional things can be set with the properties
+        /// </summary>
+        /// <param name="querySQL"></param>
+        /// <param name="preferenceOperators"></param>
+        /// <returns></returns>
+        public abstract DataTable GetSkylineTable(String querySQL, String preferenceOperators);
 
         /// <summary>
         /// TODO: comment
@@ -40,6 +79,6 @@ namespace prefSQL.SQLSkyline
         //If the algorithm supports incomparable values
         public abstract bool SupportIncomparable();
 
-        public long Cardinality;
+        
     }
 }

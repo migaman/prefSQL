@@ -13,7 +13,7 @@ namespace prefSQL.SQLSkyline
     public class SPSkylineHexagon : TemplateHexagon
     {        
         [SqlProcedure(Name = "SP_SkylineHexagon")]
-        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlString strSelectIncomparable, int weightHexagonIncomparable)
+        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType, SqlString strSelectIncomparable, int weightHexagonIncomparable)
         {
             SPSkylineHexagon skyline = new SPSkylineHexagon();
             string[] additionalParameters = new string[4];
@@ -21,7 +21,7 @@ namespace prefSQL.SQLSkyline
             //additionalParameters[1] = strOperatorsHexagon;
             additionalParameters[2] = strSelectIncomparable.ToString();
             additionalParameters[3] = weightHexagonIncomparable.ToString();
-            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, additionalParameters);
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, additionalParameters, sortType.Value);
         }
 
 

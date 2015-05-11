@@ -11,7 +11,7 @@ namespace prefSQL.SQLSkyline
     public class SPSkylineHexagonLevel : TemplateHexagon
     {
         [SqlProcedure(Name = "SP_SkylineHexagonLevel")]
-        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
+        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType)
         {
             SPSkylineHexagonLevel skyline = new SPSkylineHexagonLevel();
             string[] additionalParameters = new string[4];
@@ -19,7 +19,7 @@ namespace prefSQL.SQLSkyline
             //additionalParameters[1] = strOperatorsHexagon;
             additionalParameters[2] = "";
             additionalParameters[3] = "0";
-            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, additionalParameters);
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, additionalParameters, sortType.Value);
         }
 
         protected override void CalculateOperators(ref string strOperators, string strSelectIncomparable, DbProviderFactory factory, DbConnection connection, ref string strSQL)
