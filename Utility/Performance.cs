@@ -634,6 +634,7 @@ namespace Utility
                                         dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strSQL);
                                     }
                                     long timeAlgorithm = parser.TimeInMilliseconds;
+                                    long numberOfOperations = parser.NumberOfOperations;
                                     sw.Stop();
                                     
                                     reportDimensions.Add(i);

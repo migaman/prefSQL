@@ -121,12 +121,12 @@ namespace prefSQL.SQLSkyline
                                             string[] strResult = (string[])resultstringCollection[i];
 
                                             //Dominanz
-                                            if (Helper.IsTupleDominated(operators, result, strResult, dbValuesObject))
+                                            /*if (Helper.IsTupleDominated(operators, result, strResult, dbValuesObject))
                                             {
                                                 //Dominated in this level. Next level
                                                 isDominated = true;
                                                 break;
-                                            }
+                                            }*/
                                         }
                                     }
                                     //Check if the record is dominated in this level

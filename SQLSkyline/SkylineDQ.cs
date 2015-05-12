@@ -44,6 +44,7 @@ namespace prefSQL.SQLSkyline
             SPSkylineDQ skyline = new SPSkylineDQ();
             DataTable dt = skyline.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
             TimeMilliseconds = skyline.TimeInMs;
+            NumberOfOperations = skyline.NumberOfOperations;
             return dt;
         }
 

@@ -28,6 +28,8 @@ namespace prefSQL.SQLParser
         }
         public long TimeInMilliseconds { get; set; }
 
+        public long NumberOfOperations { get; set; }
+
 
         /*
         public enum Algorithm
@@ -82,6 +84,7 @@ namespace prefSQL.SQLParser
             Helper.Cardinality = Cardinality;
             DataTable dt = Helper.GetResults(ParsePreferenceSQL(prefSqlModel), SkylineType, prefSqlModel);
             TimeInMilliseconds = Helper.TimeInMilliseconds;
+            NumberOfOperations = Helper.NumberOfOperations;
 
             return dt;
         }

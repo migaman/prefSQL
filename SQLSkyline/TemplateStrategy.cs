@@ -10,7 +10,8 @@ namespace prefSQL.SQLSkyline
     public abstract class TemplateStrategy
     {
         public long TimeInMs = 0;
-        public ArrayList SkylineValues;
+        public long NumberOfOperations { get; set; }
+        public List<long[]> SkylineValues;
 
         public DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, string[] additionalParameters, int sortType)
         {
@@ -19,7 +20,6 @@ namespace prefSQL.SQLSkyline
             List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
             DataTable dtResult = new DataTable();
             SqlDataRecord record = Helper.BuildDataRecord(dt, operators, dtResult);
-
             return GetSkylineTable(listObjects, dtResult, record, strOperators, numberOfRecords, isIndependent, sortType, additionalParameters);
         }
 

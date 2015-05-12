@@ -17,10 +17,7 @@ namespace prefSQL.SQLSkyline
 
         public string ConnectionString { get; set; } 
 
-        /// <summary>
-        /// To measure the time that the algorithm needs
-        /// </summary>
-        public long TimeMilliseconds { get; set; }
+        
 
         /// <summary>
         /// Product of Cardinality of the preferenes
@@ -46,6 +43,16 @@ namespace prefSQL.SQLSkyline
         /// Limit the tupels that will be returned
         /// </summary>
         public int RecordAmountLimit { get; set; }
+
+        /// <summary>
+        /// Only used for performance measurement
+        /// </summary>
+        public long NumberOfOperations { get; set; }
+
+        /// <summary>
+        /// To measure the time that the algorithm needs
+        /// </summary>
+        public long TimeMilliseconds { get; set; }
 
         /// <summary>
         /// Direct call (without MS SQL CLR) to get a skyline.

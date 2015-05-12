@@ -38,6 +38,8 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// </summary>
         public long TimeMilliseconds;
 
+        public long NumberOfOperations { get; set; }
+
         /// <summary>
         ///     TODO: comment
         /// </summary>

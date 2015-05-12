@@ -56,12 +56,14 @@ namespace prefSQL.SQLSkyline
                 SPSkylineHexagon skyline = new SPSkylineHexagon();
                 dt = skyline.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
                 TimeMilliseconds = skyline.TimeInMs;
+                NumberOfOperations = skyline.NumberOfOperations;
             }
             else
             {
                 SPSkylineHexagonLevel skyline = new SPSkylineHexagonLevel();
                 dt = skyline.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
                 TimeMilliseconds = skyline.TimeInMs;
+                NumberOfOperations = skyline.NumberOfOperations;
             }
             return dt;
         }

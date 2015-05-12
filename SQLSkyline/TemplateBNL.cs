@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Microsoft.SqlServer.Server;
 
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
@@ -26,7 +28,13 @@ namespace prefSQL.SQLSkyline
 
         protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string[] operatorsArray, string[] additionalParameters)
         {
-            ArrayList resultCollection = new ArrayList();
+            //ArrayList resultCollection = new ArrayList();
+
+            List<long[]> resultCollection = new List<long[]>();
+            int dimensions = operatorsArray.GetUpperBound(0)+1;
+            
+           
+            
             ArrayList resultstringCollection = new ArrayList();
             DataTable dataTableReturn = dataTableTemplate.Clone();
             int[] resultToTupleMapping = Helper.ResultToTupleMapping(operatorsArray);
@@ -34,31 +42,37 @@ namespace prefSQL.SQLSkyline
             //For each tuple
             foreach (object[] dbValuesObject in database)
             {
-
-                //Check if window list is empty
-                if (resultCollection.Count == 0)
+                long[] newTuple = new long[dimensions];
+                for (int i = 0; i < dimensions; i++)
                 {
-                    // Build our SqlDataRecord and start the results 
-                    AddtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
-                } else
-                {
-                    bool isDominated = false;
-
-                    //check if record is dominated (compare against the records in the window)
-                    for (int i = resultCollection.Count - 1; i >= 0; i--)
-                    {
-                        if (TupleDomination(dbValuesObject, resultCollection, resultstringCollection, operatorsArray, dataTableReturn, i, resultToTupleMapping))
-                        {
-                            isDominated = true;
-                            break;
-                        }
-                    }
-                    if (isDominated == false)
-                    {
-                        AddtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
-                    }
-
+                    newTuple[i] = (long)dbValuesObject[i];
                 }
+
+                bool isDominated = false;
+
+                //check if record is dominated (compare against the records in the window)
+                for (int i = resultCollection.Count - 1; i >= 0; i--)
+                {
+                    long[] windowTuple = resultCollection[i];
+                    //string[] incomparableTuple = (string[])resultstringCollection[i];
+
+                    //Don't use numberOfOperations for performance reasons (slows down performance about 10%)
+                    //NumberOfOperations++;
+
+                    //2 times faster than via the Template Strategy (below)
+                    if(Helper.IsTupleDominated(windowTuple, newTuple, dimensions))
+                    //if (IsTupleDominated(windowTuple, newTuple, dimensions, operatorsArray, resultstringCollection, i))
+                    {
+                        isDominated = true;
+                        break;
+                    }
+                }
+                if (isDominated == false)
+                {
+                    AddToWindow(dbValuesObject, resultCollection, resultstringCollection, operatorsArray, dimensions, dataTableReturn);
+                }
+
+                
             }
             //Special orderings need the skyline values. Store it in a property
             SkylineValues = resultCollection;
@@ -67,9 +81,12 @@ namespace prefSQL.SQLSkyline
 
 
 
-        protected abstract bool TupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i, int[] resultToTupleMapping);
+        //Attention: Profiling
+        //It seems to makes sense to remove the parameter listIndex and pass the string-array incomparableTuples[listIndex]
+        //Unfortunately this has negative impact on the performance for algorithms that don't work with incomparables
+        protected abstract bool IsTupleDominated(long[] windowsTuple, long[] newTuple, int dimensions, string[] operators, ArrayList incomparableTuples, int listIndex);
 
-        protected abstract void AddtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
+        protected abstract void AddToWindow(object[] dataReader, List<long[]> resultCollection, ArrayList resultstringCollection, string[] operators, int dimensions, DataTable dtResult);
 
     }
 }

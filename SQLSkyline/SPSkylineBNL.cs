@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
@@ -22,18 +23,18 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        protected override void AddtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult)
+        protected override void AddToWindow(object[] dataReader, List<long[]> resultCollection, ArrayList resultstringCollection, string[] operators, int dimensions, DataTable dtResult)
         {
-            Helper.AddToWindow(dataReader, operators, resultCollection, resultstringCollection, record, dtResult);
+            Helper.AddToWindow(dataReader, operators, resultCollection, resultstringCollection, dtResult);
         }
 
-        protected override bool TupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i, int[] resultToTupleMapping)
+        protected override bool IsTupleDominated(long[] windowTuple, long[] newTuple, int dimensions, string[] operators, ArrayList incomparableTuples, int listIndex)
         {
-            long?[] result = (long?[])resultCollection[i];
-            string[] strResult = (string[])resultstringCollection[i];
+            //long?[] result = (long?[])resultCollection[i];
+            string[] incomparableTuple = (string[])incomparableTuples[listIndex];
 
             //Dominanz
-            if (Helper.IsTupleDominated(operators, result, strResult, dataReader))
+            if (Helper.IsTupleDominated(windowTuple, newTuple, dimensions, operators, incomparableTuple))
             {
                 //New point is dominated. No further testing necessary
                 return true;
@@ -42,13 +43,13 @@ namespace prefSQL.SQLSkyline
 
             //Now, check if the new point dominates the one in the window
             //This is only possible with not sorted data
-            if (Helper.DoesTupleDominate(dataReader, operators, result, strResult))
+            /*if (Helper.DoesTupleDominate(dataReader, operators, result, strResult, result.GetUpperBound((0))))
             {
                 //The new record dominates the one in the windows. Remove point from window and test further
                 resultCollection.RemoveAt(i);
                 resultstringCollection.RemoveAt(i);
                 dtResult.Rows.RemoveAt(i);
-            }
+            }*/
             return false;
         }
 

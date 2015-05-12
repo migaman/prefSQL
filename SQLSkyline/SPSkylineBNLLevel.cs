@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
@@ -24,35 +25,33 @@ namespace prefSQL.SQLSkyline
 
 
 
-        protected override void AddtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult)
+        protected override void AddToWindow(object[] dataReader, List<long[]> resultCollection, ArrayList resultstringCollection, string[] operators, int dimensions, DataTable dtResult)
         {
-            Helper.AddToWindow(dataReader, operators, resultCollection, record, dtResult);
+            Helper.AddToWindowSample(dataReader, operators, resultCollection, dtResult);
         }
 
-        protected override bool TupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i, int[] resultToTupleMapping)
-        {
-            long[] result = (long[])resultCollection[i];            
 
+        protected override bool IsTupleDominated(long[] windowTuple, long[] newTuple, int dimensions, string[] operators, ArrayList incomparableTuple, int listIndex)
+        {
+            //incomparableTuples
             //Dominanz
-            if (Helper.IsTupleDominated(result, dataReader, resultToTupleMapping))
+            if (Helper.IsTupleDominated(windowTuple, newTuple, dimensions))
             {
                 //New point is dominated. No further testing necessary
                 return true;
             }
 
-
             //Now, check if the new point dominates the one in the window
             //This is only possible with not sorted data
-            if (Helper.DoesTupleDominate(dataReader, operators, result, resultToTupleMapping))
+            /*if (Helper.DoesTupleDominate(dataReader, operators, result, resultToTupleMapping, result.GetUpperBound((0))))
             {
                 //The new record dominates the one in the windows. Remove point from window and test further
                 resultCollection.RemoveAt(i);
                 dtResult.Rows.RemoveAt(i);
-            }
+            }*/
             return false;
         }
 
-             
 
     }
 }

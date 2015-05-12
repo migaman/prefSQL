@@ -22,6 +22,8 @@ namespace prefSQL.SQLParser
 
         public long TimeInMilliseconds { get; set; }
 
+        public long NumberOfOperations { get; set; }
+
         public long Cardinality { get; set; }
 
         public DataTable ExecuteStatement(String strSQL)
@@ -148,6 +150,7 @@ namespace prefSQL.SQLParser
                     {
                         dt = strategy.GetSkylineTable(strQuery, strOperators);
                         TimeInMilliseconds = strategy.TimeMilliseconds;
+                        NumberOfOperations = strategy.NumberOfOperations;
                     }
                     else
                     {
@@ -155,7 +158,8 @@ namespace prefSQL.SQLParser
                         skylineSample.DbProvider = DriverString;
                         dt = skylineSample.GetSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords,
                             model.WithIncomparable, parameter, strategy, model.SkylineSampleCount, model.SkylineSampleDimension, 0);
-                        TimeInMilliseconds = skylineSample.TimeMilliseconds;                        
+                        TimeInMilliseconds = skylineSample.TimeMilliseconds;
+                        NumberOfOperations = skylineSample.NumberOfOperations;
                     }
                 }
 

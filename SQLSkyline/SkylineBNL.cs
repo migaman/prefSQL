@@ -48,9 +48,10 @@ namespace prefSQL.SQLSkyline
 
         public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
-            TemplateBNL skyline = getSP_Skyline(HasIncomparablePreferences);
+            TemplateStrategy skyline = getSP_Skyline(HasIncomparablePreferences);
             DataTable dt = skyline.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
             TimeMilliseconds = skyline.TimeInMs;
+            NumberOfOperations = skyline.NumberOfOperations;
             return dt;         
         }
 
@@ -59,6 +60,7 @@ namespace prefSQL.SQLSkyline
             TemplateBNL skyline = getSP_Skyline(hasIncomparable);
             DataTable dt = skyline.GetSkylineTableBackdoorSample(database, dataTableTemplate.Clone(), dataRecordTemplate, operators, numberOfRecords, true, additionalParameters);
             TimeMilliseconds = skyline.TimeInMs;
+            NumberOfOperations = skyline.NumberOfOperations;
             return dt;
         } 
 

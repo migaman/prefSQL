@@ -24,9 +24,9 @@ namespace prefSQL.SQLSkyline
             throw new NotImplementedException();
         }
 
-        protected abstract bool TupleDomination(ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i);
+        protected abstract bool IsTupleDominated(ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult);
 
-        protected abstract void AddtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
+        protected abstract void AddtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, DataTable dtResult);
 
     }
 }

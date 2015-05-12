@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
@@ -15,6 +16,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
         /// <param name="numberOfRecords"></param>
+        /// <param name="sortType"></param>
         [SqlProcedure(Name = "SP_SkylineBNLSortLevel")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType)
         {
@@ -22,29 +24,24 @@ namespace prefSQL.SQLSkyline
             skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, null, sortType.Value);
         }
 
-
-        protected override void AddtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult)
+        protected override void AddToWindow(object[] dataReader, List<long[]> resultCollection, ArrayList resultstringCollection, string[] operators,
+            int dimensions, DataTable dtResult)
         {
-            Helper.AddToWindow(dataReader, operators, resultCollection, record, dtResult);
+            Helper.AddToWindow(dataReader, resultCollection, dimensions, dtResult);
         }
 
 
-        protected override bool TupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i, int[] resultToTupleMapping)
+        protected override bool IsTupleDominated(long[] windowTuple, long[] newTuple, int dimensions, string[] operators, ArrayList incomparableTuple, int listIndex)
         {
-            long[] result = (long[])resultCollection[i];
-
             //Dominanz
-            if (Helper.IsTupleDominated(result, dataReader, resultToTupleMapping))
-            {
-                //New point is dominated. No further testing necessary
-                return true;
-            }
+            return Helper.IsTupleDominated(windowTuple, newTuple, dimensions);
+            
 
             //Now, check if the new point dominates the one in the window
             //--> It is not possible that the new point dominates the one in the window --> Reason data is ORDERED
 
-            
-            return false;
         }
+
+        
     }
 }

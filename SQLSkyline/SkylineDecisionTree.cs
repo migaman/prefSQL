@@ -57,11 +57,18 @@ namespace prefSQL.SQLSkyline
             TemplateStrategy strategy;
             if (Cardinality <= thresholdCardinality)
             {
-                strategy = new SPSkylineDQ();
+                strategy = new SPSkylineDQ();    
             }
             else 
             {
-                strategy = new SPSkylineBNLSort();
+                if (HasIncomparablePreferences)
+                {
+                    strategy = new SPSkylineBNLSort();
+                } 
+                else
+                {
+                    strategy = new SPSkylineBNLSortLevel();
+                }
             }
 
             DataTable dt = strategy.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);

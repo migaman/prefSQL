@@ -15,6 +15,14 @@ using Microsoft.SqlServer.Server;
 
 namespace prefSQL.SQLSkyline
 {
+    /// <summary>
+    /// 
+    /// 
+    /// </summary>
+    /// <remarks>
+    /// Profiling considersations:
+    /// - Don't use getUpperBound inside a performanc critical method (i.e. IsTupleDominated) --> slows down performance
+    /// </remarks>
     class Helper
     {
         //Only this parameters are different beteen SQL CLR function and Utility class
@@ -92,15 +100,12 @@ namespace prefSQL.SQLSkyline
         /// Compares a tuple against another tuple according to preference logic. Cannot handle incomparable values
         /// Better values are smaller!
         /// </summary>
-        /// <param name="result"></param>
-        /// <param name="tupletoCheck"></param>
-        /// <param name="resultToTupleMapping"></param>
         /// <returns></returns>
-        public static bool IsTupleDominated(long[] result, object[] tupletoCheck, int[] resultToTupleMapping)
+        public static bool IsTupleDominated(long[] windowTuple, long[] newTuple, int dimensions)
         {
             bool greaterThan = false;
 
-            for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
+            for (int iCol = 0; iCol < dimensions; iCol++)
             {
                 //Profiling
                 //Use explicit conversion (long)dataReader[iCol] instead of dataReader.GetInt64(iCol) is 20% faster!
@@ -108,10 +113,9 @@ namespace prefSQL.SQLSkyline
                 //long value = dataReader.GetInt64(iCol);
                 //long value = (long)dataReader[iCol];
                 //long value = tupletoCheck[iCol].Value;
-                long value = (long)tupletoCheck[resultToTupleMapping[iCol]]; //.Value;
-                
+                long value = newTuple[iCol]; //.Value;
 
-                int comparison = CompareValue(value, result[iCol]);
+                int comparison = CompareValue(value, windowTuple[iCol]);
 
                 if (comparison >= 1)
                 {
@@ -133,7 +137,7 @@ namespace prefSQL.SQLSkyline
             if (greaterThan)
                 return true;
             else
-                return false;
+                return false; //werte sind genau gleich
 
         }
 
@@ -147,11 +151,11 @@ namespace prefSQL.SQLSkyline
         /// <param name="result"></param>
         /// <param name="resultToTupleMapping"></param>
         /// <returns></returns>
-        public static bool DoesTupleDominate(object[] dataReader, string[] operators, long[] result, int[] resultToTupleMapping)
+        public static bool DoesTupleDominate(object[] dataReader, string[] operators, long[] result, int[] resultToTupleMapping, int dimensions)
         {
             bool greaterThan = false;
 
-            for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
+            for (int iCol = 0; iCol <= dimensions; iCol++)
             {
                 //Use long array instead of dataReader --> is 100% faster!!!
                 long value = (long)dataReader[resultToTupleMapping[iCol]];
@@ -194,16 +198,17 @@ namespace prefSQL.SQLSkyline
         /// Compares a tuple against another tuple according to preference logic. Can handle incomparable values
         /// Better values are smaller!
         /// </summary>
+        /// <param name="dimensions"></param>
         /// <param name="operators"></param>
-        /// <param name="result"></param>
-        /// <param name="stringResult"></param>
-        /// <param name="tupletoCheck"></param>
+        /// <param name="windowTuple"></param>
+        /// <param name="newTuple"></param>
+        /// <param name="resultIncomparable"></param>
         /// <returns></returns>
-        public static bool IsTupleDominated(string[] operators, long?[] result, string[] stringResult, object[] tupletoCheck)
+        public static bool IsTupleDominated(long[] windowTuple, long[] newTuple, int dimensions, string[] operators, string[] resultIncomparable)
         {
-            bool greaterThan = false;
+            /*bool greaterThan = false;
 
-            for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
+            for (int iCol = 0; iCol <= dimensions; iCol++)
             {
                 string op = operators[iCol];
                 //Compare only LOW attributes
@@ -214,12 +219,12 @@ namespace prefSQL.SQLSkyline
                     int comparison;
 
                     //check if value is incomparable
-                    if (tupletoCheck[iCol] == DBNull.Value)
+                    if (newTuple[iCol] == DBNull.Value)
                     //Profiling --> don't use dataReader
                     //if (dataReader.IsDBNull(iCol) == true)
                     {
                         //check if value is incomparable
-                        if (result[iCol] == null)
+                        if (windowTuple[iCol] == null)
                         {
                             //borh values are null --> compare text
                             //return false;
@@ -228,7 +233,7 @@ namespace prefSQL.SQLSkyline
 
                         else
                         {
-                            tmpValue = (long)result[iCol];
+                            tmpValue = (long)windowTuple[iCol];
                             comparison = CompareValue(value, tmpValue);
                         }
 
@@ -238,15 +243,15 @@ namespace prefSQL.SQLSkyline
                     {
                         //Profiling --> don't use dataReader
                         //value = (long)dataReader[iCol];
-                        value = (long)tupletoCheck[iCol];
+                        value = (long)newTuple[iCol];
                         //check if value is incomparable
-                        if (result[iCol] == null)
+                        if (windowTuple[iCol] == null)
                         {
                             return false;
                         }
                         else
                         {
-                            tmpValue = (long)result[iCol];
+                            tmpValue = (long)windowTuple[iCol];
                         }
                         comparison = CompareValue(value, tmpValue);
                     }
@@ -262,14 +267,14 @@ namespace prefSQL.SQLSkyline
                         {
                             //It is the same long value
                             //Check if the value must be text compared
-                            if (iCol + 1 <= result.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
+                            if (iCol + 1 <= dimensions && operators[iCol + 1].Equals("INCOMPARABLE"))
                             {
                                 //string value is always the next field
                                 //string strValue = (string)dataReader[iCol + 1];
-                                string strValue = (string)tupletoCheck[iCol + 1];
+                                string strValue = (string)newTuple[iCol + 1];
                                 //If it is not the same string value, the values are incomparable!!
                                 //If two values are comparable the strings will be empty!
-                                if (strValue.Equals("INCOMPARABLE") || !strValue.Equals(stringResult[iCol]))
+                                if (strValue.Equals("INCOMPARABLE") || !strValue.Equals(resultIncomparable[iCol]))
                                 {
                                     //Value is incomparable --> return false
                                     return false;
@@ -290,7 +295,7 @@ namespace prefSQL.SQLSkyline
             //if (equalTo == true && greaterThan == true)
             if (greaterThan)
                 return true;
-            else
+            else*/
                 return false;
 
 
@@ -305,11 +310,11 @@ namespace prefSQL.SQLSkyline
         /// <param name="result"></param>
         /// <param name="stringResult"></param>
         /// <returns></returns>
-        public static bool DoesTupleDominate(object[] dataReader, string[] operators, long?[] result, string[] stringResult)
+        public static bool DoesTupleDominate(object[] dataReader, string[] operators, long?[] result, string[] stringResult, int dimensions)
         {
             bool greaterThan = false;
 
-            for (int iCol = 0; iCol <= result.GetUpperBound(0); iCol++)
+            for (int iCol = 0; iCol <= dimensions; iCol++)
             {
                 string op = operators[iCol];
                 //Compare only LOW attributes
@@ -374,7 +379,7 @@ namespace prefSQL.SQLSkyline
                         {
                             //It is the same long value
                             //Check if the value must be text compared
-                            if (iCol + 1 <= result.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
+                            if (iCol + 1 <= dimensions && operators[iCol + 1].Equals("INCOMPARABLE"))
                             {
                                 //string value is always the next field
                                 //string strValue = (string)dataReader[iCol + 1];
@@ -418,11 +423,44 @@ namespace prefSQL.SQLSkyline
         /// Adds a tuple to the existing window. cannot handle incomparable values
         /// </summary>
         /// <param name="dataReader"></param>
+        /// <param name="skylineDataReader"></param>
+        /// <param name="resultCollection"></param>
+        /// <param name="dimensions"></param>
+        /// <param name="dtResult"></param>
+        public static void AddToWindow(object[] dataReader, List<long[]> resultCollection, int dimensions, DataTable dtResult)
+        {
+            long[] record = new long[dimensions];
+            DataRow row = dtResult.NewRow();
+
+            for (int iCol = 0; iCol <= dataReader.GetUpperBound((0)); iCol++)
+            {
+                //Only the real columns (skyline columns are not output fields)
+                if (iCol <= dimensions-1)
+                {
+                    record[iCol] = (long)dataReader[iCol];
+                }
+                else
+                {
+                    row[iCol - dimensions] = dataReader[iCol];
+                }
+            }
+
+            //DataTable is for the returning values
+            dtResult.Rows.Add(row);
+            //ResultCollection contains the skyline values (for the algorithm)
+            resultCollection.Add(record);
+
+        }
+
+        /// <summary>
+        /// Adds a tuple to the existing window. cannot handle incomparable values
+        /// </summary>
+        /// <param name="dataReader"></param>
         /// <param name="operators"></param>
         /// <param name="resultCollection"></param>
         /// <param name="record"></param>
         /// <param name="dtResult"></param>
-        public static void AddToWindow(object[] dataReader, string[] operators, ArrayList resultCollection, SqlDataRecord record, DataTable dtResult)
+        public static void AddToWindowSample(object[] dataReader, string[] operators, List<long[]> resultCollection, DataTable dtResult)
         {
             
             long[] recordInt = new long[operators.Count(op => op != "IGNORE")];
@@ -445,7 +483,6 @@ namespace prefSQL.SQLSkyline
                 else
                 {
                     row[iCol - operators.Length] = dataReader[iCol];
-                    record.SetValue(iCol - operators.Length, dataReader[iCol]);
                 }
             }
 
@@ -465,7 +502,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="resultstringCollection"></param>
         /// <param name="record"></param>
         /// <param name="dtResult"></param>
-        public static void AddToWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, DataTable dtResult)
+        public static void AddToWindow(object[] dataReader, string[] operators, List<long[]> resultCollection, ArrayList resultstringCollection, DataTable dtResult)
         {
             //long must be nullable (because of incomparable tupels)
             long?[] recordInt = new long?[operators.GetUpperBound(0) + 1];
@@ -502,12 +539,11 @@ namespace prefSQL.SQLSkyline
                 else
                 {
                     row[iCol - (operators.GetUpperBound(0) + 1)] = dataReader[iCol];
-                    record.SetValue(iCol - (operators.GetUpperBound(0) + 1), dataReader[iCol]);
                 }
             }
 
             dtResult.Rows.Add(row);
-            resultCollection.Add(recordInt);
+            //resultCollection.Add(recordInt);
             resultstringCollection.Add(recordstring);
 
         }
@@ -542,6 +578,11 @@ namespace prefSQL.SQLSkyline
             }
 
         }
+
+
+
+
+
 
         public static List<object[]> GetObjectArrayFromDataTable(DataTable dataTable)
         {
@@ -633,7 +674,7 @@ namespace prefSQL.SQLSkyline
 
 
         //Sort BySum (for algorithms)
-        public static DataTable SortBySum(DataTable dt, ArrayList skylineValues)
+        public static DataTable SortBySum(DataTable dt, List<long[]> skylineValues)
         {
             //Add a column for each skyline attribute and a sort column
             long[] firstSkylineValues = (long[])skylineValues[0];
@@ -702,7 +743,7 @@ namespace prefSQL.SQLSkyline
 
 
         //Sort ByRank (for algorithms)
-        public static DataTable SortByRank(DataTable dt, ArrayList skylineValues)
+        public static DataTable SortByRank(DataTable dt, List<long[]> skylineValues)
         {
             //Add a column for each skyline attribute and a sort column
             long[] firstSkylineValues = (long[])skylineValues[0];
