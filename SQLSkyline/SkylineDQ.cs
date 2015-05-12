@@ -28,14 +28,14 @@ namespace prefSQL.SQLSkyline
             return false;
         }
 
-        public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
+        public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, string strFirstSQL, string strOperators, string strOrderByAttributes)
         {
             //usual sort clause
             strFirstSQL += strOrderBy;
             //Quote quotes because it is a parameter of the stored procedure
             strFirstSQL = strFirstSQL.Replace("'", "''");
 
-            string strSQLReturn = "EXEC dbo.SP_SkylineDQ '" + strFirstSQL + "', '" + strOperators + "'," + numberOfRecords;
+            string strSQLReturn = "EXEC dbo.SP_SkylineDQ '" + strFirstSQL + "', '" + strOperators + "'," + RecordAmountLimit + ", " + SortType;
             return strSQLReturn;
         }
 

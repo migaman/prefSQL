@@ -28,22 +28,29 @@ namespace prefSQL.SQLSkyline
             return true;
         }
 
-
-        public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="strWhere"></param>
+        /// <param name="strOrderBy"></param>
+        /// <param name="strFirstSQL"></param>
+        /// <param name="strOperators"></param>
+        /// <param name="strOrderByAttributes"></param>
+        /// <returns></returns>
+        public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, string strFirstSQL, string strOperators, string strOrderByAttributes)
         {
-
-            strFirstSQL = additionalParameters[0];
-            strOperators = additionalParameters[1];
-            string strSelectDistinctIncomparable = additionalParameters[2];
-            int weightHexagonIncomparable = int.Parse(additionalParameters[3]);
+            strFirstSQL = AdditionParameters[0];
+            strOperators = AdditionParameters[1];
+            string strSelectDistinctIncomparable = AdditionParameters[2];
+            int weightHexagonIncomparable = int.Parse(AdditionParameters[3]);
             string strSQLReturn;
-            if (hasIncomparable)
+            if (HasIncomparablePreferences)
             {
-                strSQLReturn = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords + ", '" + strSelectDistinctIncomparable + "'," + weightHexagonIncomparable;
+                strSQLReturn = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType +  ", '" + strSelectDistinctIncomparable + "'," + weightHexagonIncomparable;
             }
             else
             {
-                strSQLReturn = "EXEC dbo.SP_SkylineHexagonLevel '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords;
+                strSQLReturn = "EXEC dbo.SP_SkylineHexagonLevel '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
             }
             return strSQLReturn;
         }

@@ -54,6 +54,8 @@ namespace prefSQL.SQLSkyline
         /// </summary>
         public long TimeMilliseconds { get; set; }
 
+        public int MultipleSkylineUpToLevel { get; set; }
+
         /// <summary>
         /// Direct call (without MS SQL CLR) to get a skyline.
         /// Additional things can be set with the properties
@@ -76,7 +78,7 @@ namespace prefSQL.SQLSkyline
         /// <returns></returns>
         internal abstract DataTable GetSkylineTableBackdoorSample(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters);
 
-        public abstract String GetStoredProcedureCommand(string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters);
+        public abstract String GetStoredProcedureCommand(string strWhere, string strOrderBy, string strFirstSQL, string strOperators, string strOrderByAttributes);
 
         public abstract bool IsNative();
 

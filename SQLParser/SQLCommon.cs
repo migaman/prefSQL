@@ -224,10 +224,15 @@ namespace prefSQL.SQLParser
                         additionalParameters[2] = strSelectDistinctIncomparable;
                         additionalParameters[3] = weightHexagonIncomparable.ToString();
 
-
+                        _skylineType.SortType = (int)prefSQL.Ordering;
+                        _skylineType.RecordAmountLimit = prefSQL.NumberOfRecords;
+                        _skylineType.MultipleSkylineUpToLevel = _skylineUpToLevel;
+                        _skylineType.AdditionParameters = additionalParameters;
+                        _skylineType.HasIncomparablePreferences = prefSQL.WithIncomparable;
+                        
 
                         //Now create the query depending on the Skyline algorithm
-                        strSQLReturn = _skylineType.GetStoredProcedureCommand(strWhere, strOrderBy, prefSQL.NumberOfRecords, strFirstSQL, strOperators, _skylineUpToLevel, prefSQL.WithIncomparable, strOrderByAttributes, additionalParameters);
+                        strSQLReturn = _skylineType.GetStoredProcedureCommand(strWhere, strOrderBy, strFirstSQL, strOperators, strOrderByAttributes);
 
                         
                     }

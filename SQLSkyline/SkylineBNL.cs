@@ -28,20 +28,20 @@ namespace prefSQL.SQLSkyline
             return true;
         }
 
-        public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int skylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
+        public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, string strFirstSQL, string strOperators, string strOrderByAttributes)
         {
             //usual sort clause
             strFirstSQL += strOrderBy;
             //Quote quotes because it is a parameter of the stored procedure
             strFirstSQL = strFirstSQL.Replace("'", "''");
             string strSQLReturn;
-            if (hasIncomparable)
+            if (HasIncomparablePreferences)
             {
-                strSQLReturn = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords;
+                strSQLReturn = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
             }
             else
             {
-                strSQLReturn = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords;
+                strSQLReturn = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
             }
             return strSQLReturn;
         }
