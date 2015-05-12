@@ -84,7 +84,6 @@
     <Compile Include="TemplateBNL.cs" />
     <Compile Include="TemplateDQ.cs" />
     <Compile Include="TemplateHexagon.cs" />
-    <Compile Include="TemplateS.cs" />
     <Compile Include="Models\HexagonRemoveModel.cs" />
     <Compile Include="TemplateStrategy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

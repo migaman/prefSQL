@@ -599,7 +599,7 @@ namespace prefSQL.SQLSkyline
             return objectArrayFromDataTableOrig.ToDictionary(dataRow => (int)dataRow[uniqueIdColumnIndex]);
         }
 
-        public static DataTable GetSkylineDataTable(string strQuery, bool isIndependent, string strConnection, string strProvider)
+        public static DataTable GetSkylineDataTable(string strQuery, string strConnection, string strProvider)
         {
             DbProviderFactory factory = DbProviderFactories.GetFactory(strProvider);
             DataTable dt = new DataTable();
@@ -608,8 +608,6 @@ namespace prefSQL.SQLSkyline
             if (connection != null)
             {
                 connection.ConnectionString = strConnection;
-
-                
 
                 try
                 {
@@ -632,20 +630,9 @@ namespace prefSQL.SQLSkyline
                         dap.Fill(dt);
                     }
                 }
-                catch (Exception ex)
+                catch (Exception e)
                 {
-                    //Pack Errormessage in a SQL and return the result
-                    string strError = "Fehler in SP_SkylineBNL: ";
-                    strError += ex.Message;
-
-                    if (isIndependent)
-                    {
-                        Debug.WriteLine(strError);
-                    }
-                    else
-                    {
-                        SqlContext.Pipe.Send(strError);
-                    }
+                    throw new Exception(e.Message);
                 }
                 finally
                 {

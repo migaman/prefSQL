@@ -25,85 +25,74 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        protected override void CalculateOperators(ref string strOperators, string strSelectIncomparable, DbProviderFactory factory, DbConnection connection, ref string strSQL)
+        protected override void CalculateOperators(ref string strOperators, string strSelectIncomparable, string factory, string connectionString, ref string strSQL)
         {
-            if (!strSelectIncomparable.Equals(""))
+            /*if (!strSelectIncomparable.Equals(""))
             {
                 //Check amount of incomparables
-                connection.Open();
-
-                int posOfFrom;
-                posOfFrom = strSQL.IndexOf("FROM", StringComparison.Ordinal);
+                int posOfFrom = strSQL.IndexOf("FROM", StringComparison.Ordinal);
                 string strSQLIncomparable = "SELECT DISTINCT " + strSelectIncomparable + " " + strSQL.Substring(posOfFrom);
 
-                DbDataAdapter dap = factory.CreateDataAdapter();
-                DbCommand selectCommand = connection.CreateCommand();
-                selectCommand.CommandTimeout = 0; //infinite timeout
-                selectCommand.CommandText = strSQLIncomparable;
-                if (dap != null)
+                DataTable dt = Helper.GetSkylineDataTable(strSQLIncomparable, connectionString, factory);
+                 
+
+
+                //Create hexagon single value statement for incomparable tuples
+                string strHexagonIncomparable = "CASE ";
+                string strHexagonFieldName = "colors.name";
+                int amountOfIncomparable = 0;
+                string strAddOperators = "";
+                int iIndexRow = 0;
+                foreach (DataRow row in dt.Rows)
                 {
-                    dap.SelectCommand = selectCommand;
-                    DataTable dt = new DataTable();
-                    dap.Fill(dt);
-
-
-                    //Create hexagon single value statement for incomparable tuples
-                    string strHexagonIncomparable = "CASE ";
-                    string strHexagonFieldName = "colors.name";
-                    int amountOfIncomparable = 0;
-                    string strAddOperators = "";
-                    int iIndexRow = 0;
-                    foreach (DataRow row in dt.Rows)
+                    string strCategory = (string)row[0];
+                    if (!strCategory.Equals(""))
                     {
-                        string strCategory = (string)row[0];
-                        if (!strCategory.Equals(""))
-                        {
-                            //string strBitPattern = new String('0', dt.Rows.Count - 1);
-                            string strBitPattern = new String('0', dt.Rows.Count - 1);
-                            strBitPattern = strBitPattern.Substring(0, amountOfIncomparable) + "1" + strBitPattern.Substring(amountOfIncomparable + 1);
-                            strHexagonIncomparable += " WHEN " + strHexagonFieldName + " = '" + strCategory.Replace("(", "").Replace(")", "") + "' THEN '" + strBitPattern + "'";
-                            amountOfIncomparable++;
+                        //string strBitPattern = new String('0', dt.Rows.Count - 1);
+                        string strBitPattern = new String('0', dt.Rows.Count - 1);
+                        strBitPattern = strBitPattern.Substring(0, amountOfIncomparable) + "1" + strBitPattern.Substring(amountOfIncomparable + 1);
+                        strHexagonIncomparable += " WHEN " + strHexagonFieldName + " = '" + strCategory.Replace("(", "").Replace(")", "") + "' THEN '" + strBitPattern + "'";
+                        amountOfIncomparable++;
 
-                            //if (iIndexRow > 0)
-                            //{
-                            strAddOperators += "INCOMPARABLE;";
-                            //}
-                            iIndexRow++;
-                        }
-
+                        //if (iIndexRow > 0)
+                        //{
+                        strAddOperators += "INCOMPARABLE;";
+                        //}
+                        iIndexRow++;
                     }
-                    strAddOperators = strAddOperators.TrimEnd(';');
 
-                    string strBitPatternFull = new String('x', amountOfIncomparable); // string of 20 spaces;
-                    strHexagonIncomparable += " ELSE '" + strBitPatternFull + "' END AS HexagonIncomparable" + strHexagonFieldName.Replace(".", "");
+                }
+                strAddOperators = strAddOperators.TrimEnd(';');
+
+                string strBitPatternFull = new String('x', amountOfIncomparable); // string of 20 spaces;
+                strHexagonIncomparable += " ELSE '" + strBitPatternFull + "' END AS HexagonIncomparable" + strHexagonFieldName.Replace(".", "");
 
 
-                    string strAddSQL = "";
-                    iIndexRow = 0;
-                    foreach (DataRow row in dt.Rows)
+                string strAddSQL = "";
+                iIndexRow = 0;
+                foreach (DataRow row in dt.Rows)
+                {
+                    string strCategory = (string)row[0];
+                    if (!strCategory.Equals(""))
                     {
-                        string strCategory = (string)row[0];
-                        if (!strCategory.Equals(""))
-                        {
-                            //if (iIndexRow > 0)
-                            //{
-                            strAddSQL += strHexagonIncomparable + iIndexRow + ",";
-                            //}
-                            iIndexRow++;
-                        }
-
+                        //if (iIndexRow > 0)
+                        //{
+                        strAddSQL += strHexagonIncomparable + iIndexRow + ",";
+                        //}
+                        iIndexRow++;
                     }
-                    strAddSQL = strAddSQL.TrimEnd(',');
+
+                }
+                strAddSQL = strAddSQL.TrimEnd(',');
 
 
-                    //Manipulate construction sql
-                    strSQL = strSQL.Replace("CALCULATEINCOMPARABLE", strAddSQL);
-                    strOperators = strOperators.Replace("CALCULATEINCOMPARABLE", strAddOperators);
+                //Manipulate construction sql
+                strSQL = strSQL.Replace("CALCULATEINCOMPARABLE", strAddSQL);
+                strOperators = strOperators.Replace("CALCULATEINCOMPARABLE", strAddOperators);
                 }
 
-                connection.Close();
 
-            }
+            }*/
         }
 
         protected override void Add(object[] dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable) //add tuple

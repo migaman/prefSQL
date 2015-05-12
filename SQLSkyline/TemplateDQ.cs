@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
-using System.Diagnostics;
-using Microsoft.SqlServer.Server;
 
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace prefSQL.SQLSkyline
@@ -26,8 +23,7 @@ namespace prefSQL.SQLSkyline
     /// </remarks>
     public class TemplateDQ : TemplateStrategy
     {
-        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate,
-            string[] operatorsArray, string[] additionalParameters)
+        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters)
         {
             DataTable dataTableReturn = dataTableTemplate.Clone();
 
@@ -301,7 +297,7 @@ namespace prefSQL.SQLSkyline
             //HashSet<long> uniqueNumbers = new HashSet<long>();
             //HashSet is not supported with CLR --> use Dictionary and set all values true
             Dictionary<long, bool> uniqueNumbers = new Dictionary<long, bool>();
-            //HashSet is verboten in MS SQL CLR
+            //HashSet is not allowed inside MS SQL CLR
             //generate list of unique integers of this dimension
             for (int i = 0; i < listObjects.Count; i++)
             {

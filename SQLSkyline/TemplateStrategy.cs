@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -9,14 +8,14 @@ namespace prefSQL.SQLSkyline
 {
     public abstract class TemplateStrategy
     {
-        public long TimeInMs = 0;
+        public long TimeInMs { get; set; }
         public long NumberOfOperations { get; set; }
-        public List<long[]> SkylineValues;
+        public List<long[]> SkylineValues { get; set; } //ordering is done in this class. Ordering needs the skyline values
 
         public DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, string[] additionalParameters, int sortType)
         {
             string[] operators = strOperators.Split(';');
-            DataTable dt = Helper.GetSkylineDataTable(strQuery, isIndependent, strConnection, strProvider);
+            DataTable dt = Helper.GetSkylineDataTable(strQuery, strConnection, strProvider);
             List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
             DataTable dtResult = new DataTable();
             SqlDataRecord record = Helper.BuildDataRecord(dt, operators, dtResult);
@@ -47,12 +46,10 @@ namespace prefSQL.SQLSkyline
         /// </summary>
         /// <param name="database"></param>
         /// <param name="dataTableTemplate"></param>
-        /// <param name="dataRecordTemplate"></param>
         /// <param name="operatorsArray"></param>
         /// <param name="additionalParameters"></param>
         /// <returns></returns>
-        protected abstract DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate,
-            SqlDataRecord dataRecordTemplate, string[] operatorsArray, string[] additionalParameters);
+        protected abstract DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters);
 
         /// <summary>
         /// Template function for each algorithm
@@ -64,13 +61,13 @@ namespace prefSQL.SQLSkyline
         /// <param name="operators"></param>
         /// <param name="numberOfRecords"></param>
         /// <param name="isIndependent"></param>
+        /// <param name="sortType"></param>
         /// <param name="additionalParameters"></param>
         /// <returns></returns>
         private DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, int sortType, string[] additionalParameters)
         {
-            ArrayList resultCollection = new ArrayList();
-            ArrayList resultstringCollection = new ArrayList();
             string[] operatorsArray = operators.Split(';');
+            //TODO: Discuss with Stefan how to implement sampleSkyling
             int[] resultToTupleMapping = Helper.ResultToTupleMapping(operatorsArray);
             DataTable dataTableReturn = new DataTable();
             Stopwatch sw = new Stopwatch();
@@ -80,8 +77,9 @@ namespace prefSQL.SQLSkyline
                 //Time the algorithm needs (afer query to the database)
                 sw.Start();
 
+
                 //Run the specific algorithm
-                dataTableReturn = GetSkylineFromAlgorithm(database, dataTableTemplate, dataRecordTemplate, operatorsArray, additionalParameters);
+                dataTableReturn = GetSkylineFromAlgorithm(database, dataTableTemplate, operatorsArray, additionalParameters);
                 
 
                 //Remove certain amount of rows if query contains TOP Keyword
@@ -97,23 +95,27 @@ namespace prefSQL.SQLSkyline
                 {
                     dataTableReturn = Helper.SortBySum(dataTableReturn, SkylineValues);    
                 }
-                
-                
 
+
+
+                //Send results if working with the CLR
                 if (isIndependent == false)
                 {
-                    //Send results to client
-                    SqlContext.Pipe.SendResultsStart(dataRecordTemplate);
-
-                    foreach (DataRow recSkyline in dataTableReturn.Rows)
+                    
+                    if (SqlContext.Pipe != null)
                     {
-                        for (int i = 0; i < recSkyline.Table.Columns.Count; i++)
+                        SqlContext.Pipe.SendResultsStart(dataRecordTemplate);
+
+                        foreach (DataRow recSkyline in dataTableReturn.Rows)
                         {
-                            dataRecordTemplate.SetValue(i, recSkyline[i]);
+                            for (int i = 0; i < recSkyline.Table.Columns.Count; i++)
+                            {
+                                dataRecordTemplate.SetValue(i, recSkyline[i]);
+                            }
+                            SqlContext.Pipe.SendResultsRow(dataRecordTemplate);
                         }
-                        SqlContext.Pipe.SendResultsRow(dataRecordTemplate);
+                        SqlContext.Pipe.SendResultsEnd();
                     }
-                    SqlContext.Pipe.SendResultsEnd();
                 }
             }
             catch (Exception ex)
@@ -128,12 +130,17 @@ namespace prefSQL.SQLSkyline
                 }
                 else
                 {
-                    SqlContext.Pipe.Send(strError);
+                    if (SqlContext.Pipe != null)
+                    {
+                        SqlContext.Pipe.Send(strError);
+                    }
                 }
             }
 
+            //Report time the execution time of the algorithm
             sw.Stop();
             TimeInMs = sw.ElapsedMilliseconds;
+
             return dataTableReturn;
         }
 

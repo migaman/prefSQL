@@ -79,7 +79,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
 
             ConfigureUtility(subspacesCount, subspaceDimension, skylineAlgorithmParameters.OperatorsCollection.Count);
 
-            DataTable fullDataTable = Helper.GetSkylineDataTable(query, true, dbConnection, DbProvider);
+            DataTable fullDataTable = Helper.GetSkylineDataTable(query, dbConnection, DbProvider);
             Dictionary<int, object[]> database = Helper.GetDictionaryFromDataTable(fullDataTable,
                 Utility.AllPreferencesCount + uniqueIdColumnIndex);
             var dataTableTemplate = new DataTable();

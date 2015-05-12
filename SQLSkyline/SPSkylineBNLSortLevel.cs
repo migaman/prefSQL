@@ -28,6 +28,7 @@ namespace prefSQL.SQLSkyline
             int dimensions, DataTable dtResult)
         {
             Helper.AddToWindow(dataReader, resultCollection, dimensions, dtResult);
+            resultstringCollection.Add(new string[1]);
         }
 
 

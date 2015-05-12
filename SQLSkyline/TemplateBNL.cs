@@ -1,10 +1,7 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using Microsoft.SqlServer.Server;
+using System.Linq;
 
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace prefSQL.SQLSkyline
@@ -26,42 +23,60 @@ namespace prefSQL.SQLSkyline
     public abstract class TemplateBNL : TemplateStrategy
     {
 
-        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string[] operatorsArray, string[] additionalParameters)
+        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters)
         {
-            //ArrayList resultCollection = new ArrayList();
+            List<long[]> window = new List<long[]>();
+            ArrayList windowIncomparable = new ArrayList();
+            int dimensions = 0; //operatorsArray.GetUpperBound(0)+1;
 
-            List<long[]> resultCollection = new List<long[]>();
-            int dimensions = operatorsArray.GetUpperBound(0)+1;
-            
-           
-            
-            ArrayList resultstringCollection = new ArrayList();
+            for (int i = 0; i < operatorsArray.Length; i++)
+            {
+                if (operatorsArray[i] != "IGNORE")
+                {
+                    dimensions++;
+                }
+            }
+
             DataTable dataTableReturn = dataTableTemplate.Clone();
-            int[] resultToTupleMapping = Helper.ResultToTupleMapping(operatorsArray);
+            
 
             //For each tuple
             foreach (object[] dbValuesObject in database)
             {
                 long[] newTuple = new long[dimensions];
+                int next = 0;
+                for (int j = 0; j < operatorsArray.Length; j++)
+                {
+                    if (operatorsArray[j] != "IGNORE")
+                    {
+                        newTuple[next] = (long) dbValuesObject[j];
+                        next++;
+                    }
+                }
+
+                /*long[] newTuple = new long[dimensions];
                 for (int i = 0; i < dimensions; i++)
                 {
                     newTuple[i] = (long)dbValuesObject[i];
-                }
+                }*/
+            
 
                 bool isDominated = false;
 
                 //check if record is dominated (compare against the records in the window)
-                for (int i = resultCollection.Count - 1; i >= 0; i--)
+                for (int i = window.Count - 1; i >= 0; i--)
                 {
-                    long[] windowTuple = resultCollection[i];
-                    //string[] incomparableTuple = (string[])resultstringCollection[i];
+                    long[] windowTuple = window[i];
+                    //Level BNL performance drops 2 times with using the next line
+                    //string[] incomparableTuple = (string[])windowIncomparable[i];
 
-                    //Don't use numberOfOperations for performance reasons (slows down performance about 10%)
+                    //Only use this for tests (Drops performance 10%)
                     //NumberOfOperations++;
 
-                    //2 times faster than via the Template Strategy (below)
+                    //TODO: Using the Helper directly is sligthly faster, but than every bnl algorithm needs it own logic
                     if(Helper.IsTupleDominated(windowTuple, newTuple, dimensions))
-                    //if (IsTupleDominated(windowTuple, newTuple, dimensions, operatorsArray, resultstringCollection, i))
+                    //Helper.IsTupleDominated()
+                    //if (IsTupleDominated(windowTuple, newTuple, dimensions, operatorsArray, windowIncomparable, i))
                     {
                         isDominated = true;
                         break;
@@ -69,13 +84,15 @@ namespace prefSQL.SQLSkyline
                 }
                 if (isDominated == false)
                 {
-                    AddToWindow(dbValuesObject, resultCollection, resultstringCollection, operatorsArray, dimensions, dataTableReturn);
+                    Helper.AddToWindowSample(dbValuesObject, operatorsArray, window, dataTableReturn);
+                    //AddToWindow(dbValuesObject, window, windowIncomparable, operatorsArray, dimensions, dataTableReturn);
                 }
 
                 
             }
             //Special orderings need the skyline values. Store it in a property
-            SkylineValues = resultCollection;
+            SkylineValues = window;
+
             return dataTableReturn;
         }
 

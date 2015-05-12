@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Diagnostics;
-using Microsoft.SqlServer.Server;
 using prefSQL.SQLSkyline.Models;
 
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
@@ -29,23 +27,27 @@ namespace prefSQL.SQLSkyline
     public abstract class TemplateHexagon : TemplateStrategy
     {
         
-        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate,
-            SqlDataRecord dataRecordTemplate, string[] operators, string[] additionalParameters)
+        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, string[] operators, string[] additionalParameters)
         {
-            String strSelectIncomparable = "";
+            string strSelectIncomparable = "";
             int weightHexagonIncomparable = 0;
-            DbConnection connection = null;
-            DbProviderFactory factory = null;
+            string connectionString = "";
+            string factory = "";
             string strOperators = "";
+
+            //load some variables from the additional paraemters
             if(additionalParameters.GetUpperBound(0) > 3)
             {
+                //TODO: Test Hexagon incomparable
                 strSelectIncomparable = additionalParameters[3].Trim().Replace("''", "'").Trim('\'');    
                 weightHexagonIncomparable = int.Parse(additionalParameters[4].Trim());
                 strOperators = additionalParameters[5];
+                connectionString = additionalParameters[0];
+                factory = additionalParameters[1];
             }
             
             
-            //TODO: diese variablen von additional parameter laden
+            
             
             string strSQL = null;
 
@@ -57,10 +59,10 @@ namespace prefSQL.SQLSkyline
             int[] level = null;
             int[] weight = null;
             long maxID = 0;
-            
 
 
-            CalculateOperators(ref strOperators, strSelectIncomparable, factory, connection, ref strSQL);
+
+            CalculateOperators(ref strOperators, strSelectIncomparable, factory, connectionString, ref strSQL);
 
             string[] operatorsArray = strOperators.Split(';');
             int amountOfPreferences = operatorsArray.GetUpperBound(0) + 1;
@@ -108,7 +110,7 @@ namespace prefSQL.SQLSkyline
                         DataRow row = dtResult.NewRow();
                         for (int i = 0; i < recSkyline.Count; i++)
                         {
-                            dataRecordTemplate.SetValue(i, recSkyline[i]);
+                            //dataRecordTemplate.SetValue(i, recSkyline[i]);
                             row[i] = recSkyline[i];
                         }
 
@@ -400,7 +402,7 @@ namespace prefSQL.SQLSkyline
                         //remove followers
                         // follow the edge for preference i (only if not already on last level)
                         //if (id + weight[0] <= level.GetUpperBound(0) && level[id + weight[0]] == level[id] + 1)
-                        //TODO: Profiling eigene long variable statt levelupperbound (bringt dies was??) --> hat nichts gebracht (14% der fkt statt 15%)
+                        //TODO: Profiling separate long variable instead of GetUpperBound(0) --> No significant effect (14% from the function instead of 15%)
                         if (id + weight[0] <= levelUpperBound && level[id + weight[0]] == level[id] + 1)
                         {                               
                             //Push current object to stack
@@ -536,7 +538,7 @@ namespace prefSQL.SQLSkyline
 
         protected abstract void Add(object[] dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable);
 
-        protected abstract void CalculateOperators(ref string strOperators, string strSelectIncomparable, DbProviderFactory factory, DbConnection connection, ref string strSQL);
+        protected abstract void CalculateOperators(ref string strOperators, string strSelectIncomparable, string factory, string connection, ref string strSQL);
 
         
     }

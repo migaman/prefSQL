@@ -22,7 +22,7 @@ namespace prefSQL.SQLSkyline
             skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, additionalParameters, sortType.Value);
         }
 
-        protected override void CalculateOperators(ref string strOperators, string strSelectIncomparable, DbProviderFactory factory, DbConnection connection, ref string strSQL)
+        protected override void CalculateOperators(ref string strOperators, string strSelectIncomparable, string factory, string connection, ref string strSQL)
         {
             //No Operation
             //return;
