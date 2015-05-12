@@ -15,7 +15,7 @@ namespace prefSQL.SQLSkyline
         public DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, string[] additionalParameters, int sortType)
         {
             string[] operators = strOperators.Split(';');
-            DataTable dt = Helper.GetSkylineDataTable(strQuery, strConnection, strProvider);
+            DataTable dt = Helper.GetDataTableFromSQL(strQuery, strConnection, strProvider);
             List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
             DataTable dtResult = new DataTable();
             SqlDataRecord record = Helper.BuildDataRecord(dt, operators, dtResult);
@@ -67,8 +67,6 @@ namespace prefSQL.SQLSkyline
         private DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, int sortType, string[] additionalParameters)
         {
             string[] operatorsArray = operators.Split(';');
-            //TODO: Discuss with Stefan how to implement sampleSkyling
-            int[] resultToTupleMapping = Helper.ResultToTupleMapping(operatorsArray);
             DataTable dataTableReturn = new DataTable();
             Stopwatch sw = new Stopwatch();
 

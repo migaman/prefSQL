@@ -24,16 +24,15 @@ namespace prefSQL.SQLSkyline
             skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, null, sortType.Value);
         }
 
-        protected override void AddToWindow(object[] dataReader, List<long[]> resultCollection, ArrayList resultstringCollection, string[] operators,
-            int dimensions, DataTable dtResult)
+        protected override void AddToWindow(object[] newTuple, List<long[]> window, ArrayList resultstringCollection, string[] operatorsArray, int dimensions, DataTable dtResult)
         {
-            Helper.AddToWindow(dataReader, resultCollection, dimensions, dtResult);
-            resultstringCollection.Add(new string[1]);
+            Helper.AddToWindowSample(newTuple, window, dimensions, operatorsArray, dtResult);
         }
 
 
-        protected override bool IsTupleDominated(long[] windowTuple, long[] newTuple, int dimensions, string[] operators, ArrayList incomparableTuple, int listIndex)
+        protected override bool IsTupleDominated(List<long[]> window, long[] newTuple, int dimensions, string[] operatorsArray, ArrayList incomparableTuple, int listIndex, DataTable dtResult, object[] newTupleAllValues)
         {
+            long[] windowTuple = window[listIndex];
             //Dominanz
             return Helper.IsTupleDominated(windowTuple, newTuple, dimensions);
             

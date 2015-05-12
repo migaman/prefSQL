@@ -34,7 +34,7 @@ namespace Utility
         {
             StringBuilder sb = new StringBuilder();
 
-            DataTable dt = PerformanceTestHelper.GetSkylineDataTable(strQuery, strConnection, strProvider);
+            DataTable dt = PerformanceTestHelper.GetDataTableFromSQL(strQuery, strConnection, strProvider);
             sb.AppendLine("query: " + strQuery);
             sb.AppendLine("isIndependent: " + isIndependent);
             sb.AppendLine("conn: " + strConnection);

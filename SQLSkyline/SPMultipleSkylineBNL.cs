@@ -188,7 +188,7 @@ namespace prefSQL.SQLSkyline
         }
 
 
-        private void AddToWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, SqlBoolean isFrameworkMode, int level, DataTable dtResult)
+        private void AddToWindow(object[] newTuple, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, SqlBoolean isFrameworkMode, int level, DataTable dtResult)
         {
 
             //Erste Spalte ist die ID
@@ -196,7 +196,7 @@ namespace prefSQL.SQLSkyline
             string[] recordstring = new string[operators.GetUpperBound(0) + 1];
             DataRow row = dtResult.NewRow();
 
-            for (int iCol = 0; iCol <= dataReader.GetUpperBound(0); iCol++)
+            for (int iCol = 0; iCol <= newTuple.GetUpperBound(0); iCol++)
             {
                 //Only the real columns (skyline columns are not output fields)
                 if (iCol <= operators.GetUpperBound(0))
@@ -204,24 +204,24 @@ namespace prefSQL.SQLSkyline
                     //LOW und HIGH Spalte in record abfüllen
                     if (operators[iCol].Equals("LOW"))
                     {
-                        if (dataReader[iCol] == DBNull.Value)
+                        if (newTuple[iCol] == DBNull.Value)
                             recordInt[iCol] = null;
                         else
-                            recordInt[iCol] = (long)dataReader[iCol];
+                            recordInt[iCol] = (long)newTuple[iCol];
                         
                         //Check if long value is incomparable
                         if (iCol + 1 <= recordInt.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
                         {
                             //Incomparable field is always the next one
-                            recordstring[iCol] = (string)dataReader[iCol + 1];
+                            recordstring[iCol] = (string)newTuple[iCol + 1];
                         }
                     }
 
                 }
                 else
                 {
-                    row[iCol - (operators.GetUpperBound(0) + 1)] = dataReader[iCol];
-                    record.SetValue(iCol - (operators.GetUpperBound(0) + 1), dataReader[iCol]);
+                    row[iCol - (operators.GetUpperBound(0) + 1)] = newTuple[iCol];
+                    record.SetValue(iCol - (operators.GetUpperBound(0) + 1), newTuple[iCol]);
                 }
             }
             row[record.FieldCount - 1] = level;

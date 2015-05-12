@@ -33,7 +33,7 @@ namespace prefSQL.SQLSkyline
                 int posOfFrom = strSQL.IndexOf("FROM", StringComparison.Ordinal);
                 string strSQLIncomparable = "SELECT DISTINCT " + strSelectIncomparable + " " + strSQL.Substring(posOfFrom);
 
-                DataTable dt = Helper.GetSkylineDataTable(strSQLIncomparable, connectionString, factory);
+                DataTable dt = Helper.GetDataTableFromSQL(strSQLIncomparable, connectionString, factory);
                  
 
 

@@ -52,7 +52,7 @@ namespace Utility
         }
 
 
-        public static DataTable GetSkylineDataTable(string strQuery, string strConnection, string strProvider)
+        public static DataTable GetDataTableFromSQL(string strQuery, string strConnection, string strProvider)
         {
             DbProviderFactory factory = DbProviderFactories.GetFactory(strProvider);
             DataTable dt = new DataTable();

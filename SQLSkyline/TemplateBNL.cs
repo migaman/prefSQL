@@ -66,7 +66,7 @@ namespace prefSQL.SQLSkyline
                 //check if record is dominated (compare against the records in the window)
                 for (int i = window.Count - 1; i >= 0; i--)
                 {
-                    long[] windowTuple = window[i];
+                    //long[] windowTuple = window[i];
                     //Level BNL performance drops 2 times with using the next line
                     //string[] incomparableTuple = (string[])windowIncomparable[i];
 
@@ -74,9 +74,9 @@ namespace prefSQL.SQLSkyline
                     //NumberOfOperations++;
 
                     //TODO: Using the Helper directly is sligthly faster, but than every bnl algorithm needs it own logic
-                    if(Helper.IsTupleDominated(windowTuple, newTuple, dimensions))
+                    //if(Helper.IsTupleDominated(window, newTuple, dimensions))
                     //Helper.IsTupleDominated()
-                    //if (IsTupleDominated(windowTuple, newTuple, dimensions, operatorsArray, windowIncomparable, i))
+                    if (IsTupleDominated(window, newTuple, dimensions, operatorsArray, windowIncomparable, i, dataTableReturn, dbValuesObject))
                     {
                         isDominated = true;
                         break;
@@ -84,8 +84,7 @@ namespace prefSQL.SQLSkyline
                 }
                 if (isDominated == false)
                 {
-                    Helper.AddToWindowSample(dbValuesObject, operatorsArray, window, dataTableReturn);
-                    //AddToWindow(dbValuesObject, window, windowIncomparable, operatorsArray, dimensions, dataTableReturn);
+                    AddToWindow(dbValuesObject, window, windowIncomparable, operatorsArray, dimensions, dataTableReturn);
                 }
 
                 
@@ -101,9 +100,9 @@ namespace prefSQL.SQLSkyline
         //Attention: Profiling
         //It seems to makes sense to remove the parameter listIndex and pass the string-array incomparableTuples[listIndex]
         //Unfortunately this has negative impact on the performance for algorithms that don't work with incomparables
-        protected abstract bool IsTupleDominated(long[] windowsTuple, long[] newTuple, int dimensions, string[] operators, ArrayList incomparableTuples, int listIndex);
+        protected abstract bool IsTupleDominated(List<long[]> window, long[] newTuple, int dimensions, string[] operatorsArray, ArrayList incomparableTuples, int listIndex, DataTable dtResult, object[] newTupleAllValues);
 
-        protected abstract void AddToWindow(object[] dataReader, List<long[]> resultCollection, ArrayList resultstringCollection, string[] operators, int dimensions, DataTable dtResult);
+        protected abstract void AddToWindow(object[] newTuple, List<long[]> window, ArrayList resultstringCollection, string[] operatorsArray, int dimensions, DataTable dtResult);
 
     }
 }

@@ -43,7 +43,7 @@ namespace Utility
         {
             StringBuilder sb = new StringBuilder();
 
-            DataTable dt = PerformanceTestHelper.GetSkylineDataTable(strQuery, strConnection, strProvider);
+            DataTable dt = PerformanceTestHelper.GetDataTableFromSQL(strQuery, strConnection, strProvider);
             sb.AppendLine("query: " + strQuery);
             sb.AppendLine("isIndependent: " + isIndependent);
             sb.AppendLine("conn: " + strConnection);
@@ -149,7 +149,7 @@ namespace Utility
         {
             
             //check if record is dominated (compare against the records in the window)
-            //TODO: sehr entscheidend ob man hinten oder vorne anfängt
+            //TODO: Very significant for performance, if list ist read from beginning or end
             for (int i = resultCollection.Count - 1; i >= 0; i--)
             {
                 if (IsTupleDominated(resultCollection[i], dataPoint, 6))
