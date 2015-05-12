@@ -26,14 +26,14 @@ namespace prefSQL.SQLSkyline
     /// </remarks>
     public abstract class TemplateHexagon : TemplateStrategy
     {
-        
-        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, string[] operators, string[] additionalParameters)
+
+        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters)
         {
             string strSelectIncomparable = "";
             int weightHexagonIncomparable = 0;
             string connectionString = "";
             string factory = "";
-            string strOperators = "";
+            
 
             //load some variables from the additional paraemters
             if(additionalParameters.GetUpperBound(0) > 3)
@@ -41,15 +41,18 @@ namespace prefSQL.SQLSkyline
                 //TODO: Test Hexagon incomparable
                 strSelectIncomparable = additionalParameters[3].Trim().Replace("''", "'").Trim('\'');    
                 weightHexagonIncomparable = int.Parse(additionalParameters[4].Trim());
-                strOperators = additionalParameters[5];
+                
                 connectionString = additionalParameters[0];
                 factory = additionalParameters[1];
+
+                //Change operators array
+                string strOperators = additionalParameters[5];
+                string strSQL = null;
+                CalculateOperators(ref strOperators, strSelectIncomparable, factory, connectionString, ref strSQL);
+                operatorsArray = strOperators.Split(';');
             }
             
-            
-            
-            
-            string strSQL = null;
+
 
             DataTable dtResult = dataTableTemplate.Clone();
             
@@ -62,9 +65,6 @@ namespace prefSQL.SQLSkyline
 
 
 
-            CalculateOperators(ref strOperators, strSelectIncomparable, factory, connectionString, ref strSQL);
-
-            string[] operatorsArray = strOperators.Split(';');
             int amountOfPreferences = operatorsArray.GetUpperBound(0) + 1;
 
 

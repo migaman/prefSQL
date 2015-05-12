@@ -150,7 +150,7 @@ namespace prefSQL.SQLSkyline
         {
             bool greaterThan = false;
 
-            for (int iCol = 0; iCol <= dimensions; iCol++)
+            for (int iCol = 0; iCol < dimensions; iCol++)
             {
                 //Use long array instead of dataReader --> is 100% faster!!!
                 long value = newTuple[iCol];
@@ -412,7 +412,7 @@ namespace prefSQL.SQLSkyline
             long[] record = new long[dimensions];
             DataRow row = dtResult.NewRow();
 
-            for (int iCol = 0; iCol <= newTuple.GetUpperBound((0)); iCol++)
+            for (int iCol = 0; iCol < newTuple.Length; iCol++)
             {
                 //Only the real columns (skyline columns are not output fields)
                 if (iCol <= dimensions - 1)

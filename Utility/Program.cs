@@ -22,7 +22,7 @@ namespace Utility
 
             Program prg = new Program();
             //prg.PerformanceTestBNL();
-            prg.MeasurePerformance();
+            //prg.MeasurePerformance();
             prg.Run();
 
 
@@ -103,19 +103,20 @@ namespace Utility
                 strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars t1        LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
                 strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t1.enginesize           FROM cars t1        SKYLINE OF t1.price LOW, t1.mileage LOW, t1.enginesize HIGH ORDER BY SUM_RANK()";
                 */
-                string strPrefSQL = "SELECT t1.id                          FROM cars t1  SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
+                //string strPrefSQL = "SELECT t1.id                          FROM cars t1  SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH";
                 //string strPrefSQL = "SELECT t1.id                          FROM cars_norm t1   SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower LOW, t1.enginesize LOW, t1.doors LOW, t1.consumption LOW, t1.cylinders LOW";
                 //string strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars t1        SKYLINE OF t1.price LOW, t1.mileage LOW ORDER BY BEST_RANK()";
-                
+                string strPrefSQL = "SELECT t1.id AS ID, t1.title, t1.price FROM cars_small t1 SKYLINE OF t1.price LOW";
+
                 Debug.WriteLine(strPrefSQL);
                 SQLCommon parser = new SQLCommon();
 
 
                 //Choose here your algorithm
-                //parser.SkylineType = new SkylineSQL();
-                //parser.SkylineType = new SkylineBNL();
-                parser.SkylineType = new SkylineBNLSort();
-                //parser.SkylineType = new SkylineHexagon();
+                parser.SkylineType = new SkylineSQL();
+                parser.SkylineType = new SkylineBNL();
+                //parser.SkylineType = new SkylineBNLSort();
+                parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new MultipleSkylineBNL();
                 //parser.SkylineType = new SkylineDQ();
                 

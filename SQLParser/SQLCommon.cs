@@ -192,6 +192,10 @@ namespace prefSQL.SQLParser
                         string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM", StringComparison.Ordinal));
 
                         string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
+                        if (SkylineType.IsNative())
+                        {
+                            strFirstSQL = strSQLReturn;
+                        }
 
                         string strOrderByAttributes = sqlSort.GetSortClause(prefSQL, Ordering.AttributePosition);
 
