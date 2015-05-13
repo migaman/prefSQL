@@ -3,61 +3,61 @@
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Text;
+using Microsoft.SqlServer.Server;
 
 namespace prefSQL.SQLSkyline
 {
-    using Microsoft.SqlServer.Server;
-
     public class MultipleSkylineBNL : SkylineStrategy
     {
-        public override bool isNative()
+        public override bool IsNative()
         {
             return false;
         }
 
-        public override bool supportImplicitPreference()
+        public override bool SupportImplicitPreference()
         {
             return true;
         }
 
-        public override bool supportIncomparable()
+        public override bool SupportIncomparable()
         {
             return true;
         }
 
-        internal override DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        internal override DataTable GetSkylineTableBackdoorSample(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
             throw new NotImplementedException();
         }
 
-        public override string getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
+
+        public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, string strFirstSQL, string strOperators, string strOrderByAttributes)
         {
             strFirstSQL += strOrderByAttributes;
             //Quote quotes because it is a parameter of the stored procedure
             strFirstSQL = strFirstSQL.Replace("'", "''");
 
-            strSQLReturn = "EXEC dbo.SP_MultipleSkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords + ", " + SkylineUpToLevel;
+            string strSQLReturn = "EXEC dbo.SP_MultipleSkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + MultipleSkylineUpToLevel;
             return strSQLReturn;
         }
 
-        public override DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
             //Additional parameter
-            int upToLevel = int.Parse(additionalParameters[3]);
+            int upToLevel = int.Parse(AdditionParameters[3]);
 
-            if (hasIncomparable)
+            if (HasIncomparablePreferences)
             {
-                SP_MultipleSkylineBNL skyline = new SP_MultipleSkylineBNL();
-                return skyline.getSkylineTable(strQuery, strOperators, strConnection, Provider, numberOfRecords, upToLevel);
+                SPMultipleSkylineBNL skyline = new SPMultipleSkylineBNL();
+                return skyline.GetSkylineTable(querySQL, preferenceOperators, ConnectionString, Provider, RecordAmountLimit, upToLevel);
             }
             else
             {
-                SP_MultipleSkylineBNLLevel skyline = new SP_MultipleSkylineBNLLevel();
-                return skyline.getSkylineTable(strQuery, strOperators, strConnection, Provider, numberOfRecords, upToLevel);
+                SPMultipleSkylineBNLLevel skyline = new SPMultipleSkylineBNLLevel();
+                return skyline.GetSkylineTable(querySQL, preferenceOperators, ConnectionString, Provider, RecordAmountLimit, upToLevel);
             }
             
         }

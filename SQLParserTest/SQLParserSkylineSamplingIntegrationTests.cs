@@ -1,14 +1,14 @@
-﻿namespace prefSQL.SQLParserTest
-{
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Diagnostics;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using prefSQL.SQLParser;
-    using prefSQL.SQLParser.Models;
-    using prefSQL.SQLSkyline;
-    using prefSQL.SQLSkyline.SamplingSkyline;
+﻿using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using prefSQL.SQLParser;
+using prefSQL.SQLParser.Models;
+using prefSQL.SQLSkyline;
+using prefSQL.SQLSkyline.SamplingSkyline;
 
+namespace prefSQL.SQLParserTest
+{
     [TestClass]
     public class SQLParserSkylineSamplingIntegrationTests
     {
@@ -29,7 +29,7 @@
 
             var common = new SQLCommon {SkylineType = new SkylineBNL()};
 
-            var skyline = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, entireSkylineSQL);
+            var skyline = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, entireSkylineSQL);
 
             Assert.AreEqual(expectedNumberOfEntireSkylineObjects, skyline.Rows.Count,
                 "Unexpected number of Skyline objects.");
@@ -57,7 +57,7 @@
             var prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSQL);
             var ansiSql = common.GetAnsiSqlFromPrefSqlModel(prefSqlModelSkylineSample);
 
-            prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out baseQuery, out operators,
+            SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out baseQuery, out operators,
                 out numberOfRecords);
 
             var useSubspaces = UseSubspaces(prefSqlModelSkylineSample);
@@ -116,9 +116,9 @@
 
             var common = new SQLCommon {SkylineType = new SkylineBNL()};
 
-            var entireSkyline = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+            var entireSkyline = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
                 entireSkylineSql);
-            var sampleSkyline = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+            var sampleSkyline = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
                 skylineSampleSql);
 
             var entireSkylineObjectsIds = GetHashSetOfIdsFromDataTable(entireSkyline);

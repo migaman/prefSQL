@@ -1,14 +1,13 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using prefSQL.SQLParser;
-using System.Data.SqlClient;
 using System.Collections;
 using System.Collections.Generic;
-using prefSQL.SQLSkyline;
 using System.Data;
-using prefSQL.SQLParser.Models;
 using System.Data.Common;
-
+using System.Data.SqlClient;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using prefSQL.SQLParser;
+using prefSQL.SQLParser.Models;
+using prefSQL.SQLSkyline;
 
 namespace prefSQL.SQLParserTest
 {
@@ -28,21 +27,21 @@ namespace prefSQL.SQLParserTest
          DeploymentItem("SQLParserSkylineTest.xml")]
         public void TestSKYLINEAmountOfTupels_MSSQLCLR()
         {
-            var skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
-            
-            var common = new SQLCommon();
+            string skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
+
+            SQLCommon common = new SQLCommon();
             common.SkylineType = new SkylineSQL();
             PrefSQLModel model = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSql);
             string sqlNative = common.GetAnsiSqlFromPrefSqlModel(model);
             common.SkylineType = new SkylineBNL();
-            string sqlBNL = common.parsePreferenceSQL(skylineSampleSql);
+            string sqlBNL = common.ParsePreferenceSQL(skylineSampleSql);
             common.SkylineType = new SkylineBNLSort();
-            string sqlBNLSort = common.parsePreferenceSQL(skylineSampleSql);
+            string sqlBNLSort = common.ParsePreferenceSQL(skylineSampleSql);
             common.SkylineType = new SkylineHexagon();
-            string sqlHexagon = common.parsePreferenceSQL(skylineSampleSql);
+            string sqlHexagon = common.ParsePreferenceSQL(skylineSampleSql);
             //D&Q does not run with CLR
             common.SkylineType = new SkylineDQ();
-            string sqlDQ = common.parsePreferenceSQL(skylineSampleSql);
+            string sqlDQ = common.ParsePreferenceSQL(skylineSampleSql);
 
             int amountOfTupelsBNL = 0;
             int amountOfTupelsBNLSort = 0;
@@ -114,7 +113,7 @@ namespace prefSQL.SQLParserTest
                 //D&Q (does not work with incomparable tuples)
                 if(model.WithIncomparable == false)
                 {
-                    command.CommandText = sqlDQ; ;
+                    command.CommandText = sqlDQ;
                     sqlReader = command.ExecuteReader();
 
                     if (sqlReader.HasRows)
@@ -134,7 +133,7 @@ namespace prefSQL.SQLParserTest
                 Assert.Fail("Connection failed:" + ex.Message);
             }
 
-            var currentDataRowIndex = TestContext.DataRow.Table.Rows.IndexOf(TestContext.DataRow);
+            int currentDataRowIndex = TestContext.DataRow.Table.Rows.IndexOf(TestContext.DataRow);
 
             //Check tuples (every algorithm should deliver the same amount of tuples)
             Assert.AreEqual(amountOfTupelsSQL, amountOfTupelsBNLSort, 0,
@@ -164,9 +163,9 @@ namespace prefSQL.SQLParserTest
          DeploymentItem("SQLParserSkylineTest.xml")]
         public void TestSkylineParseResults()
         {
-            var skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
+            string skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
 
-            var allResultTypes = new Dictionary<string, SkylineStrategy>
+            Dictionary<string, SkylineStrategy> allResultTypes = new Dictionary<string, SkylineStrategy>
             {
                 {"parsePreferenceSQLSkylineSQLExpectedResult", new SkylineSQL()},
                 {"parsePreferenceSQLSkylineBNLExpectedResult", new SkylineBNL()},
@@ -176,13 +175,13 @@ namespace prefSQL.SQLParserTest
                 {"parsePreferenceSQLMultipleSkylineBNLExpectedResult", new MultipleSkylineBNL()}
             };
 
-            var currentDataRowIndex = TestContext.DataRow.Table.Rows.IndexOf(TestContext.DataRow);
+            int currentDataRowIndex = TestContext.DataRow.Table.Rows.IndexOf(TestContext.DataRow);
 
-            var common = new SQLCommon();
-            foreach (var resultType in allResultTypes)
+            SQLCommon common = new SQLCommon();
+            foreach (KeyValuePair<string, SkylineStrategy> resultType in allResultTypes)
             {
                 common.SkylineType = resultType.Value;
-                var parsedSql = common.parsePreferenceSQL(skylineSampleSql);
+                string parsedSql = common.ParsePreferenceSQL(skylineSampleSql);
                 Assert.AreEqual(TestContext.DataRow[resultType.Key].ToString().Trim(), parsedSql.Trim(),
                     "Parsed result in data row " + currentDataRowIndex + " for " + resultType.Key + " is incorrect.");
             }
@@ -200,22 +199,22 @@ namespace prefSQL.SQLParserTest
          DeploymentItem("SQLParserSkylineTest.xml")]
         public void TestSKYLINEAmountOfTupels_DataTable()
         {
-            var skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
+            string skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
 
-            var common = new SQLCommon();
+            SQLCommon common = new SQLCommon();
             common.SkylineType = new SkylineSQL();
             PrefSQLModel model = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSql);
             DataTable dtNative = common.ExecuteFromPrefSqlModel(Helper.ConnectionString, Helper.ProviderName, model);
             common.SkylineType = new SkylineBNL();
-            DataTable dtBNL = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, skylineSampleSql);
+            DataTable dtBNL = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, skylineSampleSql);
             common.SkylineType = new SkylineBNLSort();
-            DataTable dtBNLSort = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, skylineSampleSql);
+            DataTable dtBNLSort = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, skylineSampleSql);
 
-            var dtHexagon = new DataTable();
+            DataTable dtHexagon = new DataTable();
             if (model.ContainsOpenPreference == false)
             {
                 common.SkylineType = new SkylineHexagon();
-                dtHexagon = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, skylineSampleSql);
+                dtHexagon = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, skylineSampleSql);
             }                
                 
             DataTable dtDQ = new DataTable();
@@ -223,10 +222,10 @@ namespace prefSQL.SQLParserTest
             if (model.WithIncomparable == false)
             {
                 common.SkylineType = new SkylineDQ();
-                dtDQ = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, skylineSampleSql);
+                dtDQ = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, skylineSampleSql);
             }
 
-            var currentDataRowIndex = TestContext.DataRow.Table.Rows.IndexOf(TestContext.DataRow);
+            int currentDataRowIndex = TestContext.DataRow.Table.Rows.IndexOf(TestContext.DataRow);
 
             //Check tuples (every algorithm should deliver the same amount of tuples)
             Assert.AreEqual(dtNative.Rows.Count, dtBNL.Rows.Count, 0,
@@ -252,7 +251,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSKYLINEMultipleLevels()
+        public void TestSkylineMultipleLevels()
         {
             string strSQL = "SELECT t1.id, t1.price, t1.mileage FROM cars_small t1 ";
             string strPreferences = " SKYLINE OF t1.price LOW, t1.mileage LOW";
@@ -268,8 +267,8 @@ namespace prefSQL.SQLParserTest
                 //Tree Algorithm
                 common.SkylineType = new MultipleSkylineBNL();
                 common.SkylineUpToLevel = 3;
-                string sqlTree = common.parsePreferenceSQL(strSQL + strPreferences);
-                ArrayList levelRecordsTree = new ArrayList(); ;
+                string sqlTree = common.ParsePreferenceSQL(strSQL + strPreferences);
+                ArrayList levelRecordsTree = new ArrayList();
 
 
                 DbCommand command = cnnSQL.CreateCommand();
@@ -316,7 +315,7 @@ namespace prefSQL.SQLParserTest
                         strIDs = "WHERE t1.id NOT IN (" + strIDs.TrimEnd(',') + ")";
                     }
                     //Parse PreferenceSQL into SQL
-                    string sqlBNLSort = common.parsePreferenceSQL(strSQL + strIDs + strPreferences);
+                    string sqlBNLSort = common.ParsePreferenceSQL(strSQL + strIDs + strPreferences);
 
                     command = cnnSQL.CreateCommand();
                     command.CommandTimeout = 0; //infinite timeout
@@ -381,14 +380,14 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSKYLINEShowSkylineAttributes()
+        public void TestSkylineShowSkylineAttributes()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH";
 
             string expected = "SELECT * , CAST(cars.price AS bigint) AS SkylineAttributecars_price, CAST(cars.mileage AS bigint) AS SkylineAttributecars_mileage, CAST(cars.horsepower * -1 AS bigint) AS SkylineAttributecars_horsepower FROM cars WHERE NOT EXISTS(SELECT * , CAST(cars_INNER.price AS bigint) AS SkylineAttributecars_price, CAST(cars_INNER.mileage AS bigint) AS SkylineAttributecars_mileage, CAST(cars_INNER.horsepower * -1 AS bigint) AS SkylineAttributecars_horsepower FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower * -1 <= cars.horsepower * -1 AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower * -1 < cars.horsepower * -1) ) ";
             SQLCommon common = new SQLCommon();
             common.ShowSkylineAttributes = true;
-            string actual = common.parsePreferenceSQL(strPrefSQL);
+            string actual = common.ParsePreferenceSQL(strPrefSQL);
 
             Assert.AreEqual(expected.Trim(), actual.Trim(), true, "SQL not built correctly");
         }
@@ -402,7 +401,7 @@ namespace prefSQL.SQLParserTest
 
             string expected = "SELECT cars.id, cars.title, cars.Price FROM cars WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.Price FROM cars cars_INNER WHERE cars_INNER.price / 1000 <= cars.price / 1000 AND cars_INNER.mileage <= cars.mileage AND ( cars_INNER.price / 1000 < cars.price / 1000 OR cars_INNER.mileage < cars.mileage) ) ";
             SQLCommon common = new SQLCommon();
-            string actual = common.parsePreferenceSQL(strPrefSQL);
+            string actual = common.ParsePreferenceSQL(strPrefSQL);
 
             // assert
 
@@ -411,13 +410,13 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSKYLINEFavourRot()
+        public void TestSkylineFavourRot()
         {
             string strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF cars.price LOW, colors.name FAVOUR 'red'";
 
             string expected = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.Price, colors_INNER.Name FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE cars_INNER.price <= cars.price AND CASE WHEN colors_INNER.name = 'red' THEN 1 ELSE 2 END <= CASE WHEN colors.name = 'red' THEN 1 ELSE 2 END AND ( cars_INNER.price < cars.price OR CASE WHEN colors_INNER.name = 'red' THEN 1 ELSE 2 END < CASE WHEN colors.name = 'red' THEN 1 ELSE 2 END) )";
             SQLCommon common = new SQLCommon();
-            string actual = common.parsePreferenceSQL(strPrefSQL);
+            string actual = common.ParsePreferenceSQL(strPrefSQL);
 
             // assert
 
@@ -427,13 +426,13 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSKYLINEWithUnconventialJOIN()
+        public void TestSkylineWithUnconventialJoin()
         {
             string strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name FROM cars, colors WHERE cars.Color_Id = colors.Id SKYLINE OF cars.price LOW, colors.name ('gray' >> 'red')";
 
             string expected = "SELECT cars.id, cars.title, cars.price, colors.name FROM cars, colors WHERE cars.Color_Id = colors.Id AND NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.price, colors_INNER.name FROM cars cars_INNER, colors colors_INNER WHERE cars_INNER.Color_Id = colors_INNER.Id  AND cars_INNER.price <= cars.price AND (CASE WHEN colors_INNER.name = 'gray' THEN 0 WHEN colors_INNER.name = 'red' THEN 100 END <= CASE WHEN colors.name = 'gray' THEN 0 WHEN colors.name = 'red' THEN 100 END OR colors_INNER.name = colors.name) AND ( cars_INNER.price < cars.price OR CASE WHEN colors_INNER.name = 'gray' THEN 0 WHEN colors_INNER.name = 'red' THEN 100 END < CASE WHEN colors.name = 'gray' THEN 0 WHEN colors.name = 'red' THEN 100 END) )";
             SQLCommon common = new SQLCommon();
-            string actual = common.parsePreferenceSQL(strPrefSQL);
+            string actual = common.ParsePreferenceSQL(strPrefSQL);
 
             // assert
 
@@ -442,13 +441,13 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSKYLINEWithWHEREClause()
+        public void TestSkylineWithWhereClause()
         {
             string strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage FROM cars WHERE cars.price > 10000 SKYLINE OF cars.price LOW, cars.mileage low";
 
             string expected = "SELECT cars.id, cars.title, cars.price, cars.mileage FROM cars WHERE cars.price > 10000 AND NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.price, cars_INNER.mileage FROM cars cars_INNER WHERE cars_INNER.price > 10000  AND cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage) )";
             SQLCommon common = new SQLCommon();
-            string actual = common.parsePreferenceSQL(strPrefSQL);
+            string actual = common.ParsePreferenceSQL(strPrefSQL);
 
             // assert
 
@@ -459,13 +458,13 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSKYLINETOPKeyword()
+        public void TestSkylinetopKeyword()
         {
             string strPrefSQL = "SELECT TOP 5 cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF cars.price LOW, colors.name ('pink' >> {'red', 'black'} >> 'beige' == 'yellow')";
 
             string expected = "SELECT TOP 5 cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.Price, colors_INNER.Name FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE cars_INNER.price <= cars.price AND (CASE WHEN colors_INNER.name = 'pink' THEN 0 WHEN colors_INNER.name IN ('red','black') THEN 101 WHEN colors_INNER.name = 'beige' THEN 200 WHEN colors_INNER.name = 'yellow' THEN 200 END <= CASE WHEN colors.name = 'pink' THEN 0 WHEN colors.name IN ('red','black') THEN 100 WHEN colors.name = 'beige' THEN 200 WHEN colors.name = 'yellow' THEN 200 END OR colors_INNER.name = colors.name) AND ( cars_INNER.price < cars.price OR CASE WHEN colors_INNER.name = 'pink' THEN 0 WHEN colors_INNER.name IN ('red','black') THEN 101 WHEN colors_INNER.name = 'beige' THEN 200 WHEN colors_INNER.name = 'yellow' THEN 200 END < CASE WHEN colors.name = 'pink' THEN 0 WHEN colors.name IN ('red','black') THEN 100 WHEN colors.name = 'beige' THEN 200 WHEN colors.name = 'yellow' THEN 200 END) )";
             SQLCommon common = new SQLCommon();
-            string actual = common.parsePreferenceSQL(strPrefSQL);
+            string actual = common.ParsePreferenceSQL(strPrefSQL);
 
             // assert
             Assert.AreEqual(expected.Trim(), actual.Trim(), true, "SQL not built correctly");
@@ -473,13 +472,13 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSKYLINE2DimensionsJoinMultipleAccumulation()
+        public void TestSkyline2DimensionsJoinMultipleAccumulation()
         {
             string strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF cars.price LOW, colors.name ('pink' >> {'red', 'black'} >> 'beige' == 'yellow') ORDER BY cars.price ASC, colors.name('pink'>>{'red','black'}>>'beige'=='yellow')";
 
             string expected = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.Price, colors_INNER.Name FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE cars_INNER.price <= cars.price AND (CASE WHEN colors_INNER.name = 'pink' THEN 0 WHEN colors_INNER.name IN ('red','black') THEN 101 WHEN colors_INNER.name = 'beige' THEN 200 WHEN colors_INNER.name = 'yellow' THEN 200 END <= CASE WHEN colors.name = 'pink' THEN 0 WHEN colors.name IN ('red','black') THEN 100 WHEN colors.name = 'beige' THEN 200 WHEN colors.name = 'yellow' THEN 200 END OR colors_INNER.name = colors.name) AND ( cars_INNER.price < cars.price OR CASE WHEN colors_INNER.name = 'pink' THEN 0 WHEN colors_INNER.name IN ('red','black') THEN 101 WHEN colors_INNER.name = 'beige' THEN 200 WHEN colors_INNER.name = 'yellow' THEN 200 END < CASE WHEN colors.name = 'pink' THEN 0 WHEN colors.name IN ('red','black') THEN 100 WHEN colors.name = 'beige' THEN 200 WHEN colors.name = 'yellow' THEN 200 END) ) ORDER BY cars.price ASC, CASE WHEN colors.name = 'pink' THEN 0 WHEN colors.name IN ('red','black') THEN 100 WHEN colors.name = 'beige' THEN 200 WHEN colors.name = 'yellow' THEN 200 END ASC";
             SQLCommon common = new SQLCommon();
-            string actual = common.parsePreferenceSQL(strPrefSQL);
+            string actual = common.ParsePreferenceSQL(strPrefSQL);
 
             // assert
 
@@ -493,13 +492,13 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSKYLINE2DimensionsJoinOthersAccumulation()
+        public void TestSkyline2DimensionsJoinOthersAccumulation()
         {
             string strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF cars.price LOW, colors.name ('türkis' >> 'yellow' >> OTHERS INCOMPARABLE)";
 
             string expected = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.Price, colors_INNER.Name FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE cars_INNER.price <= cars.price AND (CASE WHEN colors_INNER.name = 'türkis' THEN 0 WHEN colors_INNER.name = 'yellow' THEN 100 ELSE 201 END <= CASE WHEN colors.name = 'türkis' THEN 0 WHEN colors.name = 'yellow' THEN 100 ELSE 200 END OR colors_INNER.name = colors.name) AND ( cars_INNER.price < cars.price OR CASE WHEN colors_INNER.name = 'türkis' THEN 0 WHEN colors_INNER.name = 'yellow' THEN 100 ELSE 201 END < CASE WHEN colors.name = 'türkis' THEN 0 WHEN colors.name = 'yellow' THEN 100 ELSE 200 END) )";
             SQLCommon common = new SQLCommon();
-            string actual = common.parsePreferenceSQL(strPrefSQL);
+            string actual = common.ParsePreferenceSQL(strPrefSQL);
 
             // assert
 
@@ -508,13 +507,13 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSKYLINE2DimensionsJoinNoOthers()
+        public void TestSkyline2DimensionsJoinNoOthers()
         {
             string strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF cars.price LOW, colors.name ('pink' >> 'red' == 'black' >> 'beige' == 'yellow')";
 
             string expected = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.title, cars_INNER.Price, colors_INNER.Name FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE cars_INNER.price <= cars.price AND (CASE WHEN colors_INNER.name = 'pink' THEN 0 WHEN colors_INNER.name = 'red' THEN 100 WHEN colors_INNER.name = 'black' THEN 100 WHEN colors_INNER.name = 'beige' THEN 200 WHEN colors_INNER.name = 'yellow' THEN 200 END <= CASE WHEN colors.name = 'pink' THEN 0 WHEN colors.name = 'red' THEN 100 WHEN colors.name = 'black' THEN 100 WHEN colors.name = 'beige' THEN 200 WHEN colors.name = 'yellow' THEN 200 END OR colors_INNER.name = colors.name) AND ( cars_INNER.price < cars.price OR CASE WHEN colors_INNER.name = 'pink' THEN 0 WHEN colors_INNER.name = 'red' THEN 100 WHEN colors_INNER.name = 'black' THEN 100 WHEN colors_INNER.name = 'beige' THEN 200 WHEN colors_INNER.name = 'yellow' THEN 200 END < CASE WHEN colors.name = 'pink' THEN 0 WHEN colors.name = 'red' THEN 100 WHEN colors.name = 'black' THEN 100 WHEN colors.name = 'beige' THEN 200 WHEN colors.name = 'yellow' THEN 200 END) )";
             SQLCommon common = new SQLCommon();
-            string actual = common.parsePreferenceSQL(strPrefSQL);
+            string actual = common.ParsePreferenceSQL(strPrefSQL);
 
             // assert
 
@@ -524,13 +523,13 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSKYLINE2DimensionsNoJoin()
+        public void TestSkyline2DimensionsNoJoin()
         {
             string strPrefSQL = "SELECT cars.id, cars.price, cars.title FROM cars SKYLINE OF cars.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL), cars.price LOW";
 
             string expected = "SELECT cars.id, cars.price, cars.title FROM cars WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.price, cars_INNER.title FROM cars cars_INNER WHERE (CASE WHEN cars_INNER.title = 'MERCEDES-BENZ SL 600' THEN 0 ELSE 100 END <= CASE WHEN cars.title = 'MERCEDES-BENZ SL 600' THEN 0 ELSE 100 END OR cars_INNER.title = cars.title) AND cars_INNER.price <= cars.price AND ( CASE WHEN cars_INNER.title = 'MERCEDES-BENZ SL 600' THEN 0 ELSE 100 END < CASE WHEN cars.title = 'MERCEDES-BENZ SL 600' THEN 0 ELSE 100 END OR cars_INNER.price < cars.price) )";
             SQLCommon common = new SQLCommon();
-            string actual = common.parsePreferenceSQL(strPrefSQL);
+            string actual = common.ParsePreferenceSQL(strPrefSQL);
 
             // assert
 
@@ -540,14 +539,14 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSKYLINE2DimensionsWithJoin()
+        public void TestSkyline2DimensionsWithJoin()
         {
             string strPrefSQL = "SELECT cars.id, cars.price, cars.title, colors.name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF colors.name ('red' >> OTHERS EQUAL), cars.price LOW";
 
             string expected = "SELECT cars.id, cars.price, cars.title, colors.name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT cars_INNER.id, cars_INNER.price, cars_INNER.title, colors_INNER.name FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE (CASE WHEN colors_INNER.name = 'red' THEN 0 ELSE 100 END <= CASE WHEN colors.name = 'red' THEN 0 ELSE 100 END OR colors_INNER.name = colors.name) AND cars_INNER.price <= cars.price AND ( CASE WHEN colors_INNER.name = 'red' THEN 0 ELSE 100 END < CASE WHEN colors.name = 'red' THEN 0 ELSE 100 END OR cars_INNER.price < cars.price) )";
 
             SQLCommon common = new SQLCommon();
-            string actual = common.parsePreferenceSQL(strPrefSQL);
+            string actual = common.ParsePreferenceSQL(strPrefSQL);
 
             // assert
 
@@ -556,13 +555,13 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSKYLINE2Dimensions()
+        public void TestSkyline2Dimensions()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW ORDER BY price ASC, mileage ASC";
 
             string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage) ) ORDER BY price ASC, mileage ASC";
             SQLCommon common = new SQLCommon();
-            string actual = common.parsePreferenceSQL(strPrefSQL);
+            string actual = common.ParsePreferenceSQL(strPrefSQL);
 
             // assert
 
@@ -574,13 +573,13 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSKYLINE2DimensionswithALIAS()
+        public void TestSkyline2DimensionswithAlias()
         {
             string strPrefSQL = "SELECT * FROM cars t1 SKYLINE OF t1.price LOW, t1.mileage LOW";
 
             string expected = "SELECT * FROM cars t1 WHERE NOT EXISTS(SELECT * FROM cars t1_INNER WHERE t1_INNER.price <= t1.price AND t1_INNER.mileage <= t1.mileage AND ( t1_INNER.price < t1.price OR t1_INNER.mileage < t1.mileage) )";
             SQLCommon common = new SQLCommon();
-            string actual = common.parsePreferenceSQL(strPrefSQL);
+            string actual = common.ParsePreferenceSQL(strPrefSQL);
 
             // assert
 
@@ -592,13 +591,13 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSKYLINE3Dimensions()
+        public void TestSkyline3Dimensions()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH ORDER BY price ASC, mileage ASC, horsepower DESC";
 
             string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower * -1 <= cars.horsepower * -1 AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower * -1 < cars.horsepower * -1) ) ORDER BY price ASC, mileage ASC, horsepower DESC";
             SQLCommon common = new SQLCommon();
-            string actual = common.parsePreferenceSQL(strPrefSQL);
+            string actual = common.ParsePreferenceSQL(strPrefSQL);
 
             // assert
 
@@ -612,13 +611,13 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSKYLINEAROUND()
+        public void TestSkylinearound()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price AROUND 15000, cars.mileage LOW";
 
             string expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE ABS(cars_INNER.price - 15000) <= ABS(cars.price - 15000) AND cars_INNER.mileage <= cars.mileage AND ( ABS(cars_INNER.price - 15000) < ABS(cars.price - 15000) OR cars_INNER.mileage < cars.mileage) )";
             SQLCommon common = new SQLCommon();
-            string actual = common.parsePreferenceSQL(strPrefSQL);
+            string actual = common.ParsePreferenceSQL(strPrefSQL);
 
             Assert.AreEqual(expected.Trim(), actual.Trim(), true, "SQL not built correctly");
 

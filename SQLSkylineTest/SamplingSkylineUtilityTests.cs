@@ -1,12 +1,12 @@
-﻿namespace prefSQL.SQLSkylineTest
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using prefSQL.SQLSkyline.SamplingSkyline;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using prefSQL.SQLSkyline.SamplingSkyline;
 
+namespace prefSQL.SQLSkylineTest
+{
     [TestClass]
     public class SamplingSkylineUtilityTests
     {

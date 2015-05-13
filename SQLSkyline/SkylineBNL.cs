@@ -3,75 +3,76 @@
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Text;
-
+using Microsoft.SqlServer.Server;
 
 namespace prefSQL.SQLSkyline
 {
-    using Microsoft.SqlServer.Server;
-
     public class SkylineBNL : SkylineStrategy
     {
-        public override bool isNative()
+        public override bool IsNative()
         {
             return false;
         }
 
-        public override bool supportImplicitPreference()
+        public override bool SupportImplicitPreference()
         {
             return true;
         }
 
-        public override bool supportIncomparable()
+        public override bool SupportIncomparable()
         {
             return true;
         }
 
-        public override string getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters)
+        public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, string strFirstSQL, string strOperators, string strOrderByAttributes)
         {
             //usual sort clause
             strFirstSQL += strOrderBy;
             //Quote quotes because it is a parameter of the stored procedure
             strFirstSQL = strFirstSQL.Replace("'", "''");
-
-            if (hasIncomparable == true)
+            string strSQLReturn;
+            if (HasIncomparablePreferences)
             {
-                strSQLReturn = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords;
+                strSQLReturn = "EXEC dbo.SP_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
             }
             else
             {
-                strSQLReturn = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "', " + numberOfRecords;
+                strSQLReturn = "EXEC dbo.SP_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
             }
             return strSQLReturn;
         }
 
-        public override DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
-            TemplateBNL skyline = getSP_Skyline(hasIncomparable);
-            DataTable dt = skyline.getSkylineTable(strQuery, strOperators, numberOfRecords, strConnection, Provider);
-            timeMilliseconds = skyline.timeInMs;
+            TemplateStrategy skyline = getSP_Skyline(HasIncomparablePreferences);
+            DataTable dt = skyline.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
+            TimeMilliseconds = skyline.TimeInMs;
+            NumberOfOperations = skyline.NumberOfOperations;
             return dt;         
         }
 
-        internal override DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        internal override DataTable GetSkylineTableBackdoorSample(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
         {
             TemplateBNL skyline = getSP_Skyline(hasIncomparable);
-            DataTable dt = skyline.getSkylineTable(database, dataRecordTemplate, operators, numberOfRecords, dataTableTemplate.Clone());
-            timeMilliseconds = skyline.timeInMs;
+            DataTable dt = skyline.GetSkylineTableBackdoorSample(database, dataTableTemplate.Clone(), dataRecordTemplate, operators, numberOfRecords, true, additionalParameters);
+            TimeMilliseconds = skyline.TimeInMs;
+            NumberOfOperations = skyline.NumberOfOperations;
             return dt;
-        }     
+        } 
+
 
         private static TemplateBNL getSP_Skyline(bool hasIncomparable)
         {
             if (hasIncomparable)
             {
-                return new SP_SkylineBNL();
+                return new SPSkylineBNL();
             }
 
-            return new SP_SkylineBNLLevel();
+            return new SPSkylineBNLLevel();
         }
     }
 }

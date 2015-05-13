@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using prefSQL.SQLParser.Models;
+﻿using prefSQL.SQLParser.Models;
 
 namespace prefSQL.SQLParser
 {
@@ -17,25 +12,25 @@ namespace prefSQL.SQLParser
         /// <param name="model"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public string getSortClause(PrefSQLModel model, SQLCommon.Ordering type)
+        public string GetSortClause(PrefSQLModel model, SQLCommon.Ordering type)
         {
             string strSQL = "";
             switch (type)
             {
                 case SQLCommon.Ordering.AttributePosition:
-                    strSQL = getSortAttributePositionClause(model);
+                    strSQL = GetSortAttributePositionClause(model);
                     break;
                 case SQLCommon.Ordering.RankingSummarize:
-                    strSQL = getSortRankingSumClause(model);
+                    strSQL = GetSortRankingSumClause(model);
                     break;
                 case SQLCommon.Ordering.RankingBestOf:
-                    strSQL = getSortRankingBestOfClause(model);
+                    strSQL = GetSortRankingBestOfClause(model);
                     break;
                 case SQLCommon.Ordering.AsIs:
                     strSQL = ""; //Return no ORDER BY Clause
                     break;
                 case SQLCommon.Ordering.Random:
-                    strSQL = getSortRandomClause(model);
+                    strSQL = GetSortRandomClause();
                     break;
             }
 
@@ -55,7 +50,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        private string getSortAttributePositionClause(PrefSQLModel model)
+        private string GetSortAttributePositionClause(PrefSQLModel model)
         {
             string strSQL = "";
             for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
@@ -67,7 +62,7 @@ namespace prefSQL.SQLParser
                 }
                 //strSQL += model.Skyline[iChild].OrderBy.ToString();
 
-                strSQL += model.Skyline[iChild].Expression.ToString();
+                strSQL += model.Skyline[iChild].Expression;
             }
             return strSQL;
         }
@@ -79,7 +74,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        private string getSortRankingSumClause(PrefSQLModel model)
+        private string GetSortRankingSumClause(PrefSQLModel model)
         {
             string strSQL = "";
 
@@ -106,10 +101,9 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        private string getSortRankingBestOfClause(PrefSQLModel model)
+        private string GetSortRankingBestOfClause(PrefSQLModel model)
         {
             string strSQL = "CASE ";
-            string strRanking = "";
 
             for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
@@ -129,7 +123,7 @@ namespace prefSQL.SQLParser
                 else
                 {
                     strSQL += "WHEN ";
-                    strRanking = strRankingExpression;
+                    string strRanking = strRankingExpression;
                     for (int iSubChild = iChild + 1; iSubChild < model.Skyline.Count; iSubChild++)
                     {
                         string strSubRanking = "DENSE_RANK() OVER (ORDER BY " + model.Skyline[iSubChild].Expression + ")";
@@ -149,14 +143,13 @@ namespace prefSQL.SQLParser
             return strSQL;
         }
 
-    
+
         /// <summary>
         /// Sorts the results according to their best ranking of all attributes
         /// For example a tuple has the best, 5th and 7th rank in three attributes. This leads to a ranking of 1.
         /// </summary>
-        /// <param name="model"></param>
         /// <returns></returns>
-        private string getSortRandomClause(PrefSQLModel model)
+        private string GetSortRandomClause()
         {
             string strSQL = "NEWID()";            
 

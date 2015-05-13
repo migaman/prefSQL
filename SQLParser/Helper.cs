@@ -1,21 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Text.RegularExpressions;
-using prefSQL.SQLSkyline;
 using prefSQL.SQLParser.Models;
+using prefSQL.SQLSkyline;
+using prefSQL.SQLSkyline.SamplingSkyline;
 
 namespace prefSQL.SQLParser
 {
-    using prefSQL.SQLSkyline.SamplingSkyline;
-
     internal class Helper
     {
         /// <summary>
@@ -27,11 +20,13 @@ namespace prefSQL.SQLParser
         /// </summary>
         public String ConnectionString { get; set; }
 
-        public long timeInMilliseconds { get; set; }
+        public long TimeInMilliseconds { get; set; }
+
+        public long NumberOfOperations { get; set; }
 
         public long Cardinality { get; set; }
 
-        public DataTable executeStatement(String strSQL)
+        public DataTable ExecuteStatement(String strSQL)
         {
             DataTable dt = new DataTable();
 
@@ -41,15 +36,21 @@ namespace prefSQL.SQLParser
 
             // use the factory object to create Data access objects.
             DbConnection connection = factory.CreateConnection(); // will return the connection object, in this case, SqlConnection ...
-            connection.ConnectionString = ConnectionString;
+            if (connection != null)
+            {
+                connection.ConnectionString = ConnectionString;
 
-            connection.Open();
-            DbCommand command = connection.CreateCommand();
-            command.CommandTimeout = 0; //infinite timeout
-            command.CommandText = strSQL;
-            DbDataAdapter db = factory.CreateDataAdapter();
-            db.SelectCommand = command;
-            db.Fill(dt);
+                connection.Open();
+                DbCommand command = connection.CreateCommand();
+                command.CommandTimeout = 0; //infinite timeout
+                command.CommandText = strSQL;
+                DbDataAdapter db = factory.CreateDataAdapter();
+                if (db != null)
+                {
+                    db.SelectCommand = command;
+                    db.Fill(dt);
+                }
+            }
 
             return dt;
         }
@@ -57,12 +58,14 @@ namespace prefSQL.SQLParser
 
         /// <summary>
         /// Returns a datatable with the tuples from the SQL statement
-        /// The sql will be resolved into pieces, in order to call the Skyline algorithms without MSSQL CLR
+        /// The sql will be resolved into pieces, in order to call the Skyline algorithms without MSSQL CLR 
         /// </summary>
         /// <param name="strPrefSQL"></param>
-        /// <param name="algorithm"></param>
+        /// <param name="strategy"></param>
+        /// <param name="model"></param>
         /// <returns></returns>
-        public DataTable getResults(String strPrefSQL, SkylineStrategy strategy, PrefSQLModel model)
+ 
+        public DataTable GetResults(String strPrefSQL, SkylineStrategy strategy, PrefSQLModel model)
         {     
             DataTable dt = new DataTable();
             //Default Parameter
@@ -92,7 +95,7 @@ namespace prefSQL.SQLParser
 
             try
             {
-                if (strategy.isNative())
+                if (strategy.IsNative())
                 {
                     if (!model.HasSkylineSample)
                     {
@@ -104,14 +107,20 @@ namespace prefSQL.SQLParser
 
                         // use the factory object to create Data access objects.
                         DbConnection connection = factory.CreateConnection(); // will return the connection object, in this case, SqlConnection ...
-                        connection.ConnectionString = ConnectionString;
+                        if (connection != null)
+                        {
+                            connection.ConnectionString = ConnectionString;
 
-                        connection.Open();
-                        DbCommand command = connection.CreateCommand();
-                        command.CommandText = strPrefSQL;
-                        DbDataAdapter db = factory.CreateDataAdapter();
-                        db.SelectCommand = command;
-                        db.Fill(dt);
+                            connection.Open();
+                            DbCommand command = connection.CreateCommand();
+                            command.CommandText = strPrefSQL;
+                            DbDataAdapter db = factory.CreateDataAdapter();
+                            if (db != null)
+                            {
+                                db.SelectCommand = command;
+                                db.Fill(dt);
+                            }
+                        }
                     }
                     else
                     {
@@ -120,30 +129,37 @@ namespace prefSQL.SQLParser
                 }
                 else
                 {
-                    if (strategy.supportImplicitPreference() == false && model.ContainsOpenPreference == true)
+                    if (strategy.SupportImplicitPreference() == false && model.ContainsOpenPreference)
                     {
                         throw new Exception(strategy.GetType() + " does not support implicit preferences!");
                     }
-                    if (strategy.supportIncomparable() == false && model.WithIncomparable == true)
+                    if (strategy.SupportIncomparable() == false && model.WithIncomparable)
                     {
                         throw new Exception(strategy.GetType() + " does not support incomparale tuples");
                     }
 
                     //Set the database provider
                     strategy.Provider = DriverString;
-                    strategy.cardinality = Cardinality;
+                    strategy.ConnectionString = ConnectionString;
+                    strategy.Cardinality = Cardinality;
+                    strategy.RecordAmountLimit = numberOfRecords;
+                    strategy.HasIncomparablePreferences = model.WithIncomparable;
+                    strategy.AdditionParameters = parameter;
+                    strategy.SortType = (int)model.Ordering; 
                     if (!model.HasSkylineSample)
                     {
-                        dt = strategy.getSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords, model.WithIncomparable, parameter);
-                        timeInMilliseconds = strategy.timeMilliseconds;
+                        dt = strategy.GetSkylineTable(strQuery, strOperators);
+                        TimeInMilliseconds = strategy.TimeMilliseconds;
+                        NumberOfOperations = strategy.NumberOfOperations;
                     }
                     else
                     {
-                        var skylineSample = new SamplingSkyline();
+                        SamplingSkyline skylineSample = new SamplingSkyline();
                         skylineSample.DbProvider = DriverString;
                         dt = skylineSample.GetSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords,
                             model.WithIncomparable, parameter, strategy, model.SkylineSampleCount, model.SkylineSampleDimension, 0);
-                        timeInMilliseconds = skylineSample.timeMilliseconds;                        
+                        TimeInMilliseconds = skylineSample.TimeMilliseconds;
+                        NumberOfOperations = skylineSample.NumberOfOperations;
                     }
                 }
 
@@ -160,7 +176,7 @@ namespace prefSQL.SQLParser
             out int numberOfRecords)
         {
             //Store Parameters in Array (Take care to single quotes inside parameters)
-            int iPosStart = strPrefSQL.IndexOf("'");
+            int iPosStart = strPrefSQL.IndexOf("'", StringComparison.Ordinal);
             String strtmp = strPrefSQL.Substring(iPosStart);
             parameter = Regex.Split(strtmp, ",(?=(?:[^']*'[^']*')*[^']*$)");
 

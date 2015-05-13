@@ -1,13 +1,7 @@
-using System;
-using System.Data;
-using System.Data.SqlTypes;
-using Microsoft.SqlServer.Server;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Data.Common;
-
-
+using System.Data;
+using System.Linq;
 
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace prefSQL.SQLSkyline
@@ -28,120 +22,87 @@ namespace prefSQL.SQLSkyline
     /// </remarks>
     public abstract class TemplateBNL : TemplateStrategy
     {
-        protected override DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords,
-            bool isIndependent, string strConnection, string strProvider)
+
+        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters)
         {
-            string[] operators = strOperators.ToString().Split(';');
-            var dt = Helper.GetSkylineDataTable(strQuery, isIndependent, strConnection, strProvider);
-            var listObjects = Helper.GetObjectArrayFromDataTable(dt);
-            DataTable dtResult = new DataTable();
-            SqlDataRecord record = Helper.buildDataRecord(dt, operators, dtResult);
+            List<long[]> window = new List<long[]>();
+            ArrayList windowIncomparable = new ArrayList();
+            int dimensions = 0; //operatorsArray.GetUpperBound(0)+1;
 
-            return getSkylineTable(listObjects, dtResult, record, strOperators, numberOfRecords, isIndependent);
-        }
-
-        public DataTable getSkylineTable(List<object[]> database, SqlDataRecord dataRecordTemplate, string operators,
-            int numberOfRecords, DataTable dataTableTemplate)
-        {
-            return getSkylineTable(database, dataTableTemplate, dataRecordTemplate, operators, numberOfRecords, true);
-        }
-
-        protected override DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent)
-        {
-            DataTable dataTableReturn = dataTableTemplate.Clone();
-
-            Stopwatch sw = new Stopwatch();
-            ArrayList resultCollection = new ArrayList();
-            ArrayList resultstringCollection = new ArrayList();
-            string[] operatorsArray = operators.ToString().Split(';');
-            int[] resultToTupleMapping = Helper.ResultToTupleMapping(operatorsArray);
-        
-            try
+            for (int i = 0; i < operatorsArray.Length; i++)
             {
-                //Time the algorithm needs (afer query to the database)
-                sw.Start();
-
-                //For each tuple
-                foreach (object[] dbValuesObject in database)
+                if (operatorsArray[i] != "IGNORE")
                 {
+                    dimensions++;
+                }
+            }
 
-                    //Check if window list is empty
-                    if (resultCollection.Count == 0)
+            DataTable dataTableReturn = dataTableTemplate.Clone();
+            
+
+            //For each tuple
+            foreach (object[] dbValuesObject in database)
+            {
+                long[] newTuple = new long[dimensions];
+                int next = 0;
+                for (int j = 0; j < operatorsArray.Length; j++)
+                {
+                    if (operatorsArray[j] != "IGNORE")
                     {
-                        // Build our SqlDataRecord and start the results 
-                        addtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
-                    }
-                    else
-                    {
-                        bool isDominated = false;
-
-                        //check if record is dominated (compare against the records in the window)
-                        for (int i = resultCollection.Count - 1; i >= 0; i--)
-                        {
-                            if (tupleDomination(dbValuesObject, resultCollection, resultstringCollection, operatorsArray, dataTableReturn, i, resultToTupleMapping) == true)
-                            {
-                                isDominated = true;
-                                break;
-                            }
-                        }
-                        if (isDominated == false)
-                        {
-                            addtoWindow(dbValuesObject, operatorsArray, resultCollection, resultstringCollection, dataRecordTemplate, true, dataTableReturn);
-                        }
-
+                        newTuple[next] = (long) dbValuesObject[j];
+                        next++;
                     }
                 }
 
-                //Remove certain amount of rows if query contains TOP Keyword
-                Helper.getAmountOfTuples(dataTableReturn, numberOfRecords);
+                /*long[] newTuple = new long[dimensions];
+                for (int i = 0; i < dimensions; i++)
+                {
+                    newTuple[i] = (long)dbValuesObject[i];
+                }*/
+            
+
+                bool isDominated = false;
+
+                //check if record is dominated (compare against the records in the window)
+                for (int i = window.Count - 1; i >= 0; i--)
+                {
+                    //long[] windowTuple = window[i];
+                    //Level BNL performance drops 2 times with using the next line
+                    //string[] incomparableTuple = (string[])windowIncomparable[i];
+
+                    //Only use this for tests (Drops performance 10%)
+                    //NumberOfOperations++;
+
+                    //TODO: Using the Helper directly is sligthly faster, but than every bnl algorithm needs it own logic
+                    //if(Helper.IsTupleDominated(window, newTuple, dimensions))
+                    //Helper.IsTupleDominated()
+                    if (IsTupleDominated(window, newTuple, dimensions, operatorsArray, windowIncomparable, i, dataTableReturn, dbValuesObject))
+                    {
+                        isDominated = true;
+                        break;
+                    }
+                }
+                if (isDominated == false)
+                {
+                    AddToWindow(dbValuesObject, window, windowIncomparable, operatorsArray, dimensions, dataTableReturn);
+                }
 
                 
-                //Sort ByRank
-                //dtResult = Helper.sortByRank(dtResult, resultCollection);
-                //dtResult = Helper.sortBySum(dtResult, resultCollection);
-
-                if (isIndependent == false)
-                {
-                    //Send results to client
-                    SqlContext.Pipe.SendResultsStart(dataRecordTemplate);
-
-                    foreach (DataRow recSkyline in dataTableReturn.Rows)
-                    {
-                        for (int i = 0; i < recSkyline.Table.Columns.Count; i++)
-                        {
-                            dataRecordTemplate.SetValue(i, recSkyline[i]);
-                        }
-                        SqlContext.Pipe.SendResultsRow(dataRecordTemplate);
-                    }
-                    SqlContext.Pipe.SendResultsEnd();
-                }
             }
-            catch (Exception ex)
-            {
-                //Pack Errormessage in a SQL and return the result
-                string strError = "Fehler in SP_SkylineBNL: ";
-                strError += ex.Message;
+            //Special orderings need the skyline values. Store it in a property
+            SkylineValues = window;
 
-                if (isIndependent == true)
-                {
-                    System.Diagnostics.Debug.WriteLine(strError);
-                }
-                else
-                {
-                    SqlContext.Pipe.Send(strError);
-                }
-            }
-         
-            sw.Stop();
-            timeInMs = sw.ElapsedMilliseconds;
             return dataTableReturn;
         }
 
 
 
-        protected abstract bool tupleDomination(object[] dataReader, ArrayList resultCollection, ArrayList resultstringCollection, string[] operators, DataTable dtResult, int i, int[] resultToTupleMapping);
+        //Attention: Profiling
+        //It seems to makes sense to remove the parameter listIndex and pass the string-array incomparableTuples[listIndex]
+        //Unfortunately this has negative impact on the performance for algorithms that don't work with incomparables
+        protected abstract bool IsTupleDominated(List<long[]> window, long[] newTuple, int dimensions, string[] operatorsArray, ArrayList incomparableTuples, int listIndex, DataTable dtResult, object[] newTupleAllValues);
 
-        protected abstract void addtoWindow(object[] dataReader, string[] operators, ArrayList resultCollection, ArrayList resultstringCollection, SqlDataRecord record, bool isFrameworkMode, DataTable dtResult);
+        protected abstract void AddToWindow(object[] newTuple, List<long[]> window, ArrayList resultstringCollection, string[] operatorsArray, int dimensions, DataTable dtResult);
 
     }
 }

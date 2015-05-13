@@ -47,7 +47,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>Utility.SamplingTest</StartupObject>
+    <StartupObject>Utility.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -63,6 +63,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BNLTest.cs" />
+    <Compile Include="BNLTest2.cs" />
+    <Compile Include="BNLTest3.cs" />
     <Compile Include="DominanceGraph.cs" />
     <Compile Include="FrmSQLParser.cs">
       <SubType>Form</SubType>
@@ -75,6 +78,7 @@
     <Compile Include="Model\CardinalityModel.cs" />
     <Compile Include="Model\CorrelationModel.cs" />
     <Compile Include="Performance.cs" />
+    <Compile Include="PerformanceTestHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SamplingTest.cs" />

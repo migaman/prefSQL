@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using System.Windows.Forms;
 using prefSQL.SQLParser;
-using System.Diagnostics;
 using prefSQL.SQLSkyline;
 
 namespace Utility
@@ -22,12 +16,12 @@ namespace Utility
 
         private void FrmSQLParser_Load(object sender, EventArgs e)
         {
-            this.optSQL.Checked = true;
+            optSQL.Checked = true;
             string strSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, t1.enginesize FROM cars t1 " +
                 "LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, t1.mileage LOW";
-            this.txtPrefSQL.Text = strSQL;
+            txtPrefSQL.Text = strSQL;
 
-
+ 
         }
 
 
@@ -36,27 +30,27 @@ namespace Utility
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
-            this.btnExecute.Enabled = false;
+            btnExecute.Enabled = false;
             
             SQLCommon parser = new SQLCommon();
-            if(this.optSQL.Checked == true)
+            if(optSQL.Checked)
             {
                 parser.SkylineType = new SkylineSQL();
             }
-            else if (this.optBNL.Checked == true)
+            else if (optBNL.Checked)
             {
                 parser.SkylineType = new SkylineBNLSort();
             }
-            else if (this.optHexagon.Checked == true)
+            else if (optHexagon.Checked)
             {
                 parser.SkylineType = new SkylineHexagon();
             }
-            else if (this.optDQ.Checked == true)
+            else if (optDQ.Checked)
             {
                 parser.SkylineType = new SkylineDQ();
             }
 
-            if (this.chkShowSkyline.Checked == true)
+            if (chkShowSkyline.Checked)
             {
                 parser.ShowSkylineAttributes = true;
             }
@@ -65,25 +59,25 @@ namespace Utility
                 parser.ShowSkylineAttributes = false;
             }
 
-            DataTable dt = parser.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, this.txtPrefSQL.Text);           
+            DataTable dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, txtPrefSQL.Text);           
 
-            BindingSource SBind = new BindingSource();
-            SBind.DataSource = dt;
+            BindingSource sBind = new BindingSource();
+            sBind.DataSource = dt;
             
             gridSkyline.AutoGenerateColumns = true;
             gridSkyline.DataSource = dt;
 
-            gridSkyline.DataSource = SBind;
+            gridSkyline.DataSource = sBind;
             gridSkyline.Refresh();
 
             sw.Stop();
             
-            this.txtTime.Text = sw.ElapsedMilliseconds.ToString();
-            this.txtTimeAlgo.Text = parser.TimeInMilliseconds.ToString();
-            this.txtRecords.Text = dt.Rows.Count.ToString();
+            txtTime.Text = sw.ElapsedMilliseconds.ToString();
+            txtTimeAlgo.Text = parser.TimeInMilliseconds.ToString();
+            txtRecords.Text = dt.Rows.Count.ToString();
 
 
-            this.btnExecute.Enabled = true;
+            btnExecute.Enabled = true;
         }
 
     }

@@ -1,10 +1,10 @@
-﻿namespace prefSQL.SQLParserTest
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 
+namespace prefSQL.SQLParserTest
+{
     internal sealed class SkylineSamplingHelper
     {
         private static readonly Random MyRandom = new Random();

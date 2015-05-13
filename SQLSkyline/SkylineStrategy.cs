@@ -3,21 +3,67 @@
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Text;
+using Microsoft.SqlServer.Server;
 
 namespace prefSQL.SQLSkyline
 {
-    using Microsoft.SqlServer.Server;
-
-
     public abstract class SkylineStrategy
     {
         public string Provider { get; set; }
-        public long timeMilliseconds;
-        public abstract DataTable getSkylineTable(String strConnection, String strQuery, String strOperators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters);
+
+        public string ConnectionString { get; set; } 
+
+        
+
+        /// <summary>
+        /// Product of Cardinality of the preferenes
+        /// </summary>
+        public long Cardinality { get; set; }
+
+        /// <summary>
+        /// To define a special sort order (0=no, 1=SUM_RANK(), 2 = BEST_RANK()
+        /// </summary>
+        public int SortType { get; set; }
+
+        /// <summary>
+        /// Defines if there is an incomparable preference
+        /// </summary>
+        public bool HasIncomparablePreferences { get; set; }
+
+        /// <summary>
+        /// Add here not common parameters like for hexagon
+        /// </summary>
+        public string[] AdditionParameters { get; set; }
+
+        /// <summary>
+        /// Limit the tupels that will be returned
+        /// </summary>
+        public int RecordAmountLimit { get; set; }
+
+        /// <summary>
+        /// Only used for performance measurement
+        /// </summary>
+        public long NumberOfOperations { get; set; }
+
+        /// <summary>
+        /// To measure the time that the algorithm needs
+        /// </summary>
+        public long TimeMilliseconds { get; set; }
+
+        public int MultipleSkylineUpToLevel { get; set; }
+
+        /// <summary>
+        /// Direct call (without MS SQL CLR) to get a skyline.
+        /// Additional things can be set with the properties
+        /// </summary>
+        /// <param name="querySQL"></param>
+        /// <param name="preferenceOperators"></param>
+        /// <returns></returns>
+        public abstract DataTable GetSkylineTable(String querySQL, String preferenceOperators);
 
         /// <summary>
         /// TODO: comment
@@ -30,18 +76,18 @@ namespace prefSQL.SQLSkyline
         /// <param name="hasIncomparable"></param>
         /// <param name="additionalParameters"></param>
         /// <returns></returns>
-        internal abstract DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters);
+        internal abstract DataTable GetSkylineTableBackdoorSample(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters);
 
-        public abstract String getStoredProcedureCommand(string strSQLReturn, string strWHERE, string strOrderBy, int numberOfRecords, string strFirstSQL, string strOperators, int SkylineUpToLevel, bool hasIncomparable, string strOrderByAttributes, string[] additionalParameters);
+        public abstract String GetStoredProcedureCommand(string strWhere, string strOrderBy, string strFirstSQL, string strOperators, string strOrderByAttributes);
 
-        public abstract bool isNative();
+        public abstract bool IsNative();
 
         //If the algorithm can hande implicit preferences like 'red' >> 'blau' without an OTHER statement
-        public abstract bool supportImplicitPreference();
+        public abstract bool SupportImplicitPreference();
         
         //If the algorithm supports incomparable values
-        public abstract bool supportIncomparable();
+        public abstract bool SupportIncomparable();
 
-        public long cardinality;
+        
     }
 }

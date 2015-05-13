@@ -1,12 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.SqlServer.Server;
+
 namespace prefSQL.SQLSkyline.SamplingSkyline
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Diagnostics;
-    using System.Linq;
-    using Microsoft.SqlServer.Server;
-
     /// <summary>
     ///     Implementation of sampling skyline algorithm according to the algorithm pseudocode in Balke, W.-T., Zheng, J. X., &
     ///     Güntzer, U. (2005).
@@ -36,7 +36,9 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// <summary>
         ///     TODO: comment
         /// </summary>
-        public long timeMilliseconds;
+        public long TimeMilliseconds;
+
+        public long NumberOfOperations { get; set; }
 
         /// <summary>
         ///     TODO: comment
@@ -77,11 +79,11 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
 
             ConfigureUtility(subspacesCount, subspaceDimension, skylineAlgorithmParameters.OperatorsCollection.Count);
 
-            DataTable fullDataTable = Helper.GetSkylineDataTable(query, true, dbConnection, DbProvider);
+            DataTable fullDataTable = Helper.GetDataTableFromSQL(query, dbConnection, DbProvider);
             Dictionary<int, object[]> database = Helper.GetDictionaryFromDataTable(fullDataTable,
                 Utility.AllPreferencesCount + uniqueIdColumnIndex);
             var dataTableTemplate = new DataTable();
-            SqlDataRecord dataRecordTemplate = Helper.buildDataRecord(fullDataTable,
+            SqlDataRecord dataRecordTemplate = Helper.BuildDataRecord(fullDataTable,
                 skylineAlgorithmParameters.OperatorsCollection.ToArray(), dataTableTemplate);
 
             return GetSkyline(database, dataTableTemplate, dataRecordTemplate, skylineStrategy,
@@ -102,10 +104,6 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// <param name="dataTableTemplate"></param>
         /// <param name="dataRecordTemplate"></param>
         /// <param name="skylineStrategy"></param>
-        /// <param name="operators"></param>
-        /// <param name="numberOfRecords"></param>
-        /// <param name="hasIncomparable"></param>
-        /// <param name="additionalParameters"></param>
         /// <param name="skylineAlgorithmParameters"></param>
         /// <returns></returns>
         internal DataTable GetSkyline(Dictionary<int, object[]> database, DataTable dataTableTemplate,
@@ -115,7 +113,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             DataTable skylineSampleReturn = dataTableTemplate.Clone();
             var skylineSampleFinalDatabase = new Dictionary<int, object[]>();
 
-            timeMilliseconds = 0;
+            TimeMilliseconds = 0;
             var sw = new Stopwatch();
             sw.Start();
 
@@ -127,10 +125,10 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                     skylineAlgorithmParameters);
 
                 sw.Stop();
-                timeMilliseconds += sw.ElapsedMilliseconds;
+                TimeMilliseconds += sw.ElapsedMilliseconds;
                 DataTable subspaceDataTable = GetSkylineTable(database, dataTableTemplate, dataRecordTemplate,
                     skylineStrategy, skylineAlgorithmSubspaceParameters);
-                timeMilliseconds += skylineStrategy.timeMilliseconds;
+                TimeMilliseconds += skylineStrategy.TimeMilliseconds;
                 sw.Restart();
 
                 Dictionary<int, object[]> subspaceDatabase = GetDatabaseFromDataTable(database, subspaceDataTable);
@@ -147,10 +145,10 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                         skylineAlgorithmParameters);
 
                     sw.Stop();
-                    timeMilliseconds += sw.ElapsedMilliseconds;
+                    TimeMilliseconds += sw.ElapsedMilliseconds;
                     DataTable subspaceComplementDataTable = GetSkylineTable(subspaceDatabase, dataTableTemplate,
                         dataRecordTemplate, skylineStrategy, skylineAlgorithmSubspaceParameters);
-                    timeMilliseconds += skylineStrategy.timeMilliseconds;
+                    TimeMilliseconds += skylineStrategy.TimeMilliseconds;
                     sw.Restart();
 
                     Dictionary<int, object[]> subspaceComplementDatabase = GetDatabaseFromDataTable(database,
@@ -174,7 +172,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             }
 
             sw.Stop();
-            timeMilliseconds += sw.ElapsedMilliseconds;
+            TimeMilliseconds += sw.ElapsedMilliseconds;
 
             return skylineSampleReturn;
         }
@@ -184,7 +182,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             SkylineAlgorithmParameters skylineAlgorithmParameters)
         {
             DataTable skylineDataTable =
-                skylineStrategy.getSkylineTable(subspaceDatabase.Values.ToList(),
+                skylineStrategy.GetSkylineTableBackdoorSample(subspaceDatabase.Values.ToList(),
                     dataTableTemplate, dataRecordTemplate, skylineAlgorithmParameters.Operators,
                     skylineAlgorithmParameters.NumberOfRecords,
                     skylineAlgorithmParameters.HasIncomparable,

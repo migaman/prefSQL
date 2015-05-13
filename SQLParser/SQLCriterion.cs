@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using prefSQL.SQLParser.Models;
 using System.Text.RegularExpressions;
+using prefSQL.SQLParser.Models;
 
 namespace prefSQL.SQLParser
 {
@@ -17,20 +14,17 @@ namespace prefSQL.SQLParser
         /// <param name="model"></param>
         /// <param name="strPreSQL"></param>
         /// <returns></returns>
-        public string getCriterionClause(PrefSQLModel model, string strPreSQL)
+        public string GetCriterionClause(PrefSQLModel model, string strPreSQL)
         {
-            string strSQL = "";
-            bool isWHEREPresent = false;
-
             //Build Skyline only if more than one attribute
-            strSQL = getCriterionSkylineClause(model, strPreSQL);
+            string strSQL = GetCriterionSkylineClause(model, strPreSQL);
 
             //Check if a WHERE-Clause was built
             if (strSQL.Length > 0)
             {
                 //Only add WHERE if there is not already a where clause
-                isWHEREPresent = strPreSQL.IndexOf("WHERE") > 0;
-                if (isWHEREPresent == true)
+                bool isWherePresent = strPreSQL.IndexOf("WHERE", StringComparison.Ordinal) > 0;
+                if (isWherePresent)
                 {
                     strSQL = " AND " + strSQL;
                 }
@@ -38,7 +32,6 @@ namespace prefSQL.SQLParser
                 {
                     strSQL = " WHERE " + strSQL;
                 }
-
             }
 
             return strSQL;
@@ -52,16 +45,15 @@ namespace prefSQL.SQLParser
         /// <param name="model"></param>
         /// <param name="strPreSQL"></param>
         /// <returns></returns>
-        private string getCriterionSkylineClause(PrefSQLModel model, string strPreSQL)
+        private string GetCriterionSkylineClause(PrefSQLModel model, string strPreSQL)
         {
-            string strWhereEqual = "";
+            string strWhereEqual;
             string strWhereBetter = " AND ( ";
             string strSQL = "";
-            bool isWHEREPresent = false;
 
             //Only add WHERE if there is not already a where clause
-            isWHEREPresent = strPreSQL.IndexOf("WHERE") > 0;
-            if (isWHEREPresent == true)
+            bool isWherePresent = strPreSQL.IndexOf("WHERE", StringComparison.Ordinal) > 0;
+            if (isWherePresent)
             {
                 strWhereEqual = " AND ";
             }
@@ -74,10 +66,8 @@ namespace prefSQL.SQLParser
             //Build the where clause with each column in the skyline
             for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
-                bool needsTextORClause = false;
-
                 //Competition
-                needsTextORClause = model.Skyline[iChild].IsCategorical;
+                bool needsTextOrClause = model.Skyline[iChild].IsCategorical;
 
                 //First child doesn't need an OR/AND
                 if (iChild > 0)
@@ -87,7 +77,7 @@ namespace prefSQL.SQLParser
                 }
 
                 //Falls Text-Spalte ein zusätzliches OR einbauen für den Vergleich Farbe = Farbe
-                if (needsTextORClause == true)
+                if (needsTextOrClause)
                 {
                     strWhereEqual += "(";
                 }
@@ -101,7 +91,7 @@ namespace prefSQL.SQLParser
                 strWhereBetter = strWhereBetter.Replace("{column}", model.Skyline[iChild].Expression);
 
                 //Falls Text-Spalte ein zusätzliches OR einbauen für den Vergleich Farbe = Farbe
-                if (needsTextORClause == true)
+                if (needsTextOrClause)
                 {
                     strWhereEqual += " OR " + model.Skyline[iChild].InnerFullColumnName + " = " + model.Skyline[iChild].FullColumnName;
                     strWhereEqual += ")";
@@ -139,10 +129,10 @@ namespace prefSQL.SQLParser
             if (model.NumberOfRecords != 0)
             {
                 //Remove Top Keyword in inner clause
-                int iPosTop = strPreSQL.IndexOf("TOP");
-                int iPosTopEnd = strPreSQL.Substring(iPosTop + 3).TrimStart().IndexOf(" ");
-                string strSQLAfterTOP = strPreSQL.Substring(iPosTop + 3).TrimStart();
-                strPreSQL = strPreSQL.Substring(0, iPosTop) + strSQLAfterTOP.Substring(iPosTopEnd + 1);
+                int iPosTop = strPreSQL.IndexOf("TOP", StringComparison.Ordinal);
+                int iPosTopEnd = strPreSQL.Substring(iPosTop + 3).TrimStart().IndexOf(" ", StringComparison.Ordinal);
+                string strSQLAfterTop = strPreSQL.Substring(iPosTop + 3).TrimStart();
+                strPreSQL = strPreSQL.Substring(0, iPosTop) + strSQLAfterTop.Substring(iPosTopEnd + 1);
             }
 
 

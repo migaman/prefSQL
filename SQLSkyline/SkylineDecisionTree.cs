@@ -1,4 +1,4 @@
-//------------------------------------------------------------------------------
+﻿//------------------------------------------------------------------------------
 // <copyright file="CSSqlClassFile.cs" company="Microsoft">
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
 // </copyright>
@@ -11,9 +11,8 @@ using Microsoft.SqlServer.Server;
 
 namespace prefSQL.SQLSkyline
 {
-    public class SkylineBNLSort : SkylineStrategy
+    public class SkylineDecisionTree : SkylineStrategy
     {
-        
 
         public override bool IsNative()
         {
@@ -31,6 +30,7 @@ namespace prefSQL.SQLSkyline
         }
 
 
+
         public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, string strFirstSQL, string strOperators, string strOrderByAttributes)
         {
             strFirstSQL += strOrderByAttributes;
@@ -46,16 +46,34 @@ namespace prefSQL.SQLSkyline
                 strSQLReturn = "EXEC dbo.SP_SkylineBNLSortLevel '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
             }
             return strSQLReturn;
-            
+
         }
 
         public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
-            TemplateBNL skyline = getSP_Skyline(HasIncomparablePreferences);
-            DataTable dt = skyline.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
-            TimeMilliseconds = skyline.TimeInMs;
-            NumberOfOperations = skyline.NumberOfOperations;
-            return dt;         
+            //Calculate cardinality
+            long thresholdCardinality = 1000;
+
+            TemplateStrategy strategy;
+            if (Cardinality <= thresholdCardinality)
+            {
+                strategy = new SPSkylineDQ();    
+            }
+            else 
+            {
+                if (HasIncomparablePreferences)
+                {
+                    strategy = new SPSkylineBNLSort();
+                } 
+                else
+                {
+                    strategy = new SPSkylineBNLSortLevel();
+                }
+            }
+
+            DataTable dt = strategy.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
+            TimeMilliseconds = strategy.TimeInMs;
+            return dt;
         }
 
         internal override DataTable GetSkylineTableBackdoorSample(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
@@ -63,14 +81,6 @@ namespace prefSQL.SQLSkyline
             throw new NotImplementedException();
         }
 
-        private TemplateBNL getSP_Skyline(bool hasIncomparable)
-        {
-            if (hasIncomparable)
-            {
-                return new SPSkylineBNLSort();
-            }
 
-            return new SPSkylineBNLSortLevel();
-        }
     }
 }

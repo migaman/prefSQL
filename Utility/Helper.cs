@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Configuration;
 
 namespace Utility
 {
@@ -18,25 +14,31 @@ namespace Utility
        
 
 
-        public static DataTable executeStatement(String strSQL)
+        public static DataTable ExecuteStatement(String strSQL)
         {
             DataTable dt = new DataTable();
 
             //Generic database provider
             //Create the provider factory from the namespace provider, you could create any other provider factory.. for Oracle, MySql, etc...
-            DbProviderFactory factory = DbProviderFactories.GetFactory(Helper.ProviderName);
+            DbProviderFactory factory = DbProviderFactories.GetFactory(ProviderName);
 
             // use the factory object to create Data access objects.
             DbConnection connection = factory.CreateConnection(); // will return the connection object, in this case, SqlConnection ...
-            connection.ConnectionString = Helper.ConnectionString;
+            if (connection != null)
+            {
+                connection.ConnectionString = ConnectionString;
 
-            connection.Open();
-            DbCommand command = connection.CreateCommand();
-            command.CommandTimeout = 0; //infinite timeout
-            command.CommandText = strSQL;
-            DbDataAdapter db = factory.CreateDataAdapter();
-            db.SelectCommand = command;
-            db.Fill(dt);
+                connection.Open();
+                DbCommand command = connection.CreateCommand();
+                command.CommandTimeout = 0; //infinite timeout
+                command.CommandText = strSQL;
+                DbDataAdapter db = factory.CreateDataAdapter();
+                if (db != null)
+                {
+                    db.SelectCommand = command;
+                    db.Fill(dt);
+                }
+            }
 
             return dt;
         }

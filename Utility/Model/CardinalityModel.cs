@@ -1,44 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Utility.Model
+﻿namespace Utility.Model
 {
     class CardinalityModel
     {
-        private string col;
-        private int cardinality;
-
         public CardinalityModel()
         {
 
         }
 
-        public CardinalityModel(string _col, int _cardinality)
+        public CardinalityModel(string col, int cardinality)
         {
-            col = _col;
-            cardinality = _cardinality;
+            Col = col;
+            Cardinality = cardinality;
         }
 
         public int Compare(object x, object y)
         {
-            if (x is CardinalityModel && y is CardinalityModel)
+            CardinalityModel cardinalityModelX = x as CardinalityModel;
+            CardinalityModel cardinalityModelY = y as CardinalityModel;
+            if (cardinalityModelX != null && cardinalityModelY != null)
             {
-                return Compare((CardinalityModel)x, (CardinalityModel)y);
+                return Compare(cardinalityModelX, cardinalityModelY);
             }
             else
             {
                 return 0;
             }
+
+
         }
 
         public int Compare(CardinalityModel x, CardinalityModel y)
         {
-            if (x.cardinality > y.cardinality)
+            if (x.Cardinality > y.Cardinality)
                 return -1;
-            if (x.cardinality == y.cardinality)
+            if (x.Cardinality == y.Cardinality)
                 return 0;
             return 1;
         }
@@ -47,18 +42,9 @@ namespace Utility.Model
 
 
 
-        public string Col
-        {
-            get { return col; }
-            set { col = value; }
-        }
-        
+        public string Col { get; set; }
 
-        public int Cardinality
-        {
-            get { return cardinality; }
-            set { cardinality = value; }
-        }
 
+        public int Cardinality { get; set; }
     }
 }

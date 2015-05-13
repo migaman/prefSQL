@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using prefSQL.SQLParser;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using prefSQL.SQLParser;
 using prefSQL.SQLSkyline;
-using System.Data.Common;
 
 namespace Utility
 {
     class DominanceGraph
     {
-        public void run()
+        public void Run()
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -26,7 +23,6 @@ namespace Utility
             common.SkylineType = new SkylineSQL();
             common.ShowSkylineAttributes = true;
             SqlConnection cnnSQL = new SqlConnection(Helper.ConnectionString);
-            string sqlNative = "";
 
             try
             {
@@ -47,7 +43,7 @@ namespace Utility
                         strIDs = "WHERE t1.id NOT IN (" + strIDs.TrimEnd(',') + ")";
                     }
                     //Parse PreferenceSQL into SQL
-                    sqlNative = common.parsePreferenceSQL(strSQL + strIDs + strPreference);
+                    string sqlNative = common.ParsePreferenceSQL(strSQL + strIDs + strPreference);
 
                     //Execute SQL
                     DbCommand command = cnnSQL.CreateCommand();
@@ -81,7 +77,7 @@ namespace Utility
 
 
             sw.Stop();
-            System.Diagnostics.Debug.WriteLine("Elapsed={0}", sw.ElapsedMilliseconds);
+            Debug.WriteLine("Elapsed={0}", sw.ElapsedMilliseconds);
 
 
         }

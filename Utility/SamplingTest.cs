@@ -1,4 +1,12 @@
-﻿namespace Utility
+﻿using System;
+using System.Collections.Generic;
+using prefSQL.SQLParser;
+using prefSQL.SQLParser.Models;
+using prefSQL.SQLParserTest;
+using prefSQL.SQLSkyline;
+using prefSQL.SQLSkyline.SamplingSkyline;
+
+namespace Utility
 {
     using System;
     using System.Collections.Generic;
@@ -125,7 +133,7 @@
                 ShowSkylineAttributes = true
             };
 
-            var entireSkylineDataTable = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+            var entireSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
                 EntireSkylineSampleSql);
             //Console.WriteLine("time entire: " + common.TimeInMilliseconds);
             //Console.WriteLine("count entire: " + entireSkylineDataTable.Rows.Count);
@@ -136,7 +144,7 @@
 
             for (var i = 0; i < 10; i++)
             {
-                var sampleSkylineDataTable = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                var sampleSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
                     SkylineSampleSql);
                 //Console.WriteLine("time sample: " + common.TimeInMilliseconds);
                 //Console.WriteLine("count sample: " + sampleSkylineDataTable.Rows.Count);
@@ -219,7 +227,7 @@
                     prefSqlModel.SkylineSampleCount, prefSqlModel.SkylineSampleDimension, 0);
 
                 objectsCount += dataTable.Rows.Count;
-                timeSpent += skylineSample.timeMilliseconds;
+                timeSpent += skylineSample.TimeMilliseconds;
             }
 
             Console.WriteLine("time average: " + (double) timeSpent/producedSubspaces.Count);

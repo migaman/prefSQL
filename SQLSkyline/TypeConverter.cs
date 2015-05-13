@@ -3,9 +3,9 @@
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Data;
 
 namespace prefSQL.SQLSkyline
@@ -27,57 +27,57 @@ namespace prefSQL.SQLSkyline
 
             public DbTypeMapEntry(Type type, DbType dbType, SqlDbType sqlDbType)
             {
-                this.Type = type;
-                this.DbType = dbType;
-                this.SqlDbType = sqlDbType;
+                Type = type;
+                DbType = dbType;
+                SqlDbType = sqlDbType;
             }
 
         };
 
-        private readonly static List<DbTypeMapEntry> _DbTypeList = new List<DbTypeMapEntry>();
+        private readonly static List<DbTypeMapEntry> DbTypeList = new List<DbTypeMapEntry>();
 
         #region Constructors
 
         static TypeConverter()
         {
             DbTypeMapEntry dbTypeMapEntry = new DbTypeMapEntry(typeof(bool), DbType.Boolean, SqlDbType.Bit);
-            _DbTypeList.Add(dbTypeMapEntry);
+            DbTypeList.Add(dbTypeMapEntry);
 
             dbTypeMapEntry= new DbTypeMapEntry(typeof(byte), DbType.Double, SqlDbType.TinyInt);
-            _DbTypeList.Add(dbTypeMapEntry);
+            DbTypeList.Add(dbTypeMapEntry);
 
             dbTypeMapEntry = new DbTypeMapEntry(typeof(byte[]), DbType.Binary, SqlDbType.Image);
-            _DbTypeList.Add(dbTypeMapEntry);
+            DbTypeList.Add(dbTypeMapEntry);
 
             dbTypeMapEntry = new DbTypeMapEntry(typeof(DateTime), DbType.DateTime, SqlDbType.DateTime);
-            _DbTypeList.Add(dbTypeMapEntry);
+            DbTypeList.Add(dbTypeMapEntry);
 
             dbTypeMapEntry = new DbTypeMapEntry(typeof(Decimal), DbType.Decimal, SqlDbType.Decimal);
-            _DbTypeList.Add(dbTypeMapEntry);
+            DbTypeList.Add(dbTypeMapEntry);
 
             dbTypeMapEntry = new DbTypeMapEntry(typeof(double), DbType.Double, SqlDbType.Float);
-            _DbTypeList.Add(dbTypeMapEntry);
+            DbTypeList.Add(dbTypeMapEntry);
 
             dbTypeMapEntry  = new DbTypeMapEntry(typeof(Guid), DbType.Guid, SqlDbType.UniqueIdentifier);
-            _DbTypeList.Add(dbTypeMapEntry);
+            DbTypeList.Add(dbTypeMapEntry);
 
             dbTypeMapEntry = new DbTypeMapEntry(typeof(Int16), DbType.Int16, SqlDbType.SmallInt);
-            _DbTypeList.Add(dbTypeMapEntry);
+            DbTypeList.Add(dbTypeMapEntry);
 
             dbTypeMapEntry = new DbTypeMapEntry(typeof(Int32), DbType.Int32, SqlDbType.Int);
-            _DbTypeList.Add(dbTypeMapEntry);
+            DbTypeList.Add(dbTypeMapEntry);
 
             dbTypeMapEntry = new DbTypeMapEntry(typeof(Int64), DbType.Int64, SqlDbType.BigInt);
-            _DbTypeList.Add(dbTypeMapEntry);
+            DbTypeList.Add(dbTypeMapEntry);
 
             dbTypeMapEntry = new DbTypeMapEntry(typeof(object), DbType.Object, SqlDbType.Variant);
-            _DbTypeList.Add(dbTypeMapEntry);
+            DbTypeList.Add(dbTypeMapEntry);
 
             dbTypeMapEntry = new DbTypeMapEntry(typeof(string), DbType.String, SqlDbType.VarChar);
-            _DbTypeList.Add(dbTypeMapEntry);
+            DbTypeList.Add(dbTypeMapEntry);
 
             dbTypeMapEntry = new DbTypeMapEntry(typeof(string), DbType.String, SqlDbType.NVarChar);
-            _DbTypeList.Add(dbTypeMapEntry);
+            DbTypeList.Add(dbTypeMapEntry);
         }
 
         private TypeConverter()
@@ -156,7 +156,7 @@ namespace prefSQL.SQLSkyline
 
         private static DbTypeMapEntry Find(Type type)
         {
-            foreach (DbTypeMapEntry entry in _DbTypeList)
+            foreach (DbTypeMapEntry entry in DbTypeList)
             {
                 if (entry.Type == type)
                 {
@@ -169,7 +169,7 @@ namespace prefSQL.SQLSkyline
 
         private static DbTypeMapEntry Find(DbType dbType)
         {
-            foreach (DbTypeMapEntry entry in _DbTypeList)
+            foreach (DbTypeMapEntry entry in DbTypeList)
             {
                 if (entry.DbType == dbType)
                 {
@@ -182,7 +182,7 @@ namespace prefSQL.SQLSkyline
 
         private static DbTypeMapEntry Find(SqlDbType sqlDbType)
         {
-            foreach(DbTypeMapEntry entry in _DbTypeList)
+            foreach(DbTypeMapEntry entry in DbTypeList)
             {
                 if (entry.SqlDbType == sqlDbType)
                 {

@@ -1,15 +1,9 @@
 using System;
-using System.Data;
-using System.Data.SqlClient;
-using System.Data.SqlTypes;
-using Microsoft.SqlServer.Server;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-using prefSQL.SQLSkyline.Models;
-using System.Diagnostics;
+using System.Data;
 using System.Data.Common;
+using prefSQL.SQLSkyline.Models;
 
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace prefSQL.SQLSkyline
@@ -32,184 +26,119 @@ namespace prefSQL.SQLSkyline
     /// </remarks>
     public abstract class TemplateHexagon : TemplateStrategy
     {
-        
 
-        //Incomparable version has some attributes more
-        public DataTable getSkylineTable(String strQuery, String strOperators, int numberOfRecords, String strConnection, string strProvider, string strSelectIncomparable, int weightHexagonIncomparable)
+        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters)
         {
-            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strProvider, strSelectIncomparable, weightHexagonIncomparable);
-        }
+            string strSelectIncomparable = "";
+            int weightHexagonIncomparable = 0;
+            string connectionString = "";
+            string factory = "";
+            
 
-        protected override DataTable getSkylineTable(string strQuery, string strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider)
-        {
-            return getSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strProvider, "", 0);
-        }
-        
+            //load some variables from the additional paraemters
+            if(additionalParameters.GetUpperBound(0) > 3)
+            {
+                //TODO: Test Hexagon incomparable
+                strSelectIncomparable = additionalParameters[3].Trim().Replace("''", "'").Trim('\'');    
+                weightHexagonIncomparable = int.Parse(additionalParameters[4].Trim());
+                
+                connectionString = additionalParameters[0];
+                factory = additionalParameters[1];
 
-        protected DataTable getSkylineTable(string strQuery, string strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, string strSelectIncomparable, int weightHexagonIncomparable)
-        {
-            Stopwatch sw = new Stopwatch();
+                //Change operators array
+                string strOperators = additionalParameters[5];
+                string strSQL = null;
+                CalculateOperators(ref strOperators, strSelectIncomparable, factory, connectionString, ref strSQL);
+                operatorsArray = strOperators.Split(';');
+            }
+            
+
+
+            DataTable dtResult = dataTableTemplate.Clone();
+            
             ArrayList[] btg = null;
             int[] next = null;
             int[] prev = null;
             int[] level = null;
             int[] weight = null;
             long maxID = 0;
-            DataTable dtResult = new DataTable();
-
-            DbProviderFactory factory = null;
-            DbConnection connection = null;
-            factory = DbProviderFactories.GetFactory(strProvider);
-
-            // use the factory object to create Data access objects.
-            connection = factory.CreateConnection(); // will return the connection object (i.e. SqlConnection ...)
-            connection.ConnectionString = strConnection;
-
-            String strSQL = strQuery.ToString();
 
 
-            calculateOperators(ref strOperators, strSelectIncomparable, factory, connection, ref strSQL);
 
-            string[] operators = strOperators.ToString().Split(';');
-            int amountOfPreferences = operators.GetUpperBound(0) + 1;
+            int amountOfPreferences = operatorsArray.GetUpperBound(0) + 1;
 
 
-            try
+            // Build our record schema 
+            //List<SqlMetaData> outputColumns = Helper.BuildRecordSchema(dt, operators, dtResult);
+
+
+            //Write all attributes to a Object-Array
+            //Profiling: This is much faster (factor 2) than working with the SQLReader
+            //List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
+
+            //Replace the database values to ranks of the values
+            long[] maxValues = new long[amountOfPreferences];
+            database = ReplaceValuesToRankValues(database, operatorsArray, ref maxValues);
+
+
+            Construction(amountOfPreferences, maxValues, ref btg, ref next, ref prev, ref level, ref weight);
+
+
+            //Read all records only once.
+            foreach (object[] dbValuesObject in database)
             {
-                //Some checks
-                if (strSQL.Length == Helper.MaxSize)
+                Add(dbValuesObject, amountOfPreferences, operatorsArray, ref btg, ref weight, ref maxID, weightHexagonIncomparable);
+            }
+
+            FindBmo(amountOfPreferences, ref btg, ref next, ref prev, ref level, ref weight);
+
+            //Now read next list
+            int iItem = 0;
+                
+            //Benötigt viele Zeit im CLR-Modus (Deshalb erst hier und nur einmal initialisieren)
+            //SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
+
+            //Until no more nodes are found
+            while (iItem != -1)
+            {
+                //Add all records of this node
+                if (btg[iItem] != null)
                 {
-                    throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
-                }
-                connection.Open();
-
-                DbDataAdapter dap = factory.CreateDataAdapter();
-                DbCommand selectCommand = connection.CreateCommand();
-                selectCommand.CommandTimeout = 0; //infinite timeout
-                selectCommand.CommandText = strSQL;
-                dap.SelectCommand = selectCommand;
-                DataTable dt = new DataTable();
-                dap.Fill(dt);
-
-                //Time the algorithm needs (afer query to the database)
-                sw.Start();
-
-
-                // Build our record schema 
-                List<SqlMetaData> outputColumns = Helper.buildRecordSchema(dt, operators, dtResult);
-
-                //Read start of skyline
-                DataTableReader dataTableReader = dt.CreateDataReader();
-
-                //Write all attributes to a Object-Array
-                //Profiling: This is much faster (factor 2) than working with the SQLReader
-                List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
-
-                //Replace the database values to ranks of the values
-                long[] maxValues = new long[amountOfPreferences];
-                listObjects = replaceValuesToRankValues(listObjects, operators, ref maxValues);
-
-
-                construction(amountOfPreferences, maxValues, ref btg, ref next, ref prev, ref level, ref weight);
-
-
-                //Read all records only once.
-                foreach (object[] dbValuesObject in listObjects)
-                {
-                    add(dbValuesObject, amountOfPreferences, operators, ref btg, ref weight, ref maxID, weightHexagonIncomparable);
-                }
-
-                findBMO(amountOfPreferences, ref btg, ref next, ref prev, ref level, ref weight);
-
-                //Now read next list
-                int iItem = 0;
-                //Benötigt viele Zeit im CLR-Modus (Deshalb erst hier und nur einmal initialisieren)
-                SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
-
-                //Until no more nodes are found
-                while (iItem != -1)
-                {
-                    //Add all records of this node
-                    if (btg[iItem] != null)
-                    {
-                        //foreach (SqlDataRecord recSkyline in btg[iItem])
-                        foreach (ArrayList recSkyline in btg[iItem])
-                        {
-                            DataRow row = dtResult.NewRow();
-                            for (int i = 0; i < recSkyline.Count; i++)
-                            {
-                                record.SetValue(i, recSkyline[i]);
-                                row[i] = recSkyline[i];
-                            }
-
-                            dtResult.Rows.Add(row);
-                        }
-                    }
-
-                    //Goto the next node
-                    iItem = next[iItem];
-
-                }
-
-                //Remove certain amount of rows if query contains TOP Keyword
-                Helper.getAmountOfTuples(dtResult, numberOfRecords);
-
-
-                if (isIndependent == false)
-                {
-                    //Send results to client
-                    SqlContext.Pipe.SendResultsStart(record);
-
                     //foreach (SqlDataRecord recSkyline in btg[iItem])
-                    foreach (DataRow recSkyline in dtResult.Rows)
+                    foreach (ArrayList recSkyline in btg[iItem])
                     {
-                        for (int i = 0; i < recSkyline.Table.Columns.Count; i++)
+                        DataRow row = dtResult.NewRow();
+                        for (int i = 0; i < recSkyline.Count; i++)
                         {
-                            record.SetValue(i, recSkyline[i]);
+                            //dataRecordTemplate.SetValue(i, recSkyline[i]);
+                            row[i] = recSkyline[i];
                         }
-                        SqlContext.Pipe.SendResultsRow(record);
+
+                        dtResult.Rows.Add(row);
                     }
-                    SqlContext.Pipe.SendResultsEnd();
                 }
 
-            }
-            catch (Exception ex)
-            {
-                //Pack Errormessage in a SQL and return the result
-                string strError = "Fehler in SP_SkylineHexagon: ";
-                strError += ex.Message;
-
-                if (isIndependent == true)
-                {
-                    System.Diagnostics.Debug.WriteLine(strError);
-
-                }
-                else
-                {
-                    SqlContext.Pipe.Send(strError);
-                }
-
+                //Goto the next node
+                iItem = next[iItem];
 
             }
-            finally
-            {
-                if (connection != null)
-                    connection.Close();
-            }
 
-            sw.Stop();
-            timeInMs = sw.ElapsedMilliseconds;
+            //TODO: Special orderings need the skyline values. Store it in a property
+            //SkylineValues = resultCollection;
+
             return dtResult;
-
         }
+
+
 
         /// <summary>
         /// Replace the database values to ranks (this is much faster than directly with SQL, i.e. with the DENSE_RANK() function
         /// </summary>
         /// <param name="listObjects"></param>
-        /// <param name="UpperBound"></param>
+        /// <param name="operators"></param>
+        /// <param name="maxValues"></param>
         /// <returns></returns>
-        private List<object[]> replaceValuesToRankValues(List<object[]> listObjects, string[] operators, ref long[] maxValues)
+        private List<object[]> ReplaceValuesToRankValues(List<object[]> listObjects, string[] operators, ref long[] maxValues)
         {
             //Sort for each skyline attribute
             for (int iCol = 0; iCol <= operators.GetUpperBound(0); iCol++)
@@ -243,114 +172,106 @@ namespace prefSQL.SQLSkyline
             return listObjects;
         }
 
-        private void construction(int amountOfPreferences, long[] maxValues, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight)
+        private void Construction(int amountOfPreferences, long[] maxValues, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight)
         {
-            try
-            {                
-                int[] maxPreferenceLevel = new int[amountOfPreferences];
-                for (int i = 0; i < amountOfPreferences; i++)
-                {
-                    maxPreferenceLevel[i] = (int)maxValues[i];
-                }
-
-                //calculate edge weights
-                weight = new int[amountOfPreferences];
-                weight[amountOfPreferences - 1] = 1;
-
-                for (int i = amountOfPreferences - 2; i >= 0; i--)
-                {
-                    weight[i] = weight[i + 1] * (maxPreferenceLevel[i + 1] + 1);
-                }
-
-
-                // calculate the BTG size
-                long sizeNodes = 1;
-                for (int i = 0; i < amountOfPreferences; i++)
-                {
-                    sizeNodes *= (maxPreferenceLevel[i] + 1);
-                }                
-
-                //Because we have 4 objects to save the tree state
-                if (sizeNodes > (System.Int32.MaxValue / 4))
-                {
-                    throw new Exception("Berechnung nicht möglich mit Hexagon. Baum wäre zu gross");
-                }
-
-                btg = new ArrayList[sizeNodes];
-                next = new int[sizeNodes];
-                prev = new int[sizeNodes];
-                level = new int[sizeNodes];
-
-                int workSize = 1;
-                for (int i = 0; i < amountOfPreferences; i++)
-                {
-                    workSize += maxPreferenceLevel[i];
-                }
-
-
-                // arrays needed for init computation
-
-                // stores highest ID found for each level by now
-                int[] work = new int[workSize]; //int[max(P) + 1]
-
-                // stores first ID found for each level by now
-                int[] first = new int[workSize]; //int[max(P) + 1]
-
-                // initialize the arrays
-                next[0] = 1;
-
-                //loop over the node IDs
-                for (int id = 1; id <= sizeNodes - 1; id++)
-                {
-                    // compute level of the node (with help of weights)
-                    int curLvl = 0;
-                    int tmpID = id; //wrong code in paper --> use of id inside de id-loop
-                    for (int i = 0; i <= amountOfPreferences - 1; i++)
-                    {
-                        double dblLevel = (double)tmpID / weight[i];
-                        curLvl = curLvl + (int)Math.Floor(dblLevel);
-                        tmpID = tmpID - ((int)Math.Floor((dblLevel)) * weight[i]);
-                    }
-
-                    if (first[curLvl] == 0)
-                    {
-                        first[curLvl] = id;
-                    }
-                    // set next node in the level
-                    //the current node is n’s next node and n is the current node’s previous node
-                    next[work[curLvl]] = id;
-                    prev[id] = work[curLvl];
-                    work[curLvl] = id; //wrong code in paper
-
-                    //For each ID, we determine to which level the corresponding node belongs
-                    level[id] = curLvl;
-                }
-
-                // init next relation for last nodes in the levels
-                for (int curLvl = 0; curLvl < workSize - 1; curLvl++)
-                {
-                    next[work[curLvl]] = first[curLvl + 1];
-
-                    //
-                    prev[first[curLvl + 1]] = work[curLvl];
-                }
-
-                //set next node of bottom node
-                next[sizeNodes - 1] = -1;
-                //set previous node of top node
-                prev[0] = -1;
-            }
-            catch (Exception e)
+            int[] maxPreferenceLevel = new int[amountOfPreferences];
+            for (int i = 0; i < amountOfPreferences; i++)
             {
-                throw e;
+                maxPreferenceLevel[i] = (int)maxValues[i];
             }
 
+            //calculate edge weights
+            weight = new int[amountOfPreferences];
+            weight[amountOfPreferences - 1] = 1;
+
+            for (int i = amountOfPreferences - 2; i >= 0; i--)
+            {
+                weight[i] = weight[i + 1] * (maxPreferenceLevel[i + 1] + 1);
+            }
+
+
+            // calculate the BTG size
+            long sizeNodes = 1;
+            for (int i = 0; i < amountOfPreferences; i++)
+            {
+                sizeNodes *= (maxPreferenceLevel[i] + 1);
+            }                
+
+            //Because we have 4 objects to save the tree state
+            if (sizeNodes > (Int32.MaxValue / 4))
+            {
+                throw new Exception("Berechnung nicht möglich mit Hexagon. Baum wäre zu gross");
+            }
+
+            btg = new ArrayList[sizeNodes];
+            next = new int[sizeNodes];
+            prev = new int[sizeNodes];
+            level = new int[sizeNodes];
+
+            int workSize = 1;
+            for (int i = 0; i < amountOfPreferences; i++)
+            {
+                workSize += maxPreferenceLevel[i];
+            }
+
+
+            // arrays needed for init computation
+
+            // stores highest ID found for each level by now
+            int[] work = new int[workSize]; //int[max(P) + 1]
+
+            // stores first ID found for each level by now
+            int[] first = new int[workSize]; //int[max(P) + 1]
+
+            // initialize the arrays
+            next[0] = 1;
+
+            //loop over the node IDs
+            for (int id = 1; id <= sizeNodes - 1; id++)
+            {
+                // compute level of the node (with help of weights)
+                int curLvl = 0;
+                int tmpID = id; //wrong code in paper --> use of id inside de id-loop
+                for (int i = 0; i <= amountOfPreferences - 1; i++)
+                {
+                    double dblLevel = (double)tmpID / weight[i];
+                    curLvl = curLvl + (int)Math.Floor(dblLevel);
+                    tmpID = tmpID - ((int)Math.Floor((dblLevel)) * weight[i]);
+                }
+
+                if (first[curLvl] == 0)
+                {
+                    first[curLvl] = id;
+                }
+                // set next node in the level
+                //the current node is n’s next node and n is the current node’s previous node
+                next[work[curLvl]] = id;
+                prev[id] = work[curLvl];
+                work[curLvl] = id; //wrong code in paper
+
+                //For each ID, we determine to which level the corresponding node belongs
+                level[id] = curLvl;
+            }
+
+            // init next relation for last nodes in the levels
+            for (int curLvl = 0; curLvl < workSize - 1; curLvl++)
+            {
+                next[work[curLvl]] = first[curLvl + 1];
+
+                //
+                prev[first[curLvl + 1]] = work[curLvl];
+            }
+
+            //set next node of bottom node
+            next[sizeNodes - 1] = -1;
+            //set previous node of top node
+            prev[0] = -1;
         }
 
         
 
         //Find BestMatchesOnly
-        private void findBMO(int amountPreferences, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight)
+        private void FindBmo(int amountPreferences, ref ArrayList[] btg, ref int[] next, ref int[] prev, ref int[] level, ref int[] weight)
         {
             int last = 0;
             long levelUpperBound = level.GetUpperBound(0);
@@ -385,10 +306,10 @@ namespace prefSQL.SQLSkyline
                                     HexagonRemoveModel modelIn = new HexagonRemoveModel(cur + weight[i], i, btg, next, prev, level, weight, 0);
                                     //removeRecursive(cur + weight[i], i, ref btg, ref next, ref prev, ref level, ref weight, 0);
 
-                                    HexagonRemoveModel modelOut = modelOut = removeIterative(modelIn, levelUpperBound);
-                                    btg = modelOut.btg;
-                                    next = modelOut.next;
-                                    prev = modelOut.prev;
+                                    HexagonRemoveModel modelOut = RemoveIterative(modelIn, levelUpperBound);
+                                    btg = modelOut.Btg;
+                                    next = modelOut.Next;
+                                    prev = modelOut.Prev;
                                     
                                 }
                             }
@@ -419,7 +340,7 @@ namespace prefSQL.SQLSkyline
 
         }
 
-        private HexagonRemoveModel removeIterative(HexagonRemoveModel returnModel, long levelUpperBound)
+        private HexagonRemoveModel RemoveIterative(HexagonRemoveModel returnModel, long levelUpperBound)
         {
             int address = 10; // Entry point for each each "call"
             HexagonRemoveModel tempModel = returnModel;            
@@ -437,13 +358,12 @@ namespace prefSQL.SQLSkyline
                         // Do something
                         returnModel = (HexagonRemoveModel)stack.Pop();
 
-                        int id = returnModel.id;
-                        int index = returnModel.index;
-                        ArrayList[] btg = returnModel.btg;
-                        int[] next = returnModel.next;
-                        int[] prev = returnModel.prev;
-                        int[] level = returnModel.level;
-                        int[] weight = returnModel.weight;
+                        int id = returnModel.ID;
+                        ArrayList[] btg = returnModel.Btg;
+                        int[] next = returnModel.Next;
+                        int[] prev = returnModel.Prev;
+                        int[] level = returnModel.Level;
+                        int[] weight = returnModel.Weight;
                         
                         
                         //check if the node has already been removed
@@ -477,19 +397,19 @@ namespace prefSQL.SQLSkyline
                         
 
 
-                        bool containsChilds = false;
+                        
 
                         //remove followers
                         // follow the edge for preference i (only if not already on last level)
                         //if (id + weight[0] <= level.GetUpperBound(0) && level[id + weight[0]] == level[id] + 1)
-                        //TODO: Profiling eigene long variable statt levelupperbound (bringt dies was??) --> hat nichts gebracht (14% der fkt statt 15%)
+                        //TODO: Profiling separate long variable instead of GetUpperBound(0) --> No significant effect (14% from the function instead of 15%)
                         if (id + weight[0] <= levelUpperBound && level[id + weight[0]] == level[id] + 1)
                         {                               
                             //Push current object to stack
-                            returnModel.loopindex = 1;  //important: raise loop Index!! new position in position loop!!
-                            returnModel.next = next;
-                            returnModel.prev = prev;
-                            returnModel.btg = btg;
+                            returnModel.Loopindex = 1;  //important: raise loop Index!! new position in position loop!!
+                            returnModel.Next = next;
+                            returnModel.Prev = prev;
+                            returnModel.Btg = btg;
                             stack.Push(returnModel);
                             stack.Push(20);
 
@@ -497,22 +417,20 @@ namespace prefSQL.SQLSkyline
                             HexagonRemoveModel nMinus1 = new HexagonRemoveModel(id + weight[0], 0, btg, next, prev, level, weight, 0);
                             stack.Push(nMinus1);
                             address = 10; // Make another "call"
-                            containsChilds = true;
                             break;
                         }
 
 
-                        if (containsChilds == false)
-                        {
-                            //Contains no childs --> goto next address
-                            //The base case
-                            address = (int)stack.Pop();
-                            returnModel.next = next;
-                            returnModel.prev = prev;
-                            returnModel.btg = btg;
-                            stack.Push(returnModel);
+                        
+                        //Contains no childs --> goto next address
+                        //The base case
+                        address = (int)stack.Pop();
+                        returnModel.Next = next;
+                        returnModel.Prev = prev;
+                        returnModel.Btg = btg;
+                        stack.Push(returnModel);
 
-                        }
+                        
                         break;
                     }
                     case 20:
@@ -522,14 +440,14 @@ namespace prefSQL.SQLSkyline
                         returnModel = (HexagonRemoveModel)stack.Pop();
                         
                         //Read
-                        int id = returnModel.id;
-                        int index = returnModel.index;
-                        ArrayList[] btg = returnModel.btg;
-                        int[] next = returnModel.next;
-                        int[] prev = returnModel.prev;
-                        int[] level = returnModel.level;
-                        int[] weight = returnModel.weight;
-                        int iLoopIndex = returnModel.loopindex;
+                        int id = returnModel.ID;
+                        int index = returnModel.Index;
+                        ArrayList[] btg = returnModel.Btg;
+                        int[] next = returnModel.Next;
+                        int[] prev = returnModel.Prev;
+                        int[] level = returnModel.Level;
+                        int[] weight = returnModel.Weight;
+                        int iLoopIndex = returnModel.Loopindex;
 
 
                         bool isEndOfLoop = true;
@@ -542,7 +460,7 @@ namespace prefSQL.SQLSkyline
                             {
                                 //Push current object to stack
                                 //important: raise loop Index!! new position in position loop!! --> The next time i will be initialized by this index
-                                returnModel.loopindex = i + 1;  
+                                returnModel.Loopindex = i + 1;  
                                 stack.Push(returnModel);
                                 stack.Push(20);
 
@@ -555,7 +473,7 @@ namespace prefSQL.SQLSkyline
                             }
                         }
 
-                        if (isEndOfLoop == true)
+                        if (isEndOfLoop)
                         {
                             //Read next address and push current object to stack
                             address = (int)stack.Pop();
@@ -618,13 +536,10 @@ namespace prefSQL.SQLSkyline
 
 
 
-        protected abstract void add(object[] dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable);
+        protected abstract void Add(object[] dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable);
 
-        protected abstract void calculateOperators(ref string strOperators, string strSelectIncomparable, DbProviderFactory factory, DbConnection connection, ref string strSQL);
+        protected abstract void CalculateOperators(ref string strOperators, string strSelectIncomparable, string factory, string connection, ref string strSQL);
 
-        protected override DataTable getSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent)
-        {
-            throw new NotImplementedException();
-        }
+        
     }
 }

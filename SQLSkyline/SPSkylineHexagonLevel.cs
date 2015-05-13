@@ -1,36 +1,34 @@
-using System;
-using System.Data;
-using System.Data.SqlClient;
+using System.Collections;
+using System.Data.Common;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Data.Common;
-
 
 //Caution: Attention small changes in this code can lead to performance issues, i.e. using a startswith instead of an equal can increase by 10 times
 //Important: Only use equal for comparing text (otherwise performance issues)
 namespace prefSQL.SQLSkyline
 {
 
-    public class SP_SkylineHexagonLevel : TemplateHexagon
+    public class SPSkylineHexagonLevel : TemplateHexagon
     {
-        [Microsoft.SqlServer.Server.SqlProcedure(Name = "SP_SkylineHexagonLevel")]
-        public static void getSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords)
+        [SqlProcedure(Name = "SP_SkylineHexagonLevel")]
+        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType)
         {
-            SP_SkylineHexagonLevel skyline = new SP_SkylineHexagonLevel();
-            skyline.getSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.cnnStringSQLCLR, Helper.ProviderCLR, "", 0);
+            SPSkylineHexagonLevel skyline = new SPSkylineHexagonLevel();
+            string[] additionalParameters = new string[4];
+            //additionalParameters[0] = strFirstSQLHexagon;
+            //additionalParameters[1] = strOperatorsHexagon;
+            additionalParameters[2] = "";
+            additionalParameters[3] = "0";
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, additionalParameters, sortType.Value);
         }
 
-        protected override void calculateOperators(ref string strOperators, string strSelectIncomparable, DbProviderFactory factory, DbConnection connection, ref string strSQL)
+        protected override void CalculateOperators(ref string strOperators, string strSelectIncomparable, string factory, string connection, ref string strSQL)
         {
             //No Operation
-            return;
+            //return;
         }
 
-        protected override void add(object[] dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable)
+        protected override void Add(object[] dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable)
         {
             ArrayList al = new ArrayList();
 
