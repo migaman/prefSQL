@@ -2,6 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
+    using System.Data.Common;
+    using System.Numerics;
+    using System.Text.RegularExpressions;
     using prefSQL.SQLParser;
     using prefSQL.SQLParser.Models;
     using prefSQL.SQLParserTest;
@@ -19,8 +23,98 @@
 
         public static void Main(string[] args)
         {
-            TestExecutionForPerformance();
+            //TestExecutionForPerformance();
             //TestForSetCoverage();
+            TestForClusterAnalysis();
+        }
+
+        private static void TestForClusterAnalysis()
+        {
+            var common = new SQLCommon
+            {
+                SkylineType = new SkylineBNL(),
+                ShowSkylineAttributes = true
+            };
+                        DbProviderFactory factory = null;
+            DbConnection connection = null;
+            factory = DbProviderFactories.GetFactory(Helper.ProviderName);
+
+            // use the factory object to create Data access objects.
+            connection = factory.CreateConnection(); // will return the connection object (i.e. SqlConnection ...)
+            connection.ConnectionString = Helper.ConnectionString;
+
+            var dt = new DataTable();
+
+                connection.Open();
+
+
+                DbDataAdapter dap = factory.CreateDataAdapter();
+                DbCommand selectCommand = connection.CreateCommand();
+                selectCommand.CommandTimeout = 0; //infinite timeout
+            var strPrefSQL = common.GetAnsiSqlFromPrefSqlModel(common.GetPrefSqlModelFromPreferenceSql(EntireSkylineSampleSql));
+            int iPosStart = strPrefSQL.IndexOf("'");
+            String strtmp = strPrefSQL.Substring(iPosStart);
+            string[] parameter = Regex.Split(strtmp, ",(?=(?:[^']*'[^']*')*[^']*$)");
+            var strQuery = parameter[0].Trim();
+            strQuery = strQuery.Replace("''", "'").Trim('\'');
+
+            selectCommand.CommandText = strQuery;
+            dap.SelectCommand = selectCommand;
+                dt = new DataTable();
+
+                dap.Fill(dt);
+
+            var entireSkylineDataTable = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                EntireSkylineSampleSql);
+
+            var skylineAttributeColumns = SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
+            var entireSkylineNormalized = prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTable, 0);
+            SkylineSamplingHelper.NormalizeColumns(entireSkylineNormalized, skylineAttributeColumns);
+
+            var sampleSkylineDataTable = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                SkylineSampleSql);
+            var sampleSkylineNormalized =
+                prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(sampleSkylineDataTable, 0);
+            SkylineSamplingHelper.NormalizeColumns(sampleSkylineNormalized, skylineAttributeColumns);
+
+            Dictionary<BigInteger, List<Dictionary<int, object[]>>> entireBuckets =
+                ClusterAnalysis.GetBuckets(entireSkylineNormalized, skylineAttributeColumns);
+            Dictionary<BigInteger, List<Dictionary<int, object[]>>> sampleBuckets =
+                ClusterAnalysis.GetBuckets(sampleSkylineNormalized, skylineAttributeColumns);
+
+            Dictionary<BigInteger, List<Dictionary<int, object[]>>> aggregatedEntireBuckets =
+                ClusterAnalysis.GetAggregatedBuckets(entireBuckets);
+            Dictionary<BigInteger, List<Dictionary<int, object[]>>> aggregatedSampleBuckets =
+                ClusterAnalysis.GetAggregatedBuckets(sampleBuckets);
+
+            for (int i = 0; i < skylineAttributeColumns.Length; i++)
+            {
+                dt.Columns.RemoveAt(0);                
+            }
+
+            var full = prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(dt, 0);
+            SkylineSamplingHelper.NormalizeColumns(full, skylineAttributeColumns);
+
+            Dictionary<BigInteger, List<Dictionary<int, object[]>>> fullB =
+                ClusterAnalysis.GetBuckets(full, skylineAttributeColumns);
+            Dictionary<BigInteger, List<Dictionary<int, object[]>>> aFullB =
+    ClusterAnalysis.GetAggregatedBuckets(fullB);
+
+            for (int i = 0; i < skylineAttributeColumns.Length; i++)
+            {
+                var entire = aggregatedEntireBuckets.ContainsKey(i) ? aggregatedEntireBuckets[i].Count : 0;
+                var sample = aggregatedSampleBuckets.ContainsKey(i) ? aggregatedSampleBuckets[i].Count : 0;
+                var entirePercent = (double)entire/entireSkylineNormalized.Count;
+                var samplePercent = (double)sample/sampleSkylineNormalized.Count;
+                var fullX = aFullB.ContainsKey(i) ? aFullB[i].Count : 0;
+                var fullP = (double)fullX / full.Count;
+                Console.WriteLine("-- {0,2} -- {5,6} ({6,7:P2} %) -- {1,6} ({3,7:P2} %) -- {2,6} ({4,7:P2} %)", i, entire, sample, entirePercent,
+                    samplePercent, fullX,fullP);
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("{0} - {1} - {2}", entireSkylineNormalized.Count, sampleSkylineNormalized.Count, full.Count);
+            Console.ReadKey();
         }
 
         private static void TestForSetCoverage()
