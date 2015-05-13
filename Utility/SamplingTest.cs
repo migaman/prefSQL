@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using prefSQL.SQLParser;
-using prefSQL.SQLParser.Models;
-using prefSQL.SQLParserTest;
-using prefSQL.SQLSkyline;
-using prefSQL.SQLSkyline.SamplingSkyline;
-
-namespace Utility
+﻿namespace Utility
 {
     using System;
     using System.Collections.Generic;
@@ -28,12 +20,11 @@ namespace Utility
         private const string EntireSkylineSampleSql =
             "SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> 'blue' >> OTHERS EQUAL), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL)";
 
-
         public static void Main(string[] args)
         {
-            //TestExecutionForPerformance();
+            TestExecutionForPerformance();
             //TestForSetCoverage();
-            TestForClusterAnalysis();
+            //TestForClusterAnalysis();
         }
 
         private static void TestForClusterAnalysis()
@@ -43,7 +34,7 @@ namespace Utility
                 SkylineType = new SkylineBNL(),
                 ShowSkylineAttributes = true
             };
-                        DbProviderFactory factory = null;
+            DbProviderFactory factory = null;
             DbConnection connection = null;
             factory = DbProviderFactories.GetFactory(Helper.ProviderName);
 
@@ -53,35 +44,39 @@ namespace Utility
 
             var dt = new DataTable();
 
-                connection.Open();
+            connection.Open();
 
 
-                DbDataAdapter dap = factory.CreateDataAdapter();
-                DbCommand selectCommand = connection.CreateCommand();
-                selectCommand.CommandTimeout = 0; //infinite timeout
-            var strPrefSQL = common.GetAnsiSqlFromPrefSqlModel(common.GetPrefSqlModelFromPreferenceSql(EntireSkylineSampleSql));
+            DbDataAdapter dap = factory.CreateDataAdapter();
+            DbCommand selectCommand = connection.CreateCommand();
+            selectCommand.CommandTimeout = 0; //infinite timeout
+            string strPrefSQL =
+                common.GetAnsiSqlFromPrefSqlModel(common.GetPrefSqlModelFromPreferenceSql(EntireSkylineSampleSql));
             int iPosStart = strPrefSQL.IndexOf("'");
-            String strtmp = strPrefSQL.Substring(iPosStart);
+            string strtmp = strPrefSQL.Substring(iPosStart);
             string[] parameter = Regex.Split(strtmp, ",(?=(?:[^']*'[^']*')*[^']*$)");
-            var strQuery = parameter[0].Trim();
+            string strQuery = parameter[0].Trim();
             strQuery = strQuery.Replace("''", "'").Trim('\'');
 
             selectCommand.CommandText = strQuery;
             dap.SelectCommand = selectCommand;
-                dt = new DataTable();
+            dt = new DataTable();
 
-                dap.Fill(dt);
+            dap.Fill(dt);
 
-            var entireSkylineDataTable = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+            DataTable entireSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
+                Helper.ProviderName,
                 EntireSkylineSampleSql);
 
-            var skylineAttributeColumns = SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
-            var entireSkylineNormalized = prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTable, 0);
+            int[] skylineAttributeColumns = SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
+            Dictionary<int, object[]> entireSkylineNormalized =
+                prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTable, 0);
             SkylineSamplingHelper.NormalizeColumns(entireSkylineNormalized, skylineAttributeColumns);
 
-            var sampleSkylineDataTable = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+            DataTable sampleSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
+                Helper.ProviderName,
                 SkylineSampleSql);
-            var sampleSkylineNormalized =
+            Dictionary<int, object[]> sampleSkylineNormalized =
                 prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(sampleSkylineDataTable, 0);
             SkylineSamplingHelper.NormalizeColumns(sampleSkylineNormalized, skylineAttributeColumns);
 
@@ -95,33 +90,35 @@ namespace Utility
             Dictionary<BigInteger, List<Dictionary<int, object[]>>> aggregatedSampleBuckets =
                 ClusterAnalysis.GetAggregatedBuckets(sampleBuckets);
 
-            for (int i = 0; i < skylineAttributeColumns.Length; i++)
+            for (var i = 0; i < skylineAttributeColumns.Length; i++)
             {
-                dt.Columns.RemoveAt(0);                
+                dt.Columns.RemoveAt(0);
             }
 
-            var full = prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(dt, 0);
+            Dictionary<int, object[]> full = prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(dt, 0);
             SkylineSamplingHelper.NormalizeColumns(full, skylineAttributeColumns);
 
             Dictionary<BigInteger, List<Dictionary<int, object[]>>> fullB =
                 ClusterAnalysis.GetBuckets(full, skylineAttributeColumns);
             Dictionary<BigInteger, List<Dictionary<int, object[]>>> aFullB =
-    ClusterAnalysis.GetAggregatedBuckets(fullB);
+                ClusterAnalysis.GetAggregatedBuckets(fullB);
 
-            for (int i = 0; i < skylineAttributeColumns.Length; i++)
+            for (var i = 0; i < skylineAttributeColumns.Length; i++)
             {
-                var entire = aggregatedEntireBuckets.ContainsKey(i) ? aggregatedEntireBuckets[i].Count : 0;
-                var sample = aggregatedSampleBuckets.ContainsKey(i) ? aggregatedSampleBuckets[i].Count : 0;
-                var entirePercent = (double)entire/entireSkylineNormalized.Count;
-                var samplePercent = (double)sample/sampleSkylineNormalized.Count;
-                var fullX = aFullB.ContainsKey(i) ? aFullB[i].Count : 0;
-                var fullP = (double)fullX / full.Count;
-                Console.WriteLine("-- {0,2} -- {5,6} ({6,7:P2} %) -- {1,6} ({3,7:P2} %) -- {2,6} ({4,7:P2} %)", i, entire, sample, entirePercent,
-                    samplePercent, fullX,fullP);
+                int entire = aggregatedEntireBuckets.ContainsKey(i) ? aggregatedEntireBuckets[i].Count : 0;
+                int sample = aggregatedSampleBuckets.ContainsKey(i) ? aggregatedSampleBuckets[i].Count : 0;
+                double entirePercent = (double) entire/entireSkylineNormalized.Count;
+                double samplePercent = (double) sample/sampleSkylineNormalized.Count;
+                int fullX = aFullB.ContainsKey(i) ? aFullB[i].Count : 0;
+                double fullP = (double) fullX/full.Count;
+                Console.WriteLine("-- {0,2} -- {5,6} ({6,7:P2} %) -- {1,6} ({3,7:P2} %) -- {2,6} ({4,7:P2} %)", i,
+                    entire, sample, entirePercent,
+                    samplePercent, fullX, fullP);
             }
 
             Console.WriteLine();
-            Console.WriteLine("{0} - {1} - {2}", entireSkylineNormalized.Count, sampleSkylineNormalized.Count, full.Count);
+            Console.WriteLine("{0} - {1} - {2}", entireSkylineNormalized.Count, sampleSkylineNormalized.Count,
+                full.Count);
             Console.ReadKey();
         }
 
@@ -133,34 +130,39 @@ namespace Utility
                 ShowSkylineAttributes = true
             };
 
-            var entireSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+            DataTable entireSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
+                Helper.ProviderName,
                 EntireSkylineSampleSql);
             //Console.WriteLine("time entire: " + common.TimeInMilliseconds);
             //Console.WriteLine("count entire: " + entireSkylineDataTable.Rows.Count);
 
-            var skylineAttributeColumns = SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
-            var entireSkylineNormalized = prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTable, 0);
+            int[] skylineAttributeColumns = SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
+            Dictionary<int, object[]> entireSkylineNormalized =
+                prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTable, 0);
             SkylineSamplingHelper.NormalizeColumns(entireSkylineNormalized, skylineAttributeColumns);
 
             for (var i = 0; i < 10; i++)
             {
-                var sampleSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                DataTable sampleSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
+                    Helper.ProviderName,
                     SkylineSampleSql);
                 //Console.WriteLine("time sample: " + common.TimeInMilliseconds);
                 //Console.WriteLine("count sample: " + sampleSkylineDataTable.Rows.Count);
 
-                var sampleSkylineNormalized =
+                Dictionary<int, object[]> sampleSkylineNormalized =
                     prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(sampleSkylineDataTable, 0);
                 SkylineSamplingHelper.NormalizeColumns(sampleSkylineNormalized, skylineAttributeColumns);
 
-                var baseRandomSampleNormalized = SkylineSamplingHelper.GetRandomSample(entireSkylineNormalized,
-                    sampleSkylineDataTable.Rows.Count);
-                var secondRandomSampleNormalized = SkylineSamplingHelper.GetRandomSample(entireSkylineNormalized,
-                    sampleSkylineDataTable.Rows.Count);
+                Dictionary<int, object[]> baseRandomSampleNormalized =
+                    SkylineSamplingHelper.GetRandomSample(entireSkylineNormalized,
+                        sampleSkylineDataTable.Rows.Count);
+                Dictionary<int, object[]> secondRandomSampleNormalized =
+                    SkylineSamplingHelper.GetRandomSample(entireSkylineNormalized,
+                        sampleSkylineDataTable.Rows.Count);
 
-                var setCoverageCoveredBySecondRandomSample = SetCoverage.GetCoverage(baseRandomSampleNormalized,
+                double setCoverageCoveredBySecondRandomSample = SetCoverage.GetCoverage(baseRandomSampleNormalized,
                     secondRandomSampleNormalized, skylineAttributeColumns);
-                var setCoverageCoveredBySkylineSample = SetCoverage.GetCoverage(baseRandomSampleNormalized,
+                double setCoverageCoveredBySkylineSample = SetCoverage.GetCoverage(baseRandomSampleNormalized,
                     sampleSkylineNormalized, skylineAttributeColumns);
 
                 Console.WriteLine(setCoverageCoveredBySecondRandomSample);
@@ -175,7 +177,7 @@ namespace Utility
         {
             var common = new SQLCommon {SkylineType = new SkylineBNL()};
 
-            var prefSqlModel = common.GetPrefSqlModelFromPreferenceSql(SkylineSampleSql);
+            PrefSQLModel prefSqlModel = common.GetPrefSqlModelFromPreferenceSql(SkylineSampleSql);
             var randomSubspacesesProducer = new RandomSamplingSkylineSubspacesProducer
             {
                 AllPreferencesCount = prefSqlModel.Skyline.Count,
@@ -183,11 +185,11 @@ namespace Utility
                 SubspaceDimension = prefSqlModel.SkylineSampleDimension
             };
 
-            //var dataTable = common.parseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
-            //    entireSkylineSampleSql);
-            //Console.WriteLine(common.TimeInMilliseconds);
-            //Console.WriteLine(dataTable.Rows.Count);
-            //Console.WriteLine();
+            var dataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                EntireSkylineSampleSql);
+            Console.WriteLine(common.TimeInMilliseconds);
+            Console.WriteLine(dataTable.Rows.Count);
+            Console.WriteLine();
 
             var producedSubspaces = new List<HashSet<HashSet<int>>>();
 
@@ -212,17 +214,17 @@ namespace Utility
             int numberOfRecords;
             string[] parameter;
 
-            var ansiSql = common.GetAnsiSqlFromPrefSqlModel(prefSqlModel);
+            string ansiSql = common.GetAnsiSqlFromPrefSqlModel(prefSqlModel);
             prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out baseQuery, out operators,
                 out numberOfRecords);
 
-            foreach (var subspace in producedSubspaces)
+            foreach (HashSet<HashSet<int>> subspace in producedSubspaces)
             {
                 var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(subspace);
                 var utility = new SamplingSkylineUtility(subspacesProducer);
                 var skylineSample = new SamplingSkyline(utility) {DbProvider = Helper.ProviderName};
 
-                var dataTable = skylineSample.GetSkylineTable(Helper.ConnectionString, baseQuery, operators,
+                DataTable dataTable = skylineSample.GetSkylineTable(Helper.ConnectionString, baseQuery, operators,
                     numberOfRecords, prefSqlModel.WithIncomparable, parameter, common.SkylineType,
                     prefSqlModel.SkylineSampleCount, prefSqlModel.SkylineSampleDimension, 0);
 
