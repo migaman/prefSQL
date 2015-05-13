@@ -22,8 +22,8 @@ namespace Utility
 
             Program prg = new Program();
             //prg.PerformanceTestBNL();
-            //prg.MeasurePerformance();
-            prg.Run();
+            prg.MeasurePerformance();
+            //prg.Run();
 
 
             /*
@@ -71,12 +71,16 @@ namespace Utility
 
             //p.Strategy = null; //all algorithms should be tested
             //p.Strategy = new SkylineSQL();
-            //p.Strategy = new SkylineBNL();
+            p.Strategy = new SkylineBNL();
             //p.Strategy = new SkylineBNLSort();
             //p.Strategy = new SkylineDQ();
             //p.Strategy = new SkylineHexagon();
-            p.Strategy = new SkylineDecisionTree();
-            
+            //p.Strategy = new SkylineDecisionTree();
+
+            p.Sampling = true;
+            p.SamplingSubspacesCount = 10;
+            p.SamplingSubspaceDimension = 3;
+            p.SamplingSamplesCount = 100;
 
             p.GeneratePerformanceQueries();
         }

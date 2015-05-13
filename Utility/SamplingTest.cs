@@ -25,6 +25,7 @@
             TestExecutionForPerformance();
             //TestForSetCoverage();
             //TestForClusterAnalysis();
+            Console.ReadKey();
         }
 
         private static void TestForClusterAnalysis()
@@ -121,7 +122,6 @@
             Console.WriteLine();
             Console.WriteLine("{0} - {1} - {2}", entireSkylineNormalized.Count, sampleSkylineNormalized.Count,
                 full.Count);
-            Console.ReadKey();
         }
 
         private static void TestForSetCoverage()
@@ -187,15 +187,15 @@
                 SubspaceDimension = prefSqlModel.SkylineSampleDimension
             };
 
-            var dataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
-                EntireSkylineSampleSql);
-            Console.WriteLine(common.TimeInMilliseconds);
-            Console.WriteLine(dataTable.Rows.Count);
-            Console.WriteLine();
+            //var dataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+            //    EntireSkylineSampleSql);
+            //Console.WriteLine(common.TimeInMilliseconds);
+            //Console.WriteLine(dataTable.Rows.Count);
+            //Console.WriteLine();
 
             var producedSubspaces = new List<HashSet<HashSet<int>>>();
 
-            for (var i = 0; i < 100; i++)
+            for (var i = 0; i < 10; i++)
             {
                 producedSubspaces.Add(randomSubspacesesProducer.GetSubspaces());
             }
@@ -224,7 +224,7 @@
             {
                 var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(subspace);
                 var utility = new SamplingSkylineUtility(subspacesProducer);
-                var skylineSample = new SamplingSkyline(utility) {DbProvider = Helper.ProviderName};
+                var skylineSample = new SamplingSkyline(utility) {Provider = Helper.ProviderName};
 
                 DataTable dataTable = skylineSample.GetSkylineTable(Helper.ConnectionString, strQuery, operators,
                     numberOfRecords, prefSqlModel.WithIncomparable, parameter, common.SkylineType,

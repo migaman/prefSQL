@@ -15,6 +15,9 @@ using Utility.Model;
 
 namespace Utility
 {
+    using prefSQL.SQLParserTest;
+    using prefSQL.SQLSkyline.SamplingSkyline;
+
     /// <summary>
     /// Performance class implented on a similar idea like Lofi (2014)
     /// 
@@ -100,6 +103,13 @@ namespace Utility
             get { return _randomDraws; }
             set { _randomDraws = value; }
         }
+
+        public bool Sampling { get; set; }
+        internal int SamplingSubspacesCount { get; set; }
+
+        internal int SamplingSubspaceDimension { get; set; }
+
+        public int SamplingSamplesCount { get; set; }
 
         #endregion
 
@@ -537,7 +547,16 @@ namespace Utility
 
 
                 StringBuilder sb = new StringBuilder();
-                string strSeparatorLine = FormatLineString('-', "", "", "", "", "", "", "", "");
+                string strSeparatorLine;
+                if (Sampling)
+                {
+                     strSeparatorLine = FormatLineStringSample('-', "", "", "", "", "", "", "", "","","","","","","","","");
+                }
+                else
+                {
+                     strSeparatorLine = FormatLineString('-', "", "", "", "", "", "", "", "");
+                }
+                
                 if (GenerateScript == false)
                 {
                     //Header
@@ -549,10 +568,23 @@ namespace Utility
                     sb.AppendLine("              Table size: " + TableSize.ToString());
                     sb.AppendLine("          Dimension from: " + _minDimensions.ToString());
                     sb.AppendLine("            Dimension to: " + _dimensions.ToString());
+                    if (Sampling)
+                    {
+                        sb.AppendLine("                Sampling: true");
+                        sb.AppendLine("         Subspaces Count: " + SamplingSubspacesCount);
+                        sb.AppendLine("      Subspace Dimension: " + SamplingSubspaceDimension);
+                        sb.AppendLine("           Sampling Runs: " + SamplingSamplesCount);
+                    }
                     //sb.AppendLine("Correlation Coefficients:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
                     //sb.AppendLine("           Cardinalities:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
                     sb.AppendLine("");
-                    sb.AppendLine(FormatLineString(' ', "preference set", "trial", "dimensions", "skyline size", "time total", "time algorithm", "sum correlation*", "product cardinality"));
+                    if (Sampling)
+                    {
+                        sb.AppendLine(FormatLineStringSample(' ', "preference set", "trial", "dimensions", "avg skyline size", "avg time total", "avg time algorithm", "min time", "max time", "variance time", "stddeviation time", "min size", "max size", "variance size", "stddeviation size", "sum correlation*", "product cardinality"));
+                    } else
+                    {
+                        sb.AppendLine(FormatLineString(' ', "preference set", "trial", "dimensions", "skyline size", "time total", "time algorithm", "sum correlation*", "product cardinality"));                        
+                    }
                     sb.AppendLine(strSeparatorLine);
                     Debug.Write(sb);
                 }
@@ -612,52 +644,118 @@ namespace Utility
                         {
                             for (int iTrial = 0; iTrial < Trials; iTrial++)
                             {
-                                Stopwatch sw = new Stopwatch();
-
                                 try
                                 {
+                                    Stopwatch sw = new Stopwatch();
+
                                     double correlation = SearchCorrelation(subPreferences, correlationMatrix);
                                     double cardinality = SearchCardinality(subPreferences, listCardinality);
-                                    
 
-                                    sw.Start();
-                                    if (UseCLR)
+                                    if (Sampling)
                                     {
-                                        string strSP = parser.ParsePreferenceSQL(strSQL);
-                                        SqlDataAdapter dap = new SqlDataAdapter(strSP, cnnSQL);
-                                        dt.Clear(); //clear datatable
-                                        dap.Fill(dt);
+                                        string strQuery;
+                                        string operators;
+                                        int numberOfRecords;
+                                        string[] parameter;
+
+                                        strSQL+=" SAMPLE BY RANDOM_SUBSETS COUNT "+SamplingSubspacesCount+" DIMENSION "+SamplingSubspaceDimension;
+
+                                        PrefSQLModel prefSqlModel = parser.GetPrefSqlModelFromPreferenceSql(strSQL);
+                                        string ansiSql = parser.GetAnsiSqlFromPrefSqlModel(prefSqlModel);
+                                        prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out strQuery, out operators,
+                                            out numberOfRecords);
+
+                                        var randomSubspacesesProducer = new RandomSamplingSkylineSubspacesProducer
+                                        {
+                                            AllPreferencesCount = preferences.Count,
+                                            SubspacesCount = SamplingSubspacesCount,
+                                            SubspaceDimension = SamplingSubspaceDimension
+                                        };
+
+                                        var producedSubspaces = new List<HashSet<HashSet<int>>>();
+                                        for (var ii = 0; ii < SamplingSamplesCount; ii++)
+                                        {
+                                            producedSubspaces.Add(randomSubspacesesProducer.GetSubspaces());
+                                        }
+
+                                        List<long> subspaceObjects = new List<long>();
+                                        List<long> subspaceTime = new List<long>();
+                                        List<long> subspaceTimeElapsed = new List<long>();
+
+                                        foreach (HashSet<HashSet<int>> subspace in producedSubspaces)
+                                        {
+                                            sw.Restart();
+                                            var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(subspace);
+                                            var utility = new SamplingSkylineUtility(subspacesProducer);
+                                            var skylineSample = new SamplingSkyline(utility) { Provider = Helper.ProviderName };
+
+                                            DataTable dataTable = skylineSample.GetSkylineTable(Helper.ConnectionString, strQuery, operators,
+                                                numberOfRecords, prefSqlModel.WithIncomparable, parameter, parser.SkylineType,
+                                                prefSqlModel.SkylineSampleCount, prefSqlModel.SkylineSampleDimension, 0);
+
+                                            sw.Stop();
+
+                                            subspaceObjects.Add(dataTable.Rows.Count);
+                                            subspaceTime.Add(skylineSample.TimeMilliseconds);
+                                            subspaceTimeElapsed.Add(sw.ElapsedMilliseconds);
+                                        }
+
+                                        long time = (long)(subspaceTime.Average()+.5);
+                                        long objects = (long)(subspaceObjects.Average() + .5);
+                                        long elapsed = (long)(subspaceTimeElapsed.Average() + .5);
+
+                                        reportDimensions.Add(i);
+                                        reportSkylineSize.Add(objects);
+                                        reportTimeTotal.Add(elapsed);
+                                        reportTimeAlgorithm.Add(time);
+                                        reportCorrelation.Add(correlation);
+                                        reportCardinality.Add(cardinality);
+                                        
+                                        //trial|dimensions|skyline size|time total|time algorithm
+                                        string strTrial = iTrial + 1 + " / " + _trials;
+                                        string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
+
+                                        Mathematic mathematic = new Mathematic();
+                                        string strLine = FormatLineStringSample(strPreferenceSet, strTrial, i, objects, elapsed, time, subspaceTime.Min(), subspaceTime.Max(), mathematic.GetVariance(subspaceTime), mathematic.GetStdDeviation(subspaceTime), subspaceObjects.Min(), subspaceObjects.Max(), mathematic.GetVariance(subspaceObjects), mathematic.GetStdDeviation(subspaceObjects), correlation, cardinality);
+
+                                        Debug.WriteLine(strLine);
+                                        sb.AppendLine(strLine);                                        
                                     }
                                     else
                                     {
-                                        parser.Cardinality = (long)cardinality;
-                                        dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strSQL);
+                                        sw.Start();
+                                        if (UseCLR)
+                                        {
+                                            string strSP = parser.ParsePreferenceSQL(strSQL);
+                                            SqlDataAdapter dap = new SqlDataAdapter(strSP, cnnSQL);
+                                            dt.Clear(); //clear datatable
+                                            dap.Fill(dt);
+                                        }
+                                        else
+                                        {
+                                            parser.Cardinality = (long)cardinality;
+                                            dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strSQL);
+                                        }
+                                        long timeAlgorithm = parser.TimeInMilliseconds;
+                                        long numberOfOperations = parser.NumberOfOperations;
+                                        sw.Stop();
+
+                                        reportDimensions.Add(i);
+                                        reportSkylineSize.Add(dt.Rows.Count);
+                                        reportTimeTotal.Add(sw.ElapsedMilliseconds);
+                                        reportTimeAlgorithm.Add(timeAlgorithm);
+                                        reportCorrelation.Add(correlation);
+                                        reportCardinality.Add(cardinality);
+
+                                        //trial|dimensions|skyline size|time total|time algorithm
+                                        string strTrial = iTrial + 1 + " / " + _trials;
+                                        string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
+
+                                        string strLine = FormatLineString(strPreferenceSet, strTrial, i, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality);
+
+                                        Debug.WriteLine(strLine);
+                                        sb.AppendLine(strLine);                                        
                                     }
-                                    long timeAlgorithm = parser.TimeInMilliseconds;
-                                    long numberOfOperations = parser.NumberOfOperations;
-                                    sw.Stop();
-                                    
-                                    reportDimensions.Add(i);
-                                    reportSkylineSize.Add(dt.Rows.Count);
-                                    reportTimeTotal.Add(sw.ElapsedMilliseconds);
-                                    reportTimeAlgorithm.Add(timeAlgorithm);
-                                    reportCorrelation.Add(correlation);
-                                    reportCardinality.Add(cardinality);
-
-                                    //trial|dimensions|skyline size|time total|time algorithm
-                                    string strTrial = iTrial + 1 + " / " + _trials;
-                                    string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
-
-
-                                    string strLine = FormatLineString(strPreferenceSet, strTrial, i, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality);
-
-
-                                    Debug.WriteLine(strLine);
-                                    sb.AppendLine(strLine);
-
-
-
-
                                 }
                                 catch (Exception e)
                                 {
@@ -1020,11 +1118,40 @@ namespace Utility
             return string.Join("|", line);
         }
 
+        private string FormatLineStringSample(char paddingChar, string strTitle, string strTrial, string strDimension, string strSkyline, string strTimeTotal, string strTimeAlgo, string minTime, string maxTime, string varianceTime, string sedDevTime, string minSize, string maxSize, string varianceSize, string sedDevSize, string strCorrelation, string strCardinality)
+        {
+            //average line
+            //trial|dimensions|skyline size|time total|time algorithm|correlation|
+            string[] line = new string[17];
+            line[0] = strTitle.PadLeft(14, paddingChar);
+            line[1] = strTrial.PadLeft(11, paddingChar);
+            line[2] = strDimension.PadLeft(10, paddingChar);
+            line[3] = strSkyline.PadLeft(20, paddingChar);
+            line[4] = strTimeTotal.PadLeft(20, paddingChar);
+            line[5] = strTimeAlgo.PadLeft(20, paddingChar);
+            line[6] = minTime.PadLeft(20, paddingChar);
+            line[7] = maxTime.PadLeft(20, paddingChar);
+            line[8] = varianceTime.PadLeft(20, paddingChar);
+            line[9] = sedDevTime.PadLeft(20, paddingChar);
+            line[10] = minSize.PadLeft(20, paddingChar);
+            line[11] = maxSize.PadLeft(20, paddingChar);
+            line[12] = varianceSize.PadLeft(20, paddingChar);
+            line[13] = sedDevSize.PadLeft(20, paddingChar);
+            line[14] = strCorrelation.PadLeft(20, paddingChar);
+            line[15] = strCardinality.PadLeft(25, paddingChar);
+            line[16] = "";
+            return string.Join("|", line);
+        }
+
         private string FormatLineString(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double correlation, double cardinality)
         {
             return FormatLineString(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(), Math.Round(skyline, 2).ToString(), Math.Round(timeTotal, 2).ToString(), Math.Round(timeAlgo, 2).ToString(), Math.Round(correlation, 2).ToString(), ToLongString(Math.Round(cardinality, 2)));
         }
 
+        private string FormatLineStringSample(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double minTime, double maxTime, double varianceTime, double stddeviationTime, double minSize, double maxSize, double varianceSize, double stddeviationSize, double correlation, double cardinality)
+        {
+            return FormatLineStringSample(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(), Math.Round(skyline, 2).ToString(), Math.Round(timeTotal, 2).ToString(), Math.Round(timeAlgo, 2).ToString(), Math.Round(minTime, 2).ToString(), Math.Round(maxTime, 2).ToString(), Math.Round(varianceTime, 2).ToString(), Math.Round(stddeviationTime, 2).ToString(), Math.Round(minSize, 2).ToString(), Math.Round(maxSize, 2).ToString(), Math.Round(varianceSize, 2).ToString(), Math.Round(stddeviationSize, 2).ToString(), Math.Round(correlation, 2).ToString(), ToLongString(Math.Round(cardinality, 2)));
+        }
 
         
         /// <summary>
