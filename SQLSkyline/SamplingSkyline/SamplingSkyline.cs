@@ -26,7 +26,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// <summary>
         ///     TODO: comment
         /// </summary>
-        public string DbProvider { get; set; }
+        public string Provider { get; set; }
 
         private SamplingSkylineUtility Utility
         {
@@ -79,7 +79,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
 
             ConfigureUtility(subspacesCount, subspaceDimension, skylineAlgorithmParameters.OperatorsCollection.Count);
 
-            DataTable fullDataTable = Helper.GetDataTableFromSQL(query, dbConnection, DbProvider);
+            DataTable fullDataTable = Helper.GetDataTableFromSQL(query, dbConnection, Provider);
             Dictionary<int, object[]> database = Helper.GetDictionaryFromDataTable(fullDataTable,
                 Utility.AllPreferencesCount + uniqueIdColumnIndex);
             var dataTableTemplate = new DataTable();
@@ -211,14 +211,14 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// <summary>
         ///     TODO: comment
         /// </summary>
-        /// <param name="databaseAsObjectArray"></param>
+        /// <param name="database"></param>
         /// <param name="reducedObjectArrayFromDataTable"></param>
         /// <returns></returns>
         private static Dictionary<int, object[]> GetDatabaseFromDataTable(
-            IReadOnlyDictionary<int, object[]> databaseAsObjectArray, DataTable reducedObjectArrayFromDataTable)
+            IReadOnlyDictionary<int, object[]> database, DataTable reducedObjectArrayFromDataTable)
         {
             return reducedObjectArrayFromDataTable.Rows.Cast<DataRow>()
-                .ToDictionary(dataRow => (int) dataRow[0], dataRow => databaseAsObjectArray[(int) dataRow[0]]);
+                .ToDictionary(row => (int) row[0], row => database[(int) row[0]]);
         }
 
         /// <summary>

@@ -155,7 +155,7 @@ namespace prefSQL.SQLParser
                     else
                     {
                         SamplingSkyline skylineSample = new SamplingSkyline();
-                        skylineSample.DbProvider = DriverString;
+                        skylineSample.Provider = DriverString;
                         dt = skylineSample.GetSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords,
                             model.WithIncomparable, parameter, strategy, model.SkylineSampleCount, model.SkylineSampleDimension, 0);
                         TimeInMilliseconds = skylineSample.TimeMilliseconds;
