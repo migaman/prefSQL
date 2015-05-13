@@ -598,7 +598,15 @@ namespace Utility
                 List<double> reportCorrelation = new List<double>();
                 List<double> reportCardinality = new List<double>();
 
-
+                List<long> reportSkylineSampleSizeMin = new List<long>();
+                List<long> reportSampleTimeAlgorithmMin = new List<long>();
+                List<long> reportSkylineSampleSizeMax = new List<long>();
+                List<long> reportSampleTimeAlgorithmMax = new List<long>();
+                List<double> reportSkylineSampleSizeVar = new List<double>();
+                List<double> reportSampleTimeAlgorithmVar = new List<double>();
+                List<double> reportSkylineSampleSizeStdDev = new List<double>();
+                List<double> reportSampleTimeAlgorithmStdDev = new List<double>();
+                           
                 //For each preference set in the preference list
                 for (int iPreferenceIndex = 0; iPreferenceIndex < listPreferences.Count; iPreferenceIndex++)
                 {
@@ -678,9 +686,9 @@ namespace Utility
                                             producedSubspaces.Add(randomSubspacesesProducer.GetSubspaces());
                                         }
 
-                                        List<long> subspaceObjects = new List<long>();
-                                        List<long> subspaceTime = new List<long>();
-                                        List<long> subspaceTimeElapsed = new List<long>();
+                                    var subspaceObjects = new List<long>();
+                var subspaceTime = new List<long>();
+                var subspaceTimeElapsed = new List<long>();
 
                                         foreach (HashSet<HashSet<int>> subspace in producedSubspaces)
                                         {
@@ -710,12 +718,21 @@ namespace Utility
                                         reportTimeAlgorithm.Add(time);
                                         reportCorrelation.Add(correlation);
                                         reportCardinality.Add(cardinality);
-                                        
+
+                                        var mathematic = new Mathematic();
+                                        reportSkylineSampleSizeMin.Add(subspaceObjects.Min());
+                                        reportSampleTimeAlgorithmMin.Add(subspaceTime.Min());
+                                        reportSkylineSampleSizeMax.Add(subspaceObjects.Max());
+                                        reportSampleTimeAlgorithmMax.Add(subspaceTime.Max());
+                                        reportSkylineSampleSizeVar.Add(mathematic.GetVariance(subspaceObjects));
+                                        reportSampleTimeAlgorithmVar.Add(mathematic.GetVariance(subspaceTime));
+                                        reportSkylineSampleSizeStdDev.Add(mathematic.GetStdDeviation(subspaceObjects));
+                                        reportSampleTimeAlgorithmStdDev.Add(mathematic.GetStdDeviation(subspaceTime));
+
                                         //trial|dimensions|skyline size|time total|time algorithm
                                         string strTrial = iTrial + 1 + " / " + _trials;
                                         string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
 
-                                        Mathematic mathematic = new Mathematic();
                                         string strLine = FormatLineStringSample(strPreferenceSet, strTrial, i, objects, elapsed, time, subspaceTime.Min(), subspaceTime.Max(), mathematic.GetVariance(subspaceTime), mathematic.GetStdDeviation(subspaceTime), subspaceObjects.Min(), subspaceObjects.Max(), mathematic.GetVariance(subspaceObjects), mathematic.GetStdDeviation(subspaceObjects), correlation, cardinality);
 
                                         Debug.WriteLine(strLine);
@@ -795,7 +812,14 @@ namespace Utility
                 ///////////////////////////////
                 if (GenerateScript == false)
                 {
-                    AddSummary(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportCorrelation, reportCardinality);
+                    if (Sampling)
+                    {
+                        AddSummarySample(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportSampleTimeAlgorithmMin, reportSampleTimeAlgorithmMax, reportSampleTimeAlgorithmVar, reportSampleTimeAlgorithmStdDev, reportSkylineSampleSizeMin, reportSkylineSampleSizeMax, reportSkylineSampleSizeVar, reportSkylineSampleSizeStdDev, reportCorrelation, reportCardinality);
+                    }
+                    else
+                    {
+                        AddSummary(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportCorrelation, reportCardinality);
+                    }
                 }
 
                 //Write some empty lines (clarification in output window)
@@ -1069,6 +1093,35 @@ namespace Utility
 
         #region formatOutput
 
+        private void AddSummarySample(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions,
+            List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, List<long> subspaceTimeMin, List<long> subspaceTimeMax, List<double> subspaceTimeVar, List<double> subspaceTimeStdDev, List<long> subspaceObjectsMin, List<long> subspaceObjectsMax, List<double> subspaceObjectsVar, List<double> subspaceObjectsStdDev, List<double> reportCorrelation, List<double> reportCardinality)
+        {
+            //Separator Line
+            Debug.WriteLine(strSeparatorLine);
+            sb.AppendLine(strSeparatorLine);
+
+            var mathematic = new Mathematic();
+            string strAverage = FormatLineStringSample("average", "", reportDimensions.Average(), reportSkylineSize.Average(), reportTimeTotal.Average(), reportTimeAlgorithm.Average(), subspaceTimeMin.Average(), subspaceTimeMax.Average(), subspaceTimeVar.Average(), subspaceTimeStdDev.Average(), subspaceObjectsMin.Average(), subspaceObjectsMax.Average(), subspaceObjectsVar.Average(), subspaceObjectsStdDev.Average(), reportCorrelation.Average(), reportCardinality.Average());
+            string strMin = FormatLineStringSample("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(), reportTimeTotal.Min(), reportTimeAlgorithm.Min(), subspaceTimeMin.Min(), subspaceTimeMax.Min(), subspaceTimeVar.Min(), subspaceTimeStdDev.Min(), subspaceObjectsMin.Min(), subspaceObjectsMax.Min(), subspaceObjectsVar.Min(), subspaceObjectsStdDev.Min(), reportCorrelation.Min(), reportCardinality.Min());
+            string strMax = FormatLineStringSample("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), subspaceTimeMin.Max(), subspaceTimeMax.Max(), subspaceTimeVar.Max(), subspaceTimeStdDev.Max(), subspaceObjectsMin.Max(), subspaceObjectsMax.Max(), subspaceObjectsVar.Max(), subspaceObjectsStdDev.Max(), reportCorrelation.Max(), reportCardinality.Max());
+            string strVar = FormatLineStringSample("variance", "", mathematic.GetVariance(reportDimensions), mathematic.GetVariance(reportSkylineSize), mathematic.GetVariance(reportTimeTotal), mathematic.GetVariance(reportTimeAlgorithm), mathematic.GetVariance(subspaceTimeMin), mathematic.GetVariance(subspaceTimeMax), mathematic.GetVariance(subspaceTimeVar), mathematic.GetVariance(subspaceTimeStdDev), mathematic.GetVariance(subspaceObjectsMin), mathematic.GetVariance(subspaceObjectsMax), mathematic.GetVariance(subspaceObjectsVar), mathematic.GetVariance(subspaceObjectsStdDev), mathematic.GetVariance(reportCorrelation), mathematic.GetVariance(reportCardinality));
+            string strStd = FormatLineStringSample("stddeviation", "", mathematic.GetStdDeviation(reportDimensions), mathematic.GetStdDeviation(reportSkylineSize), mathematic.GetStdDeviation(reportTimeTotal), mathematic.GetStdDeviation(reportTimeAlgorithm), mathematic.GetStdDeviation(subspaceTimeMin), mathematic.GetStdDeviation(subspaceTimeMax), mathematic.GetStdDeviation(subspaceTimeVar), mathematic.GetStdDeviation(subspaceTimeStdDev), mathematic.GetStdDeviation(subspaceObjectsMin), mathematic.GetStdDeviation(subspaceObjectsMax), mathematic.GetStdDeviation(subspaceObjectsVar), mathematic.GetStdDeviation(subspaceObjectsStdDev), mathematic.GetStdDeviation(reportCorrelation), mathematic.GetStdDeviation(reportCardinality));
+
+            sb.AppendLine(strAverage);
+            sb.AppendLine(strMin);
+            sb.AppendLine(strMax);
+            sb.AppendLine(strVar);
+            sb.AppendLine(strStd);
+            Debug.WriteLine(strAverage);
+            Debug.WriteLine(strMin);
+            Debug.WriteLine(strMax);
+            Debug.WriteLine(strVar);
+            Debug.WriteLine(strStd);
+
+            //Separator Line
+            sb.AppendLine(strSeparatorLine);
+            Debug.WriteLine(strSeparatorLine);
+        }
 
         private void AddSummary(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions, List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, List<double> reportCorrelation, List<double> reportCardinality)
         {
