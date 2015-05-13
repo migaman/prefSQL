@@ -50,13 +50,15 @@
             DbDataAdapter dap = factory.CreateDataAdapter();
             DbCommand selectCommand = connection.CreateCommand();
             selectCommand.CommandTimeout = 0; //infinite timeout
-            string strPrefSQL =
-                common.GetAnsiSqlFromPrefSqlModel(common.GetPrefSqlModelFromPreferenceSql(EntireSkylineSampleSql));
-            int iPosStart = strPrefSQL.IndexOf("'");
-            string strtmp = strPrefSQL.Substring(iPosStart);
-            string[] parameter = Regex.Split(strtmp, ",(?=(?:[^']*'[^']*')*[^']*$)");
-            string strQuery = parameter[0].Trim();
-            strQuery = strQuery.Replace("''", "'").Trim('\'');
+
+            string strQuery;
+            string operators;
+            int numberOfRecords;
+            string[] parameter;
+
+            string ansiSql = common.GetAnsiSqlFromPrefSqlModel(common.GetPrefSqlModelFromPreferenceSql(EntireSkylineSampleSql));
+            prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out strQuery, out operators,
+                out numberOfRecords);
 
             selectCommand.CommandText = strQuery;
             dap.SelectCommand = selectCommand;
@@ -209,13 +211,13 @@
             var objectsCount = 0;
             var timeSpent = 0L;
 
-            string baseQuery;
+            string strQuery;
             string operators;
             int numberOfRecords;
             string[] parameter;
 
             string ansiSql = common.GetAnsiSqlFromPrefSqlModel(prefSqlModel);
-            prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out baseQuery, out operators,
+            prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out strQuery, out operators,
                 out numberOfRecords);
 
             foreach (HashSet<HashSet<int>> subspace in producedSubspaces)
@@ -224,7 +226,7 @@
                 var utility = new SamplingSkylineUtility(subspacesProducer);
                 var skylineSample = new SamplingSkyline(utility) {DbProvider = Helper.ProviderName};
 
-                DataTable dataTable = skylineSample.GetSkylineTable(Helper.ConnectionString, baseQuery, operators,
+                DataTable dataTable = skylineSample.GetSkylineTable(Helper.ConnectionString, strQuery, operators,
                     numberOfRecords, prefSqlModel.WithIncomparable, parameter, common.SkylineType,
                     prefSqlModel.SkylineSampleCount, prefSqlModel.SkylineSampleDimension, 0);
 
