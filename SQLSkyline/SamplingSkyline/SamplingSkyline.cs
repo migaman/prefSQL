@@ -1,12 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using Microsoft.SqlServer.Server;
-
 namespace prefSQL.SQLSkyline.SamplingSkyline
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Data;
+    using System.Diagnostics;
+    using System.Linq;
+    using Microsoft.SqlServer.Server;
+
     /// <summary>
     ///     Implementation of sampling skyline algorithm according to the algorithm pseudocode in Balke, W.-T., Zheng, J. X., &
     ///     Güntzer, U. (2005).
@@ -26,19 +26,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// <summary>
         ///     TODO: comment
         /// </summary>
-        public string Provider { get; set; }
-
-        private SamplingSkylineUtility Utility
-        {
-            get { return _utility; }
-        }
-
-        /// <summary>
-        ///     TODO: comment
-        /// </summary>
         public long TimeMilliseconds;
-
-        public long NumberOfOperations { get; set; }
 
         /// <summary>
         ///     TODO: comment
@@ -55,6 +43,18 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         {
             _utility = utility;
         }
+
+        /// <summary>
+        ///     TODO: comment
+        /// </summary>
+        public string Provider { get; set; }
+
+        private SamplingSkylineUtility Utility
+        {
+            get { return _utility; }
+        }
+
+        public long NumberOfOperations { get; set; }
 
         /// <summary>
         ///     TODO: comment
@@ -80,7 +80,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             ConfigureUtility(subspacesCount, subspaceDimension, skylineAlgorithmParameters.OperatorsCollection.Count);
 
             DataTable fullDataTable = Helper.GetDataTableFromSQL(query, dbConnection, Provider);
-            Dictionary<int, object[]> database = Helper.GetDictionaryFromDataTable(fullDataTable,
+            IReadOnlyDictionary<int, object[]> database = Helper.GetDictionaryFromDataTable(fullDataTable,
                 Utility.AllPreferencesCount + uniqueIdColumnIndex);
             var dataTableTemplate = new DataTable();
             SqlDataRecord dataRecordTemplate = Helper.BuildDataRecord(fullDataTable,
@@ -106,7 +106,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// <param name="skylineStrategy"></param>
         /// <param name="skylineAlgorithmParameters"></param>
         /// <returns></returns>
-        internal DataTable GetSkyline(Dictionary<int, object[]> database, DataTable dataTableTemplate,
+        internal DataTable GetSkyline(IReadOnlyDictionary<int, object[]> database, DataTable dataTableTemplate,
             SqlDataRecord dataRecordTemplate, SkylineStrategy skylineStrategy,
             SkylineAlgorithmParameters skylineAlgorithmParameters)
         {
@@ -131,12 +131,12 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                 TimeMilliseconds += skylineStrategy.TimeMilliseconds;
                 sw.Restart();
 
-                Dictionary<int, object[]> subspaceDatabase = GetDatabaseFromDataTable(database, subspaceDataTable);
+                IDictionary<int, object[]> subspaceDatabase = GetDatabaseFromDataTable(database, subspaceDataTable);
 
-                HashSet<int> equalRowsWithRespectToSubspaceColumns =
+                List<HashSet<int>> rowsWithEqualValuesWithRespectToSubspaceColumns =
                     CompareEachRowWithRespectToSubspaceColumnsPairwise(subspaceDatabase, subspace);
 
-                if (equalRowsWithRespectToSubspaceColumns.Count > 0)
+                foreach (HashSet<int> rowsWithEqualValues in rowsWithEqualValuesWithRespectToSubspaceColumns)
                 {
                     subpaceOperators = string.Join(";",
                         GetOperatorsWithIgnoredEntries(skylineAlgorithmParameters.OperatorsCollection.ToArray(),
@@ -144,17 +144,21 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                     skylineAlgorithmSubspaceParameters = new SkylineAlgorithmParameters(subpaceOperators,
                         skylineAlgorithmParameters);
 
+                    IReadOnlyDictionary<int, object[]> rowsWithEqualValuesDatabase = GetSubsetOfDatabase(database,
+                        rowsWithEqualValues);
+
                     sw.Stop();
                     TimeMilliseconds += sw.ElapsedMilliseconds;
-                    DataTable subspaceComplementDataTable = GetSkylineTable(subspaceDatabase, dataTableTemplate,
+                    DataTable subspaceComplementDataTable = GetSkylineTable(rowsWithEqualValuesDatabase,
+                        dataTableTemplate,
                         dataRecordTemplate, skylineStrategy, skylineAlgorithmSubspaceParameters);
                     TimeMilliseconds += skylineStrategy.TimeMilliseconds;
                     sw.Restart();
 
-                    Dictionary<int, object[]> subspaceComplementDatabase = GetDatabaseFromDataTable(database,
+                    IDictionary<int, object[]> subspaceComplementDatabase = GetDatabaseFromDataTable(database,
                         subspaceComplementDataTable);
 
-                    RemoveDominatedObjects(equalRowsWithRespectToSubspaceColumns,
+                    RemoveDominatedObjects(rowsWithEqualValues,
                         subspaceComplementDatabase, subspaceDatabase);
                 }
 
@@ -177,7 +181,14 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             return skylineSampleReturn;
         }
 
-        private static DataTable GetSkylineTable(Dictionary<int, object[]> subspaceDatabase, DataTable dataTableTemplate,
+        private IReadOnlyDictionary<int, object[]> GetSubsetOfDatabase(IReadOnlyDictionary<int, object[]> database,
+            IEnumerable<int> erwrtsc)
+        {
+            return erwrtsc.ToDictionary(erw => erw, erw => database[erw]);
+        }
+
+        private static DataTable GetSkylineTable(IReadOnlyDictionary<int, object[]> subspaceDatabase,
+            DataTable dataTableTemplate,
             SqlDataRecord dataRecordTemplate, SkylineStrategy skylineStrategy,
             SkylineAlgorithmParameters skylineAlgorithmParameters)
         {
@@ -193,17 +204,17 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// <summary>
         ///     TODO: comment
         /// </summary>
-        /// <param name="skylineSampleOrigObjects"></param>
-        /// <param name="subspaceDataTableOrigObjects"></param>
+        /// <param name="sourceDatabase"></param>
+        /// <param name="destinationDatabase"></param>
         private static void MergeSubspaceSkylineIntoFinalSkylineSample(
-            Dictionary<int, object[]> skylineSampleOrigObjects,
-            IDictionary<int, object[]> subspaceDataTableOrigObjects)
+            IDictionary<int, object[]> sourceDatabase,
+            IDictionary<int, object[]> destinationDatabase)
         {
-            foreach (var subspaceDataTableOrigObject in skylineSampleOrigObjects)
+            foreach (KeyValuePair<int, object[]> subspaceDataTableOrigObject in sourceDatabase)
             {
-                if (!subspaceDataTableOrigObjects.ContainsKey(subspaceDataTableOrigObject.Key))
+                if (!destinationDatabase.ContainsKey(subspaceDataTableOrigObject.Key))
                 {
-                    subspaceDataTableOrigObjects.Add(subspaceDataTableOrigObject.Key, subspaceDataTableOrigObject.Value);
+                    destinationDatabase.Add(subspaceDataTableOrigObject.Key, subspaceDataTableOrigObject.Value);
                 }
             }
         }
@@ -214,7 +225,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// <param name="database"></param>
         /// <param name="reducedObjectArrayFromDataTable"></param>
         /// <returns></returns>
-        private static Dictionary<int, object[]> GetDatabaseFromDataTable(
+        private static IDictionary<int, object[]> GetDatabaseFromDataTable(
             IReadOnlyDictionary<int, object[]> database, DataTable reducedObjectArrayFromDataTable)
         {
             return reducedObjectArrayFromDataTable.Rows.Cast<DataRow>()
@@ -249,26 +260,45 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// <param name="subspaceDatabase"></param>
         /// <param name="columnsUsedInSubspace"></param>
         /// <returns></returns>
-        private static HashSet<int> CompareEachRowWithRespectToSubspaceColumnsPairwise(
-            Dictionary<int, object[]> subspaceDatabase, IEnumerable<int> columnsUsedInSubspace)
+        private List<HashSet<int>> CompareEachRowWithRespectToSubspaceColumnsPairwise(
+            IDictionary<int, object[]> subspaceDatabase, IEnumerable<int> columnsUsedInSubspace)
         {
-            var equalRowsWithRespectToSubspaceColumns = new HashSet<int>();
+            var equalRowsWithRespectToSubspaceColumns = new Dictionary<long[], HashSet<int>>(new ArrayEqualityComparer());
 
             List<int> columnsUsedInSubspaceList = columnsUsedInSubspace.ToList();
             int columnsInSubspaceCount = columnsUsedInSubspaceList.Count;
 
-            foreach (KeyValuePair<int, object[]> i in subspaceDatabase)
-            {
-                object[] iValue = i.Value;
+            List<object[]> myList = subspaceDatabase.Values.ToList();
+            myList.Sort(
+                (object1, object2) =>
+                    ((long) object1[columnsUsedInSubspaceList[0]]).CompareTo(
+                        (long) object2[columnsUsedInSubspaceList[0]]));
 
-                foreach (KeyValuePair<int, object[]> j in subspaceDatabase)
+            int sortedColumn = columnsUsedInSubspaceList[0];
+
+            int allPrefs = Utility.AllPreferencesCount;
+
+            for (var i = 0; i < myList.Count; i++)
+            {
+                object[] iValue = myList[i];
+                var iKey = (int) iValue[allPrefs];
+
+                for (int j = i + 1; j < myList.Count; j++)
                 {
-                    if (i.Key == j.Key)
+                    object[] jValue = myList[j];
+
+                    if ((long) jValue[sortedColumn] > (long) iValue[sortedColumn])
                     {
+                        j = myList.Count;
                         continue;
                     }
 
-                    object[] jValue = j.Value;
+                    var jKey = (int) jValue[allPrefs];
+
+                    if (iKey == jKey)
+                    {
+                        continue;
+                    }
 
                     var isEqual = true;
 
@@ -285,15 +315,34 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                         }
                     }
 
-                    if (isEqual)
+                    if (!isEqual)
                     {
-                        equalRowsWithRespectToSubspaceColumns.Add(i.Key);
-                        equalRowsWithRespectToSubspaceColumns.Add(j.Key);
+                        continue;
                     }
+
+                    var equalCombination = new long[columnsInSubspaceCount];
+
+                    for (var k = 0; k < columnsInSubspaceCount; k++)
+                    {
+                        int column = columnsUsedInSubspaceList[k];
+                        var iColumnValue = (long) iValue[column];
+                        equalCombination[k] = iColumnValue;
+                    }
+
+                    if (!equalRowsWithRespectToSubspaceColumns.ContainsKey(equalCombination))
+                    {
+                        equalRowsWithRespectToSubspaceColumns.Add(equalCombination, new HashSet<int>());
+                    }
+
+                    HashSet<int> equalRowsWithRespectToSubspaceColumn =
+                        equalRowsWithRespectToSubspaceColumns[equalCombination];
+
+                    equalRowsWithRespectToSubspaceColumn.Add(iKey);
+                    equalRowsWithRespectToSubspaceColumn.Add(jKey);
                 }
             }
 
-            return equalRowsWithRespectToSubspaceColumns;
+            return equalRowsWithRespectToSubspaceColumns.Values.ToList();
         }
 
         /// <summary>
@@ -317,19 +366,60 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// <summary>
         ///     TODO: comment
         /// </summary>
-        /// <param name="equalRowsWithRespectToSubspaceColumnsDataTable"></param>
-        /// <param name="subspaceComplementDataTable"></param>
-        /// <param name="subspaceDataTable"></param>
+        /// <param name="potentiallyDominatedObjects"></param>
+        /// <param name="dominatingObjectsDatabase"></param>
+        /// <param name="destinationDatabase"></param>
         private static void RemoveDominatedObjects(
-            IEnumerable<int> equalRowsWithRespectToSubspaceColumnsDataTable,
-            IReadOnlyDictionary<int, object[]> subspaceComplementDataTable, IDictionary<int, object[]> subspaceDataTable)
+            IEnumerable<int> potentiallyDominatedObjects,
+            IDictionary<int, object[]> dominatingObjectsDatabase, IDictionary<int, object[]> destinationDatabase)
         {
             foreach (
-                var equalRow in
-                    equalRowsWithRespectToSubspaceColumnsDataTable.Where(
-                        equalRow => !subspaceComplementDataTable.ContainsKey(equalRow)))
+                int equalRow in
+                    potentiallyDominatedObjects.Where(
+                        equalRow => !dominatingObjectsDatabase.ContainsKey(equalRow)))
             {
-                subspaceDataTable.Remove(equalRow);
+                destinationDatabase.Remove(equalRow);
+            }
+        }
+
+        /// <summary>
+        ///     Compares by comparing each array dimension.
+        /// </summary>
+        private sealed class ArrayEqualityComparer : IEqualityComparer<long[]>
+        {
+            public bool Equals(long[] x, long[] y)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    if (x[i] != y[i])
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            /// <summary>
+            ///     Calculate hash code.
+            /// </summary>
+            /// <remarks>
+            ///     Idea based on:
+            ///     http://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-an-overridden-system-object-gethashcode/263416#263416
+            /// </remarks>
+            /// <param name="obj">Array to get hash code for.</param>
+            /// <returns>Hash code.</returns>
+            public int GetHashCode(long[] obj)
+            {
+                unchecked // Overflow is not a problem, just wrap
+                {
+                    var result = (int) 2166136261;
+                    foreach (long l in obj)
+                    {
+                        result = result * 16777619 ^ l.GetHashCode();
+                    }
+                    return result;
+                }
             }
         }
     }

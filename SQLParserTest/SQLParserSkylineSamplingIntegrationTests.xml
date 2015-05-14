@@ -63,7 +63,7 @@
     <skylineSampleSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY RANDOM_SUBSETS COUNT 2 DIMENSION 2</skylineSampleSQL>
     <entireSkylineSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>353</expectedNumberOfEntireSkylineObjects>
-    <expectedNumberOfSamplingSkylineObjects>15</expectedNumberOfSamplingSkylineObjects>
+    <expectedNumberOfSamplingSkylineObjects>23</expectedNumberOfSamplingSkylineObjects>
     <useSubspaces>
       <subspace>
         <dimension>cs.price</dimension>
@@ -80,7 +80,7 @@
     <skylineSampleSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH SAMPLE BY RANDOM_SUBSETS COUNT 7 DIMENSION 3</skylineSampleSQL>
     <entireSkylineSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>4464</expectedNumberOfEntireSkylineObjects>
-    <expectedNumberOfSamplingSkylineObjects>593</expectedNumberOfSamplingSkylineObjects>
+    <expectedNumberOfSamplingSkylineObjects>639</expectedNumberOfSamplingSkylineObjects>
     <useSubspaces>
       <subspace>
         <dimension>cs.price</dimension>

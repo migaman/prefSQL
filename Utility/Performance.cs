@@ -203,7 +203,7 @@ namespace Utility
             return preferences;
         }
 
-        private ArrayList GetNumericPreferences()
+        internal static ArrayList GetNumericPreferences()
         {
             ArrayList preferences = new ArrayList();
 
@@ -222,7 +222,7 @@ namespace Utility
             return preferences;
         }
 
-        private ArrayList GetCategoricalPreferences()
+        internal static ArrayList GetCategoricalPreferences()
         {
             ArrayList preferences = new ArrayList();
 
@@ -255,7 +255,7 @@ namespace Utility
 
 
 
-        private ArrayList GetAllPreferences()
+        internal static ArrayList GetAllPreferences()
         {
             ArrayList preferences = new ArrayList();
             preferences.AddRange(GetNumericPreferences());
@@ -711,7 +711,6 @@ namespace Utility
 
                                         foreach (HashSet<HashSet<int>> subspace in producedSubspaces)
                                         {
-                                            Debug.WriteLine("asd");
                                             sw.Restart();
                                             var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(subspace);
                                             var utility = new SamplingSkylineUtility(subspacesProducer);
