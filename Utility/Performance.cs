@@ -674,7 +674,7 @@ namespace Utility
                                     {
                                         DataTable entireSkylineDataTable = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strSQL);
                                         int[] skylineAttributeColumns = SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
-                                        Dictionary<int, object[]> entireSkylineNormalized =
+                                        Dictionary<long, object[]> entireSkylineNormalized =
                                             prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTable, 0);
                                         SkylineSamplingHelper.NormalizeColumns(entireSkylineNormalized, skylineAttributeColumns);
 
@@ -718,17 +718,17 @@ namespace Utility
 
                                             DataTable sampleSkylineDataTable = skylineSample.GetSkylineTable(Helper.ConnectionString, strQuery, operators,
                                                 numberOfRecords, prefSqlModel.WithIncomparable, parameter, parser.SkylineType,
-                                                prefSqlModel.SkylineSampleCount, prefSqlModel.SkylineSampleDimension, 0);
+                                                prefSqlModel.SkylineSampleCount, prefSqlModel.SkylineSampleDimension);
 
                                             sw.Stop();
 
-                                            Dictionary<int, object[]> sampleSkylineNormalized = prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(sampleSkylineDataTable, 0);
+                                            Dictionary<long, object[]> sampleSkylineNormalized = prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(sampleSkylineDataTable, 0);
                                             SkylineSamplingHelper.NormalizeColumns(sampleSkylineNormalized, skylineAttributeColumns);
 
-                                            Dictionary<int, object[]> baseRandomSampleNormalized =
+                                            Dictionary<long, object[]> baseRandomSampleNormalized =
                                                 SkylineSamplingHelper.GetRandomSample(entireSkylineNormalized,
                                                     sampleSkylineDataTable.Rows.Count);
-                                            Dictionary<int, object[]> secondRandomSampleNormalized =
+                                            Dictionary<long, object[]> secondRandomSampleNormalized =
                                                 SkylineSamplingHelper.GetRandomSample(entireSkylineNormalized,
                                                     sampleSkylineDataTable.Rows.Count);
 

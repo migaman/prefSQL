@@ -67,7 +67,7 @@ namespace prefSQL.SQLParserTest
 
             var skyline = skylineSample.GetSkylineTable(Helper.ConnectionString, baseQuery, operators, numberOfRecords,
                 prefSqlModelSkylineSample.WithIncomparable, parameter, common.SkylineType,
-                prefSqlModelSkylineSample.SkylineSampleCount, prefSqlModelSkylineSample.SkylineSampleDimension, 0);
+                prefSqlModelSkylineSample.SkylineSampleCount, prefSqlModelSkylineSample.SkylineSampleDimension);
 
             Assert.AreEqual(expectedNumberOfSamplingSkylineObjects, skyline.Rows.Count,
                 "Unexpected number of Sample Skyline objects.");

@@ -27,16 +27,17 @@
                 addPreferences += preference.ToString().Replace("cars", "cs") + ", ";
             }
             addPreferences = addPreferences.TrimEnd(", ".ToCharArray());
-            //_entireSkylineSampleSql = BaseSkylineSQL + addPreferences;
-            _entireSkylineSampleSql="SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> 'blue' >> OTHERS EQUAL), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL)";
-            _skylineSampleSql = _entireSkylineSampleSql + " SAMPLE BY RANDOM_SUBSETS COUNT 15 DIMENSION 3";
+            _entireSkylineSampleSql = BaseSkylineSQL + addPreferences;
+            _skylineSampleSql = _entireSkylineSampleSql + " SAMPLE BY RANDOM_SUBSETS COUNT 3 DIMENSION 3";
+            //_entireSkylineSampleSql="SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> 'blue' >> OTHERS EQUAL), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL)";
+            //_skylineSampleSql = _entireSkylineSampleSql + " SAMPLE BY RANDOM_SUBSETS COUNT 15 DIMENSION 3";
         }
 
         public static void Main(string[] args)
         {
             var samplingTest = new SamplingTest();
 
-            samplingTest.TestExecutionForPerformance(20);
+            samplingTest.TestExecutionForPerformance(1);
             //samplingTest.TestForSetCoverage();
             //samplingTest.TestForClusterAnalysis();
 
@@ -87,25 +88,25 @@
                 _entireSkylineSampleSql);
 
             int[] skylineAttributeColumns = SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
-            Dictionary<int, object[]> entireSkylineNormalized =
+            Dictionary<long, object[]> entireSkylineNormalized =
                 prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTable, 0);
             SkylineSamplingHelper.NormalizeColumns(entireSkylineNormalized, skylineAttributeColumns);
 
             DataTable sampleSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
                 Helper.ProviderName,
                 _skylineSampleSql);
-            Dictionary<int, object[]> sampleSkylineNormalized =
+            Dictionary<long, object[]> sampleSkylineNormalized =
                 prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(sampleSkylineDataTable, 0);
             SkylineSamplingHelper.NormalizeColumns(sampleSkylineNormalized, skylineAttributeColumns);
 
-            Dictionary<BigInteger, List<Dictionary<int, object[]>>> entireBuckets =
+            Dictionary<BigInteger, List<Dictionary<long, object[]>>> entireBuckets =
                 ClusterAnalysis.GetBuckets(entireSkylineNormalized, skylineAttributeColumns);
-            Dictionary<BigInteger, List<Dictionary<int, object[]>>> sampleBuckets =
+            Dictionary<BigInteger, List<Dictionary<long, object[]>>> sampleBuckets =
                 ClusterAnalysis.GetBuckets(sampleSkylineNormalized, skylineAttributeColumns);
 
-            Dictionary<BigInteger, List<Dictionary<int, object[]>>> aggregatedEntireBuckets =
+            Dictionary<BigInteger, List<Dictionary<long, object[]>>> aggregatedEntireBuckets =
                 ClusterAnalysis.GetAggregatedBuckets(entireBuckets);
-            Dictionary<BigInteger, List<Dictionary<int, object[]>>> aggregatedSampleBuckets =
+            Dictionary<BigInteger, List<Dictionary<long, object[]>>> aggregatedSampleBuckets =
                 ClusterAnalysis.GetAggregatedBuckets(sampleBuckets);
 
             for (var i = 0; i < skylineAttributeColumns.Length; i++)
@@ -113,12 +114,12 @@
                 dt.Columns.RemoveAt(0);
             }
 
-            Dictionary<int, object[]> full = prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(dt, 0);
+            Dictionary<long, object[]> full = prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(dt, 0);
             SkylineSamplingHelper.NormalizeColumns(full, skylineAttributeColumns);
 
-            Dictionary<BigInteger, List<Dictionary<int, object[]>>> fullB =
+            Dictionary<BigInteger, List<Dictionary<long, object[]>>> fullB =
                 ClusterAnalysis.GetBuckets(full, skylineAttributeColumns);
-            Dictionary<BigInteger, List<Dictionary<int, object[]>>> aFullB =
+            Dictionary<BigInteger, List<Dictionary<long, object[]>>> aFullB =
                 ClusterAnalysis.GetAggregatedBuckets(fullB);
 
             for (var i = 0; i < skylineAttributeColumns.Length; i++)
@@ -154,7 +155,7 @@
             //Console.WriteLine("count entire: " + entireSkylineDataTable.Rows.Count);
 
             int[] skylineAttributeColumns = SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
-            Dictionary<int, object[]> entireSkylineNormalized =
+            Dictionary<long, object[]> entireSkylineNormalized =
                 prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTable, 0);
             SkylineSamplingHelper.NormalizeColumns(entireSkylineNormalized, skylineAttributeColumns);
 
@@ -166,14 +167,14 @@
                 //Console.WriteLine("time sample: " + common.TimeInMilliseconds);
                 //Console.WriteLine("count sample: " + sampleSkylineDataTable.Rows.Count);
 
-                Dictionary<int, object[]> sampleSkylineNormalized =
+                Dictionary<long, object[]> sampleSkylineNormalized =
                     prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(sampleSkylineDataTable, 0);
                 SkylineSamplingHelper.NormalizeColumns(sampleSkylineNormalized, skylineAttributeColumns);
 
-                Dictionary<int, object[]> baseRandomSampleNormalized =
+                Dictionary<long, object[]> baseRandomSampleNormalized =
                     SkylineSamplingHelper.GetRandomSample(entireSkylineNormalized,
                         sampleSkylineDataTable.Rows.Count);
-                Dictionary<int, object[]> secondRandomSampleNormalized =
+                Dictionary<long, object[]> secondRandomSampleNormalized =
                     SkylineSamplingHelper.GetRandomSample(entireSkylineNormalized,
                         sampleSkylineDataTable.Rows.Count);
 
@@ -210,17 +211,17 @@
 
             var producedSubspaces = new List<HashSet<HashSet<int>>>();
 
-            for (var i = 0; i < runs; i++)
-            {
-                producedSubspaces.Add(randomSubspacesesProducer.GetSubspaces());
-            }
+            //for (var i = 0; i < runs; i++)
+            //{
+            //    producedSubspaces.Add(randomSubspacesesProducer.GetSubspaces());
+            //}
 
-            //var temp=new HashSet<HashSet<int>>();
-            //temp.Add(new HashSet<int>() {0, 1, 2});
-            //temp.Add(new HashSet<int>() { 2, 3, 4 });
-            //temp.Add(new HashSet<int>() { 4, 5, 6 });
+            var temp = new HashSet<HashSet<int>>();
+            temp.Add(new HashSet<int>() { 0, 1, 2 });
+            temp.Add(new HashSet<int>() { 2, 3, 4 });
+            temp.Add(new HashSet<int>() { 4, 5, 6 });
 
-            //producedSubspaces.Add(temp);
+            producedSubspaces.Add(temp);
             ExecuteSampleSkylines(producedSubspaces, prefSqlModel, common);
             //ExecuteSampleSkylines(producedSubspaces, prefSqlModel, common);
             //ExecuteSampleSkylines(producedSubspaces, prefSqlModel, common);
@@ -249,10 +250,12 @@
 
                 DataTable dataTable = skylineSample.GetSkylineTable(Helper.ConnectionString, strQuery, operators,
                     numberOfRecords, prefSqlModel.WithIncomparable, parameter, common.SkylineType,
-                    prefSqlModel.SkylineSampleCount, prefSqlModel.SkylineSampleDimension, 0);
+                    prefSqlModel.SkylineSampleCount, prefSqlModel.SkylineSampleDimension);
 
                 objectsCount += dataTable.Rows.Count;
                 timeSpent += skylineSample.TimeMilliseconds;
+                Console.WriteLine("time : " + skylineSample.TimeMilliseconds);
+                Console.WriteLine("objects : " + dataTable.Rows.Count);
             }
 
             Console.WriteLine("time average: " + (double) timeSpent/producedSubspaces.Count);
