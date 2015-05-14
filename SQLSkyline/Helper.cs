@@ -297,6 +297,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="stringResult"></param>
         /// <param name="windowTuple"></param>
         /// <param name="newTuple"></param>
+        /// <param name="newTupleAllValues"></param>
         /// <returns></returns>
         public static bool DoesTupleDominate(long[] windowTuple, long[] newTuple, int dimensions, string[] operators, string[] stringResult, object[] newTupleAllValues)
         {

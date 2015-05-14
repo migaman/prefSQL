@@ -83,25 +83,10 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             ConfigureUtility(subspacesCount, subspaceDimension, skylineAlgorithmParameters.OperatorsCollection.Count,
                 rowIdentifierColumnIndex);
 
-            //AddInternalArtificialUniqueRowIdentifier(fullDataTable, rowIdentifierColumnIndex);
+            AddInternalArtificialUniqueRowIdentifier(fullDataTable, rowIdentifierColumnIndex);
 
-            //IReadOnlyDictionary<long, object[]> database = Helper.GetDictionaryFromDataTable(fullDataTable,
-            //rowIdentifierColumnIndex);
-
-            IDictionary<long, object[]> database = new Dictionary<long, object[]>();
-            var count = 0;
-            foreach (DataRow row in fullDataTable.Rows)
-            {
-                row[rowIdentifierColumnIndex] = count;
-                database.Add(count, row.ItemArray);
-                count++;
-            }
-            //List<DataRow> dataTableRowList = fullDataTable.Rows.Cast<DataRow>().ToList();
-            //Write all attributes to a Object-Array
-            //Profiling: This is much faster (factor 2) than working with the SQLReader
-
-            //List<object[]> objectArrayFromDataTableOrig = dataTableRowList.Select(dataRow => dataRow.ItemArray).ToList();
-            //IReadOnlyDictionary<long, object[]> database = objectArrayFromDataTableOrig.ToDictionary(dataRow => (long)dataRow[rowIdentifierColumnIndex]);
+            IDictionary<long, object[]> database = Helper.GetDictionaryFromDataTable(fullDataTable,
+            rowIdentifierColumnIndex);
 
             var dataTableTemplate = new DataTable();
             SqlDataRecord dataRecordTemplate = Helper.BuildDataRecord(fullDataTable,
@@ -428,7 +413,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             IDictionary<long, object[]> dominatingObjectsDatabase, IDictionary<long, object[]> destinationDatabase)
         {
             foreach (
-                int equalRow in
+                long equalRow in
                     potentiallyDominatedObjects.Where(
                         equalRow => !dominatingObjectsDatabase.ContainsKey(equalRow)))
             {

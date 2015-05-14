@@ -45,7 +45,7 @@ namespace Utility
             p.GenerateScript = false;
 
             //p.UseCLR = true;
-            p.UseCLR = false;
+            p.UseClr = false;
             p.Trials = 1;           //Amount of trials for each single sql preference statement
             p.Dimensions = 16;       //Up to x dimensions
             p.RandomDraws = 50;    //Amount of draws (x times randomly choose a some preferences)

@@ -42,7 +42,7 @@ namespace Utility
 
         public Performance()
         {
-            UseCLR = false;
+            UseClr = false;
         }
 
 
@@ -75,7 +75,7 @@ namespace Utility
 
         #region getter/setters
 
-        public bool UseCLR { get; set; }
+        public bool UseClr { get; set; }
 
         internal Size TableSize { get; set; }
 
@@ -277,7 +277,7 @@ namespace Utility
             ArrayList correlationMatrix = new ArrayList();
             ArrayList listCardinality = new ArrayList();
             SqlConnection cnnSQL = new SqlConnection(Helper.ConnectionString); //for CLR performance tets
-            if (UseCLR)
+            if (UseClr)
             {
                 cnnSQL.Open();
             }
@@ -789,10 +789,10 @@ namespace Utility
                                     else
                                     {
                                         sw.Start();
-                                        if (UseCLR)
+                                        if (UseClr)
                                         {
-                                            string strSP = parser.ParsePreferenceSQL(strSQL);
-                                            SqlDataAdapter dap = new SqlDataAdapter(strSP, cnnSQL);
+                                            string strSp = parser.ParsePreferenceSQL(strSQL);
+                                            SqlDataAdapter dap = new SqlDataAdapter(strSp, cnnSQL);
                                             dt.Clear(); //clear datatable
                                             dap.Fill(dt);
                                         }
@@ -896,7 +896,7 @@ namespace Utility
             }
 
             //close connection
-            if (UseCLR)
+            if (UseClr)
             {
                 cnnSQL.Close();
             }
