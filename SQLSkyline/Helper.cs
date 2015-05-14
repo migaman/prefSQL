@@ -14,6 +14,8 @@ using Microsoft.SqlServer.Server;
 
 namespace prefSQL.SQLSkyline
 {
+    using System.Diagnostics;
+
     /// <summary>
     /// 
     /// 
@@ -578,7 +580,7 @@ namespace prefSQL.SQLSkyline
         public static Dictionary<long, object[]> GetDictionaryFromDataTable(DataTable dataTable, int uniqueIdColumnIndex)
         {
             List<object[]> objectArrayFromDataTableOrig = GetObjectArrayFromDataTable(dataTable);
-            return objectArrayFromDataTableOrig.ToDictionary(dataRow => (long)dataRow[uniqueIdColumnIndex]);
+            return objectArrayFromDataTableOrig.ToDictionary(dataRow => Convert.ToInt64(dataRow[uniqueIdColumnIndex]));
         }
 
         public static DataTable GetDataTableFromSQL(string strQuery, string strConnection, string strProvider)
