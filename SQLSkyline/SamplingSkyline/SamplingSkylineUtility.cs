@@ -62,7 +62,6 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         internal HashSet<HashSet<int>> Subspaces
         {
             get { return _subspaces ?? (_subspaces = DetermineSubspaces()); }
-            private set { _subspaces = value; }
         }
 
         private HashSet<HashSet<int>> DetermineSubspaces()

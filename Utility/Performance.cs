@@ -15,6 +15,7 @@ using Utility.Model;
 
 namespace Utility
 {
+    using System.Globalization;
     using prefSQL.SQLParserTest;
     using prefSQL.SQLSkyline.SamplingSkyline;
 
@@ -37,7 +38,7 @@ namespace Utility
         private int _trials = 5;                 //How many times each preferene query is executed
         private int _dimensions = 6;             //Up to this amount of dimension should be tested
         private int _randomDraws = 25;          //Only used for the shuffle set. How many random set will be generated
-        static Random _rnd = new Random();
+        static readonly Random Rnd = new Random();
         private int _minDimensions = 2;
 
         public Performance()
@@ -419,7 +420,7 @@ namespace Utility
                     //Choose x preferences randomly
                     for (int i = 0; i < _dimensions; i++)
                     {
-                        int r = _rnd.Next(preferencesChoose.Count);
+                        int r = Rnd.Next(preferencesChoose.Count);
                         preferencesRandom.Add(preferencesChoose[r]);
                         preferencesChoose.RemoveAt(r);
                     }
@@ -1256,12 +1257,12 @@ namespace Utility
 
         private string FormatLineString(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double correlation, double cardinality)
         {
-            return FormatLineString(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(), Math.Round(skyline, 2).ToString(), Math.Round(timeTotal, 2).ToString(), Math.Round(timeAlgo, 2).ToString(), Math.Round(correlation, 2).ToString(), ToLongString(Math.Round(cardinality, 2)));
+            return FormatLineString(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(CultureInfo.InvariantCulture), Math.Round(skyline, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeTotal, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeAlgo, 2).ToString(CultureInfo.InvariantCulture), Math.Round(correlation, 2).ToString(CultureInfo.InvariantCulture), ToLongString(Math.Round(cardinality, 2)));
         }
 
         private string FormatLineStringSample(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double minTime, double maxTime, double varianceTime, double stddeviationTime, double minSize, double maxSize, double varianceSize, double stddeviationSize, double scRandomAvg, double scRandomMin, double scRandomMax, double scRandomVar, double scRandomStdDev, double scSampleAvg, double scSampleMin, double scSampleMax, double scSampleVar, double scSampleStdDev, double correlation, double cardinality)
         {
-            return FormatLineStringSample(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(), Math.Round(skyline, 2).ToString(), Math.Round(timeTotal, 2).ToString(), Math.Round(timeAlgo, 2).ToString(), Math.Round(minTime, 2).ToString(), Math.Round(maxTime, 2).ToString(), Math.Round(varianceTime, 2).ToString(), Math.Round(stddeviationTime, 2).ToString(), Math.Round(minSize, 2).ToString(), Math.Round(maxSize, 2).ToString(), Math.Round(varianceSize, 2).ToString(), Math.Round(stddeviationSize, 2).ToString(), Math.Round(scRandomAvg, 2).ToString(), Math.Round(scRandomMin, 2).ToString(), Math.Round(scRandomMax, 2).ToString(), Math.Round(scRandomVar, 2).ToString(), Math.Round(scRandomStdDev, 2).ToString(), Math.Round(scSampleAvg, 2).ToString(), Math.Round(scSampleMin, 2).ToString(), Math.Round(scSampleMax, 2).ToString(), Math.Round(scSampleVar, 2).ToString(), Math.Round(scSampleStdDev, 2).ToString(), Math.Round(correlation, 2).ToString(), ToLongString(Math.Round(cardinality, 2)));
+            return FormatLineStringSample(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(CultureInfo.InvariantCulture), Math.Round(skyline, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeTotal, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeAlgo, 2).ToString(CultureInfo.InvariantCulture), Math.Round(minTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(maxTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(varianceTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(stddeviationTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(minSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(maxSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(varianceSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(stddeviationSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scRandomAvg, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scRandomMin, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scRandomMax, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scRandomVar, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scRandomStdDev, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSampleAvg, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSampleMin, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSampleMax, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSampleVar, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSampleStdDev, 2).ToString(CultureInfo.InvariantCulture), Math.Round(correlation, 2).ToString(CultureInfo.InvariantCulture), ToLongString(Math.Round(cardinality, 2)));
         }
 
         
@@ -1272,7 +1273,7 @@ namespace Utility
         /// <returns></returns>
         private static string ToLongString(double input)
         {
-            string str = input.ToString().ToUpper();
+            string str = input.ToString(CultureInfo.InvariantCulture).ToUpper();
 
             // if string representation was collapsed from scientific notation, just return it:
             if (!str.Contains("E")) return str;

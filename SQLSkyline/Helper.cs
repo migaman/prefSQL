@@ -14,8 +14,6 @@ using Microsoft.SqlServer.Server;
 
 namespace prefSQL.SQLSkyline
 {
-    using System.Diagnostics;
-
     /// <summary>
     /// 
     /// 
@@ -316,7 +314,7 @@ namespace prefSQL.SQLSkyline
                     int comparison;
 
                     //check if value is incomparable
-                    if (newTupleAllValues[iCol] == System.DBNull.Value)
+                    if (newTupleAllValues[iCol] == DBNull.Value)
                     {
                         //check if value is incomparable
                         if (windowTuple[iCol] == null)

@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.Data;
-using System.Data.Common;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
 
