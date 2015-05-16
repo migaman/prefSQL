@@ -19,24 +19,24 @@ namespace prefSQL.SQLSkyline
         /// <param name="strQuery"></param>
         /// <param name="strOperators"></param>
         /// <param name="numberOfRecords"></param>
+        /// <param name="sortType"></param>
         /// <param name="upToLevel"></param>
         [SqlProcedure(Name = "SP_MultipleSkylineBNL")]
-        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 upToLevel)
+        public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType, SqlInt32 upToLevel)
         {
-            int up = upToLevel.Value;
             SPMultipleSkylineBNL skyline = new SPMultipleSkylineBNL();
-            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, up);
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, sortType.Value, upToLevel.Value);
 
         }
 
 
-        public DataTable GetSkylineTable(string strQuery, string strOperators, string strConnection, string strProvider, int numberOfRecords, int upToLevel)
+        public DataTable GetSkylineTable(string strQuery, string strOperators, string strConnection, string strProvider, int numberOfRecords, int sortType, int upToLevel)
         {
-            return GetSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strProvider, upToLevel);
+            return GetSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strProvider, sortType, upToLevel);
         }
 
 
-        private DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, int upToLevel)
+        private DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, int sortType, int upToLevel)
         {
             ArrayList resultCollection = new ArrayList();
             ArrayList resultstringCollection = new ArrayList();

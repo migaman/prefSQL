@@ -46,7 +46,7 @@ namespace prefSQL.SQLSkyline
             string strSQLReturn;
             if (HasIncomparablePreferences)
             {
-                strSQLReturn = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType +  ", '" + strSelectDistinctIncomparable + "'," + weightHexagonIncomparable;
+                strSQLReturn = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType +  ", '" + strSelectDistinctIncomparable + "', " + weightHexagonIncomparable;
             }
             else
             {

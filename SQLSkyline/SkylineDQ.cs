@@ -35,7 +35,7 @@ namespace prefSQL.SQLSkyline
             //Quote quotes because it is a parameter of the stored procedure
             strFirstSQL = strFirstSQL.Replace("'", "''");
 
-            string strSQLReturn = "EXEC dbo.SP_SkylineDQ '" + strFirstSQL + "', '" + strOperators + "'," + RecordAmountLimit + ", " + SortType;
+            string strSQLReturn = "EXEC dbo.SP_SkylineDQ '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
             return strSQLReturn;
         }
 
