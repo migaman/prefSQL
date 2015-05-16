@@ -20,7 +20,7 @@
       <![CDATA[EXEC dbo.SP_SkylineDQ 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0 , t1.id AS ID, t1.title, t1.price FROM cars_small t1', 'LOW', 0, 0]]>
     </parsePreferenceSQLSkylineDQExpectedResult>
     <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
-      <![CDATA[EXEC dbo.SP_MultipleSkylineBNL 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0 , t1.id AS ID, t1.title, t1.price FROM cars_small t1 ORDER BY t1.price', 'LOW', 0, 0, 3]]>
+      <![CDATA[EXEC dbo.SP_MultipleSkylineBNLLevel 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0 , t1.id AS ID, t1.title, t1.price FROM cars_small t1 ORDER BY t1.price', 'LOW', 0, 0, 3]]>
     </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
   </TestDataRow>
   <TestDataRow>
@@ -44,7 +44,7 @@
       <![CDATA[EXEC dbo.SP_SkylineDQ 'SELECT  CAST(ABS(t1.price - 10000) AS bigint) AS SkylineAttribute0, CAST(t1.mileage AS bigint) AS SkylineAttribute1, CAST(t1.horsepower * -1 AS bigint) AS SkylineAttribute2 ,   * FROM cars_small t1', 'LOW;LOW;LOW', 0, 0]]>
     </parsePreferenceSQLSkylineDQExpectedResult>
     <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
-      <![CDATA[EXEC dbo.SP_MultipleSkylineBNL 'SELECT  CAST(ABS(t1.price - 10000) AS bigint) AS SkylineAttribute0, CAST(t1.mileage AS bigint) AS SkylineAttribute1, CAST(t1.horsepower * -1 AS bigint) AS SkylineAttribute2 ,   * FROM cars_small t1 ORDER BY ABS(t1.price - 10000), t1.mileage, t1.horsepower * -1', 'LOW;LOW;LOW', 0, 0, 3]]>
+      <![CDATA[EXEC dbo.SP_MultipleSkylineBNLLevel 'SELECT  CAST(ABS(t1.price - 10000) AS bigint) AS SkylineAttribute0, CAST(t1.mileage AS bigint) AS SkylineAttribute1, CAST(t1.horsepower * -1 AS bigint) AS SkylineAttribute2 ,   * FROM cars_small t1 ORDER BY ABS(t1.price - 10000), t1.mileage, t1.horsepower * -1', 'LOW;LOW;LOW', 0, 0, 3]]>
     </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
   </TestDataRow>
   <TestDataRow>
@@ -68,7 +68,7 @@
       <![CDATA[EXEC dbo.SP_SkylineDQ 'SELECT  CAST(cars_small.price / 3000 AS bigint) AS SkylineAttribute0, CAST(cars_small.mileage / 20000 AS bigint) AS SkylineAttribute1, CAST(cars_small.horsepower / 20 * -1 AS bigint) AS SkylineAttribute2, CAST(cars_small.enginesize / 1000 * -1 AS bigint) AS SkylineAttribute3, CAST(cars_small.consumption / 15 AS bigint) AS SkylineAttribute4, CAST(cars_small.doors * -1 AS bigint) AS SkylineAttribute5 , cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID', 'LOW;LOW;LOW;LOW;LOW;LOW', 0, 0]]>
     </parsePreferenceSQLSkylineDQExpectedResult>
     <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
-      <![CDATA[EXEC dbo.SP_MultipleSkylineBNL 'SELECT  CAST(cars_small.price / 3000 AS bigint) AS SkylineAttribute0, CAST(cars_small.mileage / 20000 AS bigint) AS SkylineAttribute1, CAST(cars_small.horsepower / 20 * -1 AS bigint) AS SkylineAttribute2, CAST(cars_small.enginesize / 1000 * -1 AS bigint) AS SkylineAttribute3, CAST(cars_small.consumption / 15 AS bigint) AS SkylineAttribute4, CAST(cars_small.doors * -1 AS bigint) AS SkylineAttribute5 , cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID ORDER BY cars_small.price / 3000, cars_small.mileage / 20000, cars_small.horsepower / 20 * -1, cars_small.enginesize / 1000 * -1, cars_small.consumption / 15, cars_small.doors * -1', 'LOW;LOW;LOW;LOW;LOW;LOW', 0, 0, 3]]>
+      <![CDATA[EXEC dbo.SP_MultipleSkylineBNLLevel 'SELECT  CAST(cars_small.price / 3000 AS bigint) AS SkylineAttribute0, CAST(cars_small.mileage / 20000 AS bigint) AS SkylineAttribute1, CAST(cars_small.horsepower / 20 * -1 AS bigint) AS SkylineAttribute2, CAST(cars_small.enginesize / 1000 * -1 AS bigint) AS SkylineAttribute3, CAST(cars_small.consumption / 15 AS bigint) AS SkylineAttribute4, CAST(cars_small.doors * -1 AS bigint) AS SkylineAttribute5 , cars_small.price,cars_small.mileage,cars_small.horsepower,cars_small.enginesize,cars_small.consumption,cars_small.doors,colors.name,fuels.name,bodies.name,cars_small.title,makes.name,conditions.name FROM cars_small LEFT OUTER JOIN colors ON cars_small.color_id = colors.ID LEFT OUTER JOIN fuels ON cars_small.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cars_small.body_id = bodies.ID LEFT OUTER JOIN makes ON cars_small.make_id = makes.ID LEFT OUTER JOIN conditions ON cars_small.condition_id = conditions.ID ORDER BY cars_small.price / 3000, cars_small.mileage / 20000, cars_small.horsepower / 20 * -1, cars_small.enginesize / 1000 * -1, cars_small.consumption / 15, cars_small.doors * -1', 'LOW;LOW;LOW;LOW;LOW;LOW', 0, 0, 3]]>
     </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
   </TestDataRow>
   <TestDataRow>
@@ -92,7 +92,7 @@
       <![CDATA[EXEC dbo.SP_SkylineDQ 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0 ,      t1.title FROM cars_small t1', 'LOW', 5, 0]]>
     </parsePreferenceSQLSkylineDQExpectedResult>
     <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
-      <![CDATA[EXEC dbo.SP_MultipleSkylineBNL 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0 ,      t1.title FROM cars_small t1 ORDER BY t1.price', 'LOW', 5, 0, 3]]>
+      <![CDATA[EXEC dbo.SP_MultipleSkylineBNLLevel 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0 ,      t1.title FROM cars_small t1 ORDER BY t1.price', 'LOW', 5, 0, 3]]>
     </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
   </TestDataRow>
   <TestDataRow>
@@ -116,7 +116,7 @@
       <![CDATA[EXEC dbo.SP_SkylineDQ 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0, CAST(t1.mileage AS bigint) AS SkylineAttribute1, CAST(t1.horsepower * -1 AS bigint) AS SkylineAttribute2 , t1.title FROM cars_small t1', 'LOW;LOW;LOW', 5, 0]]>
     </parsePreferenceSQLSkylineDQExpectedResult>
     <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
-      <![CDATA[EXEC dbo.SP_MultipleSkylineBNL 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0, CAST(t1.mileage AS bigint) AS SkylineAttribute1, CAST(t1.horsepower * -1 AS bigint) AS SkylineAttribute2 , t1.title FROM cars_small t1 ORDER BY t1.price, t1.mileage, t1.horsepower * -1', 'LOW;LOW;LOW', 5, 0, 3]]>
+      <![CDATA[EXEC dbo.SP_MultipleSkylineBNLLevel 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0, CAST(t1.mileage AS bigint) AS SkylineAttribute1, CAST(t1.horsepower * -1 AS bigint) AS SkylineAttribute2 , t1.title FROM cars_small t1 ORDER BY t1.price, t1.mileage, t1.horsepower * -1', 'LOW;LOW;LOW', 5, 0, 3]]>
     </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
   </TestDataRow>
   <TestDataRow>
@@ -140,7 +140,7 @@
       <![CDATA[EXEC dbo.SP_SkylineDQ 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0, CAST(CASE WHEN colors.name = ''red'' THEN 0 WHEN colors.name = ''blue'' THEN 100 ELSE 200 END AS bigint) AS SkylineAttribute1 , t1.id, t1.title AS AutoTitel, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID', 'LOW;LOW', 0, 0]]>
     </parsePreferenceSQLSkylineDQExpectedResult>
     <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
-      <![CDATA[EXEC dbo.SP_MultipleSkylineBNL 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0, CAST(CASE WHEN colors.name = ''red'' THEN 0 WHEN colors.name = ''blue'' THEN 100 ELSE 200 END AS bigint) AS SkylineAttribute1 , t1.id, t1.title AS AutoTitel, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID ORDER BY t1.price, CASE WHEN colors.name = ''red'' THEN 0 WHEN colors.name = ''blue'' THEN 100 ELSE 200 END', 'LOW;LOW', 0, 0, 3]]>
+      <![CDATA[EXEC dbo.SP_MultipleSkylineBNLLevel 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0, CAST(CASE WHEN colors.name = ''red'' THEN 0 WHEN colors.name = ''blue'' THEN 100 ELSE 200 END AS bigint) AS SkylineAttribute1 , t1.id, t1.title AS AutoTitel, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID ORDER BY t1.price, CASE WHEN colors.name = ''red'' THEN 0 WHEN colors.name = ''blue'' THEN 100 ELSE 200 END', 'LOW;LOW', 0, 0, 3]]>
     </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
   </TestDataRow>
   <TestDataRow>
@@ -164,7 +164,7 @@
       <![CDATA[EXEC dbo.SP_SkylineDQ 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0, CAST(CASE WHEN colors.name = ''blue'' THEN 100 ELSE 0 END AS bigint) AS SkylineAttribute1 , t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID', 'LOW;LOW', 0, 0]]>
     </parsePreferenceSQLSkylineDQExpectedResult>
     <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
-      <![CDATA[EXEC dbo.SP_MultipleSkylineBNL 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0, CAST(CASE WHEN colors.name = ''blue'' THEN 100 ELSE 0 END AS bigint) AS SkylineAttribute1 , t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID ORDER BY t1.price, CASE WHEN colors.name = ''blue'' THEN 100 ELSE 0 END', 'LOW;LOW', 0, 0, 3]]>
+      <![CDATA[EXEC dbo.SP_MultipleSkylineBNLLevel 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0, CAST(CASE WHEN colors.name = ''blue'' THEN 100 ELSE 0 END AS bigint) AS SkylineAttribute1 , t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID ORDER BY t1.price, CASE WHEN colors.name = ''blue'' THEN 100 ELSE 0 END', 'LOW;LOW', 0, 0, 3]]>
     </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
   </TestDataRow>
   <TestDataRow>
@@ -188,7 +188,7 @@
       <![CDATA[EXEC dbo.SP_SkylineDQ 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0, CAST(CASE WHEN colors.name = ''red'' THEN 0 WHEN colors.name = ''blue'' THEN 200 ELSE 100 END AS bigint) AS SkylineAttribute1 , t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID', 'LOW;LOW', 0, 0]]>
     </parsePreferenceSQLSkylineDQExpectedResult>
     <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
-      <![CDATA[EXEC dbo.SP_MultipleSkylineBNL 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0, CAST(CASE WHEN colors.name = ''red'' THEN 0 WHEN colors.name = ''blue'' THEN 200 ELSE 100 END AS bigint) AS SkylineAttribute1 , t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID ORDER BY t1.price, CASE WHEN colors.name = ''red'' THEN 0 WHEN colors.name = ''blue'' THEN 200 ELSE 100 END', 'LOW;LOW', 0, 0, 3]]>
+      <![CDATA[EXEC dbo.SP_MultipleSkylineBNLLevel 'SELECT  CAST(t1.price AS bigint) AS SkylineAttribute0, CAST(CASE WHEN colors.name = ''red'' THEN 0 WHEN colors.name = ''blue'' THEN 200 ELSE 100 END AS bigint) AS SkylineAttribute1 , t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID ORDER BY t1.price, CASE WHEN colors.name = ''red'' THEN 0 WHEN colors.name = ''blue'' THEN 200 ELSE 100 END', 'LOW;LOW', 0, 0, 3]]>
     </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
   </TestDataRow>
   <TestDataRow>
