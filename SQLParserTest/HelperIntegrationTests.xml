@@ -3,13 +3,13 @@
     <comment>2 samples, each of dimension 1 (e.g., (cs.price), (cs.mileage))</comment>
     <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT 2 DIMENSION 1</skylineSampleSQL>
     <entireSkylineSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW</entireSkylineSQL>
-    <entireCount>6</entireCount>
+    <entireCount>7</entireCount>
   </TestDataRow>
   <TestDataRow>
     <comment>3 samples, each of dimension 2 (e.g., (cs.price, cs.mileage), (cs.mileage, cs.horsepower), (cs.price, cs.horsepower))</comment>
     <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH SAMPLE BY RANDOM_SUBSETS COUNT 3 DIMENSION 2</skylineSampleSQL>
     <entireSkylineSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH</entireSkylineSQL>
-    <entireCount>78</entireCount>
+    <entireCount>90</entireCount>
   </TestDataRow>
   <TestDataRow>
     <comment>3 samples, each of dimension 2 (e.g., (cs.price, cs.mileage), (cs.mileage, cs.horsepower), (cs.price, cs.horsepower))</comment>
