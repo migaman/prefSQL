@@ -192,58 +192,21 @@ namespace prefSQL.SQLSkyline
         /// <param name="windowTuple"></param>
         /// <param name="newTuple"></param>
         /// <param name="resultIncomparable"></param>
+        /// <param name="newTupleAllValues"></param>
         /// <returns></returns>
-        public static bool IsTupleDominated(long[] windowTuple, long[] newTuple, int dimensions, string[] operators, string[] resultIncomparable)
+        public static bool IsTupleDominated(long[] windowTuple, long[] newTuple, int dimensions, string[] operators, string[] resultIncomparable, object[] newTupleAllValues)
         {
-            /*bool greaterThan = false;
+            bool greaterThan = false;
 
-            for (int iCol = 0; iCol <= dimensions; iCol++)
+            for (int iCol = 0; iCol < dimensions; iCol++)
             {
                 string op = operators[iCol];
                 //Compare only LOW attributes
                 if (op.Equals("LOW"))
-                {
-                    long value = 0;
-                    long tmpValue;
-                    int comparison;
-                    long? newTupleValue = newTuple[iCol];
-                    //check if value is incomparable
-                    if (newTupleValue == DBNull.Value)
-                    //Profiling --> don't use dataReader
-                    //if (dataReader.IsDBNull(iCol) == true)
-                    {
-                        //check if value is incomparable
-                        if (windowTuple[iCol] == null)
-                        {
-                            //borh values are null --> compare text
-                            //return false;
-                            comparison = 1;
-                        }
-
-                        else
-                        {
-                            tmpValue = (long)windowTuple[iCol];
-                            comparison = CompareValue(value, tmpValue);
-                        }
-
-
-                    }
-                    else
-                    {
-                        //Profiling --> don't use dataReader
-                        //value = (long)dataReader[iCol];
-                        value = (long)newTuple[iCol];
-                        //check if value is incomparable
-                        if (windowTuple[iCol] == null)
-                        {
-                            return false;
-                        }
-                        else
-                        {
-                            tmpValue = (long)windowTuple[iCol];
-                        }
-                        comparison = CompareValue(value, tmpValue);
-                    }
+                {                    
+                    long value = (long)newTuple[iCol];
+                    long tmpValue = (long)windowTuple[iCol];
+                    int comparison = CompareValue(value, tmpValue);
 
                     if (comparison >= 1)
                     {
@@ -259,8 +222,7 @@ namespace prefSQL.SQLSkyline
                             if (iCol + 1 <= dimensions && operators[iCol + 1].Equals("INCOMPARABLE"))
                             {
                                 //string value is always the next field
-                                //string strValue = (string)dataReader[iCol + 1];
-                                string strValue = (string)newTuple[iCol + 1];
+                                string strValue = (string)newTupleAllValues[iCol + 1];
                                 //If it is not the same string value, the values are incomparable!!
                                 //If two values are comparable the strings will be empty!
                                 if (strValue.Equals("INCOMPARABLE") || !strValue.Equals(resultIncomparable[iCol]))
@@ -281,11 +243,7 @@ namespace prefSQL.SQLSkyline
 
 
             //all equal and at least one must be greater than
-            //if (equalTo == true && greaterThan == true)
-            return greaterThan;*/
-            return true;
-
-
+            return greaterThan;
 
         }
 
@@ -302,58 +260,17 @@ namespace prefSQL.SQLSkyline
         {
             bool greaterThan = false;
 
-            for (int iCol = 0; iCol <= dimensions; iCol++)
+            for (int iCol = 0; iCol < dimensions; iCol++)
             {
                 string op = operators[iCol];
                 //Compare only LOW attributes
                 if (op.Equals("LOW"))
                 {
-                    long value = 0; 
-                    long tmpValue; 
-                    int comparison;
+                    long value = (long)newTuple[iCol];
+                    long tmpValue = (long)windowTuple[iCol];
 
-                    //check if value is incomparable
-                    if (newTupleAllValues[iCol] == System.DBNull.Value)
-                    {
-                        //check if value is incomparable
-                        if (windowTuple[iCol] == null)
-                        {
-                            //borh values are null --> compare text
-                            //return false;
-                            comparison = 1;
-                        }
-
-                        else
-                        {
-                            tmpValue = (long)windowTuple[iCol];
-                            //Interchange values
-                            comparison = CompareValue(value, tmpValue);
-                        }
-
-
-                    }
-                    else
-                    {
-                        //
-                        value = (long)newTuple[iCol];
-
-                        //check if value is incomparable
-                        if (windowTuple[iCol] == null)
-                        {
-                            return false;
-                        }
-                        else
-                        {
-                            tmpValue = (long)windowTuple[iCol];
-                        }
-
-                        
-                        
-                        //interchange values for comparison
-                        comparison = CompareValue(tmpValue, value);
-                    }
-
-
+                    //interchange values for comparison
+                    int comparison = CompareValue(tmpValue, value);
 
                     if (comparison >= 1)
                     {
@@ -369,7 +286,6 @@ namespace prefSQL.SQLSkyline
                             if (iCol + 1 <= dimensions && operators[iCol + 1].Equals("INCOMPARABLE"))
                             {
                                 //string value is always the next field
-                                //string strValue = (string)dataReader[iCol + 1];
                                 string strValue = (string)newTupleAllValues[iCol + 1];
                                 //If it is not the same string value, the values are incomparable!!
                                 //If two values are comparable the strings will be empty!
@@ -486,11 +402,10 @@ namespace prefSQL.SQLSkyline
         public static void AddToWindowIncomparable(object[] newTuple, List<long[]> window, int dimensions, string[] operators, ArrayList resultstringCollection, DataTable dtResult)
         {
             //long must be nullable (because of incomparable tupels)
-            long?[] recordInt = new long?[operators.GetUpperBound(0) + 1];
+            long[] recordInt = new long[operators.GetUpperBound(0) + 1];
             string[] recordstring = new string[operators.GetUpperBound(0) + 1];
             DataRow row = dtResult.NewRow();
 
-            //for (int iCol = 0; iCol < dataReader.FieldCount; iCol++)
             for (int iCol = 0; iCol <= newTuple.GetUpperBound(0); iCol++)
             {
                 //Only the real columns (skyline columns are not output fields)
@@ -499,15 +414,7 @@ namespace prefSQL.SQLSkyline
                     //LOW und HIGH Spalte in record abfüllen
                     if (operators[iCol].Equals("LOW"))
                     {
-                        //if (dataReader.IsDBNull(iCol) == true)
-                        if (newTuple[iCol] == DBNull.Value)
-                            recordInt[iCol] = null;
-                        else
-                        {
-                            recordInt[iCol] = (long)newTuple[iCol];
-                        }
-                            
-                            
+                        recordInt[iCol] = (long)newTuple[iCol];   
 
                         //Check if long value is incomparable
                         if (iCol + 1 <= recordInt.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
@@ -524,7 +431,7 @@ namespace prefSQL.SQLSkyline
             }
 
             dtResult.Rows.Add(row);
-            //window.Add(recordInt);
+            window.Add(recordInt);
             resultstringCollection.Add(recordstring);
 
         }

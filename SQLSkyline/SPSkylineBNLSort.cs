@@ -35,7 +35,7 @@ namespace prefSQL.SQLSkyline
             long[] windowTuple = window[listIndex];
 
             //Dominanz
-            if (Helper.IsTupleDominated(windowTuple, newTuple, dimensions, operators, incomparableTuple))
+            if (Helper.IsTupleDominated(windowTuple, newTuple, dimensions, operators, incomparableTuple, newTupleAllValues))
             {
                 //New point is dominated. No further testing necessary
                 return true;

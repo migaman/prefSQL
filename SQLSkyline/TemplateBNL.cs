@@ -47,7 +47,7 @@ namespace prefSQL.SQLSkyline
                 int next = 0;
                 for (int j = 0; j < operatorsArray.Length; j++)
                 {
-                    if (operatorsArray[j] != "IGNORE")
+                    if (operatorsArray[j] != "IGNORE" && operatorsArray[j] != "INCOMPARABLE")
                     {
                         newTuple[next] = (long) dbValuesObject[j];
                         next++;
