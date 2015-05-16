@@ -61,6 +61,11 @@ namespace prefSQL.SQLSkyline
             {
                 //Hexagon incomparable needs additional parameters
                 SPSkylineHexagon skyline = new SPSkylineHexagon();
+
+                AdditionParameters[4] = AdditionParameters[4].Trim().Replace("''", "'").Trim('\'');
+                //Change operators array and SQL query (replace INCOMPARABLES values)
+                skyline.CalculateOperators(ref preferenceOperators, AdditionParameters, ConnectionString, Provider, ref querySQL);
+
                 dt = skyline.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
                 TimeMilliseconds = skyline.TimeInMs;
                 NumberOfOperations = skyline.NumberOfOperations;
@@ -79,6 +84,11 @@ namespace prefSQL.SQLSkyline
         {
             throw new NotImplementedException();
         }
+
+
+
+
+        
 
     }
 }

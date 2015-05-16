@@ -16,26 +16,37 @@ namespace prefSQL.SQLSkyline
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType, SqlString strSelectIncomparable, int weightHexagonIncomparable)
         {
             SPSkylineHexagon skyline = new SPSkylineHexagon();
-            string[] additionalParameters = new string[4];
-            //additionalParameters[0] = strFirstSQLHexagon;
-            //additionalParameters[1] = strOperatorsHexagon;
-            additionalParameters[2] = strSelectIncomparable.ToString();
-            additionalParameters[3] = weightHexagonIncomparable.ToString();
-            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, additionalParameters, sortType.Value);
+            string[] additionalParameters = new string[6];
+            additionalParameters[4] = strSelectIncomparable.ToString();
+            additionalParameters[5] = weightHexagonIncomparable.ToString();
+            string preferenceOperators = strOperators.Value;
+            string querySQL = strQuery.Value;
+
+            //Change operators array and SQL query (replace INCOMPARABLES values)
+            skyline.CalculateOperators(ref preferenceOperators, additionalParameters, Helper.CnnStringSqlclr, Helper.ProviderClr, ref querySQL);
+            
+            skyline.GetSkylineTable(querySQL, preferenceOperators, numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, additionalParameters, sortType.Value);
         }
 
-
-        protected override void CalculateOperators(ref string strOperators, string strSelectIncomparable, string factory, string connectionString, ref string strSQL)
+        /// <summary>
+        /// Change operators array and SQL query (replace INCOMPARABLES values)
+        /// </summary>
+        /// <param name="strOperators"></param>
+        /// <param name="additionalParameters"></param>
+        /// <param name="connectionString"></param>
+        /// <param name="factory"></param>
+        /// <param name="strSQL"></param>
+        public void CalculateOperators(ref string strOperators, string[] additionalParameters, string connectionString, string factory, ref string strSQL)
         {
-            /*if (!strSelectIncomparable.Equals(""))
+            string strSelectIncomparable = additionalParameters[4];
+
+            if (!strSelectIncomparable.Equals(""))
             {
                 //Check amount of incomparables
                 int posOfFrom = strSQL.IndexOf("FROM", StringComparison.Ordinal);
                 string strSQLIncomparable = "SELECT DISTINCT " + strSelectIncomparable + " " + strSQL.Substring(posOfFrom);
 
                 DataTable dt = Helper.GetDataTableFromSQL(strSQLIncomparable, connectionString, factory);
-                 
-
 
                 //Create hexagon single value statement for incomparable tuples
                 string strHexagonIncomparable = "CASE ";
@@ -89,11 +100,13 @@ namespace prefSQL.SQLSkyline
                 //Manipulate construction sql
                 strSQL = strSQL.Replace("CALCULATEINCOMPARABLE", strAddSQL);
                 strOperators = strOperators.Replace("CALCULATEINCOMPARABLE", strAddOperators);
-                }
 
 
-            }*/
+
+            }
         }
+
+
 
         protected override void Add(object[] dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable) //add tuple
         {

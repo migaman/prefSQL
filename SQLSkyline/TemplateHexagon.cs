@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using prefSQL.SQLSkyline.Models;
 
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
@@ -29,27 +30,13 @@ namespace prefSQL.SQLSkyline
 
         protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters)
         {
-            string strSelectIncomparable = "";
             int weightHexagonIncomparable = 0;
-            string connectionString = "";
-            string factory = "";
             
 
             //load some variables from the additional paraemters
-            if(additionalParameters.GetUpperBound(0) > 3)
+            if(additionalParameters.Length > 4)
             {
-                //TODO: Test Hexagon incomparable
-                strSelectIncomparable = additionalParameters[3].Trim().Replace("''", "'").Trim('\'');    
-                weightHexagonIncomparable = int.Parse(additionalParameters[4].Trim());
-                
-                connectionString = additionalParameters[0];
-                factory = additionalParameters[1];
-
-                //Change operators array
-                string strOperators = additionalParameters[5];
-                string strSQL = null;
-                CalculateOperators(ref strOperators, strSelectIncomparable, factory, connectionString, ref strSQL);
-                operatorsArray = strOperators.Split(';');
+                weightHexagonIncomparable = int.Parse(additionalParameters[5].Trim());
             }
             
 
@@ -64,17 +51,8 @@ namespace prefSQL.SQLSkyline
             long maxID = 0;
 
 
-
             int amountOfPreferences = operatorsArray.GetUpperBound(0) + 1;
 
-
-            // Build our record schema 
-            //List<SqlMetaData> outputColumns = Helper.BuildRecordSchema(dt, operators, dtResult);
-
-
-            //Write all attributes to a Object-Array
-            //Profiling: This is much faster (factor 2) than working with the SQLReader
-            //List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
 
             //Replace the database values to ranks of the values
             long[] maxValues = new long[amountOfPreferences];
@@ -538,7 +516,6 @@ namespace prefSQL.SQLSkyline
 
         protected abstract void Add(object[] dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable);
 
-        protected abstract void CalculateOperators(ref string strOperators, string strSelectIncomparable, string factory, string connection, ref string strSQL);
 
         
     }

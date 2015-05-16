@@ -14,18 +14,12 @@ namespace prefSQL.SQLSkyline
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType)
         {
             SPSkylineHexagonLevel skyline = new SPSkylineHexagonLevel();
-            string[] additionalParameters = new string[4];
+            string[] additionalParameters = new string[1];
             //additionalParameters[0] = strFirstSQLHexagon;
             //additionalParameters[1] = strOperatorsHexagon;
-            additionalParameters[2] = "";
-            additionalParameters[3] = "0";
+            //additionalParameters[2] = "";
+            //additionalParameters[3] = "0";
             skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, additionalParameters, sortType.Value);
-        }
-
-        protected override void CalculateOperators(ref string strOperators, string strSelectIncomparable, string factory, string connection, ref string strSQL)
-        {
-            //No Operation
-            //return;
         }
 
         protected override void Add(object[] dataReader, int amountOfPreferences, string[] operators, ref ArrayList[] btg, ref int[] weight, ref long maxID, int weightHexagonIncomparable)

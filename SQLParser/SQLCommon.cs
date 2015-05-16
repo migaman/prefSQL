@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Data.Common;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using prefSQL.SQLParser.Models;
@@ -202,7 +203,7 @@ namespace prefSQL.SQLParser
 
                         ////////////////////////////////////////////
                         //attributes used for hexagon
-                        string[] additionalParameters = new string[4];
+                        string[] additionalParameters = new string[6];
 
                         string strOperatorsHexagon;
                         string strAttributesSkylineHexagon = BuildSelectHexagon(prefSQL, out strOperatorsHexagon);
@@ -223,7 +224,7 @@ namespace prefSQL.SQLParser
                         additionalParameters[1] = strOperatorsHexagon;
                         additionalParameters[2] = strSelectDistinctIncomparable;
                         additionalParameters[3] = weightHexagonIncomparable.ToString();
-
+                        
                         _skylineType.SortType = (int)prefSQL.Ordering;
                         _skylineType.RecordAmountLimit = prefSQL.NumberOfRecords;
                         _skylineType.MultipleSkylineUpToLevel = _skylineUpToLevel;
