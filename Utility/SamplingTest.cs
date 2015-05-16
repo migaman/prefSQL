@@ -16,7 +16,9 @@
         private const string BaseSkylineSQL =
             "SELECT cs.*, colors.name, bodies.name, fuels.name, makes.name, conditions.name, drives.name, transmissions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID LEFT OUTER JOIN drives ON cs.drive_id = drives.ID LEFT OUTER JOIN transmissions ON cs.transmission_id = transmissions.ID SKYLINE OF ";
 
-        private readonly string _entireSkylineSampleSql;
+        private readonly string _entireSkylineSql;
+        private readonly string _entireSkylineSqlBestRank;
+        private readonly string _entireSkylineSqlSumRank;
         private readonly string _skylineSampleSql;
 
         public SamplingTest()
@@ -27,18 +29,23 @@
                 addPreferences += preference.ToString().Replace("cars", "cs") + ", ";
             }
             addPreferences = addPreferences.TrimEnd(", ".ToCharArray());
-            _entireSkylineSampleSql = BaseSkylineSQL + addPreferences;
-            _skylineSampleSql = _entireSkylineSampleSql + " SAMPLE BY RANDOM_SUBSETS COUNT 3 DIMENSION 3";
-            //_entireSkylineSampleSql="SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> 'blue' >> OTHERS EQUAL), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL)";
-            //_skylineSampleSql = _entireSkylineSampleSql + " SAMPLE BY RANDOM_SUBSETS COUNT 15 DIMENSION 3";
+            //_entireSkylineSql = BaseSkylineSQL + addPreferences;
+            //_skylineSampleSql = _entireSkylineSql + " SAMPLE BY RANDOM_SUBSETS COUNT 3 DIMENSION 3";
+            _entireSkylineSql =
+                "SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> 'blue' >> OTHERS EQUAL), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL)";
+            _skylineSampleSql = _entireSkylineSql + " SAMPLE BY RANDOM_SUBSETS COUNT 30 DIMENSION 5";
+
+            _entireSkylineSqlBestRank = _entireSkylineSql.Replace("SELECT ", "SELECT TOP XXX ") +
+                                        " ORDER BY BEST_RANK()";
+            _entireSkylineSqlSumRank = _entireSkylineSql.Replace("SELECT ", "SELECT TOP XXX ") + " ORDER BY SUM_RANK()";
         }
 
         public static void Main(string[] args)
         {
             var samplingTest = new SamplingTest();
 
-            samplingTest.TestExecutionForPerformance(1);
-            //samplingTest.TestForSetCoverage();
+            //samplingTest.TestExecutionForPerformance(5);
+            samplingTest.TestForSetCoverage();
             //samplingTest.TestForClusterAnalysis();
 
             Console.ReadKey();
@@ -51,12 +58,12 @@
                 SkylineType = new SkylineBNL(),
                 ShowSkylineAttributes = true
             };
-            DbProviderFactory factory = null;
-            DbConnection connection = null;
-            factory = DbProviderFactories.GetFactory(Helper.ProviderName);
+
+            DbProviderFactory factory = DbProviderFactories.GetFactory(Helper.ProviderName);
 
             // use the factory object to create Data access objects.
-            connection = factory.CreateConnection(); // will return the connection object (i.e. SqlConnection ...)
+            DbConnection connection = factory.CreateConnection();
+                // will return the connection object (i.e. SqlConnection ...)
             connection.ConnectionString = Helper.ConnectionString;
 
             var dt = new DataTable();
@@ -73,7 +80,7 @@
             string[] parameter;
 
             string ansiSql =
-                common.GetAnsiSqlFromPrefSqlModel(common.GetPrefSqlModelFromPreferenceSql(_entireSkylineSampleSql));
+                common.GetAnsiSqlFromPrefSqlModel(common.GetPrefSqlModelFromPreferenceSql(_entireSkylineSql));
             prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out strQuery, out operators,
                 out numberOfRecords);
 
@@ -85,7 +92,7 @@
 
             DataTable entireSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
                 Helper.ProviderName,
-                _entireSkylineSampleSql);
+                _entireSkylineSql);
 
             int[] skylineAttributeColumns = SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
             Dictionary<long, object[]> entireSkylineNormalized =
@@ -126,10 +133,10 @@
             {
                 int entire = aggregatedEntireBuckets.ContainsKey(i) ? aggregatedEntireBuckets[i].Count : 0;
                 int sample = aggregatedSampleBuckets.ContainsKey(i) ? aggregatedSampleBuckets[i].Count : 0;
-                double entirePercent = (double) entire/entireSkylineNormalized.Count;
-                double samplePercent = (double) sample/sampleSkylineNormalized.Count;
+                double entirePercent = (double) entire / entireSkylineNormalized.Count;
+                double samplePercent = (double) sample / sampleSkylineNormalized.Count;
                 int fullX = aFullB.ContainsKey(i) ? aFullB[i].Count : 0;
-                double fullP = (double) fullX/full.Count;
+                double fullP = (double) fullX / full.Count;
                 Console.WriteLine("-- {0,2} -- {5,6} ({6,7:P2} %) -- {1,6} ({3,7:P2} %) -- {2,6} ({4,7:P2} %)", i,
                     entire, sample, entirePercent,
                     samplePercent, fullX, fullP);
@@ -149,8 +156,7 @@
             };
 
             DataTable entireSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
-                Helper.ProviderName,
-                _entireSkylineSampleSql);
+                Helper.ProviderName, _entireSkylineSql);
             //Console.WriteLine("time entire: " + common.TimeInMilliseconds);
             //Console.WriteLine("count entire: " + entireSkylineDataTable.Rows.Count);
 
@@ -162,8 +168,7 @@
             for (var i = 0; i < 10; i++)
             {
                 DataTable sampleSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
-                    Helper.ProviderName,
-                    _skylineSampleSql);
+                    Helper.ProviderName, _skylineSampleSql);
                 //Console.WriteLine("time sample: " + common.TimeInMilliseconds);
                 //Console.WriteLine("count sample: " + sampleSkylineDataTable.Rows.Count);
 
@@ -183,8 +188,29 @@
                 double setCoverageCoveredBySkylineSample = SetCoverage.GetCoverage(baseRandomSampleNormalized,
                     sampleSkylineNormalized, skylineAttributeColumns);
 
-                Console.WriteLine(setCoverageCoveredBySecondRandomSample);
-                Console.WriteLine(setCoverageCoveredBySkylineSample);
+                DataTable entireSkylineDataTableBestRank = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
+                    Helper.ProviderName,
+                    _entireSkylineSqlBestRank.Replace("XXX", sampleSkylineDataTable.Rows.Count.ToString()));
+                DataTable entireSkylineDataTableSumRank = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
+                    Helper.ProviderName,
+                    _entireSkylineSqlSumRank.Replace("XXX", sampleSkylineDataTable.Rows.Count.ToString()));
+
+                Dictionary<long, object[]> entireSkylineDataTableBestRankNormalized =
+                    prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTableBestRank, 0);
+                SkylineSamplingHelper.NormalizeColumns(entireSkylineDataTableBestRankNormalized, skylineAttributeColumns);
+                Dictionary<long, object[]> entireSkylineDataTableSumRankNormalized =
+                  prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTableSumRank, 0);
+                SkylineSamplingHelper.NormalizeColumns(entireSkylineDataTableSumRankNormalized, skylineAttributeColumns);
+
+                double setCoverageCoveredByEntireBestRank = SetCoverage.GetCoverage(baseRandomSampleNormalized,
+                   entireSkylineDataTableBestRankNormalized, skylineAttributeColumns);
+                double setCoverageCoveredByEntireSumRank = SetCoverage.GetCoverage(baseRandomSampleNormalized,
+                   entireSkylineDataTableSumRankNormalized, skylineAttributeColumns);
+
+                Console.WriteLine("sc second random: "+setCoverageCoveredBySecondRandomSample);
+                Console.WriteLine("sc sample       : " + setCoverageCoveredBySkylineSample);
+                Console.WriteLine("sc entire best  : " + setCoverageCoveredByEntireBestRank);
+                Console.WriteLine("sc entire sum   : " + setCoverageCoveredByEntireSumRank);
                 //Console.WriteLine("set coverage covered by second random sample: " +
                 //                  setCoverageCoveredBySecondRandomSample);
                 //Console.WriteLine("set coverage covered by skyline sample: " + setCoverageCoveredBySkylineSample);
@@ -204,24 +230,24 @@
             };
 
             //DataTable dataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
-            //    _entireSkylineSampleSql);
+            //    _entireSkylineSql);
             //Console.WriteLine(common.TimeInMilliseconds);
             //Console.WriteLine(dataTable.Rows.Count);
             //Console.WriteLine();
 
             var producedSubspaces = new List<HashSet<HashSet<int>>>();
 
-            //for (var i = 0; i < runs; i++)
-            //{
-            //    producedSubspaces.Add(randomSubspacesesProducer.GetSubspaces());
-            //}
+            for (var i = 0; i < runs; i++)
+            {
+                producedSubspaces.Add(randomSubspacesesProducer.GetSubspaces());
+            }
 
-            var temp = new HashSet<HashSet<int>>();
-            temp.Add(new HashSet<int>() { 0, 1, 2 });
-            temp.Add(new HashSet<int>() { 2, 3, 4 });
-            temp.Add(new HashSet<int>() { 4, 5, 6 });
+            //var temp = new HashSet<HashSet<int>>();
+            //temp.Add(new HashSet<int>() { 0, 1, 2 });
+            //temp.Add(new HashSet<int>() { 2, 3, 4 });
+            //temp.Add(new HashSet<int>() { 4, 5, 6 });
 
-            producedSubspaces.Add(temp);
+            //producedSubspaces.Add(temp);
             ExecuteSampleSkylines(producedSubspaces, prefSqlModel, common);
             //ExecuteSampleSkylines(producedSubspaces, prefSqlModel, common);
             //ExecuteSampleSkylines(producedSubspaces, prefSqlModel, common);
@@ -258,8 +284,8 @@
                 Console.WriteLine("objects : " + dataTable.Rows.Count);
             }
 
-            Console.WriteLine("time average: " + (double) timeSpent/producedSubspaces.Count);
-            Console.WriteLine("objects average: " + (double) objectsCount/producedSubspaces.Count);
+            Console.WriteLine("time average: " + (double) timeSpent / producedSubspaces.Count);
+            Console.WriteLine("objects average: " + (double) objectsCount / producedSubspaces.Count);
         }
     }
 }
