@@ -7,6 +7,7 @@ using Microsoft.SqlServer.Server;
 //Important: Only use equal for comparing text (otherwise performance issues)
 namespace prefSQL.SQLSkyline
 {
+    using System.Data;
 
     public class SPSkylineHexagon : TemplateHexagon
     {        
