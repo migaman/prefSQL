@@ -79,14 +79,22 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             DataTable fullDataTable = Helper.GetDataTableFromSQL(query, dbConnection, Provider);
             fullDataTable.Columns.Add("_internalArtificialUniqueRowIdentifier", typeof (long));
             int rowIdentifierColumnIndex = fullDataTable.Columns.Count - 1;
+            var column = new DataColumn
+            {
+                ColumnName = "_internalEqualValuesBucket",
+                DataType = typeof (long),
+                DefaultValue = 0
+            };
+            fullDataTable.Columns.Add(column);
+            int equalValuesBucketColumnIndex = fullDataTable.Columns.Count - 1;
 
             ConfigureUtility(subspacesCount, subspaceDimension, skylineAlgorithmParameters.OperatorsCollection.Count,
-                rowIdentifierColumnIndex);
+                rowIdentifierColumnIndex, equalValuesBucketColumnIndex);
 
             AddInternalArtificialUniqueRowIdentifier(fullDataTable, rowIdentifierColumnIndex);
 
             IDictionary<long, object[]> database = Helper.GetDictionaryFromDataTable(fullDataTable,
-            rowIdentifierColumnIndex);
+                rowIdentifierColumnIndex);
 
             var dataTableTemplate = new DataTable();
             SqlDataRecord dataRecordTemplate = Helper.BuildDataRecord(fullDataTable,
@@ -103,7 +111,8 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
 
         private static void RemoveInternalArtificialUniqueRowIdentifier(DataTable dataTable)
         {
-            dataTable.Columns.RemoveAt(dataTable.Columns.Count - 1);
+            dataTable.Columns.RemoveAt(dataTable.Columns.Count - 1); // _internalEqualValuesBucket
+            dataTable.Columns.RemoveAt(dataTable.Columns.Count - 1); // _internalArtificialUniqueRowIdentifier
         }
 
         private static void AddInternalArtificialUniqueRowIdentifier(DataTable dataTable, int rowIdentifierColumnIndex)
@@ -116,12 +125,13 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         }
 
         private void ConfigureUtility(int subspacesCount, int subspaceDimension, int allPreferencesCount,
-            int rowIdentifierColumnIndex)
+            int rowIdentifierColumnIndex, int equalValuesBucketColumnIndex)
         {
             Utility.SubspacesCount = subspacesCount;
             Utility.SubspaceDimension = subspaceDimension;
             Utility.AllPreferencesCount = allPreferencesCount;
             Utility.RowIdentifierColumnIndex = rowIdentifierColumnIndex;
+            Utility.EqualValuesBucketColumnIndex = equalValuesBucketColumnIndex;
         }
 
         /// <summary>
@@ -160,8 +170,11 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
 
                 IDictionary<long, object[]> subspaceDatabase = GetDatabaseFromDataTable(database, subspaceDataTable);
 
+                IEnumerable<long[]> subspaceForPairwiseComparison = GetSubspaceForPairwiseComparison(subspaceDatabase,
+                    subspace);
+
                 IEnumerable<HashSet<long>> rowsWithEqualValuesWithRespectToSubspaceColumns =
-                    CompareEachRowWithRespectToSubspaceColumnsPairwise(subspaceDatabase, subspace);
+                    CompareEachRowWithRespectToSubspaceColumnsPairwise(subspaceForPairwiseComparison);
 
                 foreach (HashSet<long> rowsWithEqualValues in rowsWithEqualValuesWithRespectToSubspaceColumns)
                 {
@@ -206,6 +219,29 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             TimeMilliseconds += sw.ElapsedMilliseconds;
 
             return skylineSampleReturn;
+        }
+
+        private IEnumerable<long[]> GetSubspaceForPairwiseComparison(IDictionary<long, object[]> subspaceDatabase,
+            ICollection<int> subspace)
+        {
+            var subspaceForPairwiseComparison = new List<long[]>();
+            foreach (object[] row in subspaceDatabase.Values)
+            {
+                var rowForPairwiseComparison = new long[subspace.Count + 2];
+
+                var count = 0;
+                foreach (int sub in subspace)
+                {
+                    rowForPairwiseComparison[count] = (long) row[sub];
+                    count++;
+                }
+
+                rowForPairwiseComparison[count] = (long) row[Utility.RowIdentifierColumnIndex];
+                rowForPairwiseComparison[count + 1] = (long) row[Utility.EqualValuesBucketColumnIndex];
+
+                subspaceForPairwiseComparison.Add(rowForPairwiseComparison);
+            }
+            return subspaceForPairwiseComparison;
         }
 
         private static IDictionary<long, object[]> GetSubsetOfDatabase(
@@ -287,101 +323,106 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// <summary>
         ///     TODO: comment
         /// </summary>
-        /// <remarks>TODO: remarks about performance (this is the most time consuming method besides the actual skyline algorithm called</remarks>
+        /// <remarks>
+        ///     TODO: remarks about performance (this is the most time consuming method besides the actual skyline algorithm
+        ///     called
+        /// </remarks>
         /// <param name="subspaceDatabase"></param>
         /// <param name="columnsUsedInSubspace"></param>
         /// <returns></returns>
         private IEnumerable<HashSet<long>> CompareEachRowWithRespectToSubspaceColumnsPairwise(
-            IDictionary<long, object[]> subspaceDatabase, IEnumerable<int> columnsUsedInSubspace)
+            IEnumerable<long[]> subspaceDatabase)
         {
-            var equalRowsWithRespectToSubspaceColumns =
-                new Dictionary<long[], HashSet<int>>(new ArrayEqualityComparer());
+            var equalRowsWithRespectToSubspaceColumns = new Dictionary<long, HashSet<long>>();
 
-            List<int> columnsUsedInSubspaceList = columnsUsedInSubspace.ToList();
-            int columnsInSubspaceCount = columnsUsedInSubspaceList.Count;
+            List<long[]> sortedDatabaseList = subspaceDatabase.ToList();
+            int columnsInSubspaceCount = sortedDatabaseList[0].Length - 2;
+            int equalValuesBucketColumnIndex = sortedDatabaseList[0].Length - 1;
+            int rowIdentifierColumnIndex = sortedDatabaseList[0].Length - 2;
 
-            List<object[]> sortedDatabaseList = subspaceDatabase.Values.ToList();
-            sortedDatabaseList.Sort(
-                (row1, row2) =>
-                    ((long) row1[columnsUsedInSubspaceList[0]]).CompareTo(
-                        (long) row2[columnsUsedInSubspaceList[0]]));
+            sortedDatabaseList.Sort((row1, row2) => (row1[0]).CompareTo(row2[0]));
 
-            var usedKeys = new HashSet<int>();
+            List<long[]> sortedDatabaseList2 = sortedDatabaseList.GetRange(1, sortedDatabaseList.Count - 1);
 
-            int sortedColumn = columnsUsedInSubspaceList[0];
+            var jStartIndex = 0;
 
-            int rowIdentifierIndex = Utility.RowIdentifierColumnIndex;
+            var equalCombination = new long[columnsInSubspaceCount];
 
-            for (var i = 0; i < sortedDatabaseList.Count; i++)
+            int sortedDatabaseListCount = sortedDatabaseList.Count;
+
+            for (var i = 0; i < sortedDatabaseListCount; i++)
             {
-                object[] iValue = sortedDatabaseList[i];
+                long[] iValue = sortedDatabaseList[i];
 
-                for (int j = i + 1; j < sortedDatabaseList.Count; j++)
+                var sortedDatabaseList2Next = new List<long[]>();
+
+                int sortedDatabaseList2Count = sortedDatabaseList2.Count;
+
+                for (int j = jStartIndex; j < sortedDatabaseList2Count; j++)
                 {
-                    if (usedKeys.Contains(j))
+                    long[] jValue = sortedDatabaseList2[j];
+
+                    if (jValue[0] > iValue[0])
                     {
+                        jStartIndex++;
+                        sortedDatabaseList2Next = sortedDatabaseList2;
+                        j = sortedDatabaseList2.Count;
                         continue;
                     }
 
-                    object[] jValue = sortedDatabaseList[j];
-
-                    if ((long) jValue[sortedColumn] > (long) iValue[sortedColumn])
-                    {
-                        j = sortedDatabaseList.Count;
-                        continue;
-                    }
+                    jStartIndex = 0;
 
                     var isEqual = true;
 
-                    var equalCombination = new long[columnsInSubspaceCount];
-
                     for (var k = 0; k < columnsInSubspaceCount; k++)
                     {
-                        int column = columnsUsedInSubspaceList[k];
-                        var iColumnValue = (long) iValue[column];
-                        var jColumnValue = (long) jValue[column];
-                        equalCombination[k] = iColumnValue;
+                        long iColumnValue = iValue[k];
+                        long jColumnValue = jValue[k];
 
                         if (iColumnValue != jColumnValue)
                         {
                             isEqual = false;
                             break;
                         }
+
+                        equalCombination[k] = iColumnValue;
                     }
 
                     if (!isEqual)
                     {
+                        if (j > 0)
+                        {
+                            sortedDatabaseList2Next.Add(jValue);
+                        }
+
                         continue;
                     }
 
-                    if (!equalRowsWithRespectToSubspaceColumns.ContainsKey(equalCombination))
-                    {
-                        equalRowsWithRespectToSubspaceColumns.Add(equalCombination, new HashSet<int>());
-                    }
+                    long equalCombinationHash = GetArrayHashCode(equalCombination);
 
-                    HashSet<int> equalRowsWithRespectToSubspaceColumn =
-                        equalRowsWithRespectToSubspaceColumns[equalCombination];
-
-                    equalRowsWithRespectToSubspaceColumn.Add(i);
-                    equalRowsWithRespectToSubspaceColumn.Add(j);
-
-                    usedKeys.Add(j);
+                    iValue[equalValuesBucketColumnIndex] = equalCombinationHash;
+                    jValue[equalValuesBucketColumnIndex] = equalCombinationHash;
                 }
-            }
 
-            var ret = new List<HashSet<long>>();
+                sortedDatabaseList2 = sortedDatabaseList2Next;
 
-            foreach (KeyValuePair<long[], HashSet<int>> i in equalRowsWithRespectToSubspaceColumns)
-            {
-                var j = new HashSet<long>();
-                foreach (int ii in i.Value)
+                if (sortedDatabaseList2.Count - jStartIndex <= 0)
                 {
-                    j.Add((long) sortedDatabaseList[ii][rowIdentifierIndex]);
+                    i = sortedDatabaseList.Count;
                 }
-                ret.Add(j);
             }
 
-            return ret;
+            foreach (long[] i in sortedDatabaseList.Where(i => i[equalValuesBucketColumnIndex] != 0))
+            {
+                long bucket = i[equalValuesBucketColumnIndex];
+                if (!equalRowsWithRespectToSubspaceColumns.ContainsKey(bucket))
+                {
+                    equalRowsWithRespectToSubspaceColumns.Add(bucket, new HashSet<long>());
+                }
+                equalRowsWithRespectToSubspaceColumns[bucket].Add(i[rowIdentifierColumnIndex]);
+            }
+
+            return equalRowsWithRespectToSubspaceColumns.Values;
         }
 
         /// <summary>
@@ -422,43 +463,24 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         }
 
         /// <summary>
-        ///     Compares by comparing each array dimension.
+        ///     Calculate hash code.
         /// </summary>
-        private sealed class ArrayEqualityComparer : IEqualityComparer<long[]>
+        /// <remarks>
+        ///     Idea based on:
+        ///     http://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-an-overridden-system-object-gethashcode/263416#263416
+        /// </remarks>
+        /// <param name="obj">Array to get hash code for.</param>
+        /// <returns>Hash code.</returns>
+        private static long GetArrayHashCode(long[] obj)
         {
-            public bool Equals(long[] x, long[] y)
+            unchecked // Overflow is not a problem, just wrap
             {
-                for (var i = 0; i < x.Length; i++)
+                var result = (int) 2166136261;
+                foreach (long l in obj)
                 {
-                    if (x[i] != y[i])
-                    {
-                        return false;
-                    }
+                    result = result * 16777619 ^ l.GetHashCode();
                 }
-
-                return true;
-            }
-
-            /// <summary>
-            ///     Calculate hash code.
-            /// </summary>
-            /// <remarks>
-            ///     Idea based on:
-            ///     http://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-an-overridden-system-object-gethashcode/263416#263416
-            /// </remarks>
-            /// <param name="obj">Array to get hash code for.</param>
-            /// <returns>Hash code.</returns>
-            public int GetHashCode(long[] obj)
-            {
-                unchecked // Overflow is not a problem, just wrap
-                {
-                    var result = (int) 2166136261;
-                    foreach (long l in obj)
-                    {
-                        result = result * 16777619 ^ l.GetHashCode();
-                    }
-                    return result;
-                }
+                return result;
             }
         }
     }
