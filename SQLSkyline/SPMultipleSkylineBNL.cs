@@ -25,6 +25,7 @@ namespace prefSQL.SQLSkyline
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType, SqlInt32 upToLevel)
         {
             SPMultipleSkylineBNL skyline = new SPMultipleSkylineBNL();
+            SqlContext.Pipe.Send("upto: " +upToLevel.Value.ToString());
             skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, sortType.Value, upToLevel.Value);
 
         }

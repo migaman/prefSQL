@@ -40,14 +40,24 @@ namespace prefSQL.SQLSkyline
             //Quote quotes because it is a parameter of the stored procedure
             strFirstSQL = strFirstSQL.Replace("'", "''");
 
-            string strSQLReturn = "EXEC dbo.SP_MultipleSkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType + ", " + MultipleSkylineUpToLevel;
+            string strSQLReturn;
+            if (HasIncomparablePreferences)
+            {
+                strSQLReturn = "EXEC dbo.SP_MultipleSkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType + ", " + MultipleSkylineUpToLevel;
+            } else
+            {
+
+                strSQLReturn = "EXEC dbo.SP_MultipleSkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType + ", " + MultipleSkylineUpToLevel;
+            }
             return strSQLReturn;
         }
+
+
 
         public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
             //Additional parameter
-            int upToLevel = int.Parse(AdditionParameters[3]);
+            int upToLevel = int.Parse(AdditionParameters[4]);
 
             if (HasIncomparablePreferences)
             {

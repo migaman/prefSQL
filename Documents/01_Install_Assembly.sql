@@ -50,6 +50,10 @@ IF EXISTS (SELECT * FROM sys.objects WHERE type = 'PC' AND name = 'SP_SkylineHex
 IF EXISTS (SELECT * FROM sys.objects WHERE type = 'PC' AND name = 'SP_MultipleSkylineBNL')
 	DROP PROCEDURE SP_MultipleSkylineBNL
 
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'PC' AND name = 'SP_MultipleSkylineBNLLevel')
+	DROP PROCEDURE SP_MultipleSkylineBNLLevel
+
+
 
 --Drop Assembly
 IF EXISTS(SELECT * FROM sys.assemblies WHERE name = 'SQLSkyline')
@@ -93,7 +97,11 @@ CREATE PROCEDURE SP_SkylineHexagonLevel (@Name nvarchar(4000), @Operators nvarch
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SPSkylineHexagonLevel].GetSkyline;
 GO
 --Create SP for MultipleSkyline
-CREATE PROCEDURE SP_MultipleSkylineBNL (@Name nvarchar(4000), @Operators nvarchar(200), @NumberOfRecords int, @UpToLevel int)
+CREATE PROCEDURE SP_MultipleSkylineBNL (@Name nvarchar(4000), @Operators nvarchar(200), @NumberOfRecords int,  @SortType int, @UpToLevel int)
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SPMultipleSkylineBNL].GetSkyline;
+GO
+--Create SP for MultipleSkylineLevel
+CREATE PROCEDURE SP_MultipleSkylineBNLLevel (@Name nvarchar(4000), @Operators nvarchar(200), @NumberOfRecords int,  @SortType int, @UpToLevel int)
+AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SPMultipleSkylineBNLLevel].GetSkyline;
 GO
 

@@ -42,6 +42,13 @@ namespace prefSQL.SQLSkyline
             string[] operators = strOperators.Split(';');
             DataTable dtResult = new DataTable();
             int[] resultToTupleMapping = Helper.ResultToTupleMapping(operators);
+            int dimensions = 0; //operatorsArray.GetUpperBound(0)+1;
+
+            string[] operatorsArray = strOperators.Split(';');
+            for (int i = 0; i < operatorsArray.Length; i++)
+            {
+                dimensions++;
+            }
 
             DbProviderFactory factory = DbProviderFactories.GetFactory(strProvider);
 
@@ -94,6 +101,17 @@ namespace prefSQL.SQLSkyline
 
                         foreach (object[] dbValuesObject in listObjects)
                         {
+                            long[] newTuple = new long[dimensions];
+                            int next = 0;
+                            for (int j = 0; j < operatorsArray.Length; j++)
+                            {
+                                if (operatorsArray[j] != "INCOMPARABLE")
+                                {
+                                    newTuple[next] = (long)dbValuesObject[j];
+                                    next++;
+                                }
+                            }
+
 
                             //Check if window list is empty
                             if (resultCollection.Count == 0)
@@ -117,15 +135,15 @@ namespace prefSQL.SQLSkyline
                                     {
                                         if (levels[i] == iLevel)
                                         {
-                                            long[] result = (long[])resultCollection[i];
+                                            long[] windowTuple = (long[])resultCollection[i];
 
                                             //Dominanz
-                                            /*if (Helper.IsTupleDominated(result, dbValuesObject, resultToTupleMapping, result.GetUpperBound((0))))
+                                            if (Helper.IsTupleDominated(windowTuple, newTuple, dimensions))
                                             {
                                                 //Dominated in this level. Next level
                                                 isDominated = true;
                                                 break;
-                                            }*/
+                                            }
                                         }
                                     }
                                     //Check if the record is dominated in this level
