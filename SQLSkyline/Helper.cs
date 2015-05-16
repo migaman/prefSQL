@@ -367,7 +367,7 @@ namespace prefSQL.SQLSkyline
             for (int iCol = 0; iCol < newTuple.Length; iCol++)
             {
                 //Only the real columns (skyline columns are not output fields)
-                if (iCol <= dimensions-1)
+                if (iCol < dimensions)
                 {
                     //IGNORE is used for sample skyline. Only attributes that are not ignored shold be tested
                     if (operators[iCol] != "IGNORE")

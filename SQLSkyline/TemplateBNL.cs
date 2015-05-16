@@ -84,7 +84,8 @@ namespace prefSQL.SQLSkyline
                 }
                 if (isDominated == false)
                 {
-                    AddToWindow(dbValuesObject, window, windowIncomparable, operatorsArray, dimensions, dataTableReturn);
+                    //Work with operatorsArray length instead of dimensions (because of sampling skyline algorithms)
+                    AddToWindow(dbValuesObject, window, windowIncomparable, operatorsArray, operatorsArray.Length, dataTableReturn);
                 }
 
                 
