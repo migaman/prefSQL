@@ -5,10 +5,10 @@ namespace prefSQL.SQLParserTest
 {
     internal sealed class SetCoverage
     {
-        public static double GetCoverage(Dictionary<int, object[]> normalizedBaseData,
-            Dictionary<int, object[]> normalizedSampleData, int[] useColumns)
+        public static double GetCoverage(Dictionary<long, object[]> normalizedBaseData,
+            Dictionary<long, object[]> normalizedSampleData, int[] useColumns)
         {
-            var assignments = new HashSet<int>();
+            var assignments = new HashSet<long>();
 
             foreach (var o in normalizedSampleData)
             {
@@ -23,12 +23,12 @@ namespace prefSQL.SQLParserTest
             return (double)assignments.Count / normalizedBaseData.Count;
         }
 
-        internal static int GetObjectWithMinimumEuclideanDistanceKey(object[] o, Dictionary<int, object[]> normalizedBaseData, int[] useColumns)
+        internal static long GetObjectWithMinimumEuclideanDistanceKey(object[] o, Dictionary<long, object[]> normalizedBaseData, int[] useColumns)
         {
-            var minimumDistanceObjectKey = -1;
-            var minimumDistance = Double.MaxValue;
+            long minimumDistanceObjectKey = -1;
+            double minimumDistance = double.MaxValue;
 
-            foreach (var oo in normalizedBaseData)
+            foreach (KeyValuePair<long, object[]> oo in normalizedBaseData)
             {
                 var euclideanDistance = CalculateEuclideanDistance(o, oo.Value, useColumns);
                 if (euclideanDistance < minimumDistance)

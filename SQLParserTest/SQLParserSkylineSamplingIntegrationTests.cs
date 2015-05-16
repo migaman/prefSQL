@@ -63,11 +63,11 @@ namespace prefSQL.SQLParserTest
             var useSubspaces = UseSubspaces(prefSqlModelSkylineSample);
             var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(useSubspaces);
             var utility = new SamplingSkylineUtility(subspacesProducer);
-            var skylineSample = new SamplingSkyline(utility) {DbProvider = Helper.ProviderName};
+            var skylineSample = new SamplingSkyline(utility) {Provider = Helper.ProviderName};
 
             var skyline = skylineSample.GetSkylineTable(Helper.ConnectionString, baseQuery, operators, numberOfRecords,
                 prefSqlModelSkylineSample.WithIncomparable, parameter, common.SkylineType,
-                prefSqlModelSkylineSample.SkylineSampleCount, prefSqlModelSkylineSample.SkylineSampleDimension, 0);
+                prefSqlModelSkylineSample.SkylineSampleCount, prefSqlModelSkylineSample.SkylineSampleDimension);
 
             Assert.AreEqual(expectedNumberOfSamplingSkylineObjects, skyline.Rows.Count,
                 "Unexpected number of Sample Skyline objects.");

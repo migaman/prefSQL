@@ -33,7 +33,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="isIndependent"></param>
         /// <param name="additionalParameters"></param>
         /// <returns></returns>
-        public DataTable GetSkylineTableBackdoorSample(List<object[]> database, DataTable dataTableTemplate,
+        internal DataTable GetSkylineTableBackdoorSample(List<object[]> database, DataTable dataTableTemplate,
             SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent,
             string[] additionalParameters)
         {

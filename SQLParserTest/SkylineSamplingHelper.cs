@@ -9,7 +9,7 @@ namespace prefSQL.SQLParserTest
     {
         private static readonly Random MyRandom = new Random();
 
-        public static void NormalizeColumns(Dictionary<int, object[]> data, int[] columsToNormalize)
+        public static void NormalizeColumns(Dictionary<long, object[]> data, int[] columsToNormalize)
         {
             long[] highestValue;
             long[] lowestValue;
@@ -45,7 +45,7 @@ namespace prefSQL.SQLParserTest
             }
         }
 
-        internal static void CalculateBoundsOfColumns(Dictionary<int, object[]> data, int[] useColumns,
+        internal static void CalculateBoundsOfColumns(Dictionary<long, object[]> data, int[] useColumns,
             long[] lowestValue, long[] highestValue, long[] rangeValuesZeroBased)
         {
             foreach (var row in data)
@@ -105,9 +105,9 @@ namespace prefSQL.SQLParserTest
             return skylineAttributeColumnsStart;
         }
 
-        public static Dictionary<int, object[]> GetRandomSample(Dictionary<int, object[]> data, int size)
+        public static Dictionary<long, object[]> GetRandomSample(Dictionary<long, object[]> data, int size)
         {
-            var randomSampleReturn = new Dictionary<int, object[]>();
+            var randomSampleReturn = new Dictionary<long, object[]>();
 
             var allKeys = data.Keys.ToList();
 

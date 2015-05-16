@@ -255,6 +255,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="stringResult"></param>
         /// <param name="windowTuple"></param>
         /// <param name="newTuple"></param>
+        /// <param name="newTupleAllValues"></param>
         /// <returns></returns>
         public static bool DoesTupleDominate(long[] windowTuple, long[] newTuple, int dimensions, string[] operators, string[] stringResult, object[] newTupleAllValues)
         {
@@ -367,7 +368,7 @@ namespace prefSQL.SQLSkyline
             for (int iCol = 0; iCol < newTuple.Length; iCol++)
             {
                 //Only the real columns (skyline columns are not output fields)
-                if (iCol < dimensions)
+                if (iCol < operators.Length)
                 {
                     //IGNORE is used for sample skyline. Only attributes that are not ignored shold be tested
                     if (operators[iCol] != "IGNORE")
@@ -481,10 +482,10 @@ namespace prefSQL.SQLSkyline
             return dataTableRowList.Select(dataRow => dataRow.ItemArray).ToList();
         }
 
-        public static Dictionary<int, object[]> GetDictionaryFromDataTable(DataTable dataTable, int uniqueIdColumnIndex)
+        public static Dictionary<long, object[]> GetDictionaryFromDataTable(DataTable dataTable, int uniqueIdColumnIndex)
         {
             List<object[]> objectArrayFromDataTableOrig = GetObjectArrayFromDataTable(dataTable);
-            return objectArrayFromDataTableOrig.ToDictionary(dataRow => (int)dataRow[uniqueIdColumnIndex]);
+            return objectArrayFromDataTableOrig.ToDictionary(dataRow => Convert.ToInt64(dataRow[uniqueIdColumnIndex]));
         }
 
         public static DataTable GetDataTableFromSQL(string strQuery, string strConnection, string strProvider)
