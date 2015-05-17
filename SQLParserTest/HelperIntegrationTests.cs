@@ -25,7 +25,11 @@ namespace prefSQL.SQLParserTest
             Debug.WriteLine(testComment);
             Debug.WriteLine(skylineSampleSQL);
 
-            var common = new SQLCommon {SkylineType = new SkylineBNL()};
+            var common = new SQLCommon
+            {
+                SkylineType =
+                    new SkylineBNL() { Provider = Helper.ProviderName, ConnectionString = Helper.ConnectionString }
+            };
 
             var prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSQL);
             var prefSqlModelEntireSkyline = common.GetPrefSqlModelFromPreferenceSql(entireSkylineSQL);

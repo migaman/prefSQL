@@ -154,10 +154,12 @@ namespace prefSQL.SQLParser
                     }
                     else
                     {
-                        SamplingSkyline skylineSample = new SamplingSkyline();
-                        skylineSample.Provider = DriverString;
-                        dt = skylineSample.GetSkylineTable(ConnectionString, strQuery, strOperators, numberOfRecords,
-                            model.WithIncomparable, parameter, strategy, model.SkylineSampleCount, model.SkylineSampleDimension);
+                        var skylineSample = new SamplingSkyline
+                        {
+                            SubspacesCount = model.SkylineSampleCount,
+                            SubspaceDimension = model.SkylineSampleDimension
+                        };
+                        dt = skylineSample.GetSkylineTable(strQuery, strOperators,strategy);
                         TimeInMilliseconds = skylineSample.TimeMilliseconds;
                         NumberOfOperations = skylineSample.NumberOfOperations;
                     }

@@ -48,26 +48,25 @@ namespace prefSQL.SQLSkyline
 
         public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
-            TemplateStrategy skyline = getSP_Skyline(HasIncomparablePreferences);
+            TemplateStrategy skyline = getSP_Skyline();
             DataTable dt = skyline.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
             TimeMilliseconds = skyline.TimeInMs;
             NumberOfOperations = skyline.NumberOfOperations;
             return dt;         
         }
 
-        internal override DataTable GetSkylineTableBackdoorSample(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters)
+        internal override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string preferenceOperators)
         {
-            TemplateBNL skyline = getSP_Skyline(hasIncomparable);
-            DataTable dt = skyline.GetSkylineTableBackdoorSample(database, dataTableTemplate.Clone(), dataRecordTemplate, operators, numberOfRecords, true, additionalParameters);
+            TemplateStrategy skyline = getSP_Skyline();
+            DataTable dt = skyline.GetSkylineTable(database, dataTableTemplate.Clone(), dataRecordTemplate, preferenceOperators, RecordAmountLimit, true, SortType, AdditionParameters);
             TimeMilliseconds = skyline.TimeInMs;
             NumberOfOperations = skyline.NumberOfOperations;
             return dt;
-        } 
+        }
 
-
-        private static TemplateBNL getSP_Skyline(bool hasIncomparable)
+        private TemplateStrategy getSP_Skyline()
         {
-            if (hasIncomparable)
+            if (HasIncomparablePreferences)
             {
                 return new SPSkylineBNL();
             }

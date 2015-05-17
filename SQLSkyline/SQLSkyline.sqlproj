@@ -91,7 +91,6 @@
     <Compile Include="SamplingSkyline\RandomSamplingSkylineSubspacesProducer.cs" />
     <Compile Include="SamplingSkyline\SamplingSkyline.cs" />
     <Compile Include="SamplingSkyline\SamplingSkylineUtility.cs" />
-    <Compile Include="SamplingSkyline\SkylineAlgorithmParameters.cs" />
     <Compile Include="SkylineDecisionTree.cs" />
     <Compile Include="SPMultipleSkylineBNL.cs" />
     <Compile Include="SPMultipleSkylineBNLLevel.cs" />

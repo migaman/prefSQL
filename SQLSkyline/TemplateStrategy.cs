@@ -23,25 +23,6 @@ namespace prefSQL.SQLSkyline
         }
 
         /// <summary>
-        /// Method exists only for the reason that method "GetSkylineTable" can stay private
-        /// </summary>
-        /// <param name="database"></param>
-        /// <param name="dataTableTemplate"></param>
-        /// <param name="dataRecordTemplate"></param>
-        /// <param name="operators"></param>
-        /// <param name="numberOfRecords"></param>
-        /// <param name="isIndependent"></param>
-        /// <param name="additionalParameters"></param>
-        /// <returns></returns>
-        internal DataTable GetSkylineTableBackdoorSample(List<object[]> database, DataTable dataTableTemplate,
-            SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent,
-            string[] additionalParameters)
-        {
-            return GetSkylineTable(database, dataTableTemplate, dataRecordTemplate, operators, numberOfRecords, isIndependent, 0, additionalParameters);
-        }
-
-
-        /// <summary>
         /// Override this method in specific algorithm
         /// </summary>
         /// <param name="database"></param>
@@ -64,7 +45,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="sortType"></param>
         /// <param name="additionalParameters"></param>
         /// <returns></returns>
-        private DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, int sortType, string[] additionalParameters)
+        internal DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, int sortType, string[] additionalParameters)
         {
             string[] operatorsArray = operators.Split(';');
             DataTable dataTableReturn = new DataTable();
