@@ -56,7 +56,8 @@
         {
             var common = new SQLCommon
             {
-                SkylineType = new SkylineBNL(),
+                SkylineType =
+                    new SkylineBNL() {Provider = Helper.ProviderName, ConnectionString = Helper.ConnectionString},
                 ShowSkylineAttributes = true
             };
 
@@ -64,7 +65,7 @@
 
             // use the factory object to create Data access objects.
             DbConnection connection = factory.CreateConnection();
-                // will return the connection object (i.e. SqlConnection ...)
+            // will return the connection object (i.e. SqlConnection ...)
             connection.ConnectionString = Helper.ConnectionString;
 
             var dt = new DataTable();
@@ -152,7 +153,8 @@
         {
             var common = new SQLCommon
             {
-                SkylineType = new SkylineBNL(),
+                SkylineType =
+                    new SkylineBNL() {Provider = Helper.ProviderName, ConnectionString = Helper.ConnectionString},
                 ShowSkylineAttributes = true
             };
 
@@ -200,15 +202,15 @@
                     prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTableBestRank, 0);
                 SkylineSamplingHelper.NormalizeColumns(entireSkylineDataTableBestRankNormalized, skylineAttributeColumns);
                 Dictionary<long, object[]> entireSkylineDataTableSumRankNormalized =
-                  prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTableSumRank, 0);
+                    prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTableSumRank, 0);
                 SkylineSamplingHelper.NormalizeColumns(entireSkylineDataTableSumRankNormalized, skylineAttributeColumns);
 
                 double setCoverageCoveredByEntireBestRank = SetCoverage.GetCoverage(baseRandomSampleNormalized,
-                   entireSkylineDataTableBestRankNormalized, skylineAttributeColumns);
+                    entireSkylineDataTableBestRankNormalized, skylineAttributeColumns);
                 double setCoverageCoveredByEntireSumRank = SetCoverage.GetCoverage(baseRandomSampleNormalized,
-                   entireSkylineDataTableSumRankNormalized, skylineAttributeColumns);
+                    entireSkylineDataTableSumRankNormalized, skylineAttributeColumns);
 
-                Console.WriteLine("sc second random: "+setCoverageCoveredBySecondRandomSample);
+                Console.WriteLine("sc second random: " + setCoverageCoveredBySecondRandomSample);
                 Console.WriteLine("sc sample       : " + setCoverageCoveredBySkylineSample);
                 Console.WriteLine("sc entire best  : " + setCoverageCoveredByEntireBestRank);
                 Console.WriteLine("sc entire sum   : " + setCoverageCoveredByEntireSumRank);
@@ -220,7 +222,11 @@
 
         private void TestExecutionForPerformance(int runs)
         {
-            var common = new SQLCommon {SkylineType = new SkylineBNL()};
+            var common = new SQLCommon
+            {
+                SkylineType =
+                    new SkylineBNL() {Provider = Helper.ProviderName, ConnectionString = Helper.ConnectionString}
+            };
 
             PrefSQLModel prefSqlModel = common.GetPrefSqlModelFromPreferenceSql(_skylineSampleSql);
             var randomSubspacesesProducer = new RandomSamplingSkylineSubspacesProducer
@@ -243,32 +249,34 @@
                 producedSubspaces.Add(randomSubspacesesProducer.GetSubspaces());
             }
 
-            //var temp = new HashSet<HashSet<int>>();
-            //temp.Add(new HashSet<int>() { 0, 1, 2 });
-            //temp.Add(new HashSet<int>() { 2, 3, 4 });
-            //temp.Add(new HashSet<int>() { 4, 5, 6 });
+            //var temp = new HashSet<HashSet<int>>
+            //{
+            //    new HashSet<int>() {0, 1, 2},
+            //    new HashSet<int>() {2, 3, 4},
+            //    new HashSet<int>() {4, 5, 6}
+            //};
 
             //producedSubspaces.Add(temp);
-            ////var temp = new HashSet<HashSet<int>>
-            ////{
-            ////    new HashSet<int>() {0, 1, 2},
-            ////    new HashSet<int>() {3, 4, 5},
-            ////    new HashSet<int>() {6, 7, 8},
-            ////    new HashSet<int>() {9, 10, 11},
-            ////    new HashSet<int>() {1, 2, 12},
-            ////    new HashSet<int>() {1, 3, 12},
-            ////    new HashSet<int>() {1, 4, 8},
-            ////    new HashSet<int>() {1, 5, 8},
-            ////    new HashSet<int>() {1, 6, 9},
-            ////    new HashSet<int>() {2, 6, 9},
-            ////    new HashSet<int>() {5, 1, 4},
-            ////    new HashSet<int>() {4, 3, 2},
-            ////    new HashSet<int>() {2, 5, 1},
-            ////    new HashSet<int>() {3, 2, 0},
-            ////    new HashSet<int>() {13, 10, 7}
-            ////};
+            //var temp = new HashSet<HashSet<int>>
+            //{
+            //    new HashSet<int>() {0, 1, 2},
+            //    new HashSet<int>() {3, 4, 5},
+            //    new HashSet<int>() {6, 7, 8},
+            //    new HashSet<int>() {9, 10, 11},
+            //    new HashSet<int>() {1, 2, 12},
+            //    new HashSet<int>() {1, 3, 12},
+            //    new HashSet<int>() {1, 4, 8},
+            //    new HashSet<int>() {1, 5, 8},
+            //    new HashSet<int>() {1, 6, 9},
+            //    new HashSet<int>() {2, 6, 9},
+            //    new HashSet<int>() {5, 1, 4},
+            //    new HashSet<int>() {4, 3, 2},
+            //    new HashSet<int>() {2, 5, 1},
+            //    new HashSet<int>() {3, 2, 0},
+            //    new HashSet<int>() {13, 10, 7}
+            //};
 
-            ////producedSubspaces.Add(temp);
+            //producedSubspaces.Add(temp);
             ExecuteSampleSkylines(producedSubspaces, prefSqlModel, common);
             //ExecuteSampleSkylines(producedSubspaces, prefSqlModel, common);
             //ExecuteSampleSkylines(producedSubspaces, prefSqlModel, common);
@@ -294,11 +302,13 @@
             {
                 var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(subspace);
                 var utility = new SamplingSkylineUtility(subspacesProducer);
-                var skylineSample = new SamplingSkyline(utility) {Provider = Helper.ProviderName};
+                var skylineSample = new SamplingSkyline(utility)
+                {
+                    SubspacesCount = prefSqlModel.SkylineSampleCount,
+                    SubspaceDimension = prefSqlModel.SkylineSampleDimension
+                };
 
-                DataTable dataTable = skylineSample.GetSkylineTable(Helper.ConnectionString, strQuery, operators,
-                    numberOfRecords, prefSqlModel.WithIncomparable, parameter, common.SkylineType,
-                    prefSqlModel.SkylineSampleCount, prefSqlModel.SkylineSampleDimension);
+                DataTable dataTable = skylineSample.GetSkylineTable(strQuery, operators, common.SkylineType);
 
                 objectsCount += dataTable.Rows.Count;
                 timeSpent += skylineSample.TimeMilliseconds;

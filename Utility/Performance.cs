@@ -662,33 +662,40 @@ namespace Utility
 
                         if (GenerateScript == false)
                         {
-                            for (int iTrial = 0; iTrial < Trials; iTrial++)
+                            for (var iTrial = 0; iTrial < Trials; iTrial++)
                             {
                                 try
                                 {
-                                    Stopwatch sw = new Stopwatch();
+                                    var sw = new Stopwatch();
 
                                     double correlation = SearchCorrelation(subPreferences, correlationMatrix);
                                     double cardinality = SearchCardinality(subPreferences, listCardinality);
 
                                     if (Sampling)
                                     {
-                                        DataTable entireSkylineDataTable = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strSQL);
-                                        int[] skylineAttributeColumns = SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
+                                        DataTable entireSkylineDataTable =
+                                            parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                                                strSQL);
+                                        int[] skylineAttributeColumns =
+                                            SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
                                         Dictionary<long, object[]> entireSkylineNormalized =
-                                            prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTable, 0);
-                                        SkylineSamplingHelper.NormalizeColumns(entireSkylineNormalized, skylineAttributeColumns);
+                                            prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(
+                                                entireSkylineDataTable, 0);
+                                        SkylineSamplingHelper.NormalizeColumns(entireSkylineNormalized,
+                                            skylineAttributeColumns);
 
                                         string strQuery;
                                         string operators;
                                         int numberOfRecords;
                                         string[] parameter;
 
-                                        strSQL+=" SAMPLE BY RANDOM_SUBSETS COUNT "+SamplingSubspacesCount+" DIMENSION "+SamplingSubspaceDimension;
+                                        strSQL += " SAMPLE BY RANDOM_SUBSETS COUNT " + SamplingSubspacesCount +
+                                                  " DIMENSION " + SamplingSubspaceDimension;
 
                                         PrefSQLModel prefSqlModel = parser.GetPrefSqlModelFromPreferenceSql(strSQL);
                                         string ansiSql = parser.GetAnsiSqlFromPrefSqlModel(prefSqlModel);
-                                        prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out strQuery, out operators,
+                                        prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter,
+                                            out strQuery, out operators,
                                             out numberOfRecords);
 
                                         var randomSubspacesesProducer = new RandomSamplingSkylineSubspacesProducer
@@ -704,27 +711,33 @@ namespace Utility
                                             producedSubspaces.Add(randomSubspacesesProducer.GetSubspaces());
                                         }
 
-                                    var subspaceObjects = new List<long>();
-                var subspaceTime = new List<long>();
-                var subspaceTimeElapsed = new List<long>();
-                var setCoverageSecondRandom = new List<double>();
-                var setCoverageSample = new List<double>();
+                                        var subspaceObjects = new List<long>();
+                                        var subspaceTime = new List<long>();
+                                        var subspaceTimeElapsed = new List<long>();
+                                        var setCoverageSecondRandom = new List<double>();
+                                        var setCoverageSample = new List<double>();
 
                                         foreach (HashSet<HashSet<int>> subspace in producedSubspaces)
                                         {
                                             sw.Restart();
                                             var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(subspace);
                                             var utility = new SamplingSkylineUtility(subspacesProducer);
-                                            var skylineSample = new SamplingSkyline(utility) { Provider = Helper.ProviderName };
+                                            var skylineSample = new SamplingSkyline(utility)
+                                            {
+                                                SubspacesCount = prefSqlModel.SkylineSampleCount,
+                                                SubspaceDimension = prefSqlModel.SkylineSampleDimension
+                                            };
 
-                                            DataTable sampleSkylineDataTable = skylineSample.GetSkylineTable(Helper.ConnectionString, strQuery, operators,
-                                                numberOfRecords, prefSqlModel.WithIncomparable, parameter, parser.SkylineType,
-                                                prefSqlModel.SkylineSampleCount, prefSqlModel.SkylineSampleDimension);
+                                            DataTable sampleSkylineDataTable = skylineSample.GetSkylineTable(strQuery,
+                                                operators, parser.SkylineType);
 
                                             sw.Stop();
 
-                                            Dictionary<long, object[]> sampleSkylineNormalized = prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(sampleSkylineDataTable, 0);
-                                            SkylineSamplingHelper.NormalizeColumns(sampleSkylineNormalized, skylineAttributeColumns);
+                                            Dictionary<long, object[]> sampleSkylineNormalized =
+                                                prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(
+                                                    sampleSkylineDataTable, 0);
+                                            SkylineSamplingHelper.NormalizeColumns(sampleSkylineNormalized,
+                                                skylineAttributeColumns);
 
                                             Dictionary<long, object[]> baseRandomSampleNormalized =
                                                 SkylineSamplingHelper.GetRandomSample(entireSkylineNormalized,
@@ -733,10 +746,12 @@ namespace Utility
                                                 SkylineSamplingHelper.GetRandomSample(entireSkylineNormalized,
                                                     sampleSkylineDataTable.Rows.Count);
 
-                                            double setCoverageCoveredBySecondRandomSample = SetCoverage.GetCoverage(baseRandomSampleNormalized,
-                                                secondRandomSampleNormalized, skylineAttributeColumns)*100.0;
-                                            double setCoverageCoveredBySkylineSample = SetCoverage.GetCoverage(baseRandomSampleNormalized,
-                                                sampleSkylineNormalized, skylineAttributeColumns)*100.0;
+                                            double setCoverageCoveredBySecondRandomSample = SetCoverage.GetCoverage(
+                                                baseRandomSampleNormalized,
+                                                secondRandomSampleNormalized, skylineAttributeColumns) * 100.0;
+                                            double setCoverageCoveredBySkylineSample = SetCoverage.GetCoverage(
+                                                baseRandomSampleNormalized,
+                                                sampleSkylineNormalized, skylineAttributeColumns) * 100.0;
 
                                             subspaceObjects.Add(sampleSkylineDataTable.Rows.Count);
                                             subspaceTime.Add(skylineSample.TimeMilliseconds);
@@ -746,9 +761,9 @@ namespace Utility
                                             setCoverageSample.Add(setCoverageCoveredBySkylineSample);
                                         }
 
-                                        long time = (long)(subspaceTime.Average()+.5);
-                                        long objects = (long)(subspaceObjects.Average() + .5);
-                                        long elapsed = (long)(subspaceTimeElapsed.Average() + .5);
+                                        var time = (long) (subspaceTime.Average() + .5);
+                                        var objects = (long) (subspaceObjects.Average() + .5);
+                                        var elapsed = (long) (subspaceTimeElapsed.Average() + .5);
 
                                         reportDimensions.Add(i);
                                         reportSkylineSize.Add(objects);
@@ -782,25 +797,36 @@ namespace Utility
                                         string strTrial = iTrial + 1 + " / " + _trials;
                                         string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
 
-                                        string strLine = FormatLineStringSample(strPreferenceSet, strTrial, i, objects, elapsed, time, subspaceTime.Min(), subspaceTime.Max(), mathematic.GetVariance(subspaceTime), mathematic.GetStdDeviation(subspaceTime), subspaceObjects.Min(), subspaceObjects.Max(), mathematic.GetVariance(subspaceObjects), mathematic.GetStdDeviation(subspaceObjects), setCoverageSecondRandom.Average(), setCoverageSecondRandom.Min(), setCoverageSecondRandom.Max(), mathematic.GetVariance(setCoverageSecondRandom), mathematic.GetStdDeviation(setCoverageSecondRandom), setCoverageSample.Average(), setCoverageSample.Min(), setCoverageSample.Max(), mathematic.GetVariance(setCoverageSample), mathematic.GetStdDeviation(setCoverageSample), correlation, cardinality);
+                                        string strLine = FormatLineStringSample(strPreferenceSet, strTrial, i, objects,
+                                            elapsed, time, subspaceTime.Min(), subspaceTime.Max(),
+                                            mathematic.GetVariance(subspaceTime),
+                                            mathematic.GetStdDeviation(subspaceTime), subspaceObjects.Min(),
+                                            subspaceObjects.Max(), mathematic.GetVariance(subspaceObjects),
+                                            mathematic.GetStdDeviation(subspaceObjects),
+                                            setCoverageSecondRandom.Average(), setCoverageSecondRandom.Min(),
+                                            setCoverageSecondRandom.Max(),
+                                            mathematic.GetVariance(setCoverageSecondRandom),
+                                            mathematic.GetStdDeviation(setCoverageSecondRandom),
+                                            setCoverageSample.Average(), setCoverageSample.Min(),
+                                            setCoverageSample.Max(), mathematic.GetVariance(setCoverageSample),
+                                            mathematic.GetStdDeviation(setCoverageSample), correlation, cardinality);
 
                                         Debug.WriteLine(strLine);
-                                        sb.AppendLine(strLine);                                        
-                                    }
-                                    else
+                                        sb.AppendLine(strLine);
+                                    } else
                                     {
                                         sw.Start();
                                         if (UseClr)
                                         {
                                             string strSp = parser.ParsePreferenceSQL(strSQL);
-                                            SqlDataAdapter dap = new SqlDataAdapter(strSp, cnnSQL);
+                                            var dap = new SqlDataAdapter(strSp, cnnSQL);
                                             dt.Clear(); //clear datatable
                                             dap.Fill(dt);
-                                        }
-                                        else
+                                        } else
                                         {
-                                            parser.Cardinality = (long)cardinality;
-                                            dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strSQL);
+                                            parser.Cardinality = (long) cardinality;
+                                            dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString,
+                                                Helper.ProviderName, strSQL);
                                         }
                                         long timeAlgorithm = parser.TimeInMilliseconds;
                                         long numberOfOperations = parser.NumberOfOperations;
@@ -817,10 +843,11 @@ namespace Utility
                                         string strTrial = iTrial + 1 + " / " + _trials;
                                         string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
 
-                                        string strLine = FormatLineString(strPreferenceSet, strTrial, i, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality);
+                                        string strLine = FormatLineString(strPreferenceSet, strTrial, i, dt.Rows.Count,
+                                            sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality);
 
                                         Debug.WriteLine(strLine);
-                                        sb.AppendLine(strLine);                                        
+                                        sb.AppendLine(strLine);
                                     }
                                 }
                                 catch (Exception e)
