@@ -56,7 +56,7 @@ namespace Utility
             double result = numbers.Sum(number => Math.Pow(number - mean, 2.0));
 
             //Use Sample variance (n-1) instead of the original variance
-            if (numbers.Count > 1)
+            /*if (numbers.Count > 1)
             {
                 return result/(numbers.Count - 1);
             } 
@@ -64,7 +64,8 @@ namespace Utility
             {
                 return 0;
 
-            }
+            }*/
+            return result/numbers.Count;
         }
 
         
