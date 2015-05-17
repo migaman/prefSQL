@@ -51,11 +51,20 @@ namespace Utility
         public double GetVariance(List<double> numbers)
         {
             //List<double> numbers = list.ToList();
-
+            
             double mean = numbers.Average(); // .Mean();
             double result = numbers.Sum(number => Math.Pow(number - mean, 2.0));
 
-            return result / numbers.Count;
+            //Use Sample variance (n-1) instead of the original variance
+            if (numbers.Count > 1)
+            {
+                return result/(numbers.Count - 1);
+            } 
+            else
+            {
+                return 0;
+
+            }
         }
 
         
