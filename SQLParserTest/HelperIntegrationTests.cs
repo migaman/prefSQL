@@ -77,15 +77,15 @@ namespace prefSQL.SQLParserTest
          DeploymentItem("HelperIntegrationTests.xml")]
         public void TestObjectsWithinEntireSkylineCount()
         {
-            var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
+            //var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             var entireSkylineSQL = TestContext.DataRow["entireSkylineSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
-            Debug.WriteLine(skylineSampleSQL);
+            //Debug.WriteLine(skylineSampleSQL);
 
             var common = new SQLCommon {SkylineType = new SkylineBNL()};
 
-            var prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSQL);
+            //var prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSQL);
             var prefSqlModelEntireSkyline = common.GetPrefSqlModelFromPreferenceSql(entireSkylineSQL);
             var subjectUnderTest = new SQLParser.Helper
             {
@@ -96,9 +96,9 @@ namespace prefSQL.SQLParserTest
             var entireSkyline = subjectUnderTest.GetResults(
                 common.GetAnsiSqlFromPrefSqlModel(prefSqlModelEntireSkyline), common.SkylineType,
                 prefSqlModelEntireSkyline);
-            var sampleSkyline = subjectUnderTest.GetResults(
+            /*var sampleSkyline = subjectUnderTest.GetResults(
                 common.GetAnsiSqlFromPrefSqlModel(prefSqlModelSkylineSample), common.SkylineType,
-                prefSqlModelSkylineSample);
+                prefSqlModelSkylineSample);*/
 
             var expected = TestContext.DataRow["entireCount"].ToString();
             var actual = entireSkyline.Rows.Count.ToString(CultureInfo.InvariantCulture);
