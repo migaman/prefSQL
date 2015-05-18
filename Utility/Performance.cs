@@ -984,17 +984,23 @@ namespace Utility
             string strMax = FormatLineString("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), reportCorrelation.Max(), reportCardinality.Max());
             string strVar = FormatLineString("variance", "", mathematic.GetVariance(reportDimensions), mathematic.GetVariance(reportSkylineSize), mathematic.GetVariance(reportTimeTotal), mathematic.GetVariance(reportTimeAlgorithm), mathematic.GetVariance(reportCorrelation), mathematic.GetVariance(reportCardinality));
             string strStd = FormatLineString("stddeviation", "", mathematic.GetStdDeviation(reportDimensions), mathematic.GetStdDeviation(reportSkylineSize), mathematic.GetStdDeviation(reportTimeTotal), mathematic.GetStdDeviation(reportTimeAlgorithm), mathematic.GetStdDeviation(reportCorrelation), mathematic.GetStdDeviation(reportCardinality));
+            string strSamplevar = FormatLineString("sample variance", "", mathematic.GetSampleVariance(reportDimensions), mathematic.GetSampleVariance(reportSkylineSize), mathematic.GetSampleVariance(reportTimeTotal), mathematic.GetSampleVariance(reportTimeAlgorithm), mathematic.GetSampleVariance(reportCorrelation), mathematic.GetSampleVariance(reportCardinality));
+            string strSampleStd = FormatLineString("sample stddeviation", "", mathematic.GetSampleStdDeviation(reportDimensions), mathematic.GetSampleStdDeviation(reportSkylineSize), mathematic.GetSampleStdDeviation(reportTimeTotal), mathematic.GetSampleStdDeviation(reportTimeAlgorithm), mathematic.GetSampleStdDeviation(reportCorrelation), mathematic.GetSampleStdDeviation(reportCardinality));
 
             sb.AppendLine(strAverage);
             sb.AppendLine(strMin);
             sb.AppendLine(strMax);
             sb.AppendLine(strVar);
             sb.AppendLine(strStd);
+            sb.AppendLine(strSamplevar);
+            sb.AppendLine(strSampleStd);
             Debug.WriteLine(strAverage);
             Debug.WriteLine(strMin);
             Debug.WriteLine(strMax);
             Debug.WriteLine(strVar);
             Debug.WriteLine(strStd);
+            Debug.WriteLine(strSamplevar);
+            Debug.WriteLine(strSampleStd);
 
             //Separator Line
             sb.AppendLine(strSeparatorLine);
@@ -1008,7 +1014,7 @@ namespace Utility
             //average line
             //trial|dimensions|skyline size|time total|time algorithm|correlation|
             string[] line = new string[9];
-            line[0] = strTitle.PadLeft(14, paddingChar);
+            line[0] = strTitle.PadLeft(19, paddingChar);
             line[1] = strTrial.PadLeft(11, paddingChar);
             line[2] = strDimension.PadLeft(10, paddingChar);
             line[3] = strSkyline.PadLeft(20, paddingChar);

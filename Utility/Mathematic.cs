@@ -46,26 +46,46 @@ namespace Utility
             return Math.Sqrt(GetVariance(numbers));
         }
 
+        public double GetSampleStdDeviation(List<double> numbers)
+        {
+            return Math.Sqrt(GetSampleVariance(numbers));
+        }
+
+        public double GetSampleStdDeviation(List<long> numbers)
+        {
+            return Math.Sqrt(GetSampleVariance(numbers));
+        }
+
+
+
+
         //Source: http://www.remondo.net/calculate-the-variance-and-standard-deviation-in-csharp/
         //private double Variance(this IEnumerable<double> list)
         public double GetVariance(List<double> numbers)
+        {            
+            double mean = numbers.Average();
+            double result = numbers.Sum(number => Math.Pow(number - mean, 2.0));
+            return result/numbers.Count;
+        }
+
+
+        //Source: http://www.remondo.net/calculate-the-variance-and-standard-deviation-in-csharp/
+        //private double Variance(this IEnumerable<double> list)
+        public double GetSampleVariance(List<double> numbers)
         {
-            //List<double> numbers = list.ToList();
-            
-            double mean = numbers.Average(); // .Mean();
+            double mean = numbers.Average();
             double result = numbers.Sum(number => Math.Pow(number - mean, 2.0));
 
-            //Use Sample variance (n-1) instead of the original variance
-            /*if (numbers.Count > 1)
+            if (numbers.Count > 1)
             {
+                //Use Sample variance (n-1) instead of the original variance
                 return result/(numbers.Count - 1);
             } 
             else
             {
                 return 0;
 
-            }*/
-            return result/numbers.Count;
+            }
         }
 
         
@@ -73,6 +93,12 @@ namespace Utility
         {
             List<double> doubleList = numbers.ConvertAll(x => (double)x);
             return GetVariance(doubleList);
+        }
+
+        public double GetSampleVariance(List<long> numbers)
+        {
+            List<double> doubleList = numbers.ConvertAll(x => (double)x);
+            return GetSampleVariance(doubleList);
         }
     }
 }
