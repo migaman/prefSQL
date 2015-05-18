@@ -22,8 +22,8 @@ namespace Utility
 
             Program prg = new Program();
             //prg.PerformanceTestBNL();
-            //prg.MeasurePerformance();
-            prg.Run();
+            prg.MeasurePerformance();
+            //prg.Run();
 
 
             /*
@@ -47,7 +47,9 @@ namespace Utility
             //p.UseCLR = true;
             p.UseCLR = false;
             p.Trials = 1;           //Amount of trials for each single sql preference statement
-            p.Dimensions = 7;       //Up to x dimensions
+            
+            p.MinDimensions = 7;   //Up from x dimensions
+            p.MaxDimensions = 7;   //Up to x dimensions
             p.RandomDraws = 50;    //Amount of draws (x times randomly choose a some preferences)
             
             //p.TableSize = Performance.Size.Small;
@@ -60,14 +62,16 @@ namespace Utility
             //p.Set = Performance.PreferenceSet.Jon;
             //p.Set = Performance.PreferenceSet.Mya;
             //p.Set = Performance.PreferenceSet.Barra;
-            //p.Set = Performance.PreferenceSet.Shuffle;
-            //p.Set = Performance.PreferenceSet.Combination;
-            p.Set = Performance.PreferenceSet.CombinationNumeric;
-            //p.Set = Performance.PreferenceSet.CombinationCategoric;
-            //p.Set = Performance.PreferenceSet.Correlation;
-            //p.Set = Performance.PreferenceSet.AntiCorrelation;
-            //p.Set = Performance.PreferenceSet.Independent;
-            //p.Set = Performance.PreferenceSet.CombinationMinCardinality;
+            p.Set = Performance.PreferenceSet.All;
+            //p.Set = Performance.PreferenceSet.Numeric;
+            //p.Set = Performance.PreferenceSet.Categoric;
+            //p.Set = Performance.PreferenceSet.MinCardinality;
+
+            p.Mode = Performance.PreferenceChooseMode.Combination;
+            //p.Mode = Performance.PreferenceChooseMode.Shuffle;
+            //p.Mode = Performance.PreferenceChooseMode.Correlation;
+            //p.Mode = Performance.PreferenceChooseMode.AntiCorrelation;
+            //p.Mode = Performance.PreferenceChooseMode.Independent;
 
             //p.Strategy = null; //all algorithms should be tested
             //p.Strategy = new SkylineSQL();
