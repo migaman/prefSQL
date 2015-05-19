@@ -553,7 +553,7 @@ namespace Utility
                 string strSeparatorLine;
                 if (Sampling)
                 {
-                    strSeparatorLine = FormatLineStringSample('-', "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "","","","");
+                    strSeparatorLine = FormatLineStringSample('-', "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "","","","","","","","","","","","","","");
                 }
                 else
                 {
@@ -583,7 +583,7 @@ namespace Utility
                     sb.AppendLine("");
                     if (Sampling)
                     {
-                        sb.AppendLine(FormatLineStringSample(' ', "preference set", "trial", "dimensions", "avg skyline size", "avg time total", "avg time algorithm", "min time", "max time", "variance time", "stddeviation time", "min size", "max size", "variance size", "stddeviation size", "avg sc random", "min sc random", "max sc random", "var sc random", "stddev sc random", "avg sc sample", "min sc sample", "max sc sample", "var sc sample", "stddev sc sample", "ca entire db","ca entire skyline","ca sample skyline", "sum correlation*", "product cardinality"));
+                        sb.AppendLine(FormatLineStringSample(' ', "preference set", "trial", "dimensions", "avg skyline size", "avg time total", "avg time algorithm", "min time", "max time", "variance time", "stddeviation time", "min size", "max size", "variance size", "stddeviation size", "avg sc random", "min sc random", "max sc random", "var sc random", "stddev sc random", "avg sc sample", "min sc sample", "max sc sample", "var sc sample", "stddev sc sample", "avg sc Best", "min sc Best", "max sc Best", "var sc Best", "stddev sc Best", "avg sc Sum", "min sc Sum", "max sc Sum", "var sc Sum", "stddev sc Sum", "ca entire db", "ca entire skyline", "ca sample skyline", "sum correlation*", "product cardinality"));
                     } else
                     {
                         sb.AppendLine(FormatLineString(' ', "preference set", "trial", "dimensions", "skyline size", "time total", "time algorithm", "sum correlation*", "product cardinality"));                        
@@ -620,6 +620,17 @@ namespace Utility
                 var scSampleMax = new List<double>();
                 var scSampleVar = new List<double>();
                 var scSampleStdDev = new List<double>();
+
+                var scBestAvg = new List<double>();
+                var scBestMin = new List<double>();
+                var scBestMax = new List<double>();
+                var scBestVar = new List<double>();
+                var scBestStdDev = new List<double>();
+                var scSumAvg = new List<double>();
+                var scSumMin = new List<double>();
+                var scSumMax = new List<double>();
+                var scSumVar = new List<double>();
+                var scSumStdDev = new List<double>();
 
                 var caEntireDb = new List<List<double>>();
                 var caEntireSkyline = new List<List<double>>();
@@ -778,6 +789,8 @@ namespace Utility
                                         var subspaceTimeElapsed = new List<long>();
                                         var setCoverageSecondRandom = new List<double>();
                                         var setCoverageSample = new List<double>();
+                                        var setCoverageBestRank = new List<double>();
+                                        var setCoverageSumRank = new List<double>();
 
                                         foreach (HashSet<HashSet<int>> subspace in producedSubspaces)
                                         {
@@ -794,6 +807,23 @@ namespace Utility
                                                 operators, parser.SkylineType);
 
                                             sw.Stop();
+
+                                            var strSQLBestRank = strSQL.Replace("SELECT ", "SELECT TOP "+sampleSkylineDataTable.Rows.Count+ " ") + " ORDER BY BEST_RANK()";
+                                            var strSQLSumRank = strSQL.Replace("SELECT ", "SELECT TOP " + sampleSkylineDataTable.Rows.Count + " ") + " ORDER BY SUM_RANK()";
+
+                                                            DataTable entireSkylineDataTableBestRank = parser.ParseAndExecutePrefSQL(Helper.ConnectionString,
+                    Helper.ProviderName,
+                    strSQLBestRank);
+                DataTable entireSkylineDataTableSumRank = parser.ParseAndExecutePrefSQL(Helper.ConnectionString,
+                    Helper.ProviderName,
+                    strSQLSumRank);
+
+                                                  Dictionary<long, object[]> entireSkylineDataTableBestRankNormalized =
+                    prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTableBestRank, 0);
+                SkylineSamplingHelper.NormalizeColumns(entireSkylineDataTableBestRankNormalized, skylineAttributeColumns);
+                Dictionary<long, object[]> entireSkylineDataTableSumRankNormalized =
+                    prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTableSumRank, 0);
+                SkylineSamplingHelper.NormalizeColumns(entireSkylineDataTableSumRankNormalized, skylineAttributeColumns);
 
                                             Dictionary<long, object[]> sampleSkylineNormalized =
                                                 prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(
@@ -815,6 +845,11 @@ namespace Utility
                                                 baseRandomSampleNormalized,
                                                 sampleSkylineNormalized, skylineAttributeColumns) * 100.0;
 
+                                                double setCoverageCoveredByEntireBestRank = SetCoverage.GetCoverage(baseRandomSampleNormalized,
+                    entireSkylineDataTableBestRankNormalized, skylineAttributeColumns);
+                double setCoverageCoveredByEntireSumRank = SetCoverage.GetCoverage(baseRandomSampleNormalized,
+                    entireSkylineDataTableSumRankNormalized, skylineAttributeColumns);
+
                                             Dictionary<BigInteger, List<Dictionary<long, object[]>>> sampleBuckets =
                                                 ClusterAnalysis.GetBuckets(sampleSkylineNormalized,
                                                     skylineAttributeColumns);
@@ -828,6 +863,9 @@ namespace Utility
 
                                             setCoverageSecondRandom.Add(setCoverageCoveredBySecondRandomSample);
                                             setCoverageSample.Add(setCoverageCoveredBySkylineSample);
+
+                                            setCoverageBestRank.Add(setCoverageCoveredByEntireBestRank);
+                                            setCoverageSumRank.Add(setCoverageCoveredByEntireSumRank);
 
                                             var caEntireDbNew = new List<double>();
                                             var caEntireSkylineNew = new List<double>();
@@ -888,6 +926,17 @@ namespace Utility
                                         scSampleMax.Add(setCoverageSample.Max());
                                         scSampleVar.Add(mathematic.GetVariance(setCoverageSample));
                                         scSampleStdDev.Add(mathematic.GetStdDeviation(setCoverageSample));
+
+                                        scBestAvg.Add(setCoverageBestRank.Average());
+                                        scBestMin.Add(setCoverageBestRank.Min());
+                                        scBestMax.Add(setCoverageBestRank.Max());
+                                        scBestVar.Add(mathematic.GetVariance(setCoverageBestRank));
+                                        scBestStdDev.Add(mathematic.GetStdDeviation(setCoverageBestRank));
+                                        scSumAvg.Add(setCoverageSumRank.Average());
+                                        scSumMin.Add(setCoverageSumRank.Min());
+                                        scSumMax.Add(setCoverageSumRank.Max());
+                                        scSumVar.Add(mathematic.GetVariance(setCoverageSumRank));
+                                        scSumStdDev.Add(mathematic.GetStdDeviation(setCoverageSumRank));
 
                                         //trial|dimensions|skyline size|time total|time algorithm
                                         string strTrial = iTrial + 1 + " / " + _trials;
@@ -977,7 +1026,13 @@ namespace Utility
                                             mathematic.GetStdDeviation(setCoverageSecondRandom),
                                             setCoverageSample.Average(), setCoverageSample.Min(),
                                             setCoverageSample.Max(), mathematic.GetVariance(setCoverageSample),
-                                            mathematic.GetStdDeviation(setCoverageSample), caEntireDbString,caEntireSkylineString,caSampleSkylineString,correlation, cardinality);
+                                            mathematic.GetStdDeviation(setCoverageSample), setCoverageBestRank.Average(), setCoverageBestRank.Min(),
+                                            setCoverageBestRank.Max(),
+                                            mathematic.GetVariance(setCoverageBestRank),
+                                            mathematic.GetStdDeviation(setCoverageBestRank),
+                                            setCoverageSumRank.Average(), setCoverageSumRank.Min(),
+                                            setCoverageSumRank.Max(), mathematic.GetVariance(setCoverageSumRank),
+                                            mathematic.GetStdDeviation(setCoverageSumRank), caEntireDbString, caEntireSkylineString, caSampleSkylineString, correlation, cardinality);
 
                                         Debug.WriteLine(strLine);
                                         sb.AppendLine(strLine);
@@ -1058,7 +1113,7 @@ namespace Utility
                 {
                     if (Sampling)
                     {
-                        AddSummarySample(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportSampleTimeAlgorithmMin, reportSampleTimeAlgorithmMax, reportSampleTimeAlgorithmVar, reportSampleTimeAlgorithmStdDev, reportSkylineSampleSizeMin, reportSkylineSampleSizeMax, reportSkylineSampleSizeVar, reportSkylineSampleSizeStdDev,  scRandomAvg,  scRandomMin,  scRandomMax,  scRandomVar,  scRandomStdDev,  scSampleAvg,  scSampleMin,  scSampleMax,  scSampleVar,  scSampleStdDev, reportCorrelation, reportCardinality);
+                        AddSummarySample(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportSampleTimeAlgorithmMin, reportSampleTimeAlgorithmMax, reportSampleTimeAlgorithmVar, reportSampleTimeAlgorithmStdDev, reportSkylineSampleSizeMin, reportSkylineSampleSizeMax, reportSkylineSampleSizeVar, reportSkylineSampleSizeStdDev, scRandomAvg, scRandomMin, scRandomMax, scRandomVar, scRandomStdDev, scSampleAvg, scSampleMin, scSampleMax, scSampleVar, scSampleStdDev, scBestAvg, scBestMin, scBestMax, scBestVar, scBestStdDev, scSumAvg, scSumMin, scSumMax, scSumVar, scSumStdDev, reportCorrelation, reportCardinality);
                     }
                     else
                     {
@@ -1338,18 +1393,18 @@ namespace Utility
         #region formatOutput
 
         private void AddSummarySample(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions,
-            List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, List<long> subspaceTimeMin, List<long> subspaceTimeMax, List<double> subspaceTimeVar, List<double> subspaceTimeStdDev, List<long> subspaceObjectsMin, List<long> subspaceObjectsMax, List<double> subspaceObjectsVar, List<double> subspaceObjectsStdDev, List<double> scRandomAvg, List<double> scRandomMin, List<double> scRandomMax, List<double> scRandomVar, List<double> scRandomStdDev, List<double> scSampleAvg, List<double> scSampleMin, List<double> scSampleMax, List<double> scSampleVar, List<double> scSampleStdDev, List<double> reportCorrelation, List<double> reportCardinality)
+            List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, List<long> subspaceTimeMin, List<long> subspaceTimeMax, List<double> subspaceTimeVar, List<double> subspaceTimeStdDev, List<long> subspaceObjectsMin, List<long> subspaceObjectsMax, List<double> subspaceObjectsVar, List<double> subspaceObjectsStdDev, List<double> scRandomAvg, List<double> scRandomMin, List<double> scRandomMax, List<double> scRandomVar, List<double> scRandomStdDev, List<double> scSampleAvg, List<double> scSampleMin, List<double> scSampleMax, List<double> scSampleVar, List<double> scSampleStdDev, List<double> scBestAvg, List<double> scBestMin, List<double> scBestMax, List<double> scBestVar, List<double> scBestStdDev, List<double> scSumAvg, List<double> scSumMin, List<double> scSumMax, List<double> scSumVar, List<double> scSumStdDev, List<double> reportCorrelation, List<double> reportCardinality)
         {
             //Separator Line
             Debug.WriteLine(strSeparatorLine);
             sb.AppendLine(strSeparatorLine);
 
             var mathematic = new Mathematic();
-            string strAverage = FormatLineStringSample("average", "", reportDimensions.Average(), reportSkylineSize.Average(), reportTimeTotal.Average(), reportTimeAlgorithm.Average(), subspaceTimeMin.Average(), subspaceTimeMax.Average(), subspaceTimeVar.Average(), subspaceTimeStdDev.Average(), subspaceObjectsMin.Average(), subspaceObjectsMax.Average(), subspaceObjectsVar.Average(), subspaceObjectsStdDev.Average(), scRandomAvg.Average(), scRandomMin.Average(), scRandomMax.Average(), scRandomVar.Average(), scRandomStdDev.Average(), scSampleAvg.Average(), scSampleMin.Average(), scSampleMax.Average(), scSampleVar.Average(), scSampleStdDev.Average(), "","","",reportCorrelation.Average(), reportCardinality.Average());
-            string strMin = FormatLineStringSample("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(), reportTimeTotal.Min(), reportTimeAlgorithm.Min(), subspaceTimeMin.Min(), subspaceTimeMax.Min(), subspaceTimeVar.Min(), subspaceTimeStdDev.Min(), subspaceObjectsMin.Min(), subspaceObjectsMax.Min(), subspaceObjectsVar.Min(), subspaceObjectsStdDev.Min(), scRandomAvg.Min(), scRandomMin.Min(), scRandomMax.Min(), scRandomVar.Min(), scRandomStdDev.Min(), scSampleAvg.Min(), scSampleMin.Min(), scSampleMax.Min(), scSampleVar.Min(), scSampleStdDev.Min(), "", "", "", reportCorrelation.Min(), reportCardinality.Min());
-            string strMax = FormatLineStringSample("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), subspaceTimeMin.Max(), subspaceTimeMax.Max(), subspaceTimeVar.Max(), subspaceTimeStdDev.Max(), subspaceObjectsMin.Max(), subspaceObjectsMax.Max(), subspaceObjectsVar.Max(), subspaceObjectsStdDev.Max(), scRandomAvg.Max(), scRandomMin.Max(), scRandomMax.Max(), scRandomVar.Max(), scRandomStdDev.Max(), scSampleAvg.Max(), scSampleMin.Max(), scSampleMax.Max(), scSampleVar.Max(), scSampleStdDev.Max(), "", "", "", reportCorrelation.Max(), reportCardinality.Max());
-            string strVar = FormatLineStringSample("variance", "", mathematic.GetVariance(reportDimensions), mathematic.GetVariance(reportSkylineSize), mathematic.GetVariance(reportTimeTotal), mathematic.GetVariance(reportTimeAlgorithm), mathematic.GetVariance(subspaceTimeMin), mathematic.GetVariance(subspaceTimeMax), mathematic.GetVariance(subspaceTimeVar), mathematic.GetVariance(subspaceTimeStdDev), mathematic.GetVariance(subspaceObjectsMin), mathematic.GetVariance(subspaceObjectsMax), mathematic.GetVariance(subspaceObjectsVar), mathematic.GetVariance(subspaceObjectsStdDev), mathematic.GetVariance(scRandomAvg), mathematic.GetVariance(scRandomMin), mathematic.GetVariance(scRandomMax), mathematic.GetVariance(scRandomVar), mathematic.GetVariance(scRandomStdDev), mathematic.GetVariance(scSampleAvg), mathematic.GetVariance(scSampleMin), mathematic.GetVariance(scSampleMax), mathematic.GetVariance(scSampleVar), mathematic.GetVariance(scSampleStdDev), "", "", "", mathematic.GetVariance(reportCorrelation), mathematic.GetVariance(reportCardinality));
-            string strStd = FormatLineStringSample("stddeviation", "", mathematic.GetStdDeviation(reportDimensions), mathematic.GetStdDeviation(reportSkylineSize), mathematic.GetStdDeviation(reportTimeTotal), mathematic.GetStdDeviation(reportTimeAlgorithm), mathematic.GetStdDeviation(subspaceTimeMin), mathematic.GetStdDeviation(subspaceTimeMax), mathematic.GetStdDeviation(subspaceTimeVar), mathematic.GetStdDeviation(subspaceTimeStdDev), mathematic.GetStdDeviation(subspaceObjectsMin), mathematic.GetStdDeviation(subspaceObjectsMax), mathematic.GetStdDeviation(subspaceObjectsVar), mathematic.GetStdDeviation(subspaceObjectsStdDev), mathematic.GetStdDeviation(scRandomAvg), mathematic.GetStdDeviation(scRandomMin), mathematic.GetStdDeviation(scRandomMax), mathematic.GetStdDeviation(scRandomVar), mathematic.GetStdDeviation(scRandomStdDev), mathematic.GetStdDeviation(scSampleAvg), mathematic.GetStdDeviation(scSampleMin), mathematic.GetStdDeviation(scSampleMax), mathematic.GetStdDeviation(scSampleVar), mathematic.GetStdDeviation(scSampleStdDev), "", "", "", mathematic.GetStdDeviation(reportCorrelation), mathematic.GetStdDeviation(reportCardinality));
+            string strAverage = FormatLineStringSample("average", "", reportDimensions.Average(), reportSkylineSize.Average(), reportTimeTotal.Average(), reportTimeAlgorithm.Average(), subspaceTimeMin.Average(), subspaceTimeMax.Average(), subspaceTimeVar.Average(), subspaceTimeStdDev.Average(), subspaceObjectsMin.Average(), subspaceObjectsMax.Average(), subspaceObjectsVar.Average(), subspaceObjectsStdDev.Average(), scRandomAvg.Average(), scRandomMin.Average(), scRandomMax.Average(), scRandomVar.Average(), scRandomStdDev.Average(), scSampleAvg.Average(), scSampleMin.Average(), scSampleMax.Average(), scSampleVar.Average(), scSampleStdDev.Average(), scBestAvg.Average(), scBestMin.Average(), scBestMax.Average(), scBestVar.Average(), scBestStdDev.Average(), scSumAvg.Average(), scSumMin.Average(), scSumMax.Average(), scSumVar.Average(), scSumStdDev.Average(), "", "", "", reportCorrelation.Average(), reportCardinality.Average());
+            string strMin = FormatLineStringSample("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(), reportTimeTotal.Min(), reportTimeAlgorithm.Min(), subspaceTimeMin.Min(), subspaceTimeMax.Min(), subspaceTimeVar.Min(), subspaceTimeStdDev.Min(), subspaceObjectsMin.Min(), subspaceObjectsMax.Min(), subspaceObjectsVar.Min(), subspaceObjectsStdDev.Min(), scRandomAvg.Min(), scRandomMin.Min(), scRandomMax.Min(), scRandomVar.Min(), scRandomStdDev.Min(), scSampleAvg.Min(), scSampleMin.Min(), scSampleMax.Min(), scSampleVar.Min(), scSampleStdDev.Min(), scBestAvg.Min(), scBestMin.Min(), scBestMax.Min(), scBestVar.Min(), scBestStdDev.Min(), scSumAvg.Min(), scSumMin.Min(), scSumMax.Min(), scSumVar.Min(), scSumStdDev.Min(), "", "", "", reportCorrelation.Min(), reportCardinality.Min());
+            string strMax = FormatLineStringSample("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), subspaceTimeMin.Max(), subspaceTimeMax.Max(), subspaceTimeVar.Max(), subspaceTimeStdDev.Max(), subspaceObjectsMin.Max(), subspaceObjectsMax.Max(), subspaceObjectsVar.Max(), subspaceObjectsStdDev.Max(), scRandomAvg.Max(), scRandomMin.Max(), scRandomMax.Max(), scRandomVar.Max(), scRandomStdDev.Max(), scSampleAvg.Max(), scSampleMin.Max(), scSampleMax.Max(), scSampleVar.Max(), scSampleStdDev.Max(), scBestAvg.Max(), scBestMin.Max(), scBestMax.Max(), scBestVar.Max(), scBestStdDev.Max(), scSumAvg.Max(), scSumMin.Max(), scSumMax.Max(), scSumVar.Max(), scSumStdDev.Max(), "", "", "", reportCorrelation.Max(), reportCardinality.Max());
+            string strVar = FormatLineStringSample("variance", "", mathematic.GetVariance(reportDimensions), mathematic.GetVariance(reportSkylineSize), mathematic.GetVariance(reportTimeTotal), mathematic.GetVariance(reportTimeAlgorithm), mathematic.GetVariance(subspaceTimeMin), mathematic.GetVariance(subspaceTimeMax), mathematic.GetVariance(subspaceTimeVar), mathematic.GetVariance(subspaceTimeStdDev), mathematic.GetVariance(subspaceObjectsMin), mathematic.GetVariance(subspaceObjectsMax), mathematic.GetVariance(subspaceObjectsVar), mathematic.GetVariance(subspaceObjectsStdDev), mathematic.GetVariance(scRandomAvg), mathematic.GetVariance(scRandomMin), mathematic.GetVariance(scRandomMax), mathematic.GetVariance(scRandomVar), mathematic.GetVariance(scRandomStdDev), mathematic.GetVariance(scSampleAvg), mathematic.GetVariance(scSampleMin), mathematic.GetVariance(scSampleMax), mathematic.GetVariance(scSampleVar), mathematic.GetVariance(scSampleStdDev), mathematic.GetVariance(scBestAvg), mathematic.GetVariance(scBestMin), mathematic.GetVariance(scBestMax), mathematic.GetVariance(scBestVar), mathematic.GetVariance(scBestStdDev), mathematic.GetVariance(scSumAvg), mathematic.GetVariance(scSumMin), mathematic.GetVariance(scSumMax), mathematic.GetVariance(scSumVar), mathematic.GetVariance(scSumStdDev), "", "", "", mathematic.GetVariance(reportCorrelation), mathematic.GetVariance(reportCardinality));
+            string strStd = FormatLineStringSample("stddeviation", "", mathematic.GetStdDeviation(reportDimensions), mathematic.GetStdDeviation(reportSkylineSize), mathematic.GetStdDeviation(reportTimeTotal), mathematic.GetStdDeviation(reportTimeAlgorithm), mathematic.GetStdDeviation(subspaceTimeMin), mathematic.GetStdDeviation(subspaceTimeMax), mathematic.GetStdDeviation(subspaceTimeVar), mathematic.GetStdDeviation(subspaceTimeStdDev), mathematic.GetStdDeviation(subspaceObjectsMin), mathematic.GetStdDeviation(subspaceObjectsMax), mathematic.GetStdDeviation(subspaceObjectsVar), mathematic.GetStdDeviation(subspaceObjectsStdDev), mathematic.GetStdDeviation(scRandomAvg), mathematic.GetStdDeviation(scRandomMin), mathematic.GetStdDeviation(scRandomMax), mathematic.GetStdDeviation(scRandomVar), mathematic.GetStdDeviation(scRandomStdDev), mathematic.GetStdDeviation(scSampleAvg), mathematic.GetStdDeviation(scSampleMin), mathematic.GetStdDeviation(scSampleMax), mathematic.GetStdDeviation(scSampleVar), mathematic.GetStdDeviation(scSampleStdDev), mathematic.GetStdDeviation(scBestAvg), mathematic.GetStdDeviation(scBestMin), mathematic.GetStdDeviation(scBestMax), mathematic.GetStdDeviation(scBestVar), mathematic.GetStdDeviation(scBestStdDev), mathematic.GetStdDeviation(scSumAvg), mathematic.GetStdDeviation(scSumMin), mathematic.GetStdDeviation(scSumMax), mathematic.GetStdDeviation(scSumVar), mathematic.GetStdDeviation(scSumStdDev), "", "", "", mathematic.GetStdDeviation(reportCorrelation), mathematic.GetStdDeviation(reportCardinality));
 
             sb.AppendLine(strAverage);
             sb.AppendLine(strMin);
@@ -1415,11 +1470,11 @@ namespace Utility
             return string.Join("|", line);
         }
 
-        private string FormatLineStringSample(char paddingChar, string strTitle, string strTrial, string strDimension, string strSkyline, string strTimeTotal, string strTimeAlgo, string minTime, string maxTime, string varianceTime, string sedDevTime, string minSize, string maxSize, string varianceSize, string sedDevSize, string scRandomAvg, string scRandomMin, string scRandomMax, string scRandomVar, string scRandomStdDev, string scSampleAvg, string scSampleMin, string scSampleMax, string scSampleVar, string scSampleStdDev, string caEntireDb, string caEntireSkyline, string caSampleSkyline, string strCorrelation, string strCardinality)
+        private string FormatLineStringSample(char paddingChar, string strTitle, string strTrial, string strDimension, string strSkyline, string strTimeTotal, string strTimeAlgo, string minTime, string maxTime, string varianceTime, string sedDevTime, string minSize, string maxSize, string varianceSize, string stdDevSize, string scRandomAvg, string scRandomMin, string scRandomMax, string scRandomVar, string scRandomStdDev, string scSampleAvg, string scSampleMin, string scSampleMax, string scSampleVar, string scSampleStdDev, string scBestAvg, string scBestMin, string scBestMax, string scBestVar, string scBestStdDev, string scSumAvg, string scSumMin, string scSumMax, string scSumVar, string scSumStdDev, string caEntireDb, string caEntireSkyline, string caSampleSkyline, string strCorrelation, string strCardinality)
         {
             //average line
             //trial|dimensions|skyline size|time total|time algorithm|correlation|
-            string[] line = new string[30];
+            string[] line = new string[40];
             line[0] = strTitle.PadLeft(14, paddingChar);
             line[1] = strTrial.PadLeft(11, paddingChar);
             line[2] = strDimension.PadLeft(10, paddingChar);
@@ -1433,7 +1488,7 @@ namespace Utility
             line[10] = minSize.PadLeft(20, paddingChar);
             line[11] = maxSize.PadLeft(20, paddingChar);
             line[12] = varianceSize.PadLeft(20, paddingChar);
-            line[13] = sedDevSize.PadLeft(20, paddingChar);
+            line[13] = stdDevSize.PadLeft(20, paddingChar);
             line[14] = scRandomAvg.PadLeft(20, paddingChar);
             line[15] = scRandomMin.PadLeft(20, paddingChar);
             line[16] = scRandomMax.PadLeft(20, paddingChar);
@@ -1444,12 +1499,22 @@ namespace Utility
             line[21] = scSampleMax.PadLeft(20, paddingChar);
             line[22] = scSampleVar.PadLeft(20, paddingChar);
             line[23] = scSampleStdDev.PadLeft(20, paddingChar);
-            line[24] = caEntireDb.PadLeft(20, paddingChar);
-            line[25] = caEntireSkyline.PadLeft(20, paddingChar);
-            line[26] = caSampleSkyline.PadLeft(20, paddingChar);
-            line[27] = strCorrelation.PadLeft(20, paddingChar);
-            line[28] = strCardinality.PadLeft(25, paddingChar);
-            line[29] = "";
+            line[24] = scBestAvg.PadLeft(20, paddingChar);
+            line[25] = scBestMin.PadLeft(20, paddingChar);
+            line[26] = scBestMax.PadLeft(20, paddingChar);
+            line[27] = scBestVar.PadLeft(20, paddingChar);
+            line[28] = scBestStdDev.PadLeft(20, paddingChar);
+            line[29] = scSumAvg.PadLeft(20, paddingChar);
+            line[30] = scSumMin.PadLeft(20, paddingChar);
+            line[31] = scSumMax.PadLeft(20, paddingChar);
+            line[32] = scSumVar.PadLeft(20, paddingChar);
+            line[33] = scSumStdDev.PadLeft(20, paddingChar);
+            line[34] = caEntireDb.PadLeft(20, paddingChar);
+            line[35] = caEntireSkyline.PadLeft(20, paddingChar);
+            line[36] = caSampleSkyline.PadLeft(20, paddingChar);
+            line[37] = strCorrelation.PadLeft(20, paddingChar);
+            line[38] = strCardinality.PadLeft(25, paddingChar);
+            line[39] = "";
             return string.Join("|", line);
         }
 
@@ -1458,9 +1523,9 @@ namespace Utility
             return FormatLineString(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(CultureInfo.InvariantCulture), Math.Round(skyline, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeTotal, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeAlgo, 2).ToString(CultureInfo.InvariantCulture), Math.Round(correlation, 2).ToString(CultureInfo.InvariantCulture), ToLongString(Math.Round(cardinality, 2)));
         }
 
-        private string FormatLineStringSample(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double minTime, double maxTime, double varianceTime, double stddeviationTime, double minSize, double maxSize, double varianceSize, double stddeviationSize, double scRandomAvg, double scRandomMin, double scRandomMax, double scRandomVar, double scRandomStdDev, double scSampleAvg, double scSampleMin, double scSampleMax, double scSampleVar, double scSampleStdDev, string caEntireDb, string caEntireSkyline, string caSampleSkyline, double correlation, double cardinality)
+        private string FormatLineStringSample(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double minTime, double maxTime, double varianceTime, double stddeviationTime, double minSize, double maxSize, double varianceSize, double stddeviationSize, double scRandomAvg, double scRandomMin, double scRandomMax, double scRandomVar, double scRandomStdDev, double scSampleAvg, double scSampleMin, double scSampleMax, double scSampleVar, double scSampleStdDev, double scBestAvg, double scBestMin, double scBestMax, double scBestVar, double scBestStdDev, double scSumAvg, double scSumMin, double scSumMax, double scSumVar, double scSumStdDev, string caEntireDb, string caEntireSkyline, string caSampleSkyline, double correlation, double cardinality)
         {
-            return FormatLineStringSample(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(CultureInfo.InvariantCulture), Math.Round(skyline, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeTotal, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeAlgo, 2).ToString(CultureInfo.InvariantCulture), Math.Round(minTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(maxTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(varianceTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(stddeviationTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(minSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(maxSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(varianceSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(stddeviationSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scRandomAvg, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scRandomMin, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scRandomMax, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scRandomVar, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scRandomStdDev, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSampleAvg, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSampleMin, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSampleMax, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSampleVar, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSampleStdDev, 2).ToString(CultureInfo.InvariantCulture), caEntireDb, caEntireSkyline, caSampleSkyline, Math.Round(correlation, 2).ToString(CultureInfo.InvariantCulture), ToLongString(Math.Round(cardinality, 2)));
+            return FormatLineStringSample(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(CultureInfo.InvariantCulture), Math.Round(skyline, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeTotal, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeAlgo, 2).ToString(CultureInfo.InvariantCulture), Math.Round(minTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(maxTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(varianceTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(stddeviationTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(minSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(maxSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(varianceSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(stddeviationSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scRandomAvg, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scRandomMin, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scRandomMax, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scRandomVar, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scRandomStdDev, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSampleAvg, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSampleMin, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSampleMax, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSampleVar, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSampleStdDev, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scBestAvg, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scBestMin, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scBestMax, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scBestVar, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scBestStdDev, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSumAvg, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSumMin, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSumMax, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSumVar, 2).ToString(CultureInfo.InvariantCulture), Math.Round(scSumStdDev, 2).ToString(CultureInfo.InvariantCulture), caEntireDb, caEntireSkyline, caSampleSkyline, Math.Round(correlation, 2).ToString(CultureInfo.InvariantCulture), ToLongString(Math.Round(cardinality, 2)));
         }
 
         
