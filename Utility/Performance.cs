@@ -880,7 +880,7 @@ namespace Utility
                                                     : 0;
                                                 double entirePercent = (double) entire / entireSkylineNormalized.Count;
                                                 double samplePercent = (double) sample / sampleSkylineNormalized.Count;
-                                                int fullX = aFullB.ContainsKey(i) ? aFullB[ii].Count : 0;
+                                                int fullX = aFullB.ContainsKey(ii) ? aFullB[ii].Count : 0;
                                                 double fullP = (double) fullX / full.Count;
                                                 caEntireDbNew.Add(fullP);
                                                 caEntireSkylineNew.Add(entirePercent);
@@ -971,9 +971,9 @@ namespace Utility
                                                 avg2[bucket] += row[bucket];
                                             }
                                         }
-                                        for (int bucket = 0; bucket < caEntireDb[0].Count; bucket++)
+                                        for (int bucket = 0; bucket < caEntireSkyline[0].Count; bucket++)
                                         {
-                                            avg2[bucket] /= caEntireDb.Count;
+                                            avg2[bucket] /= caEntireSkyline.Count;
                                         }
                                     
                                     foreach (var row in caSampleSkyline)
@@ -985,9 +985,9 @@ namespace Utility
                                      
                                     
                                 }
-                                       for (int bucket = 0; bucket < caEntireDb[0].Count; bucket++)
+                                    for (int bucket = 0; bucket < caSampleSkyline[0].Count; bucket++)
                                         {
-                                            avg3[bucket] /= caEntireDb.Count;
+                                            avg3[bucket] /= caSampleSkyline.Count;
                                         }
 
 
