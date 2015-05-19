@@ -994,7 +994,7 @@ namespace Utility
                                         string caEntireDbString = "";
                                         foreach (var a in avg1)
                                         {
-                                            caEntireDbString += string.Format("{3,7:P2};", a);
+                                            caEntireDbString += string.Format("{0,7:P2};", a);
                                         }
 
                                         caEntireDbString=caEntireDbString.TrimEnd(';');
@@ -1002,14 +1002,14 @@ namespace Utility
                                         string caEntireSkylineString = "";
                                         foreach (var a in avg2)
                                         {
-                                            caEntireSkylineString += string.Format("{3,7:P2};", a);
+                                            caEntireSkylineString += string.Format("{0,7:P2};", a);
                                         }
 
                                         caEntireSkylineString=caEntireSkylineString.TrimEnd(';');
                                         string caSampleSkylineString = "";
                                         foreach (var a in avg3)
                                         {
-                                            caSampleSkylineString += string.Format("{3,7:P2};", a);
+                                            caSampleSkylineString += string.Format("{0,7:P2};", a);
                                         }
 
                                         caSampleSkylineString=caSampleSkylineString.TrimEnd(';');
