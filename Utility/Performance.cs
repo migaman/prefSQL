@@ -732,7 +732,7 @@ namespace Utility
 
                                         for (var ii = 0; ii < skylineAttributeColumns.Length; ii++)
                                         {
-                                            dt.Columns.RemoveAt(0);
+                                            dtEntire.Columns.RemoveAt(0);
                                         }
 
                                         Dictionary<long, object[]> full =
