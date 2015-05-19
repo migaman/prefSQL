@@ -962,7 +962,7 @@ namespace Utility
                                         }
                                           for (int bucket = 0; bucket < caEntireDb[0].Count; bucket++)
                                             {
-                                                avg1[bucket] /= caEntireDb.Count;
+                                                avg1[bucket] /= caEntireDb.Count * 100;
                                             }
                                         foreach (var row in caEntireSkyline)
                                         {
@@ -973,7 +973,7 @@ namespace Utility
                                         }
                                         for (int bucket = 0; bucket < caEntireSkyline[0].Count; bucket++)
                                         {
-                                            avg2[bucket] /= caEntireSkyline.Count;
+                                            avg2[bucket] /= caEntireSkyline.Count * 100;
                                         }
                                     
                                     foreach (var row in caSampleSkyline)
@@ -987,14 +987,14 @@ namespace Utility
                                 }
                                     for (int bucket = 0; bucket < caSampleSkyline[0].Count; bucket++)
                                         {
-                                            avg3[bucket] /= caSampleSkyline.Count;
+                                            avg3[bucket] /= caSampleSkyline.Count*100;
                                         }
 
 
                                         string caEntireDbString = "";
                                         foreach (var a in avg1)
                                         {
-                                            caEntireDbString += string.Format("{0,7:P2};", a);
+                                            caEntireDbString += string.Format("{0:000.##};", a);
                                         }
 
                                         caEntireDbString=caEntireDbString.TrimEnd(';');
@@ -1002,14 +1002,14 @@ namespace Utility
                                         string caEntireSkylineString = "";
                                         foreach (var a in avg2)
                                         {
-                                            caEntireSkylineString += string.Format("{0,7:P2};", a);
+                                            caEntireSkylineString += string.Format("{0:000.##};", a);
                                         }
 
                                         caEntireSkylineString=caEntireSkylineString.TrimEnd(';');
                                         string caSampleSkylineString = "";
                                         foreach (var a in avg3)
                                         {
-                                            caSampleSkylineString += string.Format("{0,7:P2};", a);
+                                            caSampleSkylineString += string.Format("{0:000.##};", a);
                                         }
 
                                         caSampleSkylineString=caSampleSkylineString.TrimEnd(';');
@@ -1509,9 +1509,9 @@ namespace Utility
             line[31] = scSumMax.PadLeft(20, paddingChar);
             line[32] = scSumVar.PadLeft(20, paddingChar);
             line[33] = scSumStdDev.PadLeft(20, paddingChar);
-            line[34] = caEntireDb.PadLeft(20, paddingChar);
-            line[35] = caEntireSkyline.PadLeft(20, paddingChar);
-            line[36] = caSampleSkyline.PadLeft(20, paddingChar);
+            line[34] = caEntireDb.PadLeft(130, paddingChar);
+            line[35] = caEntireSkyline.PadLeft(130, paddingChar);
+            line[36] = caSampleSkyline.PadLeft(130, paddingChar);
             line[37] = strCorrelation.PadLeft(20, paddingChar);
             line[38] = strCardinality.PadLeft(25, paddingChar);
             line[39] = "";
