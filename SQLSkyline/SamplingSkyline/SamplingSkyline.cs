@@ -164,8 +164,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
 
                 IDictionary<long, object[]> subspaceDatabase = GetDatabaseFromDataTable(database, subspaceDataTable);
 
-                IEnumerable<long[]> databaseForPairwiseComparison = GetDatabaseForPairwiseComparison(subspaceDatabase,
-                    subspace);
+                IEnumerable<long[]> databaseForPairwiseComparison = GetDatabaseForPairwiseComparison(subspaceDatabase.Values,subspace);
 
                 IEnumerable<HashSet<long>> rowsWithEqualValuesWithRespectToSubspaceColumns =
                     CompareEachRowWithRespectToSubspaceColumnsPairwise(databaseForPairwiseComparison);
@@ -241,11 +240,11 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             return skylineSampleReturn;
         }
 
-        private IEnumerable<long[]> GetDatabaseForPairwiseComparison(IDictionary<long, object[]> subspaceDatabase,
+        private IEnumerable<long[]> GetDatabaseForPairwiseComparison(IEnumerable<object[]> subspaceDatabase,
             ICollection<int> subspace)
         {
             var subspaceForPairwiseComparison = new List<long[]>();
-            foreach (object[] row in subspaceDatabase.Values)
+            foreach (object[] row in subspaceDatabase)
             {
                 var rowForPairwiseComparison = new long[subspace.Count + 2];
 
@@ -340,31 +339,31 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         {
             List<long[]> database = subspaceDatabase.ToList();
 
+            int columnsInSubspaceCount = database[0].Length - 2;
+            int rowIdentifierColumnIndex = database[0].Length - 2;
+            int equalValuesBucketColumnIndex = database[0].Length - 1;
+
             // sort on first subspace attribute in order to skip some comparisons later
             database.Sort((row1, row2) => (row1[0]).CompareTo(row2[0]));
 
-            // performance; access counter only once
-            int databaseCount = database.Count;
-
-            int columnsInSubspaceCount = database[0].Length - 2;
-            int equalValuesBucketColumnIndex = database[0].Length - 1;
-            int rowIdentifierColumnIndex = database[0].Length - 2;
-
             // compare pairwise, initially skip first element to prevent comparison of elements with themselves
-            List<long[]> databaseForComparison = database.GetRange(1, databaseCount - 1);
+            var databaseForComparison = new List<long[]>(database);
 
             // store the actual values which are equal to another database row in order to create separate lists
             // for each combination of equal values
             var equalValues = new long[columnsInSubspaceCount];
 
+            // performance; access counter only once
+            int databaseCount = database.Count;
+
             for (var databaseIndex = 0; databaseIndex < databaseCount; databaseIndex++)
             {
-                // performance; dereference only once
-                long[] databaseRowValue = database[databaseIndex];
-
                 // possibly reduced list to use for next iteration over databaseForComparison, see iteration over
                 // databaseForComparison
                 var databaseForComparisonForNextIteration = new List<long[]>();
+
+                // performance; dereference only once
+                long[] databaseRowValue = database[databaseIndex];
 
                 // performance; access counter only once
                 int databaseForComparisonCount = databaseForComparison.Count;
@@ -376,6 +375,12 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                     // performance; dereference only once
                     long[] databaseForComparisonRowValue = databaseForComparison[databaseForComparisonIndex];
 
+                    if (databaseRowValue[rowIdentifierColumnIndex] ==
+                        databaseForComparisonRowValue[rowIdentifierColumnIndex])
+                    {
+                        continue;
+                    }
+
                     // performance; dereference only once
                     long sortedColumnDatabaseRowValue = databaseRowValue[0];
 
@@ -386,15 +391,19 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                     {
                         // don't recalculate the whole databaseForComparison list, instead move the starting
                         // index one step forward for the next iteration
-                        int startAddRange = databaseForComparisonIndex == 0
-                            ? databaseForComparisonIndex + 1
-                            : databaseForComparisonIndex;
+                        ////int startAddRange = databaseForComparisonIndex == 0
+                        ////    ? databaseForComparisonIndex + 1
+                        ////    : databaseForComparisonIndex;
 
-                        if (startAddRange > databaseForComparisonCount)
-                        {
-                            databaseForComparisonForNextIteration.AddRange(databaseForComparison.GetRange(
-                                startAddRange, databaseForComparisonCount - startAddRange));
-                        }
+                        ////int startAddRange = databaseForComparisonIndex;
+
+                        ////if (startAddRange > databaseForComparisonCount)
+                        ////{
+                            ////databaseForComparisonForNextIteration.AddRange(databaseForComparison.GetRange(
+                            ////    startAddRange, databaseForComparisonCount - startAddRange));
+                        databaseForComparisonForNextIteration.AddRange(databaseForComparison.GetRange(
+                            databaseForComparisonIndex, databaseForComparisonCount - databaseForComparisonIndex));
+                        ////}
 
                         // terminate inner iteration over databaseForComparison
                         break;
@@ -409,21 +418,20 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
 
                     if (!isDatabaseRowEqualToDatabaseForComparisonRow)
                     {
-                        if (databaseForComparisonIndex > 0)
-                        {
+                        ////if (databaseForComparisonIndex > 0)
+                        ////{
                             // at least one value of the subspace differs, so the current row of databaseForComparison
                             // will have to be compared in forthcoming iteartions with another row of database;
                             // hence, add this row to databaseForComparisonForNextIteration, which will be the
                             // list being iterated over in the next iteration
                             databaseForComparisonForNextIteration.Add(databaseForComparisonRowValue);
-                        }
+                        ////}
 
                         // terminate inner iteration over databaseForComparison, since the values were not equal
                         continue;
                     }
 
-                    //long equalValuesBucket = GetArrayHashCode(equalValues);
-                    long equalValuesBucket = equalValues.Aggregate("", (current, i) => current + i + "-").GetHashCode();
+                    long equalValuesBucket = GetArrayHashCode(equalValues);
 
                     // these rows have equal values, mark the rows with the corresponding hash which can be
                     // viewed as a bucket for all rows with the same hash, i.e. for all rows with the same
@@ -536,19 +544,21 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         ///     Idea based on:
         ///     http://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-an-overridden-system-object-gethashcode/263416#263416
         /// </remarks>
-        /// <param name="obj">Array to get hash code for.</param>
+        /// <param name="array">Array to get hash code for.</param>
         /// <returns>Hash code.</returns>
-        private static long GetArrayHashCode(long[] obj)
+        private static long GetArrayHashCode(long[] array)
         {
-            unchecked // Overflow is not a problem, just wrap
-            {
-                var result = (int) 2166136261;
-                foreach (long l in obj)
-                {
-                    result = result * 16777619 ^ l.GetHashCode();
-                }
-                return result;
-            }
+            return array.Aggregate("", (current, i) => current + i + "-").GetHashCode();
+
+            //unchecked // Overflow is not a problem, just wrap
+            //{
+            //    var result = (int) 2166136261;
+            //    foreach (long l in array)
+            //    {
+            //        result = result * 16777619 ^ l.GetHashCode();
+            //    }
+            //    return result;
+            //}
         }
     }
 }

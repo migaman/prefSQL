@@ -77,7 +77,7 @@ namespace Utility
             //p.Strategy = new SkylineHexagon();
             //p.Strategy = new SkylineDecisionTree();
 
-            //p.Sampling = true;
+            p.Sampling = true;
             p.SamplingSubspacesCount = 15;
             p.SamplingSubspaceDimension = 3;
             p.SamplingSamplesCount = 100;
