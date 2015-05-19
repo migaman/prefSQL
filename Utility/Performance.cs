@@ -877,7 +877,7 @@ namespace Utility
                                             clusterAnalysisAverages[ClusterAnalysisSampling.SampleSkyline].Add(0);
                                         }
 
-                                        foreach (var clusterAnalysisType in Enum.GetValues(typeof(ClusterAnalysisSampling)).Cast<ClusterAnalysisSampling>())
+                                        foreach (ClusterAnalysisSampling clusterAnalysisType in Enum.GetValues(typeof(ClusterAnalysisSampling)).Cast<ClusterAnalysisSampling>())
                                         {
                                             foreach (List<double> row in clusterAnalysisSampling[clusterAnalysisType])
                                             {
@@ -888,14 +888,14 @@ namespace Utility
 
                                             }
 
-                                            for (int bucket = 0; bucket < skylineAttributeColumns.Length; bucket++)
+                                            for (var bucket = 0; bucket < skylineAttributeColumns.Length; bucket++)
                                             {
-                                                clusterAnalysisAverages[clusterAnalysisType][bucket] /= clusterAnalysisSampling[clusterAnalysisType].Count * 100;
+                                                clusterAnalysisAverages[clusterAnalysisType][bucket] /= clusterAnalysisSampling[clusterAnalysisType].Count;
                                             }
 
-                                            foreach (var averageValue in clusterAnalysisAverages[clusterAnalysisType])
+                                            foreach (double averageValue in clusterAnalysisAverages[clusterAnalysisType])
                                             {
-                                                clusterAnalysisStrings[clusterAnalysisType] += string.Format("{0:000.##};", averageValue);
+                                                clusterAnalysisStrings[clusterAnalysisType] += string.Format("{0:0.00};", averageValue * 100);
                                             }
 
                                             clusterAnalysisStrings[clusterAnalysisType] = clusterAnalysisStrings[clusterAnalysisType].TrimEnd(';');
