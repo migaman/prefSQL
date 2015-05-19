@@ -741,7 +741,7 @@ namespace Utility
 
                                         Dictionary<BigInteger, List<Dictionary<long, object[]>>> fullB =
                                             ClusterAnalysis.GetBuckets(full, skylineAttributeColumns);
-                                        Dictionary<BigInteger, List<Dictionary<long, object[]>>> aFullB =
+                                        Dictionary<int, List<Dictionary<long, object[]>>> aFullB =
                                             ClusterAnalysis.GetAggregatedBuckets(fullB);
 
                                         Dictionary<long, object[]> entireSkylineNormalized =
@@ -753,7 +753,7 @@ namespace Utility
                                         Dictionary<BigInteger, List<Dictionary<long, object[]>>> entireBuckets =
                                             ClusterAnalysis.GetBuckets(entireSkylineNormalized,
                                                 skylineAttributeColumns);
-                                        Dictionary<BigInteger, List<Dictionary<long, object[]>>>
+                                        Dictionary<int, List<Dictionary<long, object[]>>>
                                             aggregatedEntireBuckets =
                                                 ClusterAnalysis.GetAggregatedBuckets(entireBuckets);
 
@@ -853,7 +853,7 @@ namespace Utility
                                             Dictionary<BigInteger, List<Dictionary<long, object[]>>> sampleBuckets =
                                                 ClusterAnalysis.GetBuckets(sampleSkylineNormalized,
                                                     skylineAttributeColumns);
-                                            Dictionary<BigInteger, List<Dictionary<long, object[]>>>
+                                            Dictionary<int, List<Dictionary<long, object[]>>>
                                                 aggregatedSampleBuckets =
                                                     ClusterAnalysis.GetAggregatedBuckets(sampleBuckets);
 

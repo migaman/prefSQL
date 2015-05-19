@@ -113,9 +113,9 @@
             Dictionary<BigInteger, List<Dictionary<long, object[]>>> sampleBuckets =
                 ClusterAnalysis.GetBuckets(sampleSkylineNormalized, skylineAttributeColumns);
 
-            Dictionary<BigInteger, List<Dictionary<long, object[]>>> aggregatedEntireBuckets =
+            Dictionary<int, List<Dictionary<long, object[]>>> aggregatedEntireBuckets =
                 ClusterAnalysis.GetAggregatedBuckets(entireBuckets);
-            Dictionary<BigInteger, List<Dictionary<long, object[]>>> aggregatedSampleBuckets =
+            Dictionary<int, List<Dictionary<long, object[]>>> aggregatedSampleBuckets =
                 ClusterAnalysis.GetAggregatedBuckets(sampleBuckets);
 
             for (var i = 0; i < skylineAttributeColumns.Length; i++)
@@ -128,7 +128,7 @@
 
             Dictionary<BigInteger, List<Dictionary<long, object[]>>> fullB =
                 ClusterAnalysis.GetBuckets(full, skylineAttributeColumns);
-            Dictionary<BigInteger, List<Dictionary<long, object[]>>> aFullB =
+            Dictionary<int, List<Dictionary<long, object[]>>> aFullB =
                 ClusterAnalysis.GetAggregatedBuckets(fullB);
 
             for (var i = 0; i < skylineAttributeColumns.Length; i++)
