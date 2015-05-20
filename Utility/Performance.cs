@@ -761,10 +761,10 @@ namespace Utility
                                                                          entireDatabaseNormalized.Count;
 
                                                 int bestRank = aggregatedBestRankBuckets.ContainsKey(ii)
-                                                   ? aggregatedEntireDatabaseBuckets[ii].Count
+                                                   ? aggregatedBestRankBuckets[ii].Count
                                                    : 0;
                                                 int sumRank = aggregatedSumRankBuckets.ContainsKey(ii)
-                                                   ? aggregatedEntireDatabaseBuckets[ii].Count
+                                                   ? aggregatedSumRankBuckets[ii].Count
                                                    : 0;
 
                                                 double bestRankPercent = (double)bestRank /
