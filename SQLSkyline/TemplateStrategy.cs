@@ -80,10 +80,7 @@ namespace prefSQL.SQLSkyline
                 dataTableReturn = GetSkylineFromAlgorithm(database, dataTableTemplate, operatorsArray, additionalParameters);
                 
 
-                //Remove certain amount of rows if query contains TOP Keyword
-                Helper.GetAmountOfTuples(dataTableReturn, numberOfRecords);
-
-
+                
                 //Sort ByRank
                 if (sortType == 1)
                 {
@@ -94,6 +91,8 @@ namespace prefSQL.SQLSkyline
                     dataTableReturn = Helper.SortBySum(dataTableReturn, SkylineValues);    
                 }
 
+                //Remove certain amount of rows if query contains TOP Keyword
+                Helper.GetAmountOfTuples(dataTableReturn, numberOfRecords);
 
 
                 //Send results if working with the CLR
