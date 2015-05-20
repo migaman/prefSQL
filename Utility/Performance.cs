@@ -696,21 +696,14 @@ namespace Utility
                                                 SkylineSamplingHelper.GetRandomSample(entireSkylineNormalized,
                                                     sampleSkylineDataTable.Rows.Count);
 
-                                            string strSQLRank =
-                                                strSQL.Replace("SELECT ",
-                                                    "SELECT TOP " + sampleSkylineDataTable.Rows.Count + " ") +
-                                                " ORDER BY BEST_RANK()";
+                                        
                                             Dictionary<long, object[]> entireSkylineDataTableBestRankNormalized =
-                                                GetEntireSkylineDataTableRankNormalized(strSQLRank, parser,
-                                                    skylineAttributeColumns);
-
-                                            strSQLRank =
-                                                strSQL.Replace("SELECT ",
-                                                    "SELECT TOP " + sampleSkylineDataTable.Rows.Count + " ") +
-                                                " ORDER BY SUM_RANK()";
+                                                GetEntireSkylineDataTableRankNormalized(1, parser,
+                                                    skylineAttributeColumns, entireSkylineDataTable.Copy(), sampleSkylineDataTable.Rows.Count);
+                                         
                                             Dictionary<long, object[]> entireSkylineDataTableSumRankNormalized =
-                                                GetEntireSkylineDataTableRankNormalized(strSQLRank, parser,
-                                                    skylineAttributeColumns);
+                                                GetEntireSkylineDataTableRankNormalized(2, parser,
+                                                    skylineAttributeColumns, entireSkylineDataTable.Copy(), sampleSkylineDataTable.Rows.Count);
 
                                             double setCoverageCoveredBySecondRandomSample = SetCoverage.GetCoverage(
                                                 baseRandomSampleNormalized,
@@ -789,6 +782,7 @@ namespace Utility
                                         //trial|dimensions|skyline size|time total|time algorithm
                                         string strTrial = iTrial + 1 + " / " + _trials;
                                         string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
+                                        Console.WriteLine(strPreferenceSet);
 
                                         var mathematic = new Mathematic();
 
@@ -851,6 +845,7 @@ namespace Utility
                                 //trial|dimensions|skyline size|time total|time algorithm
                                 string strTrial = iTrial + 1 + " / " + _trials;
                                 string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
+                                Console.WriteLine(strPreferenceSet);
 
 
                                 string strLine = FormatLineString(strPreferenceSet, strTrial, preferences.Count, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality);
@@ -996,20 +991,28 @@ namespace Utility
             return clusterAnalysisStrings;
         }
 
-        private static Dictionary<long, object[]> GetEntireSkylineDataTableRankNormalized(string strSQLRank,
-            SQLCommon parser, int[] skylineAttributeColumns)
+        private static Dictionary<long, object[]> GetEntireSkylineDataTableRankNormalized(int sortType,
+            SQLCommon parser, int[] skylineAttributeColumns, DataTable entireSkyline, int numberOfRecords)
         {
-            
+            DataTable sortedDataTable=new DataTable();
 
+              if (sortType == 1)
+              {
+                  sortedDataTable = prefSQL.SQLSkyline.Helper.SortByRank(entireSkyline,
+                      parser.SkylineType.skyline.SkylineValues);
+              } 
+                else if (sortType == 2)
+                {
+                     sortedDataTable = prefSQL.SQLSkyline.Helper.SortBySum(entireSkyline,
+                        parser.SkylineType.skyline.SkylineValues);
+                }
 
-            DataTable entireSkylineDataTableBestRank = parser.ParseAndExecutePrefSQL(Helper.ConnectionString,
-                Helper.ProviderName,
-                strSQLRank);
+              prefSQL.SQLSkyline.Helper.GetAmountOfTuples(sortedDataTable, numberOfRecords);
 
-            Dictionary<long, object[]> entireSkylineDataTableBestRankNormalized =
-                prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTableBestRank, 0);
-            SkylineSamplingHelper.NormalizeColumns(entireSkylineDataTableBestRankNormalized, skylineAttributeColumns);
-            return entireSkylineDataTableBestRankNormalized;
+            Dictionary<long, object[]> sortedDataTableNormalized =
+                prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(sortedDataTable, 0);
+            SkylineSamplingHelper.NormalizeColumns(sortedDataTableNormalized, skylineAttributeColumns);
+            return sortedDataTableNormalized;
         }
 
         private List<HashSet<HashSet<int>>> ProduceSubspaces(ArrayList preferences)

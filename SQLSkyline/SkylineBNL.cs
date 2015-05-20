@@ -26,7 +26,7 @@ namespace prefSQL.SQLSkyline
         public override bool SupportIncomparable()
         {
             return true;
-        }
+        }        
 
         public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, string strFirstSQL, string strOperators, string strOrderByAttributes)
         {
@@ -48,7 +48,7 @@ namespace prefSQL.SQLSkyline
 
         public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
-            TemplateStrategy skyline = getSP_Skyline();
+            skyline = getSP_Skyline();
             DataTable dt = skyline.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
             TimeMilliseconds = skyline.TimeInMs;
             NumberOfOperations = skyline.NumberOfOperations;
@@ -57,7 +57,7 @@ namespace prefSQL.SQLSkyline
 
         internal override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string preferenceOperators)
         {
-            TemplateStrategy skyline = getSP_Skyline();
+            skyline = getSP_Skyline();
             DataTable dt = skyline.GetSkylineTable(database, dataTableTemplate.Clone(), dataRecordTemplate, preferenceOperators, RecordAmountLimit, true, SortType, AdditionParameters);
             TimeMilliseconds = skyline.TimeInMs;
             NumberOfOperations = skyline.NumberOfOperations;
