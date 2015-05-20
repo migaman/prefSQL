@@ -45,7 +45,7 @@ namespace Utility
             p.GenerateScript = false;
 
             //p.UseCLR = true;
-            p.UseClr = false;
+            p.UseCLR = false;
             p.Trials = 1;           //Amount of trials for each single sql preference statement
             
             p.MinDimensions = 7;   //Up from x dimensions
@@ -81,7 +81,7 @@ namespace Utility
             //p.Strategy = new SkylineHexagon();
             //p.Strategy = new SkylineDecisionTree();
 
-            p.Sampling = true;
+            //p.Sampling = true;
             p.SamplingSubspacesCount = 15;
             p.SamplingSubspaceDimension = 3;
             p.SamplingSamplesCount = 100;

@@ -62,7 +62,7 @@ namespace Utility
 
         public Performance()
         {
-            UseClr = false;
+            UseCLR = false;
         }
 
         public int MinDimensions { get; set; }  //Up from this amount of dimension should be tested
@@ -104,7 +104,7 @@ namespace Utility
 
         #region getter/setters
 
-        public bool UseClr { get; set; }
+        public bool UseCLR { get; set; }
 
         internal Size TableSize { get; set; }
         
@@ -377,7 +377,7 @@ namespace Utility
 
                     //First define define randomly how many dimensions
                     int differentDimensions = MaxDimensions - MinDimensions + 1;
-                    int sampleDimensions = _rnd.Next(differentDimensions) + MinDimensions;
+                    int sampleDimensions = Rnd.Next(differentDimensions) + MinDimensions;
                     
                     //Choose x preferences randomly
                     for (int i = 0; i < sampleDimensions; i++)
@@ -523,6 +523,8 @@ namespace Utility
                     sb.AppendLine("              Table size: " + TableSize.ToString());
                     sb.AppendLine("          Dimension from: " + MinDimensions.ToString());
                     sb.AppendLine("            Dimension to: " + MaxDimensions.ToString());
+                    //sb.AppendLine("Correlation Coefficients:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
+                    //sb.AppendLine("           Cardinalities:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
                     if (Sampling)
                     {
                         sb.AppendLine("                Sampling: true");
@@ -530,8 +532,6 @@ namespace Utility
                         sb.AppendLine("      Subspace Dimension: " + SamplingSubspaceDimension);
                         sb.AppendLine("           Sampling Runs: " + SamplingSamplesCount);
                     }
-                    //sb.AppendLine("Correlation Coefficients:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
-                    //sb.AppendLine("           Cardinalities:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
                     sb.AppendLine("");
                     if (Sampling)
                     {
@@ -610,34 +610,7 @@ namespace Utility
                             {
                                 double correlation = SearchCorrelation(subPreferences, correlationMatrix);
                                 double cardinality = SearchCardinality(subPreferences, listCardinality);
-                                    
 
-                                sw.Start();
-                                if (UseCLR)
-                                {
-                                    string strSP = parser.ParsePreferenceSQL(strSQL);
-                                    SqlDataAdapter dap = new SqlDataAdapter(strSP, cnnSQL);
-                                    dt.Clear(); //clear datatable
-                                    dap.Fill(dt);
-                                }
-                                else
-                                {
-                                    parser.Cardinality = (long)cardinality;
-                                    dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strSQL);
-                                }
-                                long timeAlgorithm = parser.TimeInMilliseconds;
-                                long numberOfOperations = parser.NumberOfOperations;
-                                sw.Stop();
-                                reportDimensions.Add(preferences.Count);
-                                reportSkylineSize.Add(dt.Rows.Count);
-                                reportTimeTotal.Add(sw.ElapsedMilliseconds);
-                                reportTimeAlgorithm.Add(timeAlgorithm);
-                                reportCorrelation.Add(correlation);
-                                reportCardinality.Add(cardinality);
-
-                                //trial|dimensions|skyline size|time total|time algorithm
-                                string strTrial = iTrial + 1 + " / " + _trials;
-                                string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
                                     if (Sampling)
                                     {
                                         DataTable entireSkylineDataTable =
@@ -647,7 +620,6 @@ namespace Utility
                                         int[] skylineAttributeColumns =
                                             SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
 
-                                string strLine = FormatLineString(strPreferenceSet, strTrial, preferences.Count, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality);
                                         Dictionary<long, object[]> entireSkylineNormalized =
                                             prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(
                                                 entireSkylineDataTable, 0);
@@ -659,8 +631,6 @@ namespace Utility
                                                 ClusterAnalysis.GetAggregatedBuckets(entireSkylineNormalized,
                                                     skylineAttributeColumns);
 
-                                Debug.WriteLine(strLine);
-                                sb.AppendLine(strLine);
                                         Dictionary<long, object[]> entireDatabaseNormalized =
                                             GetEntireDatabaseNormalized(parser, strSQL, skylineAttributeColumns);
 
@@ -804,7 +774,7 @@ namespace Utility
                                         var objects = (long) (subspaceObjects.Average() + .5);
                                         var elapsed = (long) (subspaceTimeElapsed.Average() + .5);
 
-                                        reportDimensions.Add(i);
+                                        reportDimensions.Add(preferences.Count);
                                         reportSkylineSize.Add(objects);
                                         reportTimeTotal.Add(elapsed);
                                         reportTimeAlgorithm.Add(time);
@@ -822,7 +792,7 @@ namespace Utility
 
                                         var mathematic = new Mathematic();
 
-                                        string strLine = FormatLineStringSample(strPreferenceSet, strTrial, i, objects,
+                                        string strLine = FormatLineStringSample(strPreferenceSet, strTrial, preferences.Count, objects,
                                             elapsed, time, subspaceTime.Min(), subspaceTime.Max(),
                                             mathematic.GetVariance(subspaceTime),
                                             mathematic.GetStdDeviation(subspaceTime), subspaceObjects.Min(),
@@ -850,47 +820,48 @@ namespace Utility
                                         Debug.WriteLine(strLine);
                                         sb.AppendLine(strLine);
                                     } else
-                                    {
-                                        sw.Start();
-                                        if (UseClr)
-                                        {
-                                            string strSp = parser.ParsePreferenceSQL(strSQL);
-                                            var dap = new SqlDataAdapter(strSp, cnnSQL);
-                                            dt.Clear(); //clear datatable
-                                            dap.Fill(dt);
-                                        } else
-                                        {
-                                            parser.Cardinality = (long) cardinality;
-                                            dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString,
-                                                Helper.ProviderName, strSQL);
-                                        }
-                                        long timeAlgorithm = parser.TimeInMilliseconds;
-                                        long numberOfOperations = parser.NumberOfOperations;
-                                        sw.Stop();
-
-                                        reportDimensions.Add(i);
-                                        reportSkylineSize.Add(dt.Rows.Count);
-                                        reportTimeTotal.Add(sw.ElapsedMilliseconds);
-                                        reportTimeAlgorithm.Add(timeAlgorithm);
-                                        reportCorrelation.Add(correlation);
-                                        reportCardinality.Add(cardinality);
-
-                                        //trial|dimensions|skyline size|time total|time algorithm
-                                        string strTrial = iTrial + 1 + " / " + _trials;
-                                        string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
-
-                                        string strLine = FormatLineString(strPreferenceSet, strTrial, i, dt.Rows.Count,
-                                            sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality);
-
-                                        Debug.WriteLine(strLine);
-                                        sb.AppendLine(strLine);
-                                    }
-                                }
-                                catch (Exception e)
                                 {
-                                    Debug.WriteLine(e.Message);
-                                    return;
+                              
+                                    
+
+                                sw.Start();
+                                if (UseCLR)
+                                {
+                                    string strSP = parser.ParsePreferenceSQL(strSQL);
+                                    SqlDataAdapter dap = new SqlDataAdapter(strSP, cnnSQL);
+                                    dt.Clear(); //clear datatable
+                                    dap.Fill(dt);
                                 }
+                                else
+                                {
+                                    parser.Cardinality = (long)cardinality;
+                                    dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strSQL);
+                                }
+                                long timeAlgorithm = parser.TimeInMilliseconds;
+                                long numberOfOperations = parser.NumberOfOperations;
+                                sw.Stop();
+                                    
+                                reportDimensions.Add(preferences.Count);
+                                reportSkylineSize.Add(dt.Rows.Count);
+                                reportTimeTotal.Add(sw.ElapsedMilliseconds);
+                                reportTimeAlgorithm.Add(timeAlgorithm);
+                                reportCorrelation.Add(correlation);
+                                reportCardinality.Add(cardinality);
+
+                                //trial|dimensions|skyline size|time total|time algorithm
+                                string strTrial = iTrial + 1 + " / " + _trials;
+                                string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
+
+
+                                string strLine = FormatLineString(strPreferenceSet, strTrial, preferences.Count, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality);
+
+
+                                Debug.WriteLine(strLine);
+                                sb.AppendLine(strLine);
+}
+
+
+
                             }
                             catch (Exception e)
                             {
@@ -966,7 +937,7 @@ namespace Utility
             }
 
             //close connection
-            if (UseClr)
+            if (UseCLR)
             {
                 cnnSQL.Close();
             }
@@ -1529,7 +1500,7 @@ namespace Utility
             //average line
             //trial|dimensions|skyline size|time total|time algorithm|correlation|
             string[] line = new string[40];
-            line[0] = strTitle.PadLeft(14, paddingChar);
+            line[0] = strTitle.PadLeft(19, paddingChar);
             line[1] = strTrial.PadLeft(11, paddingChar);
             line[2] = strDimension.PadLeft(10, paddingChar);
             line[3] = strSkyline.PadLeft(20, paddingChar);
