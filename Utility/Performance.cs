@@ -613,6 +613,8 @@ namespace Utility
 
                                     if (Sampling)
                                     {
+                                        InitClusterAnalysisSamplingDataStructures(out clusterAnalysisSampling);
+
                                         DataTable entireSkylineDataTable =
                                             parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
                                                 strSQL);
@@ -713,10 +715,10 @@ namespace Utility
                                                 sampleSkylineNormalized, skylineAttributeColumns) * 100.0;
                                             double setCoverageCoveredByEntireBestRank =
                                                 SetCoverage.GetCoverage(baseRandomSampleNormalized,
-                                                    entireSkylineDataTableBestRankNormalized, skylineAttributeColumns);
+                                                    entireSkylineDataTableBestRankNormalized, skylineAttributeColumns) * 100.0;
                                             double setCoverageCoveredByEntireSumRank =
                                                 SetCoverage.GetCoverage(baseRandomSampleNormalized,
-                                                    entireSkylineDataTableSumRankNormalized, skylineAttributeColumns);
+                                                    entireSkylineDataTableSumRankNormalized, skylineAttributeColumns) * 100.0;
 
                                             setCoverageSecondRandom.Add(setCoverageCoveredBySecondRandomSample);
                                             setCoverageSample.Add(setCoverageCoveredBySkylineSample);
@@ -1155,6 +1157,18 @@ namespace Utility
             reportsSamplingDouble[ReportsSampling.TimeStdDev].Add(mathematic.GetStdDeviation(subspaceTime));
         }
 
+        private static void InitClusterAnalysisSamplingDataStructures(out Dictionary<ClusterAnalysisSampling, List<List<double>>> clusterAnalysisSampling)
+        {
+            clusterAnalysisSampling = new Dictionary<ClusterAnalysisSampling, List<List<double>>>()
+            {
+                {ClusterAnalysisSampling.EntireDb, new List<List<double>>()},
+                {ClusterAnalysisSampling.EntireSkyline, new List<List<double>>()},
+                {ClusterAnalysisSampling.SampleSkyline, new List<List<double>>()},
+                {ClusterAnalysisSampling.BestRank, new List<List<double>>()},
+                {ClusterAnalysisSampling.SumRank, new List<List<double>>()}
+            };
+        }
+
         private static void InitSamplingDataStructures(out Dictionary<ReportsSampling, List<long>> reportsSamplingLong, out Dictionary<ReportsSampling, List<double>> reportsSamplingDouble,
             out Dictionary<SetCoverageSampling, List<double>> setCoverageSampling, out Dictionary<ClusterAnalysisSampling, List<List<double>>> clusterAnalysisSampling)
         {
@@ -1197,14 +1211,7 @@ namespace Utility
                 {SetCoverageSampling.SumRankStdDev, new List<double>()}
             };
 
-            clusterAnalysisSampling = new Dictionary<ClusterAnalysisSampling, List<List<double>>>()
-            {
-                {ClusterAnalysisSampling.EntireDb, new List<List<double>>()},
-                {ClusterAnalysisSampling.EntireSkyline, new List<List<double>>()},
-                {ClusterAnalysisSampling.SampleSkyline, new List<List<double>>()},
-                {ClusterAnalysisSampling.BestRank, new List<List<double>>()},
-                {ClusterAnalysisSampling.SumRank, new List<List<double>>()}
-            };
+            InitClusterAnalysisSamplingDataStructures(out clusterAnalysisSampling);
         }
 
         private DataTable GetSQLFromPreferences(ArrayList preferences, bool cardinality)
