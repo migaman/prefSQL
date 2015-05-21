@@ -25,7 +25,7 @@
         public SamplingTest()
         {
             var addPreferences = "";
-            foreach (object preference in Performance.GetCategoricalPreferences())
+            foreach (object preference in Performance.GetAllPreferences())
             {
                 addPreferences += preference.ToString().Replace("cars", "cs") + ", ";
             }
@@ -45,8 +45,8 @@
         {
             var samplingTest = new SamplingTest();
 
-            samplingTest.TestExecutionForPerformance(10);
-            //samplingTest.TestForSetCoverage();
+            //samplingTest.TestExecutionForPerformance(10);
+            samplingTest.TestForSetCoverage();
             //samplingTest.TestForClusterAnalysis();            
 
             Console.ReadKey();
@@ -172,8 +172,8 @@
             {
                 DataTable sampleSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
                     Helper.ProviderName, _skylineSampleSql);
-                //Console.WriteLine("time sample: " + common.TimeInMilliseconds);
-                //Console.WriteLine("count sample: " + sampleSkylineDataTable.Rows.Count);
+                Console.WriteLine("time sample: " + common.TimeInMilliseconds);
+                Console.WriteLine("count sample: " + sampleSkylineDataTable.Rows.Count);
 
                 Dictionary<long, object[]> sampleSkylineNormalized =
                     prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(sampleSkylineDataTable, 0);
@@ -214,6 +214,7 @@
                 Console.WriteLine("sc sample       : " + setCoverageCoveredBySkylineSample);
                 Console.WriteLine("sc entire best  : " + setCoverageCoveredByEntireBestRank);
                 Console.WriteLine("sc entire sum   : " + setCoverageCoveredByEntireSumRank);
+                Console.WriteLine();
                 //Console.WriteLine("set coverage covered by second random sample: " +
                 //                  setCoverageCoveredBySecondRandomSample);
                 //Console.WriteLine("set coverage covered by skyline sample: " + setCoverageCoveredBySkylineSample);
