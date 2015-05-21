@@ -169,11 +169,11 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                 IEnumerable<HashSet<long>> rowsWithEqualValuesWithRespectToSubspaceColumns =
                     CompareEachRowWithRespectToSubspaceColumnsPairwise(databaseForPairwiseComparison);
 
+                subpaceOperators = string.Join(";",
+                    GetOperatorsWithIgnoredEntries(OperatorsCollection.ToArray(), GetSubspaceComplement(subspace)));
+
                 foreach (HashSet<long> rowsWithEqualValues in rowsWithEqualValuesWithRespectToSubspaceColumns)
                 {
-                    subpaceOperators = string.Join(";",
-                        GetOperatorsWithIgnoredEntries(OperatorsCollection.ToArray(), GetSubspaceComplement(subspace)));
-
                     IDictionary<long, object[]> rowsWithEqualValuesDatabase = GetSubsetOfDatabase(database,
                         rowsWithEqualValues);
 
@@ -219,9 +219,6 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
 
             RemoveInternalArtificialUniqueRowIdentifier(skylineSampleReturn);
 
-            //Remove certain amount of rows if query contains TOP Keyword
-            Helper.GetAmountOfTuples(skylineSampleReturn, SelectedStrategy.RecordAmountLimit);
-
             //Sort ByRank
             if (SelectedStrategy.SortType == 1)
             {
@@ -230,6 +227,9 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             {
                 skylineSampleReturn = Helper.SortBySum(skylineSampleReturn, skylineValues);
             }
+
+            //Remove certain amount of rows if query contains TOP Keyword
+            Helper.GetAmountOfTuples(skylineSampleReturn, SelectedStrategy.RecordAmountLimit);
 
             sw.Stop();
             TimeMilliseconds += sw.ElapsedMilliseconds;
