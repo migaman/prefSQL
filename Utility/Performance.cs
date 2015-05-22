@@ -619,6 +619,8 @@ namespace Utility
                                             parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
                                                 strSQL);
 
+                                        List<long[]> entireDataTableSkylineValues = parser.SkylineType.skyline.SkylineValues;
+
                                         int[] skylineAttributeColumns =
                                             SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
 
@@ -700,12 +702,12 @@ namespace Utility
 
                                         
                                             Dictionary<long, object[]> entireSkylineDataTableBestRankNormalized =
-                                                GetEntireSkylineDataTableRankNormalized(1, parser,
-                                                    skylineAttributeColumns, entireSkylineDataTable.Copy(), sampleSkylineDataTable.Rows.Count);
+                                                GetEntireSkylineDataTableRankNormalized(parser,
+                                                    skylineAttributeColumns, entireSkylineDataTable.Copy(), entireDataTableSkylineValues, sampleSkylineDataTable.Rows.Count, 1);
                                          
                                             Dictionary<long, object[]> entireSkylineDataTableSumRankNormalized =
-                                                GetEntireSkylineDataTableRankNormalized(2, parser,
-                                                    skylineAttributeColumns, entireSkylineDataTable.Copy(), sampleSkylineDataTable.Rows.Count);
+                                                GetEntireSkylineDataTableRankNormalized(parser,
+                                                    skylineAttributeColumns, entireSkylineDataTable.Copy(), entireDataTableSkylineValues, sampleSkylineDataTable.Rows.Count, 2);
 
                                             double setCoverageCoveredBySecondRandomSample = SetCoverage.GetCoverage(
                                                 baseRandomSampleNormalized,
@@ -1028,8 +1030,7 @@ namespace Utility
             return clusterAnalysisStrings;
         }
 
-        private static Dictionary<long, object[]> GetEntireSkylineDataTableRankNormalized(int sortType,
-            SQLCommon parser, int[] skylineAttributeColumns, DataTable entireSkyline, int numberOfRecords)
+        private static Dictionary<long, object[]> GetEntireSkylineDataTableRankNormalized(SQLCommon parser, int[] skylineAttributeColumns, DataTable entireSkyline, List<long[]> skylineValues, int numberOfRecords, int sortType)
         {
             DataTable sortedDataTable=new DataTable();
 
