@@ -316,40 +316,6 @@ namespace prefSQL.SQLSkyline
             return greaterThan;
         }
 
-
-        /// <summary>
-        /// Adds a tuple to the existing window. cannot handle incomparable values
-        /// </summary>
-        /// <param name="window"></param>
-        /// <param name="dimensions"></param>
-        /// <param name="dtResult"></param>
-        /// <param name="newTuple"></param>
-        public static void AddToWindow(object[] newTuple, List<long[]> window, int dimensions, DataTable dtResult)
-        {
-            long[] record = new long[dimensions];
-            DataRow row = dtResult.NewRow();
-
-            for (int iCol = 0; iCol < newTuple.Length; iCol++)
-            {
-                //Only the real columns (skyline columns are not output fields)
-                if (iCol <= dimensions - 1)
-                {
-                    record[iCol] = (long)newTuple[iCol];
-                }
-                else
-                {
-                    row[iCol - dimensions] = newTuple[iCol];
-                }
-            }
-
-            //DataTable is for the returning values
-            dtResult.Rows.Add(row);
-            //ResultCollection contains the skyline values (for the algorithm)
-            window.Add(record);
-
-        }
-
-
         /// <summary>
         /// Adds a tuple to the existing window. cannot handle incomparable values
         /// </summary>
@@ -358,9 +324,8 @@ namespace prefSQL.SQLSkyline
         /// <param name="dimensions"></param>
         /// <param name="operators"></param>
         /// <param name="dtResult"></param>
-        public static void AddToWindowSample(object[] newTuple, List<long[]> window, int dimensions, string[] operators, DataTable dtResult)
-        {
-            
+        public static void AddToWindow(object[] newTuple, List<long[]> window, int dimensions, string[] operators, DataTable dtResult)
+        {            
             long[] record = new long[operators.Count(op => op != "IGNORE")];
             int nextRecordIndex = 0;
             DataRow row = dtResult.NewRow();
@@ -434,11 +399,7 @@ namespace prefSQL.SQLSkyline
             dtResult.Rows.Add(row);
             window.Add(recordInt);
             resultstringCollection.Add(recordstring);
-
         }
-
-
-
 
         /// <summary>
         /// Compares two values according to preference logic
@@ -452,26 +413,18 @@ namespace prefSQL.SQLSkyline
         /// </returns>
         private static int CompareValue(long value1, long value2)
         {
-
             if (value1 >= value2)
             {
                 if (value1 > value2)
                     return 2;
                 else
                     return 1;
-
             }
             else
             {
                 return 0;
             }
-
         }
-
-
-
-
-
 
         public static List<object[]> GetObjectArrayFromDataTable(DataTable dataTable)
         {
@@ -531,23 +484,7 @@ namespace prefSQL.SQLSkyline
                 
             }
             return dt;
-        }
-
-        internal static int[] ResultToTupleMapping(string[] operators)
-        {
-            int[] resultToTupleMapping = new int[operators.Count(op => op != "IGNORE")];
-            int next = 0;
-            for (int j = 0; j < operators.Length; j++)
-            {
-                if (operators[j] != "IGNORE")
-                {
-                    resultToTupleMapping[next] = j;
-                    next++;
-                }
-            }
-            return resultToTupleMapping;
-        }
-
+        }   
 
         //Sort BySum (for algorithms)
         public static DataTable SortBySum(DataTable dt, List<long[]> skylineValues)
