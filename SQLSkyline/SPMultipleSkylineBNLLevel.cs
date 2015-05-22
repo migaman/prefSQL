@@ -41,7 +41,6 @@ namespace prefSQL.SQLSkyline
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.Split(';');
             DataTable dtResult = new DataTable();
-            int[] resultToTupleMapping = Helper.ResultToTupleMapping(operators);
             int dimensions = 0; //operatorsArray.GetUpperBound(0)+1;
 
             string[] operatorsArray = strOperators.Split(';');
