@@ -48,19 +48,19 @@ namespace prefSQL.SQLSkyline
 
         public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
-            skyline = getSP_Skyline();
-            DataTable dt = skyline.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
-            TimeMilliseconds = skyline.TimeInMs;
-            NumberOfOperations = skyline.NumberOfOperations;
+            Strategy = getSP_Skyline();
+            DataTable dt = Strategy.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
+            TimeMilliseconds = Strategy.TimeInMs;
+            NumberOfOperations = Strategy.NumberOfOperations;
             return dt;         
         }
 
         internal override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string preferenceOperators)
         {
-            skyline = getSP_Skyline();
-            DataTable dt = skyline.GetSkylineTable(database, dataTableTemplate.Clone(), dataRecordTemplate, preferenceOperators, RecordAmountLimit, true, SortType, AdditionParameters);
-            TimeMilliseconds = skyline.TimeInMs;
-            NumberOfOperations = skyline.NumberOfOperations;
+            Strategy = getSP_Skyline();
+            DataTable dt = Strategy.GetSkylineTable(database, dataTableTemplate.Clone(), dataRecordTemplate, preferenceOperators, RecordAmountLimit, true, SortType, AdditionParameters);
+            TimeMilliseconds = Strategy.TimeInMs;
+            NumberOfOperations = Strategy.NumberOfOperations;
             return dt;
         }
 

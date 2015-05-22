@@ -17,7 +17,7 @@ namespace prefSQL.SQLSkyline
 
         public string ConnectionString { get; set; }
 
-        public TemplateStrategy skyline { get; set; }
+        internal TemplateStrategy Strategy { get; set; }
 
         /// <summary>
         /// Product of Cardinality of the preferenes

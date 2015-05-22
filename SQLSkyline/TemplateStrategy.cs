@@ -10,8 +10,8 @@ namespace prefSQL.SQLSkyline
     {
         public long TimeInMs { get; set; }
         public long NumberOfOperations { get; set; }
-        public List<long[]> SkylineValues { get; set; } //ordering is done in this class. Ordering needs the skyline values
-
+        internal List<long[]> SkylineValues { get; set; } //ordering is done in this class. Ordering needs the skyline values
+        
         public DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, string[] additionalParameters, int sortType)
         {
             string[] operators = strOperators.Split(';');
