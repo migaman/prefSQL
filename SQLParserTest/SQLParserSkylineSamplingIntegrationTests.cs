@@ -27,13 +27,37 @@
             Debug.WriteLine(testComment);
             Debug.WriteLine(entireSkylineSQL);
 
-            var common = new SQLCommon {SkylineType = new SkylineBNL()};
+            var common = new SQLCommon { SkylineType = new SkylineBNL() };
 
             DataTable skyline = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
                 entireSkylineSQL);
 
             Assert.AreEqual(expectedNumberOfEntireSkylineObjects, skyline.Rows.Count,
                 "Unexpected number of Skyline objects.");
+        }
+
+        [TestMethod]
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
+            "SQLParserSkylineSamplingIntegrationTests.xml", "TestDataRow", DataAccessMethod.Sequential),
+         DeploymentItem("SQLParserSkylineSamplingIntegrationTests.xml")]
+        public void TestNumberOfObjectsWithinSampleSkylineWithCountOneEqualsEntireSkyline()
+        {
+            string entireSkylineSQL = TestContext.DataRow["entireSkylineSQL"].ToString();
+            string testComment = TestContext.DataRow["comment"].ToString();         
+            Debug.WriteLine(testComment);
+     
+            var common = new SQLCommon { SkylineType = new SkylineBNL() };
+
+            DataTable entireSkyline = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                entireSkylineSQL);
+
+            PrefSQLModel entirePrefSqlModel = common.GetPrefSqlModelFromPreferenceSql(entireSkylineSQL);
+
+            DataTable sampleSkyline = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                entireSkylineSQL + " SAMPLE BY RANDOM_SUBSETS COUNT 1 DIMENSION " + entirePrefSqlModel.Skyline.Count);
+
+            Assert.AreEqual(entireSkyline.Rows.Count, sampleSkyline.Rows.Count,
+              "Unexpected number of Skyline objects.");
         }
 
         [TestMethod]
