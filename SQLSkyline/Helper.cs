@@ -654,7 +654,7 @@ namespace prefSQL.SQLSkyline
                 for (int iRow = 0; iRow < dt.Rows.Count; iRow++)
                 {
                     rank++;
-                    if (dt.Rows[iRow]["SortOrder"] == DBNull.Value || rank < (long)dt.Rows[iRow]["SortOrder"])
+                    if (dt.Rows[iRow]["SortOrder"] == DBNull.Value || rank < (int)dt.Rows[iRow]["SortOrder"])
                     {
                         dt.Rows[iRow]["SortOrder"] = rank;
                     }
