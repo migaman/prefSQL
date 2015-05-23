@@ -5,6 +5,7 @@
     using System.Data;
     using System.Data.Common;
     using System.Diagnostics;
+    using System.Linq;
     using System.Numerics;
     using prefSQL.SQLParser;
     using prefSQL.SQLParser.Models;
@@ -15,7 +16,7 @@
     public sealed class SamplingTest
     {
         private const string BaseSkylineSQL =
-            "SELECT cs.*, colors.name, bodies.name, fuels.name, makes.name, conditions.name, drives.name, transmissions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID LEFT OUTER JOIN drives ON cs.drive_id = drives.ID LEFT OUTER JOIN transmissions ON cs.transmission_id = transmissions.ID SKYLINE OF ";
+            "SELECT cs.*, colors.name, bodies.name, fuels.name, makes.name, conditions.name, drives.name, transmissions.name FROM cars_small cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID LEFT OUTER JOIN drives ON cs.drive_id = drives.ID LEFT OUTER JOIN transmissions ON cs.transmission_id = transmissions.ID SKYLINE OF ";
 
         private readonly string _entireSkylineSql;
         private readonly string _entireSkylineSqlBestRank;
@@ -30,11 +31,14 @@
                 addPreferences += preference.ToString().Replace("cars", "cs") + ", ";
             }
             addPreferences = addPreferences.TrimEnd(", ".ToCharArray());
-            _entireSkylineSql = BaseSkylineSQL + addPreferences;
+            //_entireSkylineSql = BaseSkylineSQL + addPreferences;
+            //_skylineSampleSql = _entireSkylineSql + " SAMPLE BY RANDOM_SUBSETS COUNT 15 DIMENSION 3";
+            _entireSkylineSql =
+                "SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> 'blue' >> OTHERS EQUAL), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL)";
             _skylineSampleSql = _entireSkylineSql + " SAMPLE BY RANDOM_SUBSETS COUNT 15 DIMENSION 3";
             //_entireSkylineSql =
-            //    "SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> 'blue' >> OTHERS EQUAL), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL)";
-            //_skylineSampleSql = _entireSkylineSql + " SAMPLE BY RANDOM_SUBSETS COUNT 15 DIMENSION 3";
+            //    "SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, colors.name ('red' >> 'blue' >> OTHERS EQUAL)";
+            //_skylineSampleSql = _entireSkylineSql + " SAMPLE BY RANDOM_SUBSETS COUNT 3 DIMENSION 2";
 
             _entireSkylineSqlBestRank = _entireSkylineSql.Replace("SELECT ", "SELECT TOP XXX ") +
                                         " ORDER BY BEST_RANK()";
@@ -45,11 +49,172 @@
         {
             var samplingTest = new SamplingTest();
 
-            //samplingTest.TestExecutionForPerformance(10);
-            samplingTest.TestForSetCoverage();
+            samplingTest.TestExecutionForPerformance(10);
+            //samplingTest.TestForSetCoverage();
             //samplingTest.TestForClusterAnalysis();            
+            //samplingTest.TestForDominatedObjects();
 
             Console.ReadKey();
+        }
+
+        private void TestForDominatedObjects()
+        {
+            var common = new SQLCommon
+            {
+                SkylineType =
+                    new SkylineBNL() {Provider = Helper.ProviderName, ConnectionString = Helper.ConnectionString},
+                ShowSkylineAttributes = true
+            };
+
+            DataTable entireSkylineDataTable =
+                common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                    _entireSkylineSql);
+
+            int[] skylineAttributeColumns =
+                SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
+
+            DbProviderFactory factory = DbProviderFactories.GetFactory(Helper.ProviderName);
+
+            // use the factory object to create Data access objects.
+            DbConnection connection = factory.CreateConnection();
+            // will return the connection object (i.e. SqlConnection ...)
+            connection.ConnectionString = Helper.ConnectionString;
+
+            var dtEntire = new DataTable();
+
+            connection.Open();
+
+            DbDataAdapter dap = factory.CreateDataAdapter();
+            DbCommand selectCommand = connection.CreateCommand();
+            selectCommand.CommandTimeout = 0; //infinite timeout
+
+            string strQueryEntire;
+            string operatorsEntire;
+            int numberOfRecordsEntire;
+            string[] parameterEntire;
+
+            string ansiSqlEntire =
+                common.GetAnsiSqlFromPrefSqlModel(
+                    common.GetPrefSqlModelFromPreferenceSql(_entireSkylineSql));
+            prefSQL.SQLParser.Helper.DetermineParameters(ansiSqlEntire, out parameterEntire,
+                out strQueryEntire, out operatorsEntire,
+                out numberOfRecordsEntire);
+
+            selectCommand.CommandText = strQueryEntire;
+            dap.SelectCommand = selectCommand;
+            dtEntire = new DataTable();
+
+            dap.Fill(dtEntire);
+
+            for (var ii = 0; ii < skylineAttributeColumns.Length; ii++)
+            {
+                dtEntire.Columns.RemoveAt(0);
+            }
+
+            DataTable sampleSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
+                Helper.ProviderName,
+                _skylineSampleSql);
+
+            Dictionary<long, object[]> sampleSkylineDatabase =
+                prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(sampleSkylineDataTable, 0);
+            Dictionary<long, object[]> entireDatabase = prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(dtEntire, 0);
+            Dictionary<long, object[]> entireSkylineDatabase =
+              prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTable, 0);
+
+            var dominatedObjects = new Dictionary<long, long>();
+            var dominatedObjectsSet = new HashSet<long>();
+            var dominatingObjectsSet = new HashSet<long>();
+
+            var dominatedObjectsEntire = new Dictionary<long, long>();
+            var dominatedObjectsSetEntire = new HashSet<long>();
+            var dominatingObjectsSetEntire = new HashSet<long>();
+
+            foreach (KeyValuePair<long, object[]> i in sampleSkylineDatabase)
+            {
+                dominatedObjects.Add(i.Key, 0);
+            }
+
+            foreach (KeyValuePair<long, object[]> i in entireSkylineDatabase)
+            {
+                dominatedObjectsEntire.Add(i.Key, 0);
+            }
+
+            foreach (KeyValuePair<long, object[]> j in entireDatabase)
+            {
+                var potentiallyDominatedTuple = new long[skylineAttributeColumns.Length];
+
+                for (var column = 0; column < skylineAttributeColumns.Length; column++)
+                {
+                    int index = skylineAttributeColumns[column];
+                    potentiallyDominatedTuple[column] = (long) j.Value[index];
+                }
+
+                foreach (KeyValuePair<long, object[]> i in sampleSkylineDatabase)
+                {                  
+                    var dominatingTuple = new long[skylineAttributeColumns.Length];
+
+                    for (var column = 0; column < skylineAttributeColumns.Length; column++)
+                    {
+                        int index = skylineAttributeColumns[column];
+                        dominatingTuple[column] = (long) i.Value[index];
+                    }
+
+                    if (prefSQL.SQLSkyline.Helper.IsTupleDominated(dominatingTuple, potentiallyDominatedTuple,
+                        skylineAttributeColumns.Length))
+                    {
+                        dominatedObjectsSet.Add(j.Key);
+                        dominatingObjectsSet.Add(i.Key);
+
+                        dominatedObjects[i.Key]++;
+                    }
+                }
+
+                foreach (KeyValuePair<long, object[]> i in entireSkylineDatabase)
+                {
+                    var dominatingTuple = new long[skylineAttributeColumns.Length];
+
+                    for (var column = 0; column < skylineAttributeColumns.Length; column++)
+                    {
+                        int index = skylineAttributeColumns[column];
+                        dominatingTuple[column] = (long)i.Value[index];
+                    }
+
+                    if (prefSQL.SQLSkyline.Helper.IsTupleDominated(dominatingTuple, potentiallyDominatedTuple,
+                        skylineAttributeColumns.Length))
+                    {
+                        dominatedObjectsSetEntire.Add(j.Key);
+                        dominatingObjectsSetEntire.Add(i.Key);
+
+                        dominatedObjectsEntire[i.Key]++;
+                    }
+                }
+            }
+
+            Debug.WriteLine("entire database size: {0}", entireDatabase.Keys.Count);
+            Debug.WriteLine("sample skyline size: {0}", sampleSkylineDatabase.Keys.Count);
+            Debug.WriteLine("objects that dominate other objects: {0}", dominatingObjectsSet.Count);
+            Debug.WriteLine("dominated objects: {0}", dominatedObjectsSet.Count);
+            Debug.WriteLine("dominated objects multiple: {0}", dominatedObjects.Values.Sum());
+            Debug.WriteLine("entire skyline size: {0}", entireSkylineDataTable.Rows.Count);
+            Debug.WriteLine("entire objects that dominate other objects: {0}", dominatingObjectsSetEntire.Count);
+            Debug.WriteLine("entire dominated objects: {0}", dominatedObjectsSetEntire.Count);
+            Debug.WriteLine("entire dominated objects multiple: {0}", dominatedObjectsEntire.Values.Sum());
+            Debug.WriteLine("");
+
+            foreach (KeyValuePair<long, long> v in dominatedObjects.OrderByDescending(key => key.Value))
+            {
+                Debug.WriteLine("object {0:00000} dominates {1:00000} other objects", v.Key, v.Value);
+            }
+
+            Debug.WriteLine("");
+
+            foreach (KeyValuePair<long, long> v in dominatedObjectsEntire.OrderByDescending(key => key.Value))
+            {
+                if (v.Value > 0)
+                {
+                    Debug.WriteLine("entire object {0:00000} dominates {1:00000} other objects", v.Key, v.Value);                    
+                }
+            }
         }
 
         private void TestForClusterAnalysis()
