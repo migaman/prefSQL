@@ -5,6 +5,7 @@ using System.Data;
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace prefSQL.SQLSkyline
 {
+    using System.Linq;
 
     /// <summary>
     /// BNL Algorithm implemented according to algorithm pseudocode in Börzsönyi et al. (2001)
@@ -26,19 +27,9 @@ namespace prefSQL.SQLSkyline
         {
             List<long[]> window = new List<long[]>();
             ArrayList windowIncomparable = new ArrayList();
-            int dimensions = 0; //operatorsArray.GetUpperBound(0)+1;
-
-            for (int i = 0; i < operatorsArray.Length; i++)
-            {
-                if (operatorsArray[i] != "IGNORE")
-                {
-                    dimensions++;
-                }
-            }
-
+            int dimensions = operatorsArray.Count(op => op != "IGNORE" && op != "INCOMPARABLE");            
             DataTable dataTableReturn = dataTableTemplate.Clone();
             
-
             //For each tuple
             foreach (object[] dbValuesObject in database)
             {
@@ -48,17 +39,10 @@ namespace prefSQL.SQLSkyline
                 {
                     if (operatorsArray[j] != "IGNORE" && operatorsArray[j] != "INCOMPARABLE")
                     {
-                        newTuple[next] = (long) dbValuesObject[j];
+                        newTuple[next] = (long)dbValuesObject[j];
                         next++;
                     }
-                }
-
-                /*long[] newTuple = new long[dimensions];
-                for (int i = 0; i < dimensions; i++)
-                {
-                    newTuple[i] = (long)dbValuesObject[i];
-                }*/
-            
+                }         
 
                 bool isDominated = false;
 
