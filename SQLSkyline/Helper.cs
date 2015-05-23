@@ -368,33 +368,40 @@ namespace prefSQL.SQLSkyline
         public static void AddToWindowIncomparable(object[] newTuple, List<long[]> window, int dimensions, string[] operators, ArrayList resultstringCollection, DataTable dtResult)
         {
             //long must be nullable (because of incomparable tupels)
-            long[] recordInt = new long[operators.GetUpperBound(0) + 1];
-            string[] recordstring = new string[operators.GetUpperBound(0) + 1];
+            long[] recordInt = new long[operators.Count(op => op != "IGNORE")];
+            string[] recordstring = new string[operators.Count(op => op != "IGNORE")];
+            int nextRecordIndex = 0;
             DataRow row = dtResult.NewRow();
 
-            for (int iCol = 0; iCol <= newTuple.GetUpperBound(0); iCol++)
+            for (int iCol = 0; iCol < newTuple.Length; iCol++)
             {
                 //Only the real columns (skyline columns are not output fields)
-                if (iCol <= operators.GetUpperBound(0))
+                if (iCol < operators.Length)
                 {
-                    //LOW und HIGH Spalte in record abfüllen
-                    if (operators[iCol].Equals("LOW"))
+                    //IGNORE is used for sample skyline. Only attributes that are not ignored shold be tested
+                    if (operators[iCol] != "IGNORE")
                     {
-                        recordInt[iCol] = (long)newTuple[iCol];   
-
-                        //Check if long value is incomparable
-                        if (iCol + 1 <= recordInt.GetUpperBound(0) && operators[iCol + 1].Equals("INCOMPARABLE"))
+                        //LOW und HIGH Spalte in record abfüllen
+                        if (operators[iCol].Equals("LOW"))
                         {
-                            //Incomparable field is always the next one
-                            recordstring[iCol] = (string)newTuple[iCol + 1];
+                            recordInt[nextRecordIndex] = (long)newTuple[iCol];
+
+                            //Check if long value is incomparable
+                            if (iCol + 1 < recordInt.Length && operators[iCol + 1].Equals("INCOMPARABLE"))
+                            {
+                                //Incomparable field is always the next one
+                                recordstring[nextRecordIndex] = (string)newTuple[iCol + 1];
+                            }
+
+                            nextRecordIndex++;
                         }
                     }
                 }
                 else
                 {
-                    row[iCol - (operators.GetUpperBound(0) + 1)] = newTuple[iCol];
+                    row[iCol - operators.Length] = newTuple[iCol];
                 }
-            }
+            }         
 
             dtResult.Rows.Add(row);
             window.Add(recordInt);
