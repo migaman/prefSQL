@@ -15,7 +15,7 @@
         <dimension>cs.mileage</dimension>
       </subspace>
     </useSubspaces>
-  </TestDataRow>
+  </TestDataRow> 
   <TestDataRow>
     <comment>3 samples, each of dimension 2 (e.g., (cs.price, cs.mileage), (cs.mileage, cs.horsepower), (cs.price, cs.horsepower))</comment>
     <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH SAMPLE BY RANDOM_SUBSETS COUNT 3 DIMENSION 2</skylineSampleSQL>
@@ -68,7 +68,7 @@
       <subspace>
         <dimension>cs.price</dimension>
         <dimension>cs.mileage</dimension>
-      </subspace>      
+      </subspace>
       <subspace>
         <dimension>cs.horsepower</dimension>
         <dimension>cs.enginesize</dimension>
@@ -251,7 +251,7 @@
     <comment>15 samples, each of dimension 3 (e.g., (cs.price, cs.mileage, cs.horsepower)), color INCOMPARABLE</comment>
     <skylineSampleSQL>SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars_small cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> 'blue' >> OTHERS INCOMPARABLE), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL) SAMPLE BY RANDOM_SUBSETS COUNT 15 DIMENSION 3</skylineSampleSQL>
     <entireSkylineSQL>SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars_small cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> 'blue' >> OTHERS INCOMPARABLE), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL)</entireSkylineSQL>
-    <expectedNumberOfEntireSkylineObjects>453</expectedNumberOfEntireSkylineObjects>
+    <expectedNumberOfEntireSkylineObjects>430</expectedNumberOfEntireSkylineObjects>
     <expectedNumberOfSamplingSkylineObjects>460</expectedNumberOfSamplingSkylineObjects>
     <useSubspaces>
       <subspace>
