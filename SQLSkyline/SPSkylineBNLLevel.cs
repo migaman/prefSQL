@@ -26,13 +26,13 @@ namespace prefSQL.SQLSkyline
 
 
 
-        protected override void AddToWindow(object[] newTuple, List<long[]> window, ArrayList resultstringCollection, string[] operatorsArray, int dimensions, DataTable dtResult)
+        protected override void AddToWindow(object[] newTuple, List<long[]> window, ArrayList resultstringCollection, string[] operatorsArray, int[] dimensions, DataTable dtResult)
         {
             Helper.AddToWindow(newTuple, window, dimensions, operatorsArray, dtResult);
         }
 
 
-        protected override bool IsTupleDominated(List<long[]> window, long[] newTuple, int dimensions, string[] operatorsArray, ArrayList incomparableTuple, int listIndex, DataTable dtResult, object[] newTupleAllValues)
+        protected override bool IsTupleDominated(List<long[]> window, long[] newTuple, int[] dimensions, string[] operatorsArray, ArrayList incomparableTuple, int listIndex, DataTable dtResult, object[] newTupleAllValues)
         {
             long[] windowTuple = window[listIndex];
 

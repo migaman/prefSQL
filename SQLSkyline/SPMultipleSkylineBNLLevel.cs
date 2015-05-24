@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Data.SqlTypes;
 using System.Diagnostics;
 using Microsoft.SqlServer.Server;
+using System.Linq;
 
 //Caution: Attention small changes in this code can lead to performance issues, i.e. using a startswith instead of an equal can increase by 10 times
 //Important: Only use equal for comparing text (otherwise performance issues)
@@ -41,12 +42,19 @@ namespace prefSQL.SQLSkyline
             ArrayList resultCollection = new ArrayList();
             string[] operators = strOperators.Split(';');
             DataTable dtResult = new DataTable();
-            int dimensions = 0; //operatorsArray.GetUpperBound(0)+1;
 
             string[] operatorsArray = strOperators.Split(';');
-            for (int i = 0; i < operatorsArray.Length; i++)
+
+            int dimensionsCount = operatorsArray.Count(op => op != "IGNORE");
+            int[] dimensions = new int[dimensionsCount];
+            int nextDim = 0;
+            for (int d = 0; d < operatorsArray.Length; d++)
             {
-                dimensions++;
+                if (operatorsArray[d] != "IGNORE")
+                {
+                    dimensions[nextDim] = d;
+                    nextDim++;
+                }
             }
 
             DbProviderFactory factory = DbProviderFactories.GetFactory(strProvider);
@@ -100,7 +108,7 @@ namespace prefSQL.SQLSkyline
 
                         foreach (object[] dbValuesObject in listObjects)
                         {
-                            long[] newTuple = new long[dimensions];
+                            long[] newTuple = new long[dimensionsCount];
                             int next = 0;
                             for (int j = 0; j < operatorsArray.Length; j++)
                             {

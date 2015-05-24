@@ -144,16 +144,47 @@
             string testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
             Debug.WriteLine(skylineSampleSql);
+        
+            string baseQuery;
+            string operators;
+            int numberOfRecords;
+            string[] parameter;
 
-            var common = new SQLCommon {SkylineType = new SkylineBNL()};
+            var common = new SQLCommon
+            {
+                SkylineType =
+                    new SkylineBNL() { Provider = Helper.ProviderName, ConnectionString = Helper.ConnectionString }
+            };
+
+            PrefSQLModel prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSql);
+            string ansiSql = common.GetAnsiSqlFromPrefSqlModel(prefSqlModelSkylineSample);
+
+            prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out baseQuery, out operators,
+                out numberOfRecords);
+
+            HashSet<HashSet<int>> useSubspaces = UseSubspaces(prefSqlModelSkylineSample);
+            var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(useSubspaces);
+            var utility = new SamplingSkylineUtility(subspacesProducer);
+            var skylineSample = new SamplingSkyline(utility)
+            {
+                SubspacesCount = prefSqlModelSkylineSample.SkylineSampleCount,
+                SubspaceDimension = prefSqlModelSkylineSample.SkylineSampleDimension
+            };
 
             DataTable entireSkyline = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
                 entireSkylineSql);
-            DataTable sampleSkyline = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
-                skylineSampleSql);
+            DataTable sampleSkyline = skylineSample.GetSkylineTable(baseQuery, operators, common.SkylineType);
 
             HashSet<int> entireSkylineObjectsIds = GetHashSetOfIdsFromDataTable(entireSkyline);
             HashSet<int> sampleSkylineObjectsIds = GetHashSetOfIdsFromDataTable(sampleSkyline);
+
+            sampleSkylineObjectsIds.ExceptWith(entireSkylineObjectsIds);
+
+            Debug.WriteLine("wrong objects:");
+            foreach (int i in sampleSkylineObjectsIds)
+            {
+                Debug.WriteLine(i);
+            }
 
             Assert.IsTrue(sampleSkylineObjectsIds.IsSubsetOf(entireSkylineObjectsIds),
                 "Dominated objects contained in Sample Skyline (i.e., objects which are not contained in the entire Skyline).");

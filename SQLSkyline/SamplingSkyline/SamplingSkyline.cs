@@ -153,6 +153,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
 
             int recordAmountLimit = SelectedStrategy.RecordAmountLimit;
             int sortType = SelectedStrategy.SortType;
+            bool hasIncomparablePreferences = SelectedStrategy.HasIncomparablePreferences;
             SelectedStrategy.RecordAmountLimit = 0;
             SelectedStrategy.SortType = 0;
 
@@ -164,6 +165,8 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             {
                 string subpaceOperators = GetOperatorsWithIgnoredEntriesString(subspace);
 
+                SelectedStrategy.HasIncomparablePreferences = subpaceOperators.Contains("INCOMPARABLE");
+
                 sw.Stop();
                 TimeMilliseconds += sw.ElapsedMilliseconds;
                 DataTable subspaceDataTable = SelectedStrategy.GetSkylineTable(database.Values.ToList(),
@@ -172,13 +175,14 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                 sw.Restart();
 
                 IDictionary<long, object[]> subspaceDatabase = GetDatabaseFromDataTable(database, subspaceDataTable);
-
+       
                 IEnumerable<Tuple<long[], string[]>> databaseForPairwiseComparison = GetDatabaseForPairwiseComparison(subspaceDatabase.Values,subspace.ToList()); // TODO: comment: needs guaranteed stable order
 
                 IEnumerable<HashSet<long>> rowsWithEqualValuesWithRespectToSubspaceColumns =
                     CompareEachRowWithRespectToSubspaceColumnsPairwise(databaseForPairwiseComparison);
 
-                subpaceOperators = GetOperatorsWithIgnoredEntriesString(GetSubspaceComplement(subspace));
+                var subpaceComplementOperators = GetOperatorsWithIgnoredEntriesString(GetSubspaceComplement(subspace));
+                SelectedStrategy.HasIncomparablePreferences = subpaceComplementOperators.Contains("INCOMPARABLE");
 
                 foreach (HashSet<long> rowsWithEqualValues in rowsWithEqualValuesWithRespectToSubspaceColumns)
                 {
@@ -189,7 +193,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                     TimeMilliseconds += sw.ElapsedMilliseconds;
                     DataTable subspaceComplementDataTable =
                         SelectedStrategy.GetSkylineTable(rowsWithEqualValuesDatabase.Values.ToList(),
-                            dataTableTemplate, dataRecordTemplate, subpaceOperators);
+                            dataTableTemplate, dataRecordTemplate, subpaceComplementOperators);
                     TimeMilliseconds += SelectedStrategy.TimeMilliseconds;
                     sw.Restart();
 
@@ -197,7 +201,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                         subspaceComplementDataTable);
 
                     RemoveDominatedObjects(rowsWithEqualValues,
-                        subspaceComplementDatabase, subspaceDatabase);
+                        subspaceComplementDatabase, subspaceDatabase);              
                 }
 
                 MergeSubspaceSkylineIntoFinalSkylineSample(subspaceDatabase, skylineSampleFinalDatabase);
@@ -250,6 +254,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
 
             SelectedStrategy.RecordAmountLimit = recordAmountLimit;
             SelectedStrategy.SortType = sortType;
+            SelectedStrategy.HasIncomparablePreferences = hasIncomparablePreferences;
 
             return skylineSampleReturn;
         }
@@ -371,6 +376,11 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             IEnumerable<Tuple<long[], string[]>> subspaceDatabase)
         {
             List<Tuple<long[], string[]>> database = subspaceDatabase.ToList();
+
+            if (database.Count == 0)
+            {
+                return new List<HashSet<long>>();
+            }
 
             int columnsInSubspaceCount = database[0].Item1.Length - 2;
             int rowIdentifierColumnIndex = database[0].Item1.Length - 2;

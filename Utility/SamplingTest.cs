@@ -4,9 +4,11 @@
     using System.Collections.Generic;
     using System.Data;
     using System.Data.Common;
+    using System.Data.SqlClient;
     using System.Diagnostics;
     using System.Linq;
     using System.Numerics;
+    using System.Windows.Forms;
     using prefSQL.SQLParser;
     using prefSQL.SQLParser.Models;
     using prefSQL.SQLParserTest;
@@ -53,8 +55,78 @@
             //samplingTest.TestForSetCoverage();
             //samplingTest.TestForClusterAnalysis();            
             //samplingTest.TestForDominatedObjects();
+            //samplingTest.TestCompareAlgorithms();
 
             Console.ReadKey();
+        }
+
+        private void TestCompareAlgorithms()
+        {
+            var common = new SQLCommon
+            {
+                SkylineType = new SkylineBNL()
+            };
+
+
+            var sql =
+                "SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars_large cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> OTHERS INCOMPARABLE), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL)";
+
+            PrefSQLModel model = common.GetPrefSqlModelFromPreferenceSql(sql);
+            string sqlBNL = common.ParsePreferenceSQL(sql);
+
+
+            DataTable entireSkylineDataTable =
+                common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                    sql);
+
+            DbProviderFactory factory = DbProviderFactories.GetFactory(Helper.ProviderName);
+
+            // use the factory object to create Data access objects.
+            DbConnection connection = factory.CreateConnection();
+            // will return the connection object (i.e. SqlConnection ...)
+            connection.ConnectionString = Helper.ConnectionString;
+
+            var dtEntire = new DataTable();
+
+            DbDataAdapter dap = factory.CreateDataAdapter();
+            DbCommand selectCommand = connection.CreateCommand();
+            selectCommand.CommandText = sqlBNL;
+            dap.SelectCommand = selectCommand;
+
+            dap.Fill(dtEntire);
+
+            var common2 = new SQLCommon
+            {
+                SkylineType = new SkylineSQL()
+            };
+            string sqlNative = common2.ParsePreferenceSQL(sql);
+
+            var dtEntire2 = new DataTable();
+
+            DbDataAdapter dap2 = factory.CreateDataAdapter();
+            DbCommand selectCommand2 = connection.CreateCommand();
+            selectCommand2.CommandText = sqlNative;
+            dap2.SelectCommand = selectCommand2;
+
+            dap2.Fill(dtEntire2);
+            connection.Close();
+
+            foreach (DataRow i in dtEntire2.Rows)
+            {
+                var has = false;
+                foreach (DataRow j in entireSkylineDataTable.Rows)
+                {
+                    if ((int) i[0] == (int) j[0])
+                    {
+                        has = true;
+                        break;
+                    }
+                }
+                if (!has)
+                {
+                    Debug.WriteLine(i[0]);
+                }
+            }
         }
 
         private void TestForDominatedObjects()
@@ -139,6 +211,8 @@
                 dominatedObjectsEntire.Add(i.Key, 0);
             }
 
+            int[] dimensions = Enumerable.Range(0, skylineAttributeColumns.Length).ToArray();
+
             foreach (KeyValuePair<long, object[]> j in entireDatabase)
             {
                 var potentiallyDominatedTuple = new long[skylineAttributeColumns.Length];
@@ -160,7 +234,7 @@
                     }
 
                     if (prefSQL.SQLSkyline.Helper.IsTupleDominated(dominatingTuple, potentiallyDominatedTuple,
-                        skylineAttributeColumns.Length))
+                        dimensions))
                     {
                         dominatedObjectsSet.Add(j.Key);
                         dominatingObjectsSet.Add(i.Key);
@@ -180,7 +254,7 @@
                     }
 
                     if (prefSQL.SQLSkyline.Helper.IsTupleDominated(dominatingTuple, potentiallyDominatedTuple,
-                        skylineAttributeColumns.Length))
+                        dimensions))
                     {
                         dominatedObjectsSetEntire.Add(j.Key);
                         dominatingObjectsSetEntire.Add(i.Key);

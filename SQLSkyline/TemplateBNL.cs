@@ -5,6 +5,7 @@ using System.Data;
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace prefSQL.SQLSkyline
 {
+    using System;
     using System.Linq;
 
     /// <summary>
@@ -27,13 +28,24 @@ namespace prefSQL.SQLSkyline
         {
             List<long[]> window = new List<long[]>();
             ArrayList windowIncomparable = new ArrayList();
-            int dimensions = operatorsArray.Count(op => op != "IGNORE" && op != "INCOMPARABLE");            
+            int dimensionsCount = operatorsArray.Count(op => op != "IGNORE");
+            int[] dimensions = new int[dimensionsCount];
+            int nextDim = 0;
+            for(int d=0;d<operatorsArray.Length;d++)
+            {
+                if (operatorsArray[d] != "IGNORE")
+                {
+                    dimensions[nextDim] = d;
+                    nextDim++;
+                }
+            }
+
             DataTable dataTableReturn = dataTableTemplate.Clone();
-            
+
             //For each tuple
             foreach (object[] dbValuesObject in database)
             {
-                long[] newTuple = new long[dimensions];
+                long[] newTuple = new long[dimensionsCount];
                 int next = 0;
                 for (int j = 0; j < operatorsArray.Length; j++)
                 {
@@ -67,8 +79,7 @@ namespace prefSQL.SQLSkyline
                 }
                 if (isDominated == false)
                 {
-                    //Work with operatorsArray length instead of dimensions (because of sampling skyline algorithms)
-                    AddToWindow(dbValuesObject, window, windowIncomparable, operatorsArray, operatorsArray.Length, dataTableReturn);
+                    AddToWindow(dbValuesObject, window, windowIncomparable, operatorsArray, dimensions, dataTableReturn);
                 }
 
                 
@@ -84,9 +95,9 @@ namespace prefSQL.SQLSkyline
         //Attention: Profiling
         //It seems to makes sense to remove the parameter listIndex and pass the string-array incomparableTuples[listIndex]
         //Unfortunately this has negative impact on the performance for algorithms that don't work with incomparables
-        protected abstract bool IsTupleDominated(List<long[]> window, long[] newTuple, int dimensions, string[] operatorsArray, ArrayList incomparableTuples, int listIndex, DataTable dtResult, object[] newTupleAllValues);
+        protected abstract bool IsTupleDominated(List<long[]> window, long[] newTuple, int[] dimensions, string[] operatorsArray, ArrayList incomparableTuples, int listIndex, DataTable dtResult, object[] newTupleAllValues);
 
-        protected abstract void AddToWindow(object[] newTuple, List<long[]> window, ArrayList resultstringCollection, string[] operatorsArray, int dimensions, DataTable dtResult);
+        protected abstract void AddToWindow(object[] newTuple, List<long[]> window, ArrayList resultstringCollection, string[] operatorsArray, int[] dimensions, DataTable dtResult);
 
     }
 }
