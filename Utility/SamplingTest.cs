@@ -187,11 +187,11 @@
                 Helper.ProviderName,
                 _skylineSampleSql);
 
-            Dictionary<long, object[]> sampleSkylineDatabase =
-                prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(sampleSkylineDataTable, 0);
-            Dictionary<long, object[]> entireDatabase = prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(dtEntire, 0);
-            Dictionary<long, object[]> entireSkylineDatabase =
-              prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTable, 0);
+            IDictionary<long, object[]> sampleSkylineDatabase =
+                prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(sampleSkylineDataTable, 0);
+            IDictionary<long, object[]> entireDatabase = prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(dtEntire, 0);
+            IDictionary<long, object[]> entireSkylineDatabase =
+              prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(entireSkylineDataTable, 0);
 
             var dominatedObjects = new Dictionary<long, long>();
             var dominatedObjectsSet = new HashSet<long>();
@@ -336,25 +336,25 @@
                 _entireSkylineSql);
 
             int[] skylineAttributeColumns = SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
-            Dictionary<long, object[]> entireSkylineNormalized =
-                prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTable, 0);
+            IDictionary<long, object[]> entireSkylineNormalized =
+                prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(entireSkylineDataTable, 0);
             SkylineSamplingHelper.NormalizeColumns(entireSkylineNormalized, skylineAttributeColumns);
 
             DataTable sampleSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
                 Helper.ProviderName,
                 _skylineSampleSql);
-            Dictionary<long, object[]> sampleSkylineNormalized =
-                prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(sampleSkylineDataTable, 0);
+            IDictionary<long, object[]> sampleSkylineNormalized =
+                prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(sampleSkylineDataTable, 0);
             SkylineSamplingHelper.NormalizeColumns(sampleSkylineNormalized, skylineAttributeColumns);
 
-            Dictionary<BigInteger, List<Dictionary<long, object[]>>> entireBuckets =
+            IDictionary<BigInteger, List<IDictionary<long, object[]>>> entireBuckets =
                 ClusterAnalysis.GetBuckets(entireSkylineNormalized, skylineAttributeColumns);
-            Dictionary<BigInteger, List<Dictionary<long, object[]>>> sampleBuckets =
+            IDictionary<BigInteger, List<IDictionary<long, object[]>>> sampleBuckets =
                 ClusterAnalysis.GetBuckets(sampleSkylineNormalized, skylineAttributeColumns);
 
-            Dictionary<int, List<Dictionary<long, object[]>>> aggregatedEntireBuckets =
+            IDictionary<int, List<IDictionary<long, object[]>>> aggregatedEntireBuckets =
                 ClusterAnalysis.GetAggregatedBuckets(entireBuckets);
-            Dictionary<int, List<Dictionary<long, object[]>>> aggregatedSampleBuckets =
+            IDictionary<int, List<IDictionary<long, object[]>>> aggregatedSampleBuckets =
                 ClusterAnalysis.GetAggregatedBuckets(sampleBuckets);
 
             for (var i = 0; i < skylineAttributeColumns.Length; i++)
@@ -362,12 +362,12 @@
                 dt.Columns.RemoveAt(0);
             }
 
-            Dictionary<long, object[]> full = prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(dt, 0);
+            IDictionary<long, object[]> full = prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(dt, 0);
             SkylineSamplingHelper.NormalizeColumns(full, skylineAttributeColumns);
 
-            Dictionary<BigInteger, List<Dictionary<long, object[]>>> fullB =
+            IDictionary<BigInteger, List<IDictionary<long, object[]>>> fullB =
                 ClusterAnalysis.GetBuckets(full, skylineAttributeColumns);
-            Dictionary<int, List<Dictionary<long, object[]>>> aFullB =
+            IDictionary<int, List<IDictionary<long, object[]>>> aFullB =
                 ClusterAnalysis.GetAggregatedBuckets(fullB);
 
             for (var i = 0; i < skylineAttributeColumns.Length; i++)
@@ -403,8 +403,8 @@
             //Console.WriteLine("count entire: " + entireSkylineDataTable.Rows.Count);
 
             int[] skylineAttributeColumns = SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
-            Dictionary<long, object[]> entireSkylineNormalized =
-                prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTable, 0);
+            IDictionary<long, object[]> entireSkylineNormalized =
+                prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(entireSkylineDataTable, 0);
             SkylineSamplingHelper.NormalizeColumns(entireSkylineNormalized, skylineAttributeColumns);
 
             for (var i = 0; i < 10; i++)
@@ -414,14 +414,14 @@
                 Console.WriteLine("time sample: " + common.TimeInMilliseconds);
                 Console.WriteLine("count sample: " + sampleSkylineDataTable.Rows.Count);
 
-                Dictionary<long, object[]> sampleSkylineNormalized =
-                    prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(sampleSkylineDataTable, 0);
+                IDictionary<long, object[]> sampleSkylineNormalized =
+                    prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(sampleSkylineDataTable, 0);
                 SkylineSamplingHelper.NormalizeColumns(sampleSkylineNormalized, skylineAttributeColumns);
 
-                Dictionary<long, object[]> baseRandomSampleNormalized =
+                IDictionary<long, object[]> baseRandomSampleNormalized =
                     SkylineSamplingHelper.GetRandomSample(entireSkylineNormalized,
                         sampleSkylineDataTable.Rows.Count);
-                Dictionary<long, object[]> secondRandomSampleNormalized =
+                IDictionary<long, object[]> secondRandomSampleNormalized =
                     SkylineSamplingHelper.GetRandomSample(entireSkylineNormalized,
                         sampleSkylineDataTable.Rows.Count);
 
@@ -437,11 +437,11 @@
                     Helper.ProviderName,
                     _entireSkylineSqlSumRank.Replace("XXX", sampleSkylineDataTable.Rows.Count.ToString()));
 
-                Dictionary<long, object[]> entireSkylineDataTableBestRankNormalized =
-                    prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTableBestRank, 0);
+                IDictionary<long, object[]> entireSkylineDataTableBestRankNormalized =
+                    prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(entireSkylineDataTableBestRank, 0);
                 SkylineSamplingHelper.NormalizeColumns(entireSkylineDataTableBestRankNormalized, skylineAttributeColumns);
-                Dictionary<long, object[]> entireSkylineDataTableSumRankNormalized =
-                    prefSQL.SQLSkyline.Helper.GetDictionaryFromDataTable(entireSkylineDataTableSumRank, 0);
+                IDictionary<long, object[]> entireSkylineDataTableSumRankNormalized =
+                    prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(entireSkylineDataTableSumRank, 0);
                 SkylineSamplingHelper.NormalizeColumns(entireSkylineDataTableSumRankNormalized, skylineAttributeColumns);
 
                 double setCoverageCoveredByEntireBestRank = SetCoverage.GetCoverage(baseRandomSampleNormalized,

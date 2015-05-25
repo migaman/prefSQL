@@ -104,7 +104,7 @@ namespace prefSQL.SQLSkyline
 
                         int iMaxLevel = 0;
                 
-                        List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
+                        List<object[]> listObjects = Helper.GetItemArraysAsList(dt);
 
                         foreach (object[] dbValuesObject in listObjects)
                         {

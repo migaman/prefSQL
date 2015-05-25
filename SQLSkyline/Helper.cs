@@ -443,7 +443,15 @@ namespace prefSQL.SQLSkyline
             }
         }
 
-        public static List<object[]> GetObjectArrayFromDataTable(DataTable dataTable)
+        /// <summary>
+        /// Gets the ItemArray from each row of dataTable and converts it to a List.
+        /// </summary>
+        /// <remarks>
+        /// Implemented as a bulk operation, this is faster than conversion by iterating over each row of dataTable.
+        /// </remarks>
+        /// <param name="dataTable">The DataTable from which the rows resp. ItemArrays are extracted.</param>
+        /// <returns>A List containing the ItemArrays of each row of dataTable.</returns>
+        public static List<object[]> GetItemArraysAsList(DataTable dataTable)
         {
             //Read all records only once. (SqlDataReader works forward only!!)
             List<DataRow> dataTableRowList = dataTable.Rows.Cast<DataRow>().ToList();
@@ -452,10 +460,16 @@ namespace prefSQL.SQLSkyline
             return dataTableRowList.Select(dataRow => dataRow.ItemArray).ToList();
         }
 
-        public static Dictionary<long, object[]> GetDictionaryFromDataTable(DataTable dataTable, int uniqueIdColumnIndex)
+        /// <summary>
+        /// Produces a Collection by which a dataTable's row can be accessed via its unique ID existing in the column specified by uniqueIdColumnIndex.
+        /// </summary>
+        /// <param name="dataTable">The DataTable from which the rows resp. ItemArrays are extracted.</param>
+        /// <param name="uniqueIdColumnIndex">The index of the column containing a unique ID.</param>
+        /// <returns>A Collection by which a row can be accessed via its unique ID.</returns>
+        public static IDictionary<long, object[]> GetDatabaseAccessibleByUniqueId(DataTable dataTable, int uniqueIdColumnIndex)
         {
-            List<object[]> objectArrayFromDataTableOrig = GetObjectArrayFromDataTable(dataTable);
-            return objectArrayFromDataTableOrig.ToDictionary(dataRow => Convert.ToInt64(dataRow[uniqueIdColumnIndex]));
+            List<object[]> objectArrayFromDataTableOrig = GetItemArraysAsList(dataTable);
+            return objectArrayFromDataTableOrig.ToDictionary(dataRow => (long)dataRow[uniqueIdColumnIndex]);
         }
 
         public static DataTable GetDataTableFromSQL(string strQuery, string strConnection, string strProvider)

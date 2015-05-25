@@ -42,7 +42,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             }
         }
 
-        internal int RowIdentifierColumnIndex { get; set; }
+        internal int ArtificialUniqueRowIdentifierColumnIndex { get; set; }
         internal int EqualValuesBucketColumnIndex { get; set; }
 
         internal ISamplingSkylineSubspacesProducer SubspacesProducer

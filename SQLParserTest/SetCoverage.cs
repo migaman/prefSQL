@@ -5,8 +5,8 @@
 
     internal sealed class SetCoverage
     {
-        public static double GetCoverage(Dictionary<long, object[]> normalizedBaseData,
-            Dictionary<long, object[]> normalizedSampleData, int[] useColumns)
+        public static double GetCoverage(IDictionary<long, object[]> normalizedBaseData,
+            IDictionary<long, object[]> normalizedSampleData, int[] useColumns)
         {
             var assignments = new HashSet<long>();
 
@@ -24,7 +24,7 @@
         }
 
         internal static long GetObjectWithMinimumEuclideanDistanceKey(object[] o,
-            Dictionary<long, object[]> normalizedBaseData, int[] useColumns)
+            IDictionary<long, object[]> normalizedBaseData, int[] useColumns)
         {
             long minimumDistanceObjectKey = -1;
             double minimumDistance = double.MaxValue;
