@@ -465,8 +465,9 @@ namespace prefSQL.SQLSkyline
         /// <returns>A Collection by which a row can be accessed via its unique ID.</returns>
         public static IReadOnlyDictionary<long, object[]> GetDatabaseAccessibleByUniqueId(DataTable dataTable, int uniqueIdColumnIndex)
         {
+            // Convert.ToInt64 because type of column might be int (e.g., when selecting an ID column of type int and using this column as uniqueIdColumnIndex)
             return new ReadOnlyDictionary<long, object[]>(dataTable.Rows.Cast<DataRow>()
-                .ToDictionary(row => (long) row[uniqueIdColumnIndex], row => row.ItemArray));
+                .ToDictionary(row => Convert.ToInt64(row[uniqueIdColumnIndex]), row => row.ItemArray));
         }
 
         public static DataTable GetDataTableFromSQL(string strQuery, string strConnection, string strProvider)
