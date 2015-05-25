@@ -148,7 +148,6 @@ namespace prefSQL.SQLSkyline
         /// <param name="windowTuple"></param>
         /// <param name="newTuple"></param>
         /// <param name="dimensions"></param>
-        /// <param name="operators"></param>
         /// <returns></returns>
         public static bool DoesTupleDominate(long[] windowTuple, long[] newTuple, int[] dimensions)
         {
@@ -208,8 +207,8 @@ namespace prefSQL.SQLSkyline
                 //Compare only LOW attributes
                 if (op.Equals("LOW"))
                 {
-                    long value = (long)newTuple[nextComparisonIndex];
-                    long tmpValue = (long)windowTuple[nextComparisonIndex];
+                    long value = newTuple[nextComparisonIndex];
+                    long tmpValue = windowTuple[nextComparisonIndex];
                     int comparison = CompareValue(value, tmpValue);
 
                     if (comparison >= 1)
@@ -274,8 +273,8 @@ namespace prefSQL.SQLSkyline
                 //Compare only LOW attributes
                 if (op.Equals("LOW"))
                 {
-                    long value = (long)newTuple[nextComparisonIndex];
-                    long tmpValue = (long)windowTuple[nextComparisonIndex];
+                    long value = newTuple[nextComparisonIndex];
+                    long tmpValue = windowTuple[nextComparisonIndex];
 
                     //interchange values for comparison
                     int comparison = CompareValue(tmpValue, value);
@@ -325,7 +324,6 @@ namespace prefSQL.SQLSkyline
         /// </summary>
         /// <param name="newTuple"></param>
         /// <param name="window"></param>
-        /// <param name="dimensions"></param>
         /// <param name="operators"></param>
         /// <param name="dtResult"></param>
         public static void AddToWindow(object[] newTuple, List<long[]> window, string[] operators, DataTable dtResult)
@@ -366,7 +364,6 @@ namespace prefSQL.SQLSkyline
         /// Adds a tuple to the existing window. Can handle incomparable values
         /// </summary>
         /// <param name="newTuple"></param>
-        /// <param name="dimensions"></param>
         /// <param name="operators"></param>
         /// <param name="window"></param>
         /// <param name="resultstringCollection"></param>
@@ -453,11 +450,9 @@ namespace prefSQL.SQLSkyline
         /// <returns>A List containing the ItemArrays of each row of dataTable.</returns>
         public static List<object[]> GetItemArraysAsList(DataTable dataTable)
         {
-            //Read all records only once. (SqlDataReader works forward only!!)
-            List<DataRow> dataTableRowList = dataTable.Rows.Cast<DataRow>().ToList();
             //Write all attributes to a Object-Array
             //Profiling: This is much faster (factor 2) than working with the SQLReader
-            return dataTableRowList.Select(dataRow => dataRow.ItemArray).ToList();
+            return dataTable.Rows.Cast<DataRow>().Select(dataRow => dataRow.ItemArray).ToList();
         }
 
         /// <summary>
@@ -468,8 +463,8 @@ namespace prefSQL.SQLSkyline
         /// <returns>A Collection by which a row can be accessed via its unique ID.</returns>
         public static IDictionary<long, object[]> GetDatabaseAccessibleByUniqueId(DataTable dataTable, int uniqueIdColumnIndex)
         {
-            List<object[]> objectArrayFromDataTableOrig = GetItemArraysAsList(dataTable);
-            return objectArrayFromDataTableOrig.ToDictionary(dataRow => (long)dataRow[uniqueIdColumnIndex]);
+            return dataTable.Rows.Cast<DataRow>()
+                .ToDictionary(row => (long) row[uniqueIdColumnIndex], row => row.ItemArray);
         }
 
         public static DataTable GetDataTableFromSQL(string strQuery, string strConnection, string strProvider)

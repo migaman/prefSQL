@@ -6,8 +6,6 @@ using Microsoft.SqlServer.Server;
 
 namespace prefSQL.SQLSkyline
 {
-    using System.Diagnostics;
-
     public class SPSkylineBNL : TemplateBNL
     {
         /// <summary>
