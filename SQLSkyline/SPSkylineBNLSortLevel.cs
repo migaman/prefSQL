@@ -26,7 +26,7 @@ namespace prefSQL.SQLSkyline
 
         protected override void AddToWindow(object[] newTuple, List<long[]> window, ArrayList resultstringCollection, string[] operatorsArray, int[] dimensions, DataTable dtResult)
         {
-            Helper.AddToWindow(newTuple, window, dimensions, operatorsArray, dtResult);
+            Helper.AddToWindow(newTuple, window, operatorsArray, dtResult);
         }
 
 

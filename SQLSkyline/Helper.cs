@@ -328,7 +328,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="dimensions"></param>
         /// <param name="operators"></param>
         /// <param name="dtResult"></param>
-        public static void AddToWindow(object[] newTuple, List<long[]> window, int[] dimensions, string[] operators, DataTable dtResult)
+        public static void AddToWindow(object[] newTuple, List<long[]> window, string[] operators, DataTable dtResult)
         {
             long[] record = new long[operators.Count(op => op != "IGNORE" && op != "INCOMPARABLE")];
             int nextRecordIndex = 0;
@@ -371,7 +371,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="window"></param>
         /// <param name="resultstringCollection"></param>
         /// <param name="dtResult"></param>
-        public static void AddToWindowIncomparable(object[] newTuple, List<long[]> window, int[] dimensions, string[] operators, ArrayList resultstringCollection, DataTable dtResult)
+        public static void AddToWindowIncomparable(object[] newTuple, List<long[]> window, string[] operators, ArrayList resultstringCollection, DataTable dtResult)
         {
             //long must be nullable (because of incomparable tupels)
             long[] recordInt = new long[operators.Count(op => op != "IGNORE" && op != "INCOMPARABLE")];
