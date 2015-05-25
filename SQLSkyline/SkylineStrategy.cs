@@ -73,7 +73,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="dataRecordTemplate"></param>
         /// <param name="preferenceOperators"></param>
         /// <returns></returns>
-        internal abstract DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string preferenceOperators);
+        internal abstract DataTable GetSkylineTable(IEnumerable<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string preferenceOperators);
 
         public abstract String GetStoredProcedureCommand(string strWhere, string strOrderBy, string strFirstSQL, string strOperators, string strOrderByAttributes);
 

@@ -5,11 +5,11 @@
 
     internal sealed class ClusterAnalysis
     {
-        public static IDictionary<BigInteger, List<IDictionary<long, object[]>>> GetBuckets(
-            IDictionary<long, object[]> normalizedBaseData, int[] useColumns)
+        public static IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>> GetBuckets(
+            IReadOnlyDictionary<long, object[]> normalizedBaseData, int[] useColumns)
         {
             var bucketCount = 2;
-            var ret = new Dictionary<BigInteger, List<IDictionary<long, object[]>>>();
+            var ret = new Dictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>>();
 
             foreach (KeyValuePair<long, object[]> row in normalizedBaseData)
             {
@@ -26,28 +26,28 @@
 
                 if (!ret.ContainsKey(bucket))
                 {
-                    ret.Add(bucket, new List<IDictionary<long, object[]>>());
+                    ret.Add(bucket, new List<IReadOnlyDictionary<long, object[]>>());
                 }
 
-                List<IDictionary<long, object[]>> list = ret[bucket];
+                List<IReadOnlyDictionary<long, object[]>> list = ret[bucket];
                 list.Add(new Dictionary<long, object[]> {{row.Key, row.Value}});
             }
 
             return ret;
         }
 
-        public static IDictionary<int, List<IDictionary<long, object[]>>> GetAggregatedBuckets(
-            IDictionary<long, object[]> normalizedBaseData, int[] useColumns)
+        public static IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>> GetAggregatedBuckets(
+            IReadOnlyDictionary<long, object[]> normalizedBaseData, int[] useColumns)
         {
             return GetAggregatedBuckets(GetBuckets(normalizedBaseData, useColumns));
         }
 
-        public static IDictionary<int, List<IDictionary<long, object[]>>> GetAggregatedBuckets(
-            IDictionary<BigInteger, List<IDictionary<long, object[]>>> buckets)
+        public static IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>> GetAggregatedBuckets(
+            IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>> buckets)
         {
-            var ret = new Dictionary<int, List<IDictionary<long, object[]>>>();
+            var ret = new Dictionary<int, List<IReadOnlyDictionary<long, object[]>>>();
 
-            foreach (KeyValuePair<BigInteger, List<IDictionary<long, object[]>>> row in buckets)
+            foreach (KeyValuePair<BigInteger, List<IReadOnlyDictionary<long, object[]>>> row in buckets)
             {
                 var aggregatedBucket = 0;
 
@@ -64,10 +64,10 @@
 
                 if (!ret.ContainsKey(aggregatedBucket))
                 {
-                    ret.Add(aggregatedBucket, new List<IDictionary<long, object[]>>());
+                    ret.Add(aggregatedBucket, new List<IReadOnlyDictionary<long, object[]>>());
                 }
 
-                List<IDictionary<long, object[]>> list = ret[aggregatedBucket];
+                List<IReadOnlyDictionary<long, object[]>> list = ret[aggregatedBucket];
                 list.AddRange(row.Value);
             }
 

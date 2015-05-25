@@ -24,7 +24,7 @@ namespace prefSQL.SQLSkyline
     public abstract class TemplateBNL : TemplateStrategy
     {
 
-        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters)
+        protected override DataTable GetSkylineFromAlgorithm(IEnumerable<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters)
         {
             List<long[]> window = new List<long[]>();
             ArrayList windowIncomparable = new ArrayList();

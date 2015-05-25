@@ -14,6 +14,8 @@ using Microsoft.SqlServer.Server;
 
 namespace prefSQL.SQLSkyline
 {
+    using System.Collections.ObjectModel;
+
     /// <summary>
     /// 
     /// 
@@ -461,10 +463,10 @@ namespace prefSQL.SQLSkyline
         /// <param name="dataTable">The DataTable from which the rows resp. ItemArrays are extracted.</param>
         /// <param name="uniqueIdColumnIndex">The index of the column containing a unique ID.</param>
         /// <returns>A Collection by which a row can be accessed via its unique ID.</returns>
-        public static IDictionary<long, object[]> GetDatabaseAccessibleByUniqueId(DataTable dataTable, int uniqueIdColumnIndex)
+        public static IReadOnlyDictionary<long, object[]> GetDatabaseAccessibleByUniqueId(DataTable dataTable, int uniqueIdColumnIndex)
         {
-            return dataTable.Rows.Cast<DataRow>()
-                .ToDictionary(row => (long) row[uniqueIdColumnIndex], row => row.ItemArray);
+            return new ReadOnlyDictionary<long, object[]>(dataTable.Rows.Cast<DataRow>()
+                .ToDictionary(row => (long) row[uniqueIdColumnIndex], row => row.ItemArray));
         }
 
         public static DataTable GetDataTableFromSQL(string strQuery, string strConnection, string strProvider)

@@ -30,7 +30,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="operatorsArray"></param>
         /// <param name="additionalParameters"></param>
         /// <returns></returns>
-        protected abstract DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters);
+        protected abstract DataTable GetSkylineFromAlgorithm(IEnumerable<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters);
 
         /// <summary>
         /// Template function for each algorithm
@@ -45,7 +45,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="sortType"></param>
         /// <param name="additionalParameters"></param>
         /// <returns></returns>
-        internal DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, int sortType, string[] additionalParameters)
+        internal DataTable GetSkylineTable(IEnumerable<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, int sortType, string[] additionalParameters)
         {
             string[] operatorsArray = operators.Split(';');
             DataTable dataTableReturn = new DataTable();
