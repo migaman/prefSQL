@@ -25,7 +25,7 @@ namespace prefSQL.SQLSkyline
     {
         protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters)
         {
-            DataTable dataTableReturn = dataTableTemplate.Clone();
+            DataTable dataTableReturn = dataTableTemplate;
 
             //Work with object[]-array (more than 10 times faster than datatable)
             List<object[]> listResult = ComputeSkyline(database, operatorsArray, operatorsArray.GetUpperBound(0));

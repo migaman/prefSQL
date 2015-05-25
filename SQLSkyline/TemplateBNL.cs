@@ -53,7 +53,7 @@ namespace prefSQL.SQLSkyline
                 }
             }
 
-            DataTable dataTableReturn = dataTableTemplate.Clone();
+            DataTable dataTableReturn = dataTableTemplate;
 
             long[] newTuple = new long[dimensionsTupleCount];
 

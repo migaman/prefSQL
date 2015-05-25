@@ -40,7 +40,7 @@ namespace prefSQL.SQLSkyline
             
 
 
-            DataTable dtResult = dataTableTemplate.Clone();
+            DataTable dtResult = dataTableTemplate;
             
             ArrayList[] btg = null;
             int[] next = null;

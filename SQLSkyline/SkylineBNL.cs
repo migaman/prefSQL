@@ -58,7 +58,7 @@ namespace prefSQL.SQLSkyline
         internal override DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string preferenceOperators)
         {
             Strategy = getSP_Skyline();
-            DataTable dt = Strategy.GetSkylineTable(database, dataTableTemplate.Clone(), dataRecordTemplate, preferenceOperators, RecordAmountLimit, true, SortType, AdditionParameters);
+            DataTable dt = Strategy.GetSkylineTable(database, dataTableTemplate, dataRecordTemplate, preferenceOperators, RecordAmountLimit, true, SortType, AdditionParameters);
             TimeMilliseconds = Strategy.TimeInMs;
             NumberOfOperations = Strategy.NumberOfOperations;
             return dt;

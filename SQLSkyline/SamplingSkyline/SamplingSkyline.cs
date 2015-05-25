@@ -2,6 +2,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Data;
     using System.Diagnostics;
     using System.Linq;
@@ -136,7 +137,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         ///     has to correspond to the position of its preference.
         /// </param>
         /// <param name="skylineStrategy">The skyline algorithm used to calculate the various subspace skylines.</param>
-        /// <returns></returns>
+        /// <returns>The skyline sample.</returns>
         public DataTable GetSkylineTable(string query, string operators, SkylineStrategy skylineStrategy)
         {
             SelectedStrategy = skylineStrategy;
@@ -158,13 +159,11 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             SqlDataRecord dataRecordTemplate = Helper.BuildDataRecord(fullDataTable, Operators.ToArray(),
                 dataTableTemplate);
 
-            DataTable skylineDataTableReturn = GetSkyline(database, dataTableTemplate, dataRecordTemplate);
-
-            return skylineDataTableReturn;
+            return GetSkyline(database, dataTableTemplate, dataRecordTemplate);
         }
 
         /// <summary>
-        ///     Fill Operators, OperatorStrings and PReferenceColumnIndex properties.
+        ///     Fill Operators, OperatorStrings and PreferenceColumnIndex properties.
         /// </summary>
         /// <param name="operators">
         ///     The operators with which the preferences are handled; can be either "LOW" or "INCOMPARABLE",
@@ -252,7 +251,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         }
 
         /// <summary>
-        ///     Main entry point for calculating a skyline sample via the sampling skyline algorithm after preparatory work
+        ///     Entry point for calculating a skyline sample via the sampling skyline algorithm after preparatory work in
         ///     <see cref="GetSkylineTable" /> has been carried out.
         /// </summary>
         /// <param name="database">A Collection by which a row can be accessed via its unique ID. The values represent the database rows including the preceding SkylineAttribute columns.</param>
@@ -260,12 +259,13 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         ///     An empty DataTable with all columns to return to which the columns InternalArtificialUniqueRowIdentifierColumnName and InternalEqualValuesBucketColumnName have already been added.
         /// </param>
         /// <param name="dataRecordTemplate">A template used to report rows for the skyline algorithm if working with the CLR.</param>
-        /// <returns></returns>
+        /// <returns>The skyline sample.</returns>
         internal DataTable GetSkyline(IDictionary<long, object[]> database, DataTable dataTableTemplate,
             SqlDataRecord dataRecordTemplate)
         {
-            var skylineSampleFinalDatabase = new Dictionary<long, object[]>();
-
+            var sw = new Stopwatch();
+            sw.Start();
+            
             // preserve current skyline algorithm's settings
             int recordAmountLimit = SelectedStrategy.RecordAmountLimit;
             int sortType = SelectedStrategy.SortType;
@@ -278,31 +278,26 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             TimeMilliseconds = 0;
             NumberOfOperations = 0;
 
-            var sw = new Stopwatch();
-            sw.Start();
-
-            CalculateSkylineSampleFinalDatabase(database, dataTableTemplate, dataRecordTemplate,
-                skylineSampleFinalDatabase, sw);
-
             DataTable skylineSampleReturn = dataTableTemplate.Clone();
             var skylineValues = new List<long[]>();
-
+           
+            IDictionary<long, object[]> skylineSampleFinalDatabase = CalculateSkylineSampleFinalDatabase(database, dataTableTemplate, dataRecordTemplate, sw);
             CalculateSkylineSample(skylineSampleFinalDatabase, skylineSampleReturn, skylineValues);
 
-            RemoveGenedatedInternalColumns(skylineSampleReturn);
+            RemoveGeneratedInternalColumns(skylineSampleReturn);
 
             SortDataTable(skylineSampleReturn, skylineValues);
 
             //Remove certain amount of rows if query contains TOP Keyword
             Helper.GetAmountOfTuples(skylineSampleReturn, recordAmountLimit);
 
-            sw.Stop();
-            TimeMilliseconds += sw.ElapsedMilliseconds;
-
             // restore current skyline algorithm's settings
             SelectedStrategy.RecordAmountLimit = recordAmountLimit;
             SelectedStrategy.SortType = sortType;
             SelectedStrategy.HasIncomparablePreferences = hasIncomparablePreferences;
+
+            sw.Stop();
+            TimeMilliseconds += sw.ElapsedMilliseconds;
 
             return skylineSampleReturn;
         }
@@ -318,15 +313,15 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         ///     the subspace skyline. Finally, merge the subspace skyline into the skyline sample which will be reported by the
         ///     sampling skyline algorithm.
         /// </remarks>
-        /// <param name="database"></param>
-        /// <param name="dataTableTemplate"></param>
-        /// <param name="dataRecordTemplate"></param>
-        /// <param name="skylineSampleFinalDatabase"></param>
-        /// <param name="sw"></param>
-        private void CalculateSkylineSampleFinalDatabase(IDictionary<long, object[]> database,
-            DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate,
-            IDictionary<long, object[]> skylineSampleFinalDatabase, Stopwatch sw)
+        /// <param name="database">A Collection by which a row can be accessed via its unique ID. The values represent the database rows including the preceding SkylineAttribute columns.</param>
+        /// <param name="dataTableTemplate">An empty DataTable with all columns to return to which the columns InternalArtificialUniqueRowIdentifierColumnName and InternalEqualValuesBucketColumnName have already been added.</param>
+        /// <param name="dataRecordTemplate">A template used to report rows for the skyline algorithm if working with the CLR.</param>
+        /// <param name="sw">To measture the time spent to perform this whole algorithm. Has to be started before calling this method, will be running after this method.</param>
+        private IDictionary<long, object[]> CalculateSkylineSampleFinalDatabase(IDictionary<long, object[]> database,
+            DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, Stopwatch sw)
         {
+            var skylineSampleFinalDatabase = new Dictionary<long, object[]>();
+
             foreach (HashSet<int> subspace in Utility.Subspaces)
             {
                 string subpaceOperators = GetOperatorsWithIgnoredEntriesString(subspace);
@@ -336,7 +331,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                 sw.Stop();
                 TimeMilliseconds += sw.ElapsedMilliseconds;
                 DataTable subspaceDataTable = SelectedStrategy.GetSkylineTable(database.Values.ToList(),
-                    dataTableTemplate, dataRecordTemplate, subpaceOperators);
+                    dataTableTemplate.Clone(), dataRecordTemplate, subpaceOperators);
                 TimeMilliseconds += SelectedStrategy.TimeMilliseconds;
                 NumberOfOperations += SelectedStrategy.NumberOfOperations;
                 sw.Restart();
@@ -363,7 +358,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                     TimeMilliseconds += sw.ElapsedMilliseconds;
                     DataTable subspaceComplementDataTable =
                         SelectedStrategy.GetSkylineTable(rowsWithEqualValuesDatabase.Values.ToList(),
-                            dataTableTemplate, dataRecordTemplate, subpaceComplementOperators);
+                            dataTableTemplate.Clone(), dataRecordTemplate, subpaceComplementOperators);
                     TimeMilliseconds += SelectedStrategy.TimeMilliseconds;
                     NumberOfOperations += SelectedStrategy.NumberOfOperations;
                     sw.Restart();
@@ -377,6 +372,8 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
 
                 MergeSubspaceSkylineIntoFinalSkylineSample(subspaceDatabase, skylineSampleFinalDatabase);
             }
+
+            return skylineSampleFinalDatabase;
         }
 
         /// <summary>
@@ -703,9 +700,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             }
         }
 
-        private void CalculateSkylineSample(IReadOnlyDictionary<long, object[]> skylineSampleFinalDatabase,
-            DataTable skylineSampleReturn,
-            ICollection<long[]> skylineValues)
+        private void CalculateSkylineSample(IDictionary<long, object[]> skylineSampleFinalDatabase, DataTable skylineSampleReturn,ICollection<long[]> skylineValues)
         {
             foreach (KeyValuePair<long, object[]> skylineSampleRow in skylineSampleFinalDatabase)
             {
@@ -735,7 +730,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             }
         }
 
-        private static void RemoveGenedatedInternalColumns(DataTable dataTable)
+        private static void RemoveGeneratedInternalColumns(DataTable dataTable)
         {
             dataTable.Columns.RemoveAt(dataTable.Columns.Count - 1); // InternalEqualValuesBucketColumnName
             dataTable.Columns.RemoveAt(dataTable.Columns.Count - 1); // InternalArtificialUniqueRowIdentifierColumnName
