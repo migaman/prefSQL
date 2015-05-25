@@ -51,7 +51,7 @@
         {
             var samplingTest = new SamplingTest();
 
-            samplingTest.TestExecutionForPerformance(10);
+            samplingTest.TestExecutionForPerformance(100);
             //samplingTest.TestForSetCoverage();
             //samplingTest.TestForClusterAnalysis();            
             //samplingTest.TestForDominatedObjects();

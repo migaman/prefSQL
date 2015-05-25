@@ -29,7 +29,10 @@ namespace prefSQL.SQLSkyline
             List<long[]> window = new List<long[]>();
             ArrayList windowIncomparable = new ArrayList();
             int dimensionsCount = operatorsArray.Count(op => op != "IGNORE");
+            int dimensionsTupleCount = operatorsArray.Count(op => op != "IGNORE" && op != "INCOMPARABLE");
             int[] dimensions = new int[dimensionsCount];
+            int[] dimensionsTuple = new int[dimensionsTupleCount];
+            
             int nextDim = 0;
             for(int d=0;d<operatorsArray.Length;d++)
             {
@@ -40,20 +43,28 @@ namespace prefSQL.SQLSkyline
                 }
             }
 
+            nextDim = 0;
+            for (int d = 0; d < operatorsArray.Length; d++)
+            {
+                if (operatorsArray[d] != "IGNORE" && operatorsArray[d] != "INCOMPARABLE")
+                {
+                    dimensionsTuple[nextDim] = d;
+                    nextDim++;
+                }
+            }
+
             DataTable dataTableReturn = dataTableTemplate.Clone();
+
+            long[] newTuple = new long[dimensionsTupleCount];
 
             //For each tuple
             foreach (object[] dbValuesObject in database)
-            {
-                long[] newTuple = new long[dimensionsCount];
+            {                
                 int next = 0;
-                for (int j = 0; j < operatorsArray.Length; j++)
+                foreach (int dimension in dimensionsTuple)
                 {
-                    if (operatorsArray[j] != "IGNORE" && operatorsArray[j] != "INCOMPARABLE")
-                    {
-                        newTuple[next] = (long)dbValuesObject[j];
-                        next++;
-                    }
+                    newTuple[next] = (long)dbValuesObject[dimension];
+                    next++;
                 }         
 
                 bool isDominated = false;

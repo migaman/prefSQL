@@ -141,10 +141,10 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             DataTable fullDataTable = Helper.GetDataTableFromSQL(query, SelectedStrategy.ConnectionString,
                 SelectedStrategy.Provider);
 
-            AddGenedatedInternalColumns(fullDataTable);
+            AddGeneratedInternalColumns(fullDataTable);
 
             FillUtilityProperties(fullDataTable);
-            FillInternalArtificialUniqueRowIdentifier(fullDataTable, Utility.ArtificialUniqueRowIdentifierColumnIndex);
+            FillInternalArtificialUniqueRowIdentifier(fullDataTable);
 
             IDictionary<long, object[]> database = Helper.GetDatabaseAccessibleByUniqueId(fullDataTable,
                 Utility.ArtificialUniqueRowIdentifierColumnIndex);
@@ -159,11 +159,50 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         }
 
         /// <summary>
+        /// Fill Operators, OperatorStrings and PReferenceColumnIndex properties. 
+        /// </summary>
+        /// <param name="operators">
+        ///     The operators with which the preferences are handled; can be either "LOW" or "INCOMPARABLE",
+        ///     specified in the format "LOW;LOW;INCOMPARABLE;LOW;LOW;...", i.e., separated via ";".
+        /// </param>
+        private void CalculatePropertiesWithRespectToIncomparableOperators(string operators)
+        {
+            Operators = operators.Split(';');
+            OperatorStrings = new string[Operators.Count(op => op != "INCOMPARABLE")];
+            PreferenceColumnIndex = new int[Operators.Count(op => op != "INCOMPARABLE")];
+            var nextOperatorIndex = 0;
+            for (var opIndex = 0; opIndex < Operators.Length; opIndex++)
+            {
+                if (Operators[opIndex] != "INCOMPARABLE")
+                {
+                    OperatorStrings[nextOperatorIndex] = Operators[opIndex];
+                    PreferenceColumnIndex[nextOperatorIndex] = opIndex;
+                    nextOperatorIndex++;
+                }
+                else
+                {
+                    // keep "LOW;INCOMPARABLE" together
+                    OperatorStrings[nextOperatorIndex - 1] += ";" + Operators[opIndex];
+                }
+            }
+        }
+
+        /// <summary>
+        /// Add InternalArtificialUniqueRowIdentifierColumnName and InternalEqualValuesBucketColumnName, respectively. First, InternalArtificialUniqueRowIdentifierColumnName is added, then InternalEqualValuesBucketColumnName; i.e., InternalEqualValuesBucketColumnName is the new last column of the DataTable.
+        /// </summary>
+        /// <param name="dataTable">The DataTable on which to add the two columns.</param>
+        private static void AddGeneratedInternalColumns(DataTable dataTable)
+        {
+            dataTable.Columns.Add(InternalArtificialUniqueRowIdentifierColumnName, typeof(long));
+            dataTable.Columns.Add(InternalEqualValuesBucketColumnName, typeof(long));
+        }
+
+        /// <summary>
         /// Sets necessary properties of Utility.
         /// </summary>
         /// <param name="dataTable">A DataTable to which the columns InternalArtificialUniqueRowIdentifierColumnName and InternalEqualValuesBucketColumnName have already been added.</param>
         private void FillUtilityProperties(DataTable dataTable)
-        {          
+        {
             Utility.SubspacesCount = SubspacesCount;
             Utility.SubspaceDimension = SubspaceDimension;
             Utility.AllPreferencesCount = Operators.Count(op => op != "INCOMPARABLE");
@@ -171,72 +210,87 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             Utility.EqualValuesBucketColumnIndex = dataTable.Columns.Count - 1;
         }
 
-        private static void AddGenedatedInternalColumns(DataTable fullDataTable)
-        {
-            fullDataTable.Columns.Add(InternalArtificialUniqueRowIdentifierColumnName, typeof (long));
-            fullDataTable.Columns.Add(InternalEqualValuesBucketColumnName, typeof (long));
-        }
-
-        private void CalculatePropertiesWithRespectToIncomparableOperators(string operators)
-        {
-            Operators = operators.Split(';');
-            OperatorStrings = new string[Operators.Count(op => op != "INCOMPARABLE")];
-            PreferenceColumnIndex = new int[Operators.Count(op => op != "INCOMPARABLE")];
-            var nextOperator = 0;
-            for (var i = 0; i < Operators.Length; i++)
-            {
-                if (Operators[i] != "INCOMPARABLE")
-                {
-                    OperatorStrings[nextOperator] = Operators[i];
-                    PreferenceColumnIndex[nextOperator] = i;
-                    nextOperator++;
-                }
-                else
-                {
-                    OperatorStrings[nextOperator - 1] += ";" + Operators[i];
-                }
-            }
-        }
-
-        private static void RemoveGenedatedInternalColumns(DataTable dataTable)
-        {
-            dataTable.Columns.RemoveAt(dataTable.Columns.Count - 1); // InternalEqualValuesBucketColumnName
-            dataTable.Columns.RemoveAt(dataTable.Columns.Count - 1); // InternalArtificialUniqueRowIdentifierColumnName
-        }
-
-        private static void FillInternalArtificialUniqueRowIdentifier(DataTable dataTable, int rowIdentifierColumnIndex)
+        /// <summary>
+        /// Create artificial unique identifiers and add them to the column InternalArtificialUniqueRowIdentifierColumnName.
+        /// </summary>
+        /// <param name="dataTable">A DataTable to which the column InternalArtificialUniqueRowIdentifierColumnName has already been added.</param>
+        private void FillInternalArtificialUniqueRowIdentifier(DataTable dataTable)
         {
             var count = 0;
+            int internalArtificialUniqueRowIdentifierColumnIndex = Utility.ArtificialUniqueRowIdentifierColumnIndex;
+
             foreach (DataRow row in dataTable.Rows)
             {
-                row[rowIdentifierColumnIndex] = count++;
+                row[internalArtificialUniqueRowIdentifierColumnIndex] = count;
+                count++;
             }
-        }
-
+        }        
+   
         /// <summary>
-        ///     TODO: comment
+        ///     Main entry point for calculating a skyline sample via the sampling skyline algorithm after preparatory work <see cref="GetSkylineTable"/> has been carried out.
         /// </summary>
-        /// <param name="database"></param>
-        /// <param name="dataTableTemplate"></param>
-        /// <param name="dataRecordTemplate"></param>
+        /// <param name="database">A Collection by which a row can be accessed via its unique ID.</param>
+        /// <param name="dataTableTemplate">An empty DataTable with all columns to return to which the columns InternalArtificialUniqueRowIdentifierColumnName and InternalEqualValuesBucketColumnName have already been added.</param>
+        /// <param name="dataRecordTemplate">A template used to report rows for the skyline algorithm if working with the CLR.</param>
         /// <returns></returns>
         internal DataTable GetSkyline(IDictionary<long, object[]> database, DataTable dataTableTemplate,
             SqlDataRecord dataRecordTemplate)
         {
-            DataTable skylineSampleReturn = dataTableTemplate.Clone();
             var skylineSampleFinalDatabase = new Dictionary<long, object[]>();
 
+            // preserve current skyline algorithm's settings
             int recordAmountLimit = SelectedStrategy.RecordAmountLimit;
             int sortType = SelectedStrategy.SortType;
             bool hasIncomparablePreferences = SelectedStrategy.HasIncomparablePreferences;
+            
+            // the calculated subspace skylines need all rows, sorting is unnecessary
             SelectedStrategy.RecordAmountLimit = 0;
             SelectedStrategy.SortType = 0;
 
             TimeMilliseconds = 0;
             NumberOfOperations = 0;
+
             var sw = new Stopwatch();
             sw.Start();
 
+            CalculateSkylineSampleFinalDatabase(database, dataTableTemplate, dataRecordTemplate, skylineSampleFinalDatabase, sw);
+
+            DataTable skylineSampleReturn = dataTableTemplate.Clone();
+            var skylineValues = new List<long[]>();
+
+            CalculateSkylineSample(skylineSampleFinalDatabase, skylineSampleReturn, skylineValues);
+
+            RemoveGenedatedInternalColumns(skylineSampleReturn);
+
+            SortDataTable(skylineSampleReturn, skylineValues);
+
+            //Remove certain amount of rows if query contains TOP Keyword
+            Helper.GetAmountOfTuples(skylineSampleReturn, recordAmountLimit);
+
+            sw.Stop();
+            TimeMilliseconds += sw.ElapsedMilliseconds;
+
+            // restore current skyline algorithm's settings
+            SelectedStrategy.RecordAmountLimit = recordAmountLimit;
+            SelectedStrategy.SortType = sortType;
+            SelectedStrategy.HasIncomparablePreferences = hasIncomparablePreferences;
+
+            return skylineSampleReturn;
+        }
+
+        /// <summary>
+        /// Calculate the necessary subspace skylines and merge them into the skyline sample which will finally be reported by the sampling skyline algorithm.
+        /// </summary>
+        /// <remarks>
+        /// Calculate subspaces. For each subspace, calculate a skyline via the selected skyline algorithm. Determine the objects for which the calculation of a subspace skyline with respect to the subspace's complement is necessary; if so, calculate this subspace complement skyline via the selected skyline algorithm and remove dominated objects from the subspace skyline. Finally, merge the subspace skyline into the skyline sample which will be reported by the sampling skyline algorithm.
+        /// </remarks>
+        /// <param name="database"></param>
+        /// <param name="dataTableTemplate"></param>
+        /// <param name="dataRecordTemplate"></param>
+        /// <param name="skylineSampleFinalDatabase"></param>
+        /// <param name="sw"></param>
+        private void CalculateSkylineSampleFinalDatabase(IDictionary<long, object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, IDictionary<long, object[]> skylineSampleFinalDatabase, Stopwatch sw)
+        {
             foreach (HashSet<int> subspace in Utility.Subspaces)
             {
                 string subpaceOperators = GetOperatorsWithIgnoredEntriesString(subspace);
@@ -286,136 +340,24 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
 
                 MergeSubspaceSkylineIntoFinalSkylineSample(subspaceDatabase, skylineSampleFinalDatabase);
             }
-
-            var skylineValues = new List<long[]>();
-
-            foreach (KeyValuePair<long, object[]> skylineSampleRow in skylineSampleFinalDatabase)
-            {
-                DataRow row = skylineSampleReturn.NewRow();
-                var skylineValueRow = new long[Utility.AllPreferencesCount];
-
-                var count = 0;
-                for (var i = 0; i < skylineSampleRow.Value.Length; i++)
-                {
-                    if (i < Operators.Length)
-                    {
-                        if (Operators[i] != "INCOMPARABLE")
-                        {
-                            int rowIndex = PreferenceColumnIndex[count];
-                            skylineValueRow[count] = (long) skylineSampleRow.Value[rowIndex];
-                            count++;
-                        }
-                    }
-                    else
-                    {
-                        row[i - Operators.Length] = skylineSampleRow.Value[i];
-                    }
-                }
-
-                skylineSampleReturn.Rows.Add(row);
-                skylineValues.Add(skylineValueRow);
-            }
-
-            RemoveGenedatedInternalColumns(skylineSampleReturn);
-
-            //Sort ByRank
-            if (SelectedStrategy.SortType == 1)
-            {
-                skylineSampleReturn = Helper.SortByRank(skylineSampleReturn, skylineValues);
-            }
-            else if (SelectedStrategy.SortType == 2)
-            {
-                skylineSampleReturn = Helper.SortBySum(skylineSampleReturn, skylineValues);
-            }
-
-            //Remove certain amount of rows if query contains TOP Keyword
-            Helper.GetAmountOfTuples(skylineSampleReturn, SelectedStrategy.RecordAmountLimit);
-
-            sw.Stop();
-            TimeMilliseconds += sw.ElapsedMilliseconds;
-
-            SelectedStrategy.RecordAmountLimit = recordAmountLimit;
-            SelectedStrategy.SortType = sortType;
-            SelectedStrategy.HasIncomparablePreferences = hasIncomparablePreferences;
-
-            return skylineSampleReturn;
-        }
-
-        private IEnumerable<Tuple<long[], string[]>> GetDatabaseForPairwiseComparison(
-            IEnumerable<object[]> subspaceDatabase,
-            IReadOnlyList<int> subspace)
-        {
-            var subspaceForPairwiseComparison = new List<Tuple<long[], string[]>>();
-
-            foreach (object[] row in subspaceDatabase)
-            {
-                var rowForPairwiseComparison = new long[subspace.Count + 2];
-                var rowForPairwiseComparisonIncomparable = new string[subspace.Count];
-
-                var count = 0;
-                foreach (int sub in subspace)
-                {
-                    int rowIndex = PreferenceColumnIndex[sub];
-                    rowForPairwiseComparison[count] = (long) row[rowIndex];
-
-                    if (OperatorStrings[sub].Contains(';')) // i.e., INCOMPARABLE specified in preference
-                    {
-                        rowForPairwiseComparisonIncomparable[count] = (string) row[rowIndex + 1];
-                    }
-
-                    count++;
-                }
-
-                rowForPairwiseComparison[count] = (long) row[Utility.ArtificialUniqueRowIdentifierColumnIndex];
-                rowForPairwiseComparison[count + 1] = 0;
-
-                subspaceForPairwiseComparison.Add(new Tuple<long[], string[]>(rowForPairwiseComparison,
-                    rowForPairwiseComparisonIncomparable));
-            }
-
-            return subspaceForPairwiseComparison;
-        }
-
-        private static IDictionary<long, object[]> GetSubsetOfDatabase(
-            IDictionary<long, object[]> database,
-            IEnumerable<long> databaseSubsetKeys)
-        {
-            return databaseSubsetKeys.ToDictionary(row => row, row => database[row]);
         }
 
         /// <summary>
         ///     TODO: comment
         /// </summary>
-        /// <param name="sourceDatabase"></param>
-        /// <param name="destinationDatabase"></param>
-        private static void MergeSubspaceSkylineIntoFinalSkylineSample(
-            IDictionary<long, object[]> sourceDatabase,
-            IDictionary<long, object[]> destinationDatabase)
-        {
-            foreach (KeyValuePair<long, object[]> subspaceDataTableOrigObject in sourceDatabase)
-            {
-                if (!destinationDatabase.ContainsKey(subspaceDataTableOrigObject.Key))
-                {
-                    destinationDatabase.Add(subspaceDataTableOrigObject.Key, subspaceDataTableOrigObject.Value);
-                }
-            }
-        }
-
-        /// <summary>
-        ///     TODO: comment
-        /// </summary>
-        /// <param name="database"></param>
-        /// <param name="dataTable"></param>
+        /// <param name="subspace"></param>
         /// <returns></returns>
-        private IDictionary<long, object[]> GetDatabaseFromDataTable(
-            IDictionary<long, object[]> database, DataTable dataTable)
+        public HashSet<int> GetSubspaceComplement(HashSet<int> subspace)
         {
-            int rowIdentifierColumnIndex = Utility.ArtificialUniqueRowIdentifierColumnIndex - Utility.AllPreferencesCount -
-                                           Operators.Count(op => op == "INCOMPARABLE");
-
-            return dataTable.Rows.Cast<DataRow>()
-                .ToDictionary(row => (long) row[rowIdentifierColumnIndex],
-                    row => database[(long) row[rowIdentifierColumnIndex]]);
+            var subspaceComplement = new HashSet<int>();
+            for (var i = 0; i < Utility.AllPreferencesCount; i++)
+            {
+                if (!subspace.Contains(i))
+                {
+                    subspaceComplement.Add(i);
+                }
+            }
+            return subspaceComplement;
         }
 
         /// <summary>
@@ -453,6 +395,58 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// <summary>
         ///     TODO: comment
         /// </summary>
+        /// <param name="database"></param>
+        /// <param name="dataTable"></param>
+        /// <returns></returns>
+        private IDictionary<long, object[]> GetDatabaseFromDataTable(
+            IDictionary<long, object[]> database, DataTable dataTable)
+        {
+            int rowIdentifierColumnIndex = Utility.ArtificialUniqueRowIdentifierColumnIndex - Utility.AllPreferencesCount -
+                                           Operators.Count(op => op == "INCOMPARABLE");
+
+            return dataTable.Rows.Cast<DataRow>()
+                .ToDictionary(row => (long)row[rowIdentifierColumnIndex],
+                    row => database[(long)row[rowIdentifierColumnIndex]]);
+        }
+
+        private IEnumerable<Tuple<long[], string[]>> GetDatabaseForPairwiseComparison(
+        IEnumerable<object[]> subspaceDatabase,
+        IReadOnlyList<int> subspace)
+        {
+            var subspaceForPairwiseComparison = new List<Tuple<long[], string[]>>();
+
+            foreach (object[] row in subspaceDatabase)
+            {
+                var rowForPairwiseComparison = new long[subspace.Count + 2];
+                var rowForPairwiseComparisonIncomparable = new string[subspace.Count];
+
+                var count = 0;
+                foreach (int sub in subspace)
+                {
+                    int rowIndex = PreferenceColumnIndex[sub];
+                    rowForPairwiseComparison[count] = (long)row[rowIndex];
+
+                    if (OperatorStrings[sub].Contains(';')) // i.e., INCOMPARABLE specified in preference
+                    {
+                        rowForPairwiseComparisonIncomparable[count] = (string)row[rowIndex + 1];
+                    }
+
+                    count++;
+                }
+
+                rowForPairwiseComparison[count] = (long)row[Utility.ArtificialUniqueRowIdentifierColumnIndex];
+                rowForPairwiseComparison[count + 1] = 0;
+
+                subspaceForPairwiseComparison.Add(new Tuple<long[], string[]>(rowForPairwiseComparison,
+                    rowForPairwiseComparisonIncomparable));
+            }
+
+            return subspaceForPairwiseComparison;
+        }
+
+        /// <summary>
+        ///     TODO: comment
+        /// </summary>
         /// <remarks>
         ///     TODO: remarks about performance (this is the most time consuming method besides the actual skyline algorithm)
         /// </remarks>
@@ -464,6 +458,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         {
             List<Tuple<long[], string[]>> database = subspaceDatabase.ToList();
             var usedBuckets = new Dictionary<string, long>();
+            usedBuckets.Add("", 0);
 
             if (database.Count == 0)
             {
@@ -583,7 +578,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         }
 
         private bool DetermineEqualValues(int columnsInSubspaceCount, Tuple<long[], string[]> databaseRowValue,
-            Tuple<long[], string[]> databaseForComparisonRowValue, string[] equalValues)
+        Tuple<long[], string[]> databaseForComparisonRowValue, string[] equalValues)
         {
             var isDatabaseRowEqualToDatabaseForComparisonRow = true;
 
@@ -631,7 +626,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         }
 
         private static IEnumerable<HashSet<long>> GetEqualRowsWithRespectToSubspaceColumns(IEnumerable<long[]> database,
-            int rowIdentifierColumnIndex, int equalValuesBucketColumnIndex)
+          int rowIdentifierColumnIndex, int equalValuesBucketColumnIndex)
         {
             var equalRowsWithRespectToSubspaceColumns = new Dictionary<long, HashSet<long>>();
 
@@ -648,22 +643,11 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             return equalRowsWithRespectToSubspaceColumns.Values;
         }
 
-        /// <summary>
-        ///     TODO: comment
-        /// </summary>
-        /// <param name="subspace"></param>
-        /// <returns></returns>
-        public HashSet<int> GetSubspaceComplement(HashSet<int> subspace)
+        private static IDictionary<long, object[]> GetSubsetOfDatabase(
+         IDictionary<long, object[]> database,
+         IEnumerable<long> databaseSubsetKeys)
         {
-            var subspaceComplement = new HashSet<int>();
-            for (var i = 0; i < Utility.AllPreferencesCount; i++)
-            {
-                if (!subspace.Contains(i))
-                {
-                    subspaceComplement.Add(i);
-                }
-            }
-            return subspaceComplement;
+            return databaseSubsetKeys.ToDictionary(row => row, row => database[row]);
         }
 
         /// <summary>
@@ -685,9 +669,74 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             }
         }
 
-        private static long GetArrayHashCode(string[] array)
+        /// <summary>
+        ///     TODO: comment
+        /// </summary>
+        /// <param name="sourceDatabase"></param>
+        /// <param name="destinationDatabase"></param>
+        private static void MergeSubspaceSkylineIntoFinalSkylineSample(
+            IDictionary<long, object[]> sourceDatabase,
+            IDictionary<long, object[]> destinationDatabase)
         {
-            return array.Aggregate("", (accu, current) => accu + current + "-").GetHashCode();
+            foreach (KeyValuePair<long, object[]> subspaceDataTableOrigObject in sourceDatabase)
+            {
+                if (!destinationDatabase.ContainsKey(subspaceDataTableOrigObject.Key))
+                {
+                    destinationDatabase.Add(subspaceDataTableOrigObject.Key, subspaceDataTableOrigObject.Value);
+                }
+            }
+        }
+
+        private void CalculateSkylineSample(IReadOnlyDictionary<long, object[]> skylineSampleFinalDatabase, DataTable skylineSampleReturn,
+        ICollection<long[]> skylineValues)
+        {
+            foreach (KeyValuePair<long, object[]> skylineSampleRow in skylineSampleFinalDatabase)
+            {
+                DataRow row = skylineSampleReturn.NewRow();
+                var skylineValueRow = new long[Utility.AllPreferencesCount];
+
+                var count = 0;
+                for (var i = 0; i < skylineSampleRow.Value.Length; i++)
+                {
+                    if (i < Operators.Length)
+                    {
+                        if (Operators[i] != "INCOMPARABLE")
+                        {
+                            int rowIndex = PreferenceColumnIndex[count];
+                            skylineValueRow[count] = (long)skylineSampleRow.Value[rowIndex];
+                            count++;
+                        }
+                    }
+                    else
+                    {
+                        row[i - Operators.Length] = skylineSampleRow.Value[i];
+                    }
+                }
+
+                skylineSampleReturn.Rows.Add(row);
+                skylineValues.Add(skylineValueRow);
+            }
+        }
+
+        private static void RemoveGenedatedInternalColumns(DataTable dataTable)
+        {
+            dataTable.Columns.RemoveAt(dataTable.Columns.Count - 1); // InternalEqualValuesBucketColumnName
+            dataTable.Columns.RemoveAt(dataTable.Columns.Count - 1); // InternalArtificialUniqueRowIdentifierColumnName
+        }
+
+        private void SortDataTable(DataTable dataTable, List<long[]> skylineValues)
+        {
+            switch (SelectedStrategy.SortType)
+            {
+                case 1:
+                    Helper.SortByRank(dataTable, skylineValues);
+                    break;
+                case 2:
+                    Helper.SortBySum(dataTable, skylineValues);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }
