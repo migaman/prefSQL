@@ -147,14 +147,13 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
 
             DataTable fullDataTable = Helper.GetDataTableFromSQL(query, SelectedStrategy.ConnectionString,
                 SelectedStrategy.Provider);
-
+            
             AddGeneratedInternalColumns(fullDataTable);
 
             FillUtilityProperties(fullDataTable);
-            FillInternalArtificialUniqueRowIdentifier(fullDataTable);
 
             IReadOnlyDictionary<long, object[]> database = Helper.GetDatabaseAccessibleByUniqueId(fullDataTable,
-                Utility.ArtificialUniqueRowIdentifierColumnIndex);
+                Utility.ArtificialUniqueRowIdentifierColumnIndex, true);
 
             var dataTableTemplate = new DataTable();
             SqlDataRecord dataRecordTemplate = Helper.BuildDataRecord(fullDataTable, Operators.ToArray(),
@@ -230,25 +229,6 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             Utility.AllPreferencesCount = Operators.Count(op => op != "INCOMPARABLE");
             Utility.ArtificialUniqueRowIdentifierColumnIndex = dataTable.Columns.Count - 2;
             Utility.EqualValuesBucketColumnIndex = dataTable.Columns.Count - 1;
-        }
-
-        /// <summary>
-        ///     Create artificial unique identifiers and add them to the column InternalArtificialUniqueRowIdentifierColumnName.
-        /// </summary>
-        /// <param name="dataTable">
-        ///     A DataTable to which the column InternalArtificialUniqueRowIdentifierColumnName has already
-        ///     been added.
-        /// </param>
-        private void FillInternalArtificialUniqueRowIdentifier(DataTable dataTable)
-        {
-            var count = 0;
-            int internalArtificialUniqueRowIdentifierColumnIndex = Utility.ArtificialUniqueRowIdentifierColumnIndex;
-
-            foreach (DataRow row in dataTable.Rows)
-            {
-                row[internalArtificialUniqueRowIdentifierColumnIndex] = count;
-                count++;
-            }
         }
 
         /// <summary>
