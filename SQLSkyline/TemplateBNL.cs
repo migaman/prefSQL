@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace prefSQL.SQLSkyline
 {
+    using System;
+    using System.Linq;
 
     /// <summary>
     /// BNL Algorithm implemented according to algorithm pseudocode in Börzsönyi et al. (2001)
@@ -23,43 +24,48 @@ namespace prefSQL.SQLSkyline
     public abstract class TemplateBNL : TemplateStrategy
     {
 
-        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters)
+        protected override DataTable GetSkylineFromAlgorithm(IEnumerable<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters)
         {
             List<long[]> window = new List<long[]>();
             ArrayList windowIncomparable = new ArrayList();
-            int dimensions = 0; //operatorsArray.GetUpperBound(0)+1;
-
-            for (int i = 0; i < operatorsArray.Length; i++)
+            int dimensionsCount = operatorsArray.Count(op => op != "IGNORE");
+            int dimensionsTupleCount = operatorsArray.Count(op => op != "IGNORE" && op != "INCOMPARABLE");
+            int[] dimensions = new int[dimensionsCount];
+            int[] dimensionsTuple = new int[dimensionsTupleCount];
+            
+            int nextDim = 0;
+            for(int d=0;d<operatorsArray.Length;d++)
             {
-                if (operatorsArray[i] != "IGNORE")
+                if (operatorsArray[d] != "IGNORE")
                 {
-                    dimensions++;
+                    dimensions[nextDim] = d;
+                    nextDim++;
                 }
             }
 
-            DataTable dataTableReturn = dataTableTemplate.Clone();
-            
+            nextDim = 0;
+            for (int d = 0; d < operatorsArray.Length; d++)
+            {
+                if (operatorsArray[d] != "IGNORE" && operatorsArray[d] != "INCOMPARABLE")
+                {
+                    dimensionsTuple[nextDim] = d;
+                    nextDim++;
+                }
+            }
+
+            DataTable dataTableReturn = dataTableTemplate;
+
+            long[] newTuple = new long[dimensionsTupleCount];
 
             //For each tuple
             foreach (object[] dbValuesObject in database)
-            {
-                long[] newTuple = new long[dimensions];
+            {                
                 int next = 0;
-                for (int j = 0; j < operatorsArray.Length; j++)
+                foreach (int dimension in dimensionsTuple)
                 {
-                    if (operatorsArray[j] != "IGNORE" && operatorsArray[j] != "INCOMPARABLE")
-                    {
-                        newTuple[next] = (long) dbValuesObject[j];
-                        next++;
-                    }
-                }
-
-                /*long[] newTuple = new long[dimensions];
-                for (int i = 0; i < dimensions; i++)
-                {
-                    newTuple[i] = (long)dbValuesObject[i];
-                }*/
-            
+                    newTuple[next] = (long)dbValuesObject[dimension];
+                    next++;
+                }         
 
                 bool isDominated = false;
 
@@ -84,8 +90,7 @@ namespace prefSQL.SQLSkyline
                 }
                 if (isDominated == false)
                 {
-                    //Work with operatorsArray length instead of dimensions (because of sampling skyline algorithms)
-                    AddToWindow(dbValuesObject, window, windowIncomparable, operatorsArray, operatorsArray.Length, dataTableReturn);
+                    AddToWindow(dbValuesObject, window, windowIncomparable, operatorsArray, dimensions, dataTableReturn);
                 }
 
                 
@@ -101,9 +106,9 @@ namespace prefSQL.SQLSkyline
         //Attention: Profiling
         //It seems to makes sense to remove the parameter listIndex and pass the string-array incomparableTuples[listIndex]
         //Unfortunately this has negative impact on the performance for algorithms that don't work with incomparables
-        protected abstract bool IsTupleDominated(List<long[]> window, long[] newTuple, int dimensions, string[] operatorsArray, ArrayList incomparableTuples, int listIndex, DataTable dtResult, object[] newTupleAllValues);
+        protected abstract bool IsTupleDominated(List<long[]> window, long[] newTuple, int[] dimensions, string[] operatorsArray, ArrayList incomparableTuples, int listIndex, DataTable dtResult, object[] newTupleAllValues);
 
-        protected abstract void AddToWindow(object[] newTuple, List<long[]> window, ArrayList resultstringCollection, string[] operatorsArray, int dimensions, DataTable dtResult);
+        protected abstract void AddToWindow(object[] newTuple, List<long[]> window, ArrayList resultstringCollection, string[] operatorsArray, int[] dimensions, DataTable dtResult);
 
     }
 }

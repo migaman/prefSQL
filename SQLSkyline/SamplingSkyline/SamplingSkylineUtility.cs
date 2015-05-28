@@ -1,16 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace prefSQL.SQLSkyline.SamplingSkyline
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     internal sealed class SamplingSkylineUtility
     {
-        private HashSet<HashSet<int>> _subspaces;
         private readonly ISamplingSkylineSubspacesProducer _subspacesProducer;
-        private int _subspacesCount;
-        private int _subspaceDimension;
         private int _allPreferencesCount;
+        private int _subspaceDimension;
+        private HashSet<HashSet<int>> _subspaces;
+        private int _subspacesCount;
 
         internal int SubspacesCount
         {
@@ -42,9 +42,17 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             }
         }
 
+        internal int ArtificialUniqueRowIdentifierColumnIndex { get; set; }
+        internal int EqualValuesBucketColumnIndex { get; set; }
+
         internal ISamplingSkylineSubspacesProducer SubspacesProducer
         {
             get { return _subspacesProducer; }
+        }
+
+        internal HashSet<HashSet<int>> Subspaces
+        {
+            get { return _subspaces ?? (_subspaces = DetermineSubspaces()); }
         }
 
         public SamplingSkylineUtility()
@@ -57,18 +65,11 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             _subspacesProducer = subspacesProducer;
         }
 
-        internal HashSet<HashSet<int>> Subspaces
-        {
-            get { return _subspaces ?? (_subspaces = DetermineSubspaces()); }
-            private set { _subspaces = value; }
-        }
-
-
         private HashSet<HashSet<int>> DetermineSubspaces()
         {
             CheckValidityOfCountAndDimension(SubspacesCount, SubspaceDimension, AllPreferencesCount);
 
-            var subspacesReturn = SubspacesProducer.GetSubspaces();
+            HashSet<HashSet<int>> subspacesReturn = SubspacesProducer.GetSubspaces();
 
             if (subspacesReturn.Count != SubspacesCount)
             {
@@ -85,11 +86,13 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                 throw new Exception("Not all preferences at least once contained in produced subspaces.");
             }
 
-            foreach (var subspaceReturn in subspacesReturn)
+            foreach (HashSet<int> subspaceReturn in subspacesReturn)
             {
+                HashSet<int> subspaceReturnLocal = subspaceReturn;
+
                 if (
-                    subspacesReturn.Where(element => element != subspaceReturn)
-                        .Any(element => element.SetEquals(subspaceReturn)))
+                    subspacesReturn.Where(element => element != subspaceReturnLocal)
+                        .Any(element => element.SetEquals(subspaceReturnLocal)))
                 {
                     throw new Exception("Same subspace contained multiple times.");
                 }
@@ -183,7 +186,26 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                 binomialCoefficient *= n + 1 - i;
                 binomialCoefficient /= i;
             }
+
             return binomialCoefficient;
+        }
+
+        /// <summary>
+        ///     TODO: comment
+        /// </summary>
+        /// <param name="subspace"></param>
+        /// <returns></returns>
+        public HashSet<int> GetSubspaceComplement(HashSet<int> subspace)
+        {
+            var subspaceComplement = new HashSet<int>();
+            for (var i = 0; i < AllPreferencesCount; i++)
+            {
+                if (!subspace.Contains(i))
+                {
+                    subspaceComplement.Add(i);
+                }
+            }
+            return subspaceComplement;
         }
     }
 }

@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace prefSQL.SQLParserTest
+﻿namespace prefSQL.SQLParserTest
 {
+    using System;
+    using System.Collections.Generic;
+
     internal sealed class SetCoverage
     {
-        public static double GetCoverage(Dictionary<int, object[]> normalizedBaseData,
-            Dictionary<int, object[]> normalizedSampleData, int[] useColumns)
+        public static double GetCoverage(IReadOnlyDictionary<long, object[]> normalizedBaseData,
+            IReadOnlyDictionary<long, object[]> normalizedSampleData, int[] useColumns)
         {
-            var assignments = new HashSet<int>();
+            var assignments = new HashSet<long>();
 
-            foreach (var o in normalizedSampleData)
+            foreach (KeyValuePair<long, object[]> o in normalizedSampleData)
             {
-                var objectWithMinimumEuclideanDistanceKey = GetObjectWithMinimumEuclideanDistanceKey(o.Value,
+                long objectWithMinimumEuclideanDistanceKey = GetObjectWithMinimumEuclideanDistanceKey(o.Value,
                     normalizedBaseData, useColumns);
                 if (!assignments.Contains(objectWithMinimumEuclideanDistanceKey))
                 {
@@ -20,17 +20,18 @@ namespace prefSQL.SQLParserTest
                 }
             }
 
-            return (double)assignments.Count / normalizedBaseData.Count;
+            return (double) assignments.Count / normalizedBaseData.Count;
         }
 
-        internal static int GetObjectWithMinimumEuclideanDistanceKey(object[] o, Dictionary<int, object[]> normalizedBaseData, int[] useColumns)
+        internal static long GetObjectWithMinimumEuclideanDistanceKey(object[] o,
+            IReadOnlyDictionary<long, object[]> normalizedBaseData, int[] useColumns)
         {
-            var minimumDistanceObjectKey = -1;
-            var minimumDistance = Double.MaxValue;
+            long minimumDistanceObjectKey = -1;
+            double minimumDistance = double.MaxValue;
 
-            foreach (var oo in normalizedBaseData)
+            foreach (KeyValuePair<long, object[]> oo in normalizedBaseData)
             {
-                var euclideanDistance = CalculateEuclideanDistance(o, oo.Value, useColumns);
+                double euclideanDistance = CalculateEuclideanDistance(o, oo.Value, useColumns);
                 if (euclideanDistance < minimumDistance)
                 {
                     minimumDistance = euclideanDistance;
@@ -45,12 +46,12 @@ namespace prefSQL.SQLParserTest
         {
             double sum = 0;
 
-            foreach (var index in useColumns)
+            foreach (int index in useColumns)
             {
-                var dist = (double)o[index] - (double)oo[index];
+                double dist = (double) o[index] - (double) oo[index];
                 sum += dist * dist;
             }
-         
+
             return Math.Sqrt(sum);
         }
     }

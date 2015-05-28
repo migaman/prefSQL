@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Linq;
 using prefSQL.SQLSkyline.Models;
 
@@ -28,7 +27,7 @@ namespace prefSQL.SQLSkyline
     public abstract class TemplateHexagon : TemplateStrategy
     {
 
-        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters)
+        protected override DataTable GetSkylineFromAlgorithm(IEnumerable<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters)
         {
             int weightHexagonIncomparable = 0;
             
@@ -41,7 +40,7 @@ namespace prefSQL.SQLSkyline
             
 
 
-            DataTable dtResult = dataTableTemplate.Clone();
+            DataTable dtResult = dataTableTemplate;
             
             ArrayList[] btg = null;
             int[] next = null;
@@ -56,7 +55,7 @@ namespace prefSQL.SQLSkyline
 
             //Replace the database values to ranks of the values
             long[] maxValues = new long[amountOfPreferences];
-            database = ReplaceValuesToRankValues(database, operatorsArray, ref maxValues);
+            database = ReplaceValuesToRankValues(database.ToList(), operatorsArray, ref maxValues);
 
 
             Construction(amountOfPreferences, maxValues, ref btg, ref next, ref prev, ref level, ref weight);

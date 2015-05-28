@@ -5,6 +5,8 @@ using System.Data;
 //!!!Caution: Attention small changes in this code can lead to remarkable performance issues!!!!
 namespace prefSQL.SQLSkyline
 {
+    using System.Linq;
+
     /// <summary>
     /// DQ Algorithm implemented according to algorithm pseudocode in Börzsönyi et al. (2001) and Rost(2006)
     /// </summary>
@@ -23,12 +25,12 @@ namespace prefSQL.SQLSkyline
     /// </remarks>
     public class TemplateDQ : TemplateStrategy
     {
-        protected override DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters)
+        protected override DataTable GetSkylineFromAlgorithm(IEnumerable<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters)
         {
-            DataTable dataTableReturn = dataTableTemplate.Clone();
+            DataTable dataTableReturn = dataTableTemplate;
 
             //Work with object[]-array (more than 10 times faster than datatable)
-            List<object[]> listResult = ComputeSkyline(database, operatorsArray, operatorsArray.GetUpperBound(0));
+            List<object[]> listResult = ComputeSkyline(database.ToList(), operatorsArray, operatorsArray.GetUpperBound(0));
 
             //Write object in datatable
             foreach (object[] row in listResult)

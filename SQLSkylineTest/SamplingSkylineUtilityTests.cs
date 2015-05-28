@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using prefSQL.SQLSkyline.SamplingSkyline;
-
-namespace prefSQL.SQLSkylineTest
+﻿namespace prefSQL.SQLSkylineTest
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Data;
+    using System.Diagnostics;
+    using System.Linq;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using SQLSkyline.SamplingSkyline;
+
     [TestClass]
     public class SamplingSkylineUtilityTests
     {
@@ -18,12 +19,12 @@ namespace prefSQL.SQLSkylineTest
          DeploymentItem("SamplingSkylineUtilityTests.xml")]
         public void TestProducedSubspaces()
         {
-            var testComment = TestContext.DataRow["comment"].ToString();
+            string testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
 
-            var attributesCount = int.Parse(TestContext.DataRow["attributesCount"].ToString());
-            var subspacesCount = int.Parse(TestContext.DataRow["subspacesCount"].ToString());
-            var subspaceDimension = int.Parse(TestContext.DataRow["subspaceDimension"].ToString());
+            int attributesCount = int.Parse(TestContext.DataRow["attributesCount"].ToString());
+            int subspacesCount = int.Parse(TestContext.DataRow["subspacesCount"].ToString());
+            int subspaceDimension = int.Parse(TestContext.DataRow["subspaceDimension"].ToString());
 
             var subjectUnderTest = new SamplingSkylineUtility
             {
@@ -32,16 +33,16 @@ namespace prefSQL.SQLSkylineTest
                 SubspaceDimension = subspaceDimension
             };
 
-            var preferencesInProducedSubspaces = subjectUnderTest.Subspaces;
-            var preferencesInExpectedSubspaces = ExpectedSubspaces();
+            HashSet<HashSet<int>> preferencesInProducedSubspaces = subjectUnderTest.Subspaces;
+            HashSet<HashSet<int>> preferencesInExpectedSubspaces = ExpectedSubspaces();
 
             Assert.AreEqual(preferencesInExpectedSubspaces.Count, preferencesInProducedSubspaces.Count,
                 "Number of expected subspaces is not equal to number of actual subspaces produced.");
 
-            foreach (var preferencesInSingleExpectedSubspace in preferencesInExpectedSubspaces)
+            foreach (HashSet<int> preferencesInSingleExpectedSubspace in preferencesInExpectedSubspaces)
             {
                 var expectedSubsetIsContainedInProducedSubpaces = false;
-                foreach (var preferencesInSingleProducedSubspace in preferencesInProducedSubspaces)
+                foreach (HashSet<int> preferencesInSingleProducedSubspace in preferencesInProducedSubspaces)
                 {
                     if (preferencesInSingleProducedSubspace.SetEquals(preferencesInSingleExpectedSubspace))
                     {
@@ -59,14 +60,14 @@ namespace prefSQL.SQLSkylineTest
         {
             var preferencesInSubspacesExpected = new HashSet<HashSet<int>>();
 
-            var subspacesExpected =
+            DataRow[] subspacesExpected =
                 TestContext.DataRow.GetChildRows("TestDataRow_useSubspaces")[0].GetChildRows("useSubspaces_subspace");
 
-            foreach (var subspaceExpected in subspacesExpected)
+            foreach (DataRow subspaceExpected in subspacesExpected)
             {
-                var subspaceExpectedDimensions = subspaceExpected.GetChildRows("subspace_dimension");
+                DataRow[] subspaceExpectedDimensions = subspaceExpected.GetChildRows("subspace_dimension");
                 var preferencesInSingleSubspaceExpected = new HashSet<int>();
-                foreach (var singleSubspaceExpectedDimension in subspaceExpectedDimensions)
+                foreach (DataRow singleSubspaceExpectedDimension in subspaceExpectedDimensions)
                 {
                     preferencesInSingleSubspaceExpected.Add(int.Parse(singleSubspaceExpectedDimension[0].ToString()));
                 }
@@ -84,12 +85,12 @@ namespace prefSQL.SQLSkylineTest
         {
             var hasExceptionBeenRaised = false;
 
-            var testComment = TestContext.DataRow["comment"].ToString();
+            string testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
 
-            var attributesCount = int.Parse(TestContext.DataRow["attributesCount"].ToString());
-            var subspacesCount = int.Parse(TestContext.DataRow["subspacesCount"].ToString());
-            var subspaceDimension = int.Parse(TestContext.DataRow["subspaceDimension"].ToString());
+            int attributesCount = int.Parse(TestContext.DataRow["attributesCount"].ToString());
+            int subspacesCount = int.Parse(TestContext.DataRow["subspacesCount"].ToString());
+            int subspaceDimension = int.Parse(TestContext.DataRow["subspaceDimension"].ToString());
 
             var subjectUnderTest = new SamplingSkylineUtility
             {
@@ -100,7 +101,7 @@ namespace prefSQL.SQLSkylineTest
 
             try
             {
-                var subspaces = subjectUnderTest.Subspaces;
+                HashSet<HashSet<int>> subspaces = subjectUnderTest.Subspaces;
             }
             catch (Exception exception)
             {

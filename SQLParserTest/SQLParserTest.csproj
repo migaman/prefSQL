@@ -45,6 +45,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.XML" />
   </ItemGroup>
   <Choose>
@@ -60,6 +61,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="ClusterAnalysis.cs" />
     <Compile Include="SkylineSamplingHelper.cs" />
     <Compile Include="FixedSamplingSkylineSubspacesProducer.cs" />
     <Compile Include="Helper.cs" />

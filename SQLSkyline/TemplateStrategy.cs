@@ -10,36 +10,17 @@ namespace prefSQL.SQLSkyline
     {
         public long TimeInMs { get; set; }
         public long NumberOfOperations { get; set; }
-        public List<long[]> SkylineValues { get; set; } //ordering is done in this class. Ordering needs the skyline values
-
+        internal List<long[]> SkylineValues { get; set; } //ordering is done in this class. Ordering needs the skyline values
+        
         public DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, string[] additionalParameters, int sortType)
         {
             string[] operators = strOperators.Split(';');
             DataTable dt = Helper.GetDataTableFromSQL(strQuery, strConnection, strProvider);
-            List<object[]> listObjects = Helper.GetObjectArrayFromDataTable(dt);
+            List<object[]> listObjects = Helper.GetItemArraysAsList(dt);
             DataTable dtResult = new DataTable();
             SqlDataRecord record = Helper.BuildDataRecord(dt, operators, dtResult);
             return GetSkylineTable(listObjects, dtResult, record, strOperators, numberOfRecords, isIndependent, sortType, additionalParameters);
         }
-
-        /// <summary>
-        /// Method exists only for the reason that method "GetSkylineTable" can stay private
-        /// </summary>
-        /// <param name="database"></param>
-        /// <param name="dataTableTemplate"></param>
-        /// <param name="dataRecordTemplate"></param>
-        /// <param name="operators"></param>
-        /// <param name="numberOfRecords"></param>
-        /// <param name="isIndependent"></param>
-        /// <param name="additionalParameters"></param>
-        /// <returns></returns>
-        public DataTable GetSkylineTableBackdoorSample(List<object[]> database, DataTable dataTableTemplate,
-            SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent,
-            string[] additionalParameters)
-        {
-            return GetSkylineTable(database, dataTableTemplate, dataRecordTemplate, operators, numberOfRecords, isIndependent, 0, additionalParameters);
-        }
-
 
         /// <summary>
         /// Override this method in specific algorithm
@@ -49,7 +30,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="operatorsArray"></param>
         /// <param name="additionalParameters"></param>
         /// <returns></returns>
-        protected abstract DataTable GetSkylineFromAlgorithm(List<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters);
+        protected abstract DataTable GetSkylineFromAlgorithm(IEnumerable<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters);
 
         /// <summary>
         /// Template function for each algorithm
@@ -64,7 +45,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="sortType"></param>
         /// <param name="additionalParameters"></param>
         /// <returns></returns>
-        private DataTable GetSkylineTable(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, int sortType, string[] additionalParameters)
+        internal DataTable GetSkylineTable(IEnumerable<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool isIndependent, int sortType, string[] additionalParameters)
         {
             string[] operatorsArray = operators.Split(';');
             DataTable dataTableReturn = new DataTable();

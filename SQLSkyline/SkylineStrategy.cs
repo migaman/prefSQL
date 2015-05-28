@@ -15,9 +15,9 @@ namespace prefSQL.SQLSkyline
     {
         public string Provider { get; set; }
 
-        public string ConnectionString { get; set; } 
+        public string ConnectionString { get; set; }
 
-        
+        internal TemplateStrategy Strategy { get; set; }
 
         /// <summary>
         /// Product of Cardinality of the preferenes
@@ -71,12 +71,9 @@ namespace prefSQL.SQLSkyline
         /// <param name="database"></param>
         /// <param name="dataTableTemplate"></param>
         /// <param name="dataRecordTemplate"></param>
-        /// <param name="operators"></param>
-        /// <param name="numberOfRecords"></param>
-        /// <param name="hasIncomparable"></param>
-        /// <param name="additionalParameters"></param>
+        /// <param name="preferenceOperators"></param>
         /// <returns></returns>
-        internal abstract DataTable GetSkylineTableBackdoorSample(List<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string operators, int numberOfRecords, bool hasIncomparable, string[] additionalParameters);
+        internal abstract DataTable GetSkylineTable(IEnumerable<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string preferenceOperators);
 
         public abstract String GetStoredProcedureCommand(string strWhere, string strOrderBy, string strFirstSQL, string strOperators, string strOrderByAttributes);
 

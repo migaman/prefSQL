@@ -1,14 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using prefSQL.SQLParser;
-using prefSQL.SQLParser.Models;
-using prefSQL.SQLSkyline;
-using prefSQL.SQLSkyline.SamplingSkyline;
-
-namespace prefSQL.SQLParserTest
+﻿namespace prefSQL.SQLParserTest
 {
+    using System.Collections.Generic;
+    using System.Data;
+    using System.Diagnostics;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using SQLParser;
+    using SQLParser.Models;
+    using SQLSkyline;
+    using SQLSkyline.SamplingSkyline;
+
     [TestClass]
     public class SQLParserSkylineSamplingIntegrationTests
     {
@@ -20,16 +20,17 @@ namespace prefSQL.SQLParserTest
          DeploymentItem("SQLParserSkylineSamplingIntegrationTests.xml")]
         public void TestNumberOfObjectsWithinEntireSkyline()
         {
-            var entireSkylineSQL = TestContext.DataRow["entireSkylineSQL"].ToString();
-            var testComment = TestContext.DataRow["comment"].ToString();
-            var expectedNumberOfEntireSkylineObjects =
+            string entireSkylineSQL = TestContext.DataRow["entireSkylineSQL"].ToString();
+            string testComment = TestContext.DataRow["comment"].ToString();
+            int expectedNumberOfEntireSkylineObjects =
                 int.Parse(TestContext.DataRow["expectedNumberOfEntireSkylineObjects"].ToString());
             Debug.WriteLine(testComment);
             Debug.WriteLine(entireSkylineSQL);
 
-            var common = new SQLCommon {SkylineType = new SkylineBNL()};
+            var common = new SQLCommon { SkylineType = new SkylineBNL() };
 
-            var skyline = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, entireSkylineSQL);
+            DataTable skyline = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                entireSkylineSQL);
 
             Assert.AreEqual(expectedNumberOfEntireSkylineObjects, skyline.Rows.Count,
                 "Unexpected number of Skyline objects.");
@@ -39,11 +40,35 @@ namespace prefSQL.SQLParserTest
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
             "SQLParserSkylineSamplingIntegrationTests.xml", "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SQLParserSkylineSamplingIntegrationTests.xml")]
+        public void TestNumberOfObjectsWithinSampleSkylineWithCountOneEqualsEntireSkyline()
+        {
+            string entireSkylineSQL = TestContext.DataRow["entireSkylineSQL"].ToString();
+            string testComment = TestContext.DataRow["comment"].ToString();         
+            Debug.WriteLine(testComment);
+     
+            var common = new SQLCommon { SkylineType = new SkylineBNL() };
+
+            DataTable entireSkyline = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                entireSkylineSQL);
+
+            PrefSQLModel entirePrefSqlModel = common.GetPrefSqlModelFromPreferenceSql(entireSkylineSQL);
+
+            DataTable sampleSkyline = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                entireSkylineSQL + " SAMPLE BY RANDOM_SUBSETS COUNT 1 DIMENSION " + entirePrefSqlModel.Skyline.Count);
+
+            Assert.AreEqual(entireSkyline.Rows.Count, sampleSkyline.Rows.Count,
+              "Unexpected number of Skyline objects.");
+        }
+
+        [TestMethod]
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
+            "SQLParserSkylineSamplingIntegrationTests.xml", "TestDataRow", DataAccessMethod.Sequential),
+         DeploymentItem("SQLParserSkylineSamplingIntegrationTests.xml")]
         public void TestNumberOfObjectsWithinSampleSkyline()
         {
-            var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
-            var testComment = TestContext.DataRow["comment"].ToString();
-            var expectedNumberOfSamplingSkylineObjects =
+            string skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
+            string testComment = TestContext.DataRow["comment"].ToString();
+            int expectedNumberOfSamplingSkylineObjects =
                 int.Parse(TestContext.DataRow["expectedNumberOfSamplingSkylineObjects"].ToString());
             Debug.WriteLine(testComment);
             Debug.WriteLine(skylineSampleSQL);
@@ -53,21 +78,27 @@ namespace prefSQL.SQLParserTest
             int numberOfRecords;
             string[] parameter;
 
-            var common = new SQLCommon {SkylineType = new SkylineBNL()};
-            var prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSQL);
-            var ansiSql = common.GetAnsiSqlFromPrefSqlModel(prefSqlModelSkylineSample);
+            var common = new SQLCommon
+            {
+                SkylineType =
+                    new SkylineBNL() {Provider = Helper.ProviderName, ConnectionString = Helper.ConnectionString}
+            };
+            PrefSQLModel prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSQL);
+            string ansiSql = common.GetAnsiSqlFromPrefSqlModel(prefSqlModelSkylineSample);
 
-            SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out baseQuery, out operators,
+            prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out baseQuery, out operators,
                 out numberOfRecords);
 
-            var useSubspaces = UseSubspaces(prefSqlModelSkylineSample);
+            HashSet<HashSet<int>> useSubspaces = UseSubspaces(prefSqlModelSkylineSample);
             var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(useSubspaces);
             var utility = new SamplingSkylineUtility(subspacesProducer);
-            var skylineSample = new SamplingSkyline(utility) {DbProvider = Helper.ProviderName};
+            var skylineSample = new SamplingSkyline(utility)
+            {
+                SubspacesCount = prefSqlModelSkylineSample.SkylineSampleCount,
+                SubspaceDimension = prefSqlModelSkylineSample.SkylineSampleDimension
+            };
 
-            var skyline = skylineSample.GetSkylineTable(Helper.ConnectionString, baseQuery, operators, numberOfRecords,
-                prefSqlModelSkylineSample.WithIncomparable, parameter, common.SkylineType,
-                prefSqlModelSkylineSample.SkylineSampleCount, prefSqlModelSkylineSample.SkylineSampleDimension, 0);
+            DataTable skyline = skylineSample.GetSkylineTable(baseQuery, operators, common.SkylineType);
 
             Assert.AreEqual(expectedNumberOfSamplingSkylineObjects, skyline.Rows.Count,
                 "Unexpected number of Sample Skyline objects.");
@@ -77,18 +108,18 @@ namespace prefSQL.SQLParserTest
         {
             var preferencesInSubspacesExpected = new HashSet<HashSet<int>>();
 
-            var subspacesExpected =
+            DataRow[] subspacesExpected =
                 TestContext.DataRow.GetChildRows("TestDataRow_useSubspaces")[0].GetChildRows("useSubspaces_subspace");
 
-            foreach (var subspaceExpected in subspacesExpected)
+            foreach (DataRow subspaceExpected in subspacesExpected)
             {
-                var subspaceExpectedDimensions = subspaceExpected.GetChildRows("subspace_dimension");
+                DataRow[] subspaceExpectedDimensions = subspaceExpected.GetChildRows("subspace_dimension");
                 var preferencesInSingleSubspaceExpected = new HashSet<int>();
-                foreach (var singleSubspaceExpectedDimension in subspaceExpectedDimensions)
+                foreach (DataRow singleSubspaceExpectedDimension in subspaceExpectedDimensions)
                 {
                     for (var i = 0; i < prefSqlModelSkylineSample.Skyline.Count; i++)
                     {
-                        var attributeModel = prefSqlModelSkylineSample.Skyline[i];
+                        AttributeModel attributeModel = prefSqlModelSkylineSample.Skyline[i];
                         if (attributeModel.FullColumnName == singleSubspaceExpectedDimension[0].ToString())
                         {
                             preferencesInSingleSubspaceExpected.Add(i);
@@ -108,21 +139,52 @@ namespace prefSQL.SQLParserTest
          DeploymentItem("SQLParserSkylineSamplingIntegrationTests.xml")]
         public void TestOnlyNonDominatedObjectsWithinSampleSkyline()
         {
-            var skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
-            var entireSkylineSql = TestContext.DataRow["entireSkylineSQL"].ToString();
-            var testComment = TestContext.DataRow["comment"].ToString();
+            string skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
+            string entireSkylineSql = TestContext.DataRow["entireSkylineSQL"].ToString();
+            string testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
             Debug.WriteLine(skylineSampleSql);
+        
+            string baseQuery;
+            string operators;
+            int numberOfRecords;
+            string[] parameter;
 
-            var common = new SQLCommon {SkylineType = new SkylineBNL()};
+            var common = new SQLCommon
+            {
+                SkylineType =
+                    new SkylineBNL() { Provider = Helper.ProviderName, ConnectionString = Helper.ConnectionString }
+            };
 
-            var entireSkyline = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+            PrefSQLModel prefSqlModelSkylineSample = common.GetPrefSqlModelFromPreferenceSql(skylineSampleSql);
+            string ansiSql = common.GetAnsiSqlFromPrefSqlModel(prefSqlModelSkylineSample);
+
+            prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out baseQuery, out operators,
+                out numberOfRecords);
+
+            HashSet<HashSet<int>> useSubspaces = UseSubspaces(prefSqlModelSkylineSample);
+            var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(useSubspaces);
+            var utility = new SamplingSkylineUtility(subspacesProducer);
+            var skylineSample = new SamplingSkyline(utility)
+            {
+                SubspacesCount = prefSqlModelSkylineSample.SkylineSampleCount,
+                SubspaceDimension = prefSqlModelSkylineSample.SkylineSampleDimension
+            };
+
+            DataTable entireSkyline = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
                 entireSkylineSql);
-            var sampleSkyline = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
-                skylineSampleSql);
+            DataTable sampleSkyline = skylineSample.GetSkylineTable(baseQuery, operators, common.SkylineType);
 
-            var entireSkylineObjectsIds = GetHashSetOfIdsFromDataTable(entireSkyline);
-            var sampleSkylineObjectsIds = GetHashSetOfIdsFromDataTable(sampleSkyline);
+            HashSet<int> entireSkylineObjectsIds = GetHashSetOfIdsFromDataTable(entireSkyline);
+            HashSet<int> sampleSkylineObjectsIds = GetHashSetOfIdsFromDataTable(sampleSkyline);
+
+            sampleSkylineObjectsIds.ExceptWith(entireSkylineObjectsIds);
+
+            Debug.WriteLine("wrong objects:");
+            foreach (int i in sampleSkylineObjectsIds)
+            {
+                Debug.WriteLine(i);
+            }
 
             Assert.IsTrue(sampleSkylineObjectsIds.IsSubsetOf(entireSkylineObjectsIds),
                 "Dominated objects contained in Sample Skyline (i.e., objects which are not contained in the entire Skyline).");
