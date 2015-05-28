@@ -6,19 +6,19 @@
       <![CDATA[SELECT * FROM cars_small cs WHERE NOT EXISTS(SELECT * FROM cars_small cs_INNER WHERE cs_INNER.price <= cs.price AND cs_INNER.mileage <= cs.mileage AND ( cs_INNER.price < cs.price OR cs_INNER.mileage < cs.mileage) )]]>
     </parsePreferenceSQLSkylineSQLExpectedResult>
     <parsePreferenceSQLSkylineBNLExpectedResult>
-      <![CDATA[EXEC dbo.SP_SkylineBNLLevel 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW', 0, 0, 2, 1, SkylineBNL, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW', 0, 0, 2, 1, SkylineBNL, 0]]>
     </parsePreferenceSQLSkylineBNLExpectedResult>
     <parsePreferenceSQLSkylineBNLSortExpectedResult>
-      <![CDATA[EXEC dbo.SP_SkylineBNLSortLevel 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY cs.price, cs.mileage', 'LOW;LOW', 0, 0, 2, 1, SkylineBNLSort, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY cs.price, cs.mileage', 'LOW;LOW', 0, 0, 2, 1, SkylineBNLSort, 0]]>
     </parsePreferenceSQLSkylineBNLSortExpectedResult>
     <parsePreferenceSQLSkylineDQExpectedResult>
-      <![CDATA[EXEC dbo.SP_SkylineDQ 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW', 0, 0, 2, 1, SkylineDQ, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW', 0, 0, 2, 1, SkylineDQ, 0]]>
     </parsePreferenceSQLSkylineDQExpectedResult>
     <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
-      <![CDATA[EXEC dbo.SP_MultipleSkylineBNLLevel 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY cs.price, cs.mileage', 'LOW;LOW', 0, 0, 3, 2, 1, MultipleSkylineBNL, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY cs.price, cs.mileage', 'LOW;LOW', 0, 0, 3, 2, 1, MultipleSkylineBNL, 0]]>
     </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
     <parsePreferenceSQLSkylineHexagonExpectedResult>
-      <![CDATA[EXEC dbo.SP_SkylineHexagonLevel 'SELECT  CAST(cs.price AS bigint), CAST(cs.mileage AS bigint) , * FROM cars_small cs', 'LOW;LOW', 0, 0, 2, 1, SkylineHexagon, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint), CAST(cs.mileage AS bigint) , * FROM cars_small cs', 'LOW;LOW', 0, 0, 2, 1, SkylineHexagon, 0]]>
     </parsePreferenceSQLSkylineHexagonExpectedResult>
   </TestDataRow>
   <TestDataRow>
@@ -28,19 +28,19 @@
       <![CDATA[SELECT * FROM cars_small cs WHERE NOT EXISTS(SELECT * FROM cars_small cs_INNER WHERE cs_INNER.price <= cs.price AND cs_INNER.mileage <= cs.mileage AND ( cs_INNER.price < cs.price OR cs_INNER.mileage < cs.mileage) )]]>
     </parsePreferenceSQLSkylineSQLExpectedResult>
     <parsePreferenceSQLSkylineBNLExpectedResult>
-      <![CDATA[EXEC dbo.SP_SkylineBNLLevel 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW', 0, 0, 1, 1, SkylineBNL, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW', 0, 0, 1, 1, SkylineBNL, 0]]>
     </parsePreferenceSQLSkylineBNLExpectedResult>
     <parsePreferenceSQLSkylineBNLSortExpectedResult>
-      <![CDATA[EXEC dbo.SP_SkylineBNLSortLevel 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY cs.price, cs.mileage', 'LOW;LOW', 0, 0, 1, 1, SkylineBNLSort, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY cs.price, cs.mileage', 'LOW;LOW', 0, 0, 1, 1, SkylineBNLSort, 0]]>
     </parsePreferenceSQLSkylineBNLSortExpectedResult>
     <parsePreferenceSQLSkylineDQExpectedResult>
-      <![CDATA[EXEC dbo.SP_SkylineDQ 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW', 0, 0, 1, 1, SkylineDQ, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW', 0, 0, 1, 1, SkylineDQ, 0]]>
     </parsePreferenceSQLSkylineDQExpectedResult>
     <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
-      <![CDATA[EXEC dbo.SP_MultipleSkylineBNLLevel 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY cs.price, cs.mileage', 'LOW;LOW', 0, 0, 3, 1, 1, MultipleSkylineBNL, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY cs.price, cs.mileage', 'LOW;LOW', 0, 0, 3, 1, 1, MultipleSkylineBNL, 0]]>
     </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
     <parsePreferenceSQLSkylineHexagonExpectedResult>
-      <![CDATA[EXEC dbo.SP_SkylineHexagonLevel 'SELECT  CAST(cs.price AS bigint), CAST(cs.mileage AS bigint) , * FROM cars_small cs', 'LOW;LOW', 0, 0, 1, 1, SkylineHexagon, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint), CAST(cs.mileage AS bigint) , * FROM cars_small cs', 'LOW;LOW', 0, 0, 1, 1, SkylineHexagon, 0]]>
     </parsePreferenceSQLSkylineHexagonExpectedResult>
   </TestDataRow>
   <TestDataRow>
@@ -50,19 +50,19 @@
       <![CDATA[SELECT * FROM cars_small cs WHERE NOT EXISTS(SELECT * FROM cars_small cs_INNER WHERE cs_INNER.price <= cs.price AND cs_INNER.mileage <= cs.mileage AND ( cs_INNER.price < cs.price OR cs_INNER.mileage < cs.mileage) )]]>
     </parsePreferenceSQLSkylineSQLExpectedResult>
     <parsePreferenceSQLSkylineBNLExpectedResult>
-      <![CDATA[EXEC dbo.SP_SkylineBNLLevel 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW', 0, 0, 1, 2, SkylineBNL, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW', 0, 0, 1, 2, SkylineBNL, 0]]>
     </parsePreferenceSQLSkylineBNLExpectedResult>
     <parsePreferenceSQLSkylineBNLSortExpectedResult>
-      <![CDATA[EXEC dbo.SP_SkylineBNLSortLevel 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY cs.price, cs.mileage', 'LOW;LOW', 0, 0, 1, 2, SkylineBNLSort, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY cs.price, cs.mileage', 'LOW;LOW', 0, 0, 1, 2, SkylineBNLSort, 0]]>
     </parsePreferenceSQLSkylineBNLSortExpectedResult>
     <parsePreferenceSQLSkylineDQExpectedResult>
-      <![CDATA[EXEC dbo.SP_SkylineDQ 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW', 0, 0, 1, 2, SkylineDQ, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs', 'LOW;LOW', 0, 0, 1, 2, SkylineDQ, 0]]>
     </parsePreferenceSQLSkylineDQExpectedResult>
     <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
-      <![CDATA[EXEC dbo.SP_MultipleSkylineBNLLevel 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY cs.price, cs.mileage', 'LOW;LOW', 0, 0, 3, 1, 2, MultipleSkylineBNL, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1 , * FROM cars_small cs ORDER BY cs.price, cs.mileage', 'LOW;LOW', 0, 0, 3, 1, 2, MultipleSkylineBNL, 0]]>
     </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
     <parsePreferenceSQLSkylineHexagonExpectedResult>
-      <![CDATA[EXEC dbo.SP_SkylineHexagonLevel 'SELECT  CAST(cs.price AS bigint), CAST(cs.mileage AS bigint) , * FROM cars_small cs', 'LOW;LOW', 0, 0, 1, 2, SkylineHexagon, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint), CAST(cs.mileage AS bigint) , * FROM cars_small cs', 'LOW;LOW', 0, 0, 1, 2, SkylineHexagon, 0]]>
     </parsePreferenceSQLSkylineHexagonExpectedResult>
   </TestDataRow>
   <TestDataRow>
@@ -72,19 +72,19 @@
       <![CDATA[SELECT * FROM cars_small cs WHERE NOT EXISTS(SELECT * FROM cars_small cs_INNER WHERE cs_INNER.price <= cs.price AND cs_INNER.mileage <= cs.mileage AND cs_INNER.horsepower * -1 <= cs.horsepower * -1 AND cs_INNER.enginesize * -1 <= cs.enginesize * -1 AND ( cs_INNER.price < cs.price OR cs_INNER.mileage < cs.mileage OR cs_INNER.horsepower * -1 < cs.horsepower * -1 OR cs_INNER.enginesize * -1 < cs.enginesize * -1) )]]>
     </parsePreferenceSQLSkylineSQLExpectedResult>
     <parsePreferenceSQLSkylineBNLExpectedResult>
-      <![CDATA[EXEC dbo.SP_SkylineBNLLevel 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1, CAST(cs.horsepower * -1 AS bigint) AS SkylineAttribute2, CAST(cs.enginesize * -1 AS bigint) AS SkylineAttribute3 , * FROM cars_small cs', 'LOW;LOW;LOW;LOW', 0, 0, 2, 2, SkylineBNL, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1, CAST(cs.horsepower * -1 AS bigint) AS SkylineAttribute2, CAST(cs.enginesize * -1 AS bigint) AS SkylineAttribute3 , * FROM cars_small cs', 'LOW;LOW;LOW;LOW', 0, 0, 2, 2, SkylineBNL, 0]]>
     </parsePreferenceSQLSkylineBNLExpectedResult>
     <parsePreferenceSQLSkylineBNLSortExpectedResult>
-      <![CDATA[EXEC dbo.SP_SkylineBNLSortLevel 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1, CAST(cs.horsepower * -1 AS bigint) AS SkylineAttribute2, CAST(cs.enginesize * -1 AS bigint) AS SkylineAttribute3 , * FROM cars_small cs ORDER BY cs.price, cs.mileage, cs.horsepower * -1, cs.enginesize * -1', 'LOW;LOW;LOW;LOW', 0, 0, 2, 2, SkylineBNLSort, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1, CAST(cs.horsepower * -1 AS bigint) AS SkylineAttribute2, CAST(cs.enginesize * -1 AS bigint) AS SkylineAttribute3 , * FROM cars_small cs ORDER BY cs.price, cs.mileage, cs.horsepower * -1, cs.enginesize * -1', 'LOW;LOW;LOW;LOW', 0, 0, 2, 2, SkylineBNLSort, 0]]>
     </parsePreferenceSQLSkylineBNLSortExpectedResult>
     <parsePreferenceSQLSkylineDQExpectedResult>
-      <![CDATA[EXEC dbo.SP_SkylineDQ 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1, CAST(cs.horsepower * -1 AS bigint) AS SkylineAttribute2, CAST(cs.enginesize * -1 AS bigint) AS SkylineAttribute3 , * FROM cars_small cs', 'LOW;LOW;LOW;LOW', 0, 0, 2, 2, SkylineDQ, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1, CAST(cs.horsepower * -1 AS bigint) AS SkylineAttribute2, CAST(cs.enginesize * -1 AS bigint) AS SkylineAttribute3 , * FROM cars_small cs', 'LOW;LOW;LOW;LOW', 0, 0, 2, 2, SkylineDQ, 0]]>
     </parsePreferenceSQLSkylineDQExpectedResult>
     <parsePreferenceSQLMultipleSkylineBNLExpectedResult>
-      <![CDATA[EXEC dbo.SP_MultipleSkylineBNLLevel 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1, CAST(cs.horsepower * -1 AS bigint) AS SkylineAttribute2, CAST(cs.enginesize * -1 AS bigint) AS SkylineAttribute3 , * FROM cars_small cs ORDER BY cs.price, cs.mileage, cs.horsepower * -1, cs.enginesize * -1', 'LOW;LOW;LOW;LOW', 0, 0, 3, 2, 2, MultipleSkylineBNL, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint) AS SkylineAttribute0, CAST(cs.mileage AS bigint) AS SkylineAttribute1, CAST(cs.horsepower * -1 AS bigint) AS SkylineAttribute2, CAST(cs.enginesize * -1 AS bigint) AS SkylineAttribute3 , * FROM cars_small cs ORDER BY cs.price, cs.mileage, cs.horsepower * -1, cs.enginesize * -1', 'LOW;LOW;LOW;LOW', 0, 0, 3, 2, 2, MultipleSkylineBNL, 0]]>
     </parsePreferenceSQLMultipleSkylineBNLExpectedResult>
     <parsePreferenceSQLSkylineHexagonExpectedResult>
-      <![CDATA[EXEC dbo.SP_SkylineHexagonLevel 'SELECT  CAST(cs.price AS bigint), CAST(cs.mileage AS bigint), CAST(cs.horsepower * -1 AS bigint), CAST(cs.enginesize * -1 AS bigint) , * FROM cars_small cs', 'LOW;LOW;LOW;LOW', 0, 0, 2, 2, SkylineHexagon, 0]]>
+      <![CDATA[EXEC dbo.SP_SkylineSampling 'SELECT  CAST(cs.price AS bigint), CAST(cs.mileage AS bigint), CAST(cs.horsepower * -1 AS bigint), CAST(cs.enginesize * -1 AS bigint) , * FROM cars_small cs', 'LOW;LOW;LOW;LOW', 0, 0, 2, 2, SkylineHexagon, 0]]>
     </parsePreferenceSQLSkylineHexagonExpectedResult>
   </TestDataRow>
 </TestData>

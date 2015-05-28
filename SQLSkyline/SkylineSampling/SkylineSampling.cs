@@ -6,6 +6,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
     using System.Data;
     using System.Diagnostics;
     using System.Linq;
+    using System.Text.RegularExpressions;
     using Microsoft.SqlServer.Server;
 
     /// <summary>
@@ -109,8 +110,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             string strOperators, string strOrderByAttributes)
         {
             string storedProcedureCommand = SelectedStrategy.GetStoredProcedureCommand(strWhere, strOrderBy, strFirstSQL,
-                strOperators,
-                strOrderByAttributes);
+                strOperators, strOrderByAttributes);
+            storedProcedureCommand=Regex.Replace(storedProcedureCommand, @"dbo\.SP_[^ ]* ", "dbo.SP_SkylineSampling ");
 
             if (SelectedStrategy.GetType() != typeof (SkylineSQL))
             {
@@ -285,6 +286,9 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         {
             var skylineSampleFinalDatabase = new Dictionary<long, object[]>();
 
+            var hashSet = new HashSet<int>();
+            throw new Exception("here");
+                
             foreach (HashSet<int> subspace in Utility.Subspaces)
             {
                 string subpaceOperators = GetOperatorsWithIgnoredEntriesString(subspace);
