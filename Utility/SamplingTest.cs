@@ -4,11 +4,9 @@
     using System.Collections.Generic;
     using System.Data;
     using System.Data.Common;
-    using System.Data.SqlClient;
     using System.Diagnostics;
     using System.Linq;
     using System.Numerics;
-    using System.Windows.Forms;
     using prefSQL.SQLParser;
     using prefSQL.SQLParser.Models;
     using prefSQL.SQLParserTest;
@@ -51,10 +49,10 @@
         {
             var samplingTest = new SamplingTest();
 
-            samplingTest.TestExecutionForPerformance(100);
+            //samplingTest.TestExecutionForPerformance(100);
             //samplingTest.TestForSetCoverage();
             //samplingTest.TestForClusterAnalysis();            
-            //samplingTest.TestForDominatedObjects();
+            samplingTest.TestForDominatedObjects();
             //samplingTest.TestCompareAlgorithms();
 
             Console.ReadKey();
@@ -187,108 +185,83 @@
                 Helper.ProviderName,
                 _skylineSampleSql);
 
+            DataTable entireSkylineDataTableBestRank = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
+                Helper.ProviderName,
+                _entireSkylineSqlBestRank.Replace("XXX", sampleSkylineDataTable.Rows.Count.ToString()));
+            DataTable entireSkylineDataTableSumRank = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
+                Helper.ProviderName,
+                _entireSkylineSqlSumRank.Replace("XXX", sampleSkylineDataTable.Rows.Count.ToString()));
+
             IReadOnlyDictionary<long, object[]> sampleSkylineDatabase =
                 prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(sampleSkylineDataTable, 0);
-            IReadOnlyDictionary<long, object[]> entireDatabase = prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(dtEntire, 0);
+            IReadOnlyDictionary<long, object[]> entireDatabase =
+                prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(dtEntire, 0);
             IReadOnlyDictionary<long, object[]> entireSkylineDatabase =
-              prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(entireSkylineDataTable, 0);
+                prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(entireSkylineDataTable, 0);
+            IReadOnlyDictionary<long, object[]> entireSkylineDatabaseBestRank =
+                prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(entireSkylineDataTableBestRank, 0);
+            IReadOnlyDictionary<long, object[]> entireSkylineDatabaseSumRank =
+                prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(entireSkylineDataTableSumRank, 0);
+            IReadOnlyDictionary<long, object[]> randomSample =
+                SkylineSamplingHelper.GetRandomSample(entireSkylineDatabase, sampleSkylineDataTable.Rows.Count);
 
-            var dominatedObjects = new Dictionary<long, long>();
-            var dominatedObjectsSet = new HashSet<long>();
-            var dominatingObjectsSet = new HashSet<long>();
-
-            var dominatedObjectsEntire = new Dictionary<long, long>();
-            var dominatedObjectsSetEntire = new HashSet<long>();
-            var dominatingObjectsSetEntire = new HashSet<long>();
-
-            foreach (KeyValuePair<long, object[]> i in sampleSkylineDatabase)
-            {
-                dominatedObjects.Add(i.Key, 0);
-            }
-
-            foreach (KeyValuePair<long, object[]> i in entireSkylineDatabase)
-            {
-                dominatedObjectsEntire.Add(i.Key, 0);
-            }
-
-            int[] dimensions = Enumerable.Range(0, skylineAttributeColumns.Length).ToArray();
-
-            foreach (KeyValuePair<long, object[]> j in entireDatabase)
-            {
-                var potentiallyDominatedTuple = new long[skylineAttributeColumns.Length];
-
-                for (var column = 0; column < skylineAttributeColumns.Length; column++)
-                {
-                    int index = skylineAttributeColumns[column];
-                    potentiallyDominatedTuple[column] = (long) j.Value[index];
-                }
-
-                foreach (KeyValuePair<long, object[]> i in sampleSkylineDatabase)
-                {                  
-                    var dominatingTuple = new long[skylineAttributeColumns.Length];
-
-                    for (var column = 0; column < skylineAttributeColumns.Length; column++)
-                    {
-                        int index = skylineAttributeColumns[column];
-                        dominatingTuple[column] = (long) i.Value[index];
-                    }
-
-                    if (prefSQL.SQLSkyline.Helper.IsTupleDominated(dominatingTuple, potentiallyDominatedTuple,
-                        dimensions))
-                    {
-                        dominatedObjectsSet.Add(j.Key);
-                        dominatingObjectsSet.Add(i.Key);
-
-                        dominatedObjects[i.Key]++;
-                    }
-                }
-
-                foreach (KeyValuePair<long, object[]> i in entireSkylineDatabase)
-                {
-                    var dominatingTuple = new long[skylineAttributeColumns.Length];
-
-                    for (var column = 0; column < skylineAttributeColumns.Length; column++)
-                    {
-                        int index = skylineAttributeColumns[column];
-                        dominatingTuple[column] = (long)i.Value[index];
-                    }
-
-                    if (prefSQL.SQLSkyline.Helper.IsTupleDominated(dominatingTuple, potentiallyDominatedTuple,
-                        dimensions))
-                    {
-                        dominatedObjectsSetEntire.Add(j.Key);
-                        dominatingObjectsSetEntire.Add(i.Key);
-
-                        dominatedObjectsEntire[i.Key]++;
-                    }
-                }
-            }
+            var dominatedObjectsEntireSkyline = new DominatedObjects(entireDatabase, entireSkylineDatabase,
+                skylineAttributeColumns);
+            var dominatedObjectsSampleSkyline = new DominatedObjects(entireDatabase, sampleSkylineDatabase,
+                skylineAttributeColumns);
+            var dominatedObjectsEntireSkylineBestRank = new DominatedObjects(entireDatabase,
+                entireSkylineDatabaseBestRank, skylineAttributeColumns);
+            var dominatedObjectsEntireSkylineSumRank = new DominatedObjects(entireDatabase, entireSkylineDatabaseSumRank,
+                skylineAttributeColumns);
+            var dominatedObjectsRandomSample = new DominatedObjects(entireDatabase, randomSample,
+                skylineAttributeColumns);
 
             Debug.WriteLine("entire database size: {0}", entireDatabase.Keys.ToList().Count);
-            Debug.WriteLine("sample skyline size: {0}", sampleSkylineDatabase.Keys.ToList().Count);
-            Debug.WriteLine("objects that dominate other objects: {0}", dominatingObjectsSet.Count);
-            Debug.WriteLine("dominated objects: {0}", dominatedObjectsSet.Count);
-            Debug.WriteLine("dominated objects multiple: {0}", dominatedObjects.Values.Sum());
             Debug.WriteLine("entire skyline size: {0}", entireSkylineDataTable.Rows.Count);
-            Debug.WriteLine("entire objects that dominate other objects: {0}", dominatingObjectsSetEntire.Count);
-            Debug.WriteLine("entire dominated objects: {0}", dominatedObjectsSetEntire.Count);
-            Debug.WriteLine("entire dominated objects multiple: {0}", dominatedObjectsEntire.Values.Sum());
+            Debug.WriteLine("sample skyline size: {0}", sampleSkylineDatabase.Keys.ToList().Count);
+            Debug.WriteLine("random skyline size: {0}", randomSample.Keys.ToList().Count);
+            Debug.WriteLine("best skyline size: {0}", entireSkylineDatabaseBestRank.Keys.ToList().Count);
+            Debug.WriteLine("sum skyline size: {0}", entireSkylineDatabaseSumRank.Keys.ToList().Count);
+            Debug.WriteLine("");
             Debug.WriteLine("");
 
-            foreach (KeyValuePair<long, long> v in dominatedObjects.OrderByDescending(key => key.Value))
-            {
-                Debug.WriteLine("object {0:00000} dominates {1:00000} other objects", v.Key, v.Value);
-            }
+            WriteSummary("entire", dominatedObjectsEntireSkyline);
+            WriteSummary("sample", dominatedObjectsSampleSkyline);
+            WriteSummary("random", dominatedObjectsRandomSample);
+            WriteSummary("best", dominatedObjectsEntireSkylineBestRank);
+            WriteSummary("sum", dominatedObjectsEntireSkylineSumRank);
 
-            Debug.WriteLine("");
+            WriteDominatingObjects("entire", dominatedObjectsEntireSkyline);
+            WriteDominatingObjects("sample", dominatedObjectsSampleSkyline);
+            WriteDominatingObjects("random", dominatedObjectsRandomSample);
+            WriteDominatingObjects("best", dominatedObjectsEntireSkylineBestRank);
+            WriteDominatingObjects("sum", dominatedObjectsEntireSkylineSumRank);
+        }
 
-            foreach (KeyValuePair<long, long> v in dominatedObjectsEntire.OrderByDescending(key => key.Value))
+        private static void WriteDominatingObjects(string objectsEntireSkyline, DominatedObjects dominatedObjects)
+        {
+            foreach (
+                KeyValuePair<long, long> dominatingObject in
+                    dominatedObjects.NumberOfObjectsDominatedByEachObjectOrderedByDescCount)
             {
-                if (v.Value > 0)
+                if (dominatingObject.Value > 0)
                 {
-                    Debug.WriteLine("entire object {0:00000} dominates {1:00000} other objects", v.Key, v.Value);                    
+                    Debug.WriteLine(objectsEntireSkyline + " object {0:00000} dominates {1:00000} other objects",
+                        dominatingObject.Key,
+                        dominatingObject.Value);
                 }
             }
+        }
+
+        private static void WriteSummary(string objectsEntireSkyline, DominatedObjects dominatedObjects)
+        {
+            Debug.WriteLine(objectsEntireSkyline + " objects that dominate other objects: {0}",
+                dominatedObjects.NumberOfObjectsDominatingOtherObjects);
+            Debug.WriteLine(objectsEntireSkyline + " dominated objects: {0}",
+                dominatedObjects.NumberOfDistinctDominatedObjects);
+            Debug.WriteLine(objectsEntireSkyline + " dominated objects multiple: {0}",
+                dominatedObjects.NumberOfDominatedObjectsIncludingDuplicates);
+            Debug.WriteLine("");
         }
 
         private void TestForClusterAnalysis()
