@@ -12,6 +12,31 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         private HashSet<HashSet<int>> _subspaces;
         private int _subspacesCount;
 
+        /// <summary>
+        ///     All Operators over the preferences (e.g., "LOW", "INCOMPARABLE").
+        /// </summary>
+        internal string[] Operators { get; set; }
+
+        /// <summary>
+        ///     All strings for the Operators (e.g., "LOW", "LOW;INCOMPARABLE").
+        /// </summary>
+        /// <remarks>
+        ///     Since INCOMPARABLE preferences are represented by two columns resp. operators, OperatorStrings is used to represent
+        ///     this situation. There are two possibilities: Either an element of OperatorStrings contains "LOW", or it contains
+        ///     "LOW;INCOMPARABLE". This is also used for convenience when executing the skyline algorithm over a subspace of all
+        ///     preferences - the operators for this subspace can be simply concatenated from the OperatorStrings property.
+        /// </remarks>
+        internal string[] OperatorStrings { get; set; }
+
+        /// <summary>
+        ///     The positions of the preferences (i.e., the columns) within the skyline reported from the skyline algorithm.
+        /// </summary>
+        /// <remarks>
+        ///     This is used to skip over INCOMPARABLE columns when they're not used (e.g., when collecting the skylineValues for
+        ///     sorting methods).
+        /// </remarks>
+        internal int[] PreferenceColumnIndex { get; set; }
+
         internal int SubspacesCount
         {
             get { return _subspacesCount; }
@@ -206,6 +231,35 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                 }
             }
             return subspaceComplement;
+        }
+
+        /// <summary>
+        ///     Fill Operators, OperatorStrings and PreferenceColumnIndex properties.
+        /// </summary>
+        /// <param name="operators">
+        ///     The operators with which the preferences are handled; can be either "LOW" or "INCOMPARABLE",
+        ///     specified in the format "LOW;LOW;INCOMPARABLE;LOW;LOW;...", i.e., separated via ";".
+        /// </param>
+        internal void CalculatePropertiesWithRespectToIncomparableOperators(string operators)
+        {
+            Operators = operators.Split(';');
+            OperatorStrings = new string[Operators.Count(op => op != "INCOMPARABLE")];
+            PreferenceColumnIndex = new int[Operators.Count(op => op != "INCOMPARABLE")];
+            var nextOperatorIndex = 0;
+            for (var opIndex = 0; opIndex < Operators.Length; opIndex++)
+            {
+                if (Operators[opIndex] != "INCOMPARABLE")
+                {
+                    OperatorStrings[nextOperatorIndex] = Operators[opIndex];
+                    PreferenceColumnIndex[nextOperatorIndex] = opIndex;
+                    nextOperatorIndex++;
+                }
+                else
+                {
+                    // keep "LOW;INCOMPARABLE" together
+                    OperatorStrings[nextOperatorIndex - 1] += ";" + Operators[opIndex];
+                }
+            }
         }
     }
 }
