@@ -7,7 +7,7 @@
     using SQLParser;
     using SQLParser.Models;
     using SQLSkyline;
-    using SQLSkyline.SamplingSkyline;
+    using SQLSkyline.SkylineSampling;
 
     [TestClass]
     public class SQLParserSkylineSamplingIntegrationTests
@@ -68,8 +68,8 @@
         {
             string skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             string testComment = TestContext.DataRow["comment"].ToString();
-            int expectedNumberOfSamplingSkylineObjects =
-                int.Parse(TestContext.DataRow["expectedNumberOfSamplingSkylineObjects"].ToString());
+            int expectedNumberOfSkylineSampleObjects =
+                int.Parse(TestContext.DataRow["expectedNumberOfSkylineSampleObjects"].ToString());
             Debug.WriteLine(testComment);
             Debug.WriteLine(skylineSampleSQL);
 
@@ -90,9 +90,9 @@
                 out numberOfRecords);
 
             HashSet<HashSet<int>> useSubspaces = UseSubspaces(prefSqlModelSkylineSample);
-            var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(useSubspaces);
-            var utility = new SamplingSkylineUtility(subspacesProducer);
-            var skylineSample = new SamplingSkyline(utility)
+            var subspacesProducer = new FixedSkylineSamplingSubspacesProducer(useSubspaces);
+            var utility = new SkylineSamplingUtility(subspacesProducer);
+            var skylineSample = new SkylineSampling(utility)
             {
                 SubspacesCount = prefSqlModelSkylineSample.SkylineSampleCount,
                 SubspaceDimension = prefSqlModelSkylineSample.SkylineSampleDimension
@@ -100,7 +100,7 @@
 
             DataTable skyline = skylineSample.GetSkylineTable(baseQuery, operators, common.SkylineType);
 
-            Assert.AreEqual(expectedNumberOfSamplingSkylineObjects, skyline.Rows.Count,
+            Assert.AreEqual(expectedNumberOfSkylineSampleObjects, skyline.Rows.Count,
                 "Unexpected number of Sample Skyline objects.");
         }
 
@@ -163,9 +163,9 @@
                 out numberOfRecords);
 
             HashSet<HashSet<int>> useSubspaces = UseSubspaces(prefSqlModelSkylineSample);
-            var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(useSubspaces);
-            var utility = new SamplingSkylineUtility(subspacesProducer);
-            var skylineSample = new SamplingSkyline(utility)
+            var subspacesProducer = new FixedSkylineSamplingSubspacesProducer(useSubspaces);
+            var utility = new SkylineSamplingUtility(subspacesProducer);
+            var skylineSample = new SkylineSampling(utility)
             {
                 SubspacesCount = prefSqlModelSkylineSample.SkylineSampleCount,
                 SubspaceDimension = prefSqlModelSkylineSample.SkylineSampleDimension

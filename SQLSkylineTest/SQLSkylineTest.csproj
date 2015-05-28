@@ -51,16 +51,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SamplingSkylineUtilityTests.cs" />
+    <Compile Include="SkylineSamplingUtilityTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="SamplingSkylineUtilityTests.xml">
+    <Content Include="SkylineSamplingUtilityTests.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="SamplingSkylineUtilityTests_BinomialCoefficient.xml">
+    <Content Include="SkylineSamplingUtilityTests_BinomialCoefficient.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="SamplingSkylineUtilityTests_Incorrect.xml">
+    <Content Include="SkylineSamplingUtilityTests_Incorrect.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

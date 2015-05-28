@@ -4,7 +4,7 @@
     <skylineSampleSQL>SELECT * FROM cars_small cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID SKYLINE OF cs.price LOW, colors.name ('red' >> OTHERS INCOMPARABLE) SAMPLE BY RANDOM_SUBSETS COUNT 2 DIMENSION 1</skylineSampleSQL>
     <entireSkylineSQL>SELECT * FROM cars_small cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID SKYLINE OF cs.price LOW, colors.name ('red' >> OTHERS INCOMPARABLE)</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>5</expectedNumberOfEntireSkylineObjects>
-    <expectedNumberOfSamplingSkylineObjects>4</expectedNumberOfSamplingSkylineObjects>
+    <expectedNumberOfSkylineSampleObjects>4</expectedNumberOfSkylineSampleObjects>
     <useSubspaces>
       <subspace>
         <dimension>cs.price</dimension>
@@ -21,7 +21,7 @@
     <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT 2 DIMENSION 1</skylineSampleSQL>
     <entireSkylineSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>7</expectedNumberOfEntireSkylineObjects>
-    <expectedNumberOfSamplingSkylineObjects>2</expectedNumberOfSamplingSkylineObjects>
+    <expectedNumberOfSkylineSampleObjects>2</expectedNumberOfSkylineSampleObjects>
     <useSubspaces>
       <subspace>
         <dimension>cs.price</dimension>
@@ -36,7 +36,7 @@
     <skylineSampleSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH SAMPLE BY RANDOM_SUBSETS COUNT 3 DIMENSION 2</skylineSampleSQL>
     <entireSkylineSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>90</expectedNumberOfEntireSkylineObjects>
-    <expectedNumberOfSamplingSkylineObjects>24</expectedNumberOfSamplingSkylineObjects>
+    <expectedNumberOfSkylineSampleObjects>24</expectedNumberOfSkylineSampleObjects>
     <useSubspaces>
       <subspace>
         <dimension>cs.price</dimension>
@@ -57,7 +57,7 @@
     <skylineSampleSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH SAMPLE BY RANDOM_SUBSETS COUNT 3 DIMENSION 2</skylineSampleSQL>
     <entireSkylineSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>207</expectedNumberOfEntireSkylineObjects>
-    <expectedNumberOfSamplingSkylineObjects>31</expectedNumberOfSamplingSkylineObjects>
+    <expectedNumberOfSkylineSampleObjects>31</expectedNumberOfSkylineSampleObjects>
     <useSubspaces>
       <subspace>
         <dimension>cs.price</dimension>
@@ -78,7 +78,7 @@
     <skylineSampleSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH SAMPLE BY RANDOM_SUBSETS COUNT 2 DIMENSION 2</skylineSampleSQL>
     <entireSkylineSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>353</expectedNumberOfEntireSkylineObjects>
-    <expectedNumberOfSamplingSkylineObjects>23</expectedNumberOfSamplingSkylineObjects>
+    <expectedNumberOfSkylineSampleObjects>23</expectedNumberOfSkylineSampleObjects>
     <useSubspaces>
       <subspace>
         <dimension>cs.price</dimension>
@@ -95,7 +95,7 @@
     <skylineSampleSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH SAMPLE BY RANDOM_SUBSETS COUNT 7 DIMENSION 3</skylineSampleSQL>
     <entireSkylineSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>4464</expectedNumberOfEntireSkylineObjects>
-    <expectedNumberOfSamplingSkylineObjects>639</expectedNumberOfSamplingSkylineObjects>
+    <expectedNumberOfSkylineSampleObjects>639</expectedNumberOfSkylineSampleObjects>
     <useSubspaces>
       <subspace>
         <dimension>cs.price</dimension>
@@ -139,7 +139,7 @@
     <skylineSampleSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH SAMPLE BY RANDOM_SUBSETS COUNT 7 DIMENSION 3</skylineSampleSQL>
     <entireSkylineSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>4464</expectedNumberOfEntireSkylineObjects>
-    <expectedNumberOfSamplingSkylineObjects>307</expectedNumberOfSamplingSkylineObjects>
+    <expectedNumberOfSkylineSampleObjects>307</expectedNumberOfSkylineSampleObjects>
     <useSubspaces>
       <subspace>
         <dimension>cs.mileage</dimension>
@@ -183,7 +183,7 @@
     <skylineSampleSQL>SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> 'blue' >> OTHERS EQUAL), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL) SAMPLE BY RANDOM_SUBSETS COUNT 15 DIMENSION 3</skylineSampleSQL>
     <entireSkylineSQL>SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> 'blue' >> OTHERS EQUAL), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL)</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>10855</expectedNumberOfEntireSkylineObjects>
-    <expectedNumberOfSamplingSkylineObjects>661</expectedNumberOfSamplingSkylineObjects>
+    <expectedNumberOfSkylineSampleObjects>661</expectedNumberOfSkylineSampleObjects>
     <useSubspaces>
       <subspace>
         <dimension>cs.price</dimension>
@@ -267,7 +267,7 @@
     <skylineSampleSQL>SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars_small cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> OTHERS INCOMPARABLE), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL) SAMPLE BY RANDOM_SUBSETS COUNT 15 DIMENSION 3</skylineSampleSQL>
     <entireSkylineSQL>SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars_small cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> OTHERS INCOMPARABLE), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL)</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>439</expectedNumberOfEntireSkylineObjects>
-    <expectedNumberOfSamplingSkylineObjects>115</expectedNumberOfSamplingSkylineObjects>
+    <expectedNumberOfSkylineSampleObjects>115</expectedNumberOfSkylineSampleObjects>
     <useSubspaces>
       <subspace>
         <dimension>cs.price</dimension>
@@ -351,7 +351,7 @@
     <skylineSampleSQL>SELECT * FROM cars_small cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID SKYLINE OF cs.price LOW, cs.mileage LOW, colors.name ('red' >> OTHERS INCOMPARABLE) SAMPLE BY RANDOM_SUBSETS COUNT 3 DIMENSION 2</skylineSampleSQL>
     <entireSkylineSQL>SELECT * FROM cars_small cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID SKYLINE OF cs.price LOW, cs.mileage LOW, colors.name ('red' >> OTHERS INCOMPARABLE)</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>51</expectedNumberOfEntireSkylineObjects>
-    <expectedNumberOfSamplingSkylineObjects>10</expectedNumberOfSamplingSkylineObjects>
+    <expectedNumberOfSkylineSampleObjects>10</expectedNumberOfSkylineSampleObjects>
     <useSubspaces>
       <subspace>
         <dimension>cs.price</dimension>

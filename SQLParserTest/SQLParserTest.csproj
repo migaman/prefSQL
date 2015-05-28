@@ -64,7 +64,7 @@
     <Compile Include="ClusterAnalysis.cs" />
     <Compile Include="DominatedObjects.cs" />
     <Compile Include="SkylineSamplingHelper.cs" />
-    <Compile Include="FixedSamplingSkylineSubspacesProducer.cs" />
+    <Compile Include="FixedSkylineSamplingSubspacesProducer.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="SetCoverage.cs" />
     <Compile Include="SQLParserRankingTest.cs" />

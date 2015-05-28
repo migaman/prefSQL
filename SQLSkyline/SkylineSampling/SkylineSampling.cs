@@ -1,4 +1,4 @@
-namespace prefSQL.SQLSkyline.SamplingSkyline
+namespace prefSQL.SQLSkyline.SkylineSampling
 {
     using System;
     using System.Collections.Generic;
@@ -9,7 +9,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
     using Microsoft.SqlServer.Server;
 
     /// <summary>
-    ///     Implementation of the sampling skyline algorithm according to the algorithm pseudocode in W.-T. Balke, J. X. Zheng,
+    ///     Implementation of the skyline sampling algorithm according to the algorithm pseudocode in W.-T. Balke, J. X. Zheng,
     ///     and U. Güntzer (2005).
     /// </summary>
     /// <remarks>
@@ -21,10 +21,10 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
     ///     Rangan, B. Steffen, M. Sudan, D. Terzopoulos, D. Tygar, M. Y. Vardi, G. Weikum, L. Zhou, B. C. Ooi, and X. Meng,
     ///     Eds, Berlin, Heidelberg: Springer Berlin Heidelberg, 2005, pp. 410–421.
     /// </remarks>
-    public sealed class SamplingSkyline
+    public sealed class SkylineSampling
     {
         /// <summary>
-        ///     Name of additional column which holds a unique row identifier maintained by the sampling skyline algorithm.
+        ///     Name of additional column which holds a unique row identifier maintained by the skyline sampling algorithm.
         /// </summary>
         private const string InternalArtificialUniqueRowIdentifierColumnName = "_internalArtificialUniqueRowIdentifier";
 
@@ -36,7 +36,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// <summary>
         ///     Declared as backing variable in order to provide "readonly" semantics.
         /// </summary>
-        private readonly SamplingSkylineUtility _utility;
+        private readonly SkylineSamplingUtility _utility;
 
         /// <summary>
         ///     The time spent to perform this whole algorithm.
@@ -75,7 +75,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// <summary>
         ///     Utility providing functionality to assist the algorithm.
         /// </summary>
-        private SamplingSkylineUtility Utility
+        private SkylineSamplingUtility Utility
         {
             get { return _utility; }
         }
@@ -110,23 +110,23 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         public int SubspaceDimension { get; set; }
 
         /// <summary>
-        ///     Instantiates an object with a new SamplingSkylineUtility as its Utility.
+        ///     Instantiates an object with a new SkylineSamplingUtility as its Utility.
         /// </summary>
-        public SamplingSkyline() : this(new SamplingSkylineUtility())
+        public SkylineSampling() : this(new SkylineSamplingUtility())
         {
         }
 
         /// <summary>
-        ///     Instantiates an object with the specified SamplingSkylineUtility as its Utility.
+        ///     Instantiates an object with the specified SkylineSamplingUtility as its Utility.
         /// </summary>
-        /// <param name="utility">Used as Utility for the sampling skyline algorithm.</param>
-        internal SamplingSkyline(SamplingSkylineUtility utility)
+        /// <param name="utility">Used as Utility for the skyline sampling algorithm.</param>
+        internal SkylineSampling(SkylineSamplingUtility utility)
         {
             _utility = utility;
         }
 
         /// <summary>
-        ///     Entry point for calculating a skyline sample via the sampling skyline algorithm.
+        ///     Entry point for calculating a skyline sample via the skyline sampling^algorithm.
         /// </summary>
         /// <param name="query">
         ///     An ANSI SQL statement to query the SQL server in order to fetch the whole database including its SkylineAttribute
@@ -232,7 +232,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         }
 
         /// <summary>
-        ///     Entry point for calculating a skyline sample via the sampling skyline algorithm after preparatory work in
+        ///     Entry point for calculating a skyline sample via the skyline sampling algorithm after preparatory work in
         ///     <see cref="GetSkylineTable" /> has been carried out.
         /// </summary>
         /// <param name="database">
@@ -290,14 +290,14 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
 
         /// <summary>
         ///     Calculate the necessary subspace skylines and merge them into the skyline sample which will finally be reported by
-        ///     the sampling skyline algorithm.
+        ///     the skyline sampling algorithm.
         /// </summary>
         /// <remarks>
         ///     Calculate subspaces. For each subspace, calculate a skyline via the selected skyline algorithm. Determine the
         ///     objects for which the calculation of a subspace skyline with respect to the subspace's complement is necessary; if
         ///     so, calculate this subspace complement skyline via the selected skyline algorithm and remove dominated objects from
         ///     the subspace skyline. Finally, merge the subspace skyline into the skyline sample which will be reported by the
-        ///     sampling skyline algorithm.
+        ///     skyline sampling algorithm.
         /// </remarks>
         /// <param name="database">
         ///     A Collection by which a row can be accessed via its unique ID. The values represent the database

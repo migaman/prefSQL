@@ -6,17 +6,17 @@
     using System.Diagnostics;
     using System.Linq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using SQLSkyline.SamplingSkyline;
+    using SQLSkyline.SkylineSampling;
 
     [TestClass]
-    public class SamplingSkylineUtilityTests
+    public class SkylineSamplingUtilityTests
     {
         public TestContext TestContext { get; set; }
 
         [TestMethod]
-        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SamplingSkylineUtilityTests.xml", "TestDataRow",
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SkylineSamplingUtilityTests.xml", "TestDataRow",
             DataAccessMethod.Sequential),
-         DeploymentItem("SamplingSkylineUtilityTests.xml")]
+         DeploymentItem("SkylineSamplingUtilityTests.xml")]
         public void TestProducedSubspaces()
         {
             string testComment = TestContext.DataRow["comment"].ToString();
@@ -26,7 +26,7 @@
             int subspacesCount = int.Parse(TestContext.DataRow["subspacesCount"].ToString());
             int subspaceDimension = int.Parse(TestContext.DataRow["subspaceDimension"].ToString());
 
-            var subjectUnderTest = new SamplingSkylineUtility
+            var subjectUnderTest = new SkylineSamplingUtility
             {
                 AllPreferencesCount = attributesCount,
                 SubspacesCount = subspacesCount,
@@ -78,9 +78,9 @@
         }
 
         [TestMethod]
-        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SamplingSkylineUtilityTests_Incorrect.xml",
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SkylineSamplingUtilityTests_Incorrect.xml",
             "TestDataRow", DataAccessMethod.Sequential),
-         DeploymentItem("SamplingSkylineUtilityTests_Incorrect.xml")]
+         DeploymentItem("SkylineSamplingUtilityTests_Incorrect.xml")]
         public void TestIncorrectSubspaceQueries()
         {
             var hasExceptionBeenRaised = false;
@@ -92,7 +92,7 @@
             int subspacesCount = int.Parse(TestContext.DataRow["subspacesCount"].ToString());
             int subspaceDimension = int.Parse(TestContext.DataRow["subspaceDimension"].ToString());
 
-            var subjectUnderTest = new SamplingSkylineUtility
+            var subjectUnderTest = new SkylineSamplingUtility
             {
                 AllPreferencesCount = attributesCount,
                 SubspacesCount = subspacesCount,
@@ -117,8 +117,8 @@
 
         [TestMethod]
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
-            "SamplingSkylineUtilityTests_BinomialCoefficient.xml", "TestDataRow", DataAccessMethod.Sequential),
-         DeploymentItem("SamplingSkylineUtilityTests_BinomialCoefficient.xml")]
+            "SkylineSamplingUtilityTests_BinomialCoefficient.xml", "TestDataRow", DataAccessMethod.Sequential),
+         DeploymentItem("SkylineSamplingUtilityTests_BinomialCoefficient.xml")]
         public void TestBinomialCoefficient()
         {
             int n = int.Parse(TestContext.DataRow["n"].ToString());
@@ -127,15 +127,15 @@
             for (var k = 0; k <= n; k++)
             {
                 int expected = coefficients[k];
-                int actual = SamplingSkylineUtility.BinomialCoefficient(n, k);
+                int actual = SkylineSamplingUtility.BinomialCoefficient(n, k);
                 Assert.AreEqual(expected, actual);
             }
         }
 
         [TestMethod]
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
-            "SamplingSkylineUtilityTests_BinomialCoefficient.xml", "TestDataRow", DataAccessMethod.Sequential),
-         DeploymentItem("SamplingSkylineUtilityTests_BinomialCoefficient.xml")]
+            "SkylineSamplingUtilityTests_BinomialCoefficient.xml", "TestDataRow", DataAccessMethod.Sequential),
+         DeploymentItem("SkylineSamplingUtilityTests_BinomialCoefficient.xml")]
         public void TestOutsideOfValidIntervalParametersForBinomialCoefficient()
         {
             int n = int.Parse(TestContext.DataRow["n"].ToString());
@@ -143,16 +143,16 @@
 
             const int expected = 0;
 
-            int actual = SamplingSkylineUtility.BinomialCoefficient(n, -1);
+            int actual = SkylineSamplingUtility.BinomialCoefficient(n, -1);
             Assert.AreEqual(expected, actual);
 
-            actual = SamplingSkylineUtility.BinomialCoefficient(n, -2);
+            actual = SkylineSamplingUtility.BinomialCoefficient(n, -2);
             Assert.AreEqual(expected, actual);
 
-            actual = SamplingSkylineUtility.BinomialCoefficient(n, n + 1);
+            actual = SkylineSamplingUtility.BinomialCoefficient(n, n + 1);
             Assert.AreEqual(expected, actual);
 
-            actual = SamplingSkylineUtility.BinomialCoefficient(n, n + 2);
+            actual = SkylineSamplingUtility.BinomialCoefficient(n, n + 2);
             Assert.AreEqual(expected, actual);
         }
     }

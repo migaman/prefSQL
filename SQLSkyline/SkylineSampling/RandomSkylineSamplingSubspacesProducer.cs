@@ -1,9 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace prefSQL.SQLSkyline.SamplingSkyline
+namespace prefSQL.SQLSkyline.SkylineSampling
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <summary>
     ///     Produces randomly chosen subsets out of the preferences requested in original skyline query.
     /// </summary>
@@ -11,7 +11,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
     ///     This strategy represents the originally proposed method of choosing the subspaces and should be used whenever this
     ///     original semantics is desired.
     /// </remarks>
-    internal sealed class RandomSamplingSkylineSubspacesProducer : ISamplingSkylineSubspacesProducer
+    internal sealed class RandomSkylineSamplingSubspacesProducer : ISkylineSamplingSubspacesProducer
     {
         private static readonly Random MyRandom = new Random();
 
@@ -22,7 +22,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         public int AllPreferencesCount { get; set; }
 
         /// <summary>
-        ///     Get all subspaces that the sampling skyline algorithm will use to calculate its subspace skylines. The subspaces
+        ///     Get all subspaces that the skyline sampling algorithm will use to calculate its subspace skylines. The subspaces
         ///     are calculated randomly.
         /// </summary>
         /// <remarks>
@@ -35,10 +35,10 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         ///     The produced subspaces. Each stored integer is an index referring the zero-based position of a preference of
         ///     the original skyline query.
         /// </returns>
-        /// <exception cref="Exception">Thrown on invocation of SamplingSkylineUtility.CheckValidityOfCountAndDimension.</exception>
+        /// <exception cref="Exception">Thrown on invocation of SkylineSamplingUtility.CheckValidityOfCountAndDimension.</exception>
         public HashSet<HashSet<int>> GetSubspaces()
         {
-            SamplingSkylineUtility.CheckValidityOfCountAndDimension(SubspacesCount, SubspaceDimension, AllPreferencesCount);
+            SkylineSamplingUtility.CheckValidityOfCountAndDimension(SubspacesCount, SubspaceDimension, AllPreferencesCount);
 
             var subspacesReturn = new HashSet<HashSet<int>>();
 

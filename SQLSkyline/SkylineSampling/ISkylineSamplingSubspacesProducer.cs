@@ -1,7 +1,7 @@
-using System.Collections.Generic;
-
-namespace prefSQL.SQLSkyline.SamplingSkyline
+namespace prefSQL.SQLSkyline.SkylineSampling
 {
+    using System.Collections.Generic;
+
     /// <summary>
     ///     Interface to calculate and provide the necessary subspaces to the skyline sampling algorithm.
     /// </summary>
@@ -12,7 +12,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
     ///     of course not without altering the original semantics of the skyline sampling algorithm, which is based on randomly
     ///     choosing these subspaces).
     /// </remarks>
-    internal interface ISamplingSkylineSubspacesProducer
+    internal interface ISkylineSamplingSubspacesProducer
     {
         /// <summary>
         ///     Number of desired subspaces.
@@ -30,7 +30,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         int AllPreferencesCount { get; set; }
 
         /// <summary>
-        ///     Get all subspaces that the sampling skyline algorithm will use to calculate its subspace skylines.
+        ///     Get all subspaces that the skyline sampling algorithm will use to calculate its subspace skylines.
         /// </summary>
         /// <returns>
         ///     The produced subspaces. Each stored integer is an index referring the zero-based position of a preference of

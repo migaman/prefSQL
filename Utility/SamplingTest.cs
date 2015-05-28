@@ -11,7 +11,7 @@
     using prefSQL.SQLParser.Models;
     using prefSQL.SQLParserTest;
     using prefSQL.SQLSkyline;
-    using prefSQL.SQLSkyline.SamplingSkyline;
+    using prefSQL.SQLSkyline.SkylineSampling;
 
     public sealed class SamplingTest
     {
@@ -442,7 +442,7 @@
             };
 
             PrefSQLModel prefSqlModel = common.GetPrefSqlModelFromPreferenceSql(_skylineSampleSql);
-            var randomSubspacesesProducer = new RandomSamplingSkylineSubspacesProducer
+            var randomSubspacesesProducer = new RandomSkylineSamplingSubspacesProducer
             {
                 AllPreferencesCount = prefSqlModel.Skyline.Count,
                 SubspacesCount = prefSqlModel.SkylineSampleCount,
@@ -513,9 +513,9 @@
 
             foreach (HashSet<HashSet<int>> subspace in producedSubspaces)
             {
-                var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(subspace);
-                var utility = new SamplingSkylineUtility(subspacesProducer);
-                var skylineSample = new SamplingSkyline(utility)
+                var subspacesProducer = new FixedSkylineSamplingSubspacesProducer(subspace);
+                var utility = new SkylineSamplingUtility(subspacesProducer);
+                var skylineSample = new SkylineSampling(utility)
                 {
                     SubspacesCount = prefSqlModel.SkylineSampleCount,
                     SubspaceDimension = prefSqlModel.SkylineSampleDimension

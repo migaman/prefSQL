@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using prefSQL.SQLSkyline.SamplingSkyline;
 
 namespace prefSQL.SQLParserTest
 {
-    public sealed class FixedSamplingSkylineSubspacesProducer : ISamplingSkylineSubspacesProducer
+    using SQLSkyline.SkylineSampling;
+
+    public sealed class FixedSkylineSamplingSubspacesProducer : ISkylineSamplingSubspacesProducer
     {
         private readonly HashSet<HashSet<int>> _fixedSubspaces;
 
@@ -14,7 +15,7 @@ namespace prefSQL.SQLParserTest
 
         public int AllPreferencesCount { get; set; }
 
-        public FixedSamplingSkylineSubspacesProducer(HashSet<HashSet<int>> fixedSubspaces)
+        public FixedSkylineSamplingSubspacesProducer(HashSet<HashSet<int>> fixedSubspaces)
         {
             _fixedSubspaces = fixedSubspaces;
         }

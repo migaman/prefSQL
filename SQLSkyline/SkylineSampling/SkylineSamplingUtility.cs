@@ -1,12 +1,12 @@
-namespace prefSQL.SQLSkyline.SamplingSkyline
+namespace prefSQL.SQLSkyline.SkylineSampling
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
 
-    internal sealed class SamplingSkylineUtility
+    internal sealed class SkylineSamplingUtility
     {
-        private readonly ISamplingSkylineSubspacesProducer _subspacesProducer;
+        private readonly ISkylineSamplingSubspacesProducer _subspacesProducer;
         private int _allPreferencesCount;
         private int _subspaceDimension;
         private HashSet<HashSet<int>> _subspaces;
@@ -45,7 +45,7 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         internal int ArtificialUniqueRowIdentifierColumnIndex { get; set; }
         internal int EqualValuesBucketColumnIndex { get; set; }
 
-        internal ISamplingSkylineSubspacesProducer SubspacesProducer
+        internal ISkylineSamplingSubspacesProducer SubspacesProducer
         {
             get { return _subspacesProducer; }
         }
@@ -55,12 +55,12 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
             get { return _subspaces ?? (_subspaces = DetermineSubspaces()); }
         }
 
-        public SamplingSkylineUtility()
-            : this(new RandomSamplingSkylineSubspacesProducer())
+        public SkylineSamplingUtility()
+            : this(new RandomSkylineSamplingSubspacesProducer())
         {
         }
 
-        public SamplingSkylineUtility(ISamplingSkylineSubspacesProducer subspacesProducer)
+        public SkylineSamplingUtility(ISkylineSamplingSubspacesProducer subspacesProducer)
         {
             _subspacesProducer = subspacesProducer;
         }

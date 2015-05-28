@@ -5,10 +5,11 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using prefSQL.SQLParser.Models;
 using prefSQL.SQLSkyline;
-using prefSQL.SQLSkyline.SamplingSkyline;
 
 namespace prefSQL.SQLParser
 {
+    using SQLSkyline.SkylineSampling;
+
     internal class Helper
     {
         /// <summary>
@@ -154,7 +155,7 @@ namespace prefSQL.SQLParser
                     }
                     else
                     {
-                        var skylineSample = new SamplingSkyline
+                        var skylineSample = new SkylineSampling
                         {
                             SubspacesCount = model.SkylineSampleCount,
                             SubspaceDimension = model.SkylineSampleDimension

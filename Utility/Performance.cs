@@ -19,7 +19,7 @@ namespace Utility
     using System.Globalization;
     using System.Numerics;
     using prefSQL.SQLParserTest;
-    using prefSQL.SQLSkyline.SamplingSkyline;
+    using prefSQL.SQLSkyline.SkylineSampling;
 
     /// <summary>
     /// Performance class implented on a similar idea like Lofi (2014)
@@ -670,9 +670,9 @@ namespace Utility
                                         foreach (HashSet<HashSet<int>> subspace in producedSubspaces)
                                         {
                                             sw.Restart();
-                                            var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(subspace);
-                                            var utility = new SamplingSkylineUtility(subspacesProducer);
-                                            var skylineSample = new SamplingSkyline(utility)
+                                            var subspacesProducer = new FixedSkylineSamplingSubspacesProducer(subspace);
+                                            var utility = new SkylineSamplingUtility(subspacesProducer);
+                                            var skylineSample = new SkylineSampling(utility)
                                             {
                                                 SubspacesCount = prefSqlModel.SkylineSampleCount,
                                                 SubspaceDimension = prefSqlModel.SkylineSampleDimension
@@ -1051,7 +1051,7 @@ namespace Utility
 
         private List<HashSet<HashSet<int>>> ProduceSubspaces(ArrayList preferences)
         {
-            var randomSubspacesesProducer = new RandomSamplingSkylineSubspacesProducer
+            var randomSubspacesesProducer = new RandomSkylineSamplingSubspacesProducer
             {
                 AllPreferencesCount = preferences.Count,
                 SubspacesCount = SamplingSubspacesCount,
