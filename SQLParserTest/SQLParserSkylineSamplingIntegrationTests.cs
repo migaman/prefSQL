@@ -95,10 +95,11 @@
             var skylineSample = new SkylineSampling(utility)
             {
                 SubspacesCount = prefSqlModelSkylineSample.SkylineSampleCount,
-                SubspaceDimension = prefSqlModelSkylineSample.SkylineSampleDimension
+                SubspaceDimension = prefSqlModelSkylineSample.SkylineSampleDimension,
+                SelectedStrategy = common.SkylineType
             };
 
-            DataTable skyline = skylineSample.GetSkylineTable(baseQuery, operators, common.SkylineType);
+            DataTable skyline = skylineSample.GetSkylineTable(baseQuery, operators);
 
             Assert.AreEqual(expectedNumberOfSkylineSampleObjects, skyline.Rows.Count,
                 "Unexpected number of Sample Skyline objects.");
@@ -168,12 +169,13 @@
             var skylineSample = new SkylineSampling(utility)
             {
                 SubspacesCount = prefSqlModelSkylineSample.SkylineSampleCount,
-                SubspaceDimension = prefSqlModelSkylineSample.SkylineSampleDimension
+                SubspaceDimension = prefSqlModelSkylineSample.SkylineSampleDimension,
+                SelectedStrategy = common.SkylineType
             };
 
             DataTable entireSkyline = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
                 entireSkylineSql);
-            DataTable sampleSkyline = skylineSample.GetSkylineTable(baseQuery, operators, common.SkylineType);
+            DataTable sampleSkyline = skylineSample.GetSkylineTable(baseQuery, operators);
 
             HashSet<int> entireSkylineObjectsIds = GetHashSetOfIdsFromDataTable(entireSkyline);
             HashSet<int> sampleSkylineObjectsIds = GetHashSetOfIdsFromDataTable(sampleSkyline);

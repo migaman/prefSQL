@@ -101,5 +101,6 @@
     <Compile Include="SPSkylineBNLSortLevel.cs" />
     <Compile Include="SPSkylineHexagon.cs" />
     <Compile Include="SPSkylineHexagonLevel.cs" />
+    <Compile Include="SkylineSampling\SPSkylineSampling.cs" />
   </ItemGroup>
 </Project>

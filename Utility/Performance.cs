@@ -675,11 +675,12 @@ namespace Utility
                                             var skylineSample = new SkylineSampling(utility)
                                             {
                                                 SubspacesCount = prefSqlModel.SkylineSampleCount,
-                                                SubspaceDimension = prefSqlModel.SkylineSampleDimension
+                                                SubspaceDimension = prefSqlModel.SkylineSampleDimension,
+                                                SelectedStrategy = parser.SkylineType
                                             };
 
                                             DataTable sampleSkylineDataTable = skylineSample.GetSkylineTable(strQuery,
-                                                operators, parser.SkylineType);
+                                                operators);
 
                                             sw.Stop();
 

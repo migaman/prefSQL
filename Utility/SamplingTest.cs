@@ -518,10 +518,11 @@
                 var skylineSample = new SkylineSampling(utility)
                 {
                     SubspacesCount = prefSqlModel.SkylineSampleCount,
-                    SubspaceDimension = prefSqlModel.SkylineSampleDimension
+                    SubspaceDimension = prefSqlModel.SkylineSampleDimension,
+                    SelectedStrategy = common.SkylineType
                 };
 
-                DataTable dataTable = skylineSample.GetSkylineTable(strQuery, operators, common.SkylineType);
+                DataTable dataTable = skylineSample.GetSkylineTable(strQuery, operators);
 
                 objectsCount += dataTable.Rows.Count;
                 timeSpent += skylineSample.TimeMilliseconds;
