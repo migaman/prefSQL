@@ -28,6 +28,11 @@ namespace prefSQL.SQLSkyline
             return true;
         }
 
+        public override void PrepareDatabaseForAlgorithm(ref IEnumerable<object[]> useDatabase, List<int> toList, int[] preferenceColumnIndex, string[] operatorStrings)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// 
         /// </summary>

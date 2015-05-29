@@ -11,6 +11,8 @@ using Microsoft.SqlServer.Server;
 
 namespace prefSQL.SQLSkyline
 {
+    using System.Linq;
+
     public class SkylineBNLSort : SkylineStrategy
     {
         
@@ -30,7 +32,13 @@ namespace prefSQL.SQLSkyline
             return true;
         }
 
-
+        public override void PrepareDatabaseForAlgorithm(ref IEnumerable<object[]> useDatabase, List<int> subspaceList, int[] preferenceColumnIndex, string[] operatorStrings)
+        {
+            List<object[]> useTempDatabase = useDatabase.ToList();
+            useTempDatabase.Sort((item1, item2) => comp(item1, item2, subspaceList, preferenceColumnIndex, operatorStrings));
+            useDatabase = useTempDatabase;
+        }
+      
         public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, string strFirstSQL, string strOperators, string strOrderByAttributes)
         {
             strFirstSQL += strOrderByAttributes;
@@ -51,26 +59,60 @@ namespace prefSQL.SQLSkyline
 
         public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
-            TemplateBNL skyline = getSP_Skyline(HasIncomparablePreferences);
-            DataTable dt = skyline.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
-            TimeMilliseconds = skyline.TimeInMs;
-            NumberOfOperations = skyline.NumberOfOperations;
+            Strategy = getSP_Skyline();
+            DataTable dt = Strategy.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
+            TimeMilliseconds = Strategy.TimeInMs;
+            NumberOfOperations = Strategy.NumberOfOperations;
             return dt;         
         }
 
         internal override DataTable GetSkylineTable(IEnumerable<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string preferenceOperators)
         {
-            throw new NotImplementedException();
+            Strategy = getSP_Skyline();
+            DataTable dt = Strategy.GetSkylineTable(database, dataTableTemplate, dataRecordTemplate, preferenceOperators, RecordAmountLimit, true, SortType, AdditionParameters);
+            TimeMilliseconds = Strategy.TimeInMs;
+            NumberOfOperations = Strategy.NumberOfOperations;
+            return dt;            
         }
 
-        private TemplateBNL getSP_Skyline(bool hasIncomparable)
+        private TemplateStrategy getSP_Skyline()
         {
-            if (hasIncomparable)
+            if (HasIncomparablePreferences)
             {
                 return new SPSkylineBNLSort();
             }
 
             return new SPSkylineBNLSortLevel();
+        }
+
+        private int comp(object[] x, object[] y, IEnumerable<int> subspace, int[] preferenceColumnIndex, string[] operatorStrings)
+        {
+            foreach (int subspaceColumnIndex in subspace)
+            {
+                int databaseIndex = preferenceColumnIndex[subspaceColumnIndex];
+                if ((long)x[databaseIndex] < (long)y[databaseIndex])
+                {
+                    return -1;
+                }
+                if ((long)x[databaseIndex] > (long)y[databaseIndex])
+                {
+                    return 1;
+                }
+
+                if (operatorStrings[subspaceColumnIndex].Contains(';'))
+                {
+                    switch (
+                        string.Compare(((string)x[databaseIndex + 1]), (string)y[databaseIndex + 1],
+                            StringComparison.InvariantCulture))
+                    {
+                        case -1:
+                            return -1;
+                        case 1:
+                            return 1;
+                    }
+                }
+            }
+            return 0;
         }
     }
 }

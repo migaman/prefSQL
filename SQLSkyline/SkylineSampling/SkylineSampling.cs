@@ -88,7 +88,9 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         /// <summary>
         ///     A template used to report rows for the skyline algorithm if working with the CLR.
         /// </summary>
-        public SqlDataRecord DataRecordTemplate { get; set; }
+        private SqlDataRecord DataRecordTemplate { get; set; }
+
+        public SqlDataRecord DataRecordTemplateForStoredProcedure { get; set; }
 
         /// <summary>
         ///     Instantiates an object with a new SkylineSamplingUtility as its Utility.
@@ -111,7 +113,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         {
             string storedProcedureCommand = SelectedStrategy.GetStoredProcedureCommand(strWhere, strOrderBy, strFirstSQL,
                 strOperators, strOrderByAttributes);
-            storedProcedureCommand=Regex.Replace(storedProcedureCommand, @"dbo\.SP_[^ ]* ", "dbo.SP_SkylineSampling ");
+            storedProcedureCommand = Regex.Replace(storedProcedureCommand, @"dbo\.SP_[^ ]* ", "dbo.SP_SkylineSampling ");
 
             if (SelectedStrategy.GetType() != typeof (SkylineSQL))
             {
@@ -138,8 +140,14 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         /// <returns>The skyline sample.</returns>
         public DataTable GetSkylineTable(string query, string operators)
         {
+            Utility.CalculatePropertiesWithRespectToIncomparableOperators(operators);
+
             DataTable fullDataTable = Helper.GetDataTableFromSQL(query, SelectedStrategy.ConnectionString,
                 SelectedStrategy.Provider);
+
+            var dataTableTemplate = new DataTable();
+            DataRecordTemplateForStoredProcedure = Helper.BuildDataRecord(fullDataTable, Utility.Operators.ToArray(),
+                dataTableTemplate);
 
             AddGeneratedInternalColumns(fullDataTable);
 
@@ -148,7 +156,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             IReadOnlyDictionary<long, object[]> database = Helper.GetDatabaseAccessibleByUniqueId(fullDataTable,
                 Utility.ArtificialUniqueRowIdentifierColumnIndex, true);
 
-            var dataTableTemplate = new DataTable();
+            dataTableTemplate = new DataTable();
             DataRecordTemplate = Helper.BuildDataRecord(fullDataTable, Utility.Operators.ToArray(),
                 dataTableTemplate);
 
@@ -193,8 +201,6 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         /// </param>
         private void FillUtilityProperties(DataTable dataTable, string operators)
         {
-            Utility.CalculatePropertiesWithRespectToIncomparableOperators(operators);
-
             Utility.SubspacesCount = SubspacesCount;
             Utility.SubspaceDimension = SubspaceDimension;
             Utility.AllPreferencesCount = Utility.Operators.Count(op => op != "INCOMPARABLE");
@@ -288,13 +294,18 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
             foreach (CLRSafeHashSet<int> subspace in Utility.Subspaces)
             {
+                IEnumerable<object[]> useDatabase = database.Values;
+
                 string subpaceOperators = GetOperatorsWithIgnoredEntriesString(subspace);
 
                 SelectedStrategy.HasIncomparablePreferences = subpaceOperators.Contains("INCOMPARABLE");
 
+                SelectedStrategy.PrepareDatabaseForAlgorithm(ref useDatabase, subspace.ToList(),
+                    Utility.PreferenceColumnIndex, Utility.OperatorStrings);
+
                 sw.Stop();
                 TimeMilliseconds += sw.ElapsedMilliseconds;
-                DataTable subspaceDataTable = SelectedStrategy.GetSkylineTable(database.Values,
+                DataTable subspaceDataTable = SelectedStrategy.GetSkylineTable(useDatabase,
                     dataTableTemplate.Clone(), DataRecordTemplate, subpaceOperators);
                 TimeMilliseconds += SelectedStrategy.TimeMilliseconds;
                 NumberOfOperations += SelectedStrategy.NumberOfOperations;
@@ -309,19 +320,26 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                 IEnumerable<CLRSafeHashSet<long>> rowsWithEqualValuesWithRespectToSubspaceColumns =
                     CompareEachRowWithRespectToSubspaceColumnsPairwise(databaseForPairwiseComparison);
 
+                CLRSafeHashSet<int> subspaceComplement = Utility.GetSubspaceComplement(subspace);
                 string subpaceComplementOperators =
                     GetOperatorsWithIgnoredEntriesString(Utility.GetSubspaceComplement(subspace));
+
                 SelectedStrategy.HasIncomparablePreferences = subpaceComplementOperators.Contains("INCOMPARABLE");
+                List<int> subspaceComplementList = subspaceComplement.ToList();
 
                 foreach (CLRSafeHashSet<long> rowsWithEqualValues in rowsWithEqualValuesWithRespectToSubspaceColumns)
                 {
                     IReadOnlyDictionary<long, object[]> rowsWithEqualValuesDatabase = GetSubsetOfDatabase(database,
                         rowsWithEqualValues);
 
+                    useDatabase = rowsWithEqualValuesDatabase.Values;
+                    SelectedStrategy.PrepareDatabaseForAlgorithm(ref useDatabase, subspaceComplementList,
+                        Utility.PreferenceColumnIndex, Utility.OperatorStrings);
+
                     sw.Stop();
                     TimeMilliseconds += sw.ElapsedMilliseconds;
                     DataTable subspaceComplementDataTable =
-                        SelectedStrategy.GetSkylineTable(rowsWithEqualValuesDatabase.Values,
+                        SelectedStrategy.GetSkylineTable(useDatabase,
                             dataTableTemplate.Clone(), DataRecordTemplate, subpaceComplementOperators);
                     TimeMilliseconds += SelectedStrategy.TimeMilliseconds;
                     NumberOfOperations += SelectedStrategy.NumberOfOperations;
@@ -610,7 +628,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             return isDatabaseRowEqualToDatabaseForComparisonRow;
         }
 
-        private static IEnumerable<CLRSafeHashSet<long>> GetEqualRowsWithRespectToSubspaceColumns(IEnumerable<long[]> database,
+        private static IEnumerable<CLRSafeHashSet<long>> GetEqualRowsWithRespectToSubspaceColumns(
+            IEnumerable<long[]> database,
             int rowIdentifierColumnIndex, int equalValuesBucketColumnIndex)
         {
             var equalRowsWithRespectToSubspaceColumns = new Dictionary<long, CLRSafeHashSet<long>>();
