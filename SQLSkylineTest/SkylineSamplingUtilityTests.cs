@@ -38,7 +38,7 @@
 
             foreach (CLRSafeHashSet<int> subspace in subjectUnderTest.Subspaces)
             {
-                preferencesInProducedSubspaces.Add(subspace.ToHashSet());
+                preferencesInProducedSubspaces.Add(subspace.ToUnsafeForCLRHashSet());
             }
 
             HashSet<HashSet<int>> preferencesInExpectedSubspaces = ExpectedSubspaces();
@@ -112,7 +112,7 @@
 
                 foreach (CLRSafeHashSet<int> subspace in subjectUnderTest.Subspaces)
                 {
-                    subspaces.Add(subspace.ToHashSet());
+                    subspaces.Add(subspace.ToUnsafeForCLRHashSet());
                 }               
             }
             catch (Exception exception)

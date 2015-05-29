@@ -31,7 +31,7 @@ namespace prefSQL.SQLSkyline
         /// TODO: WARNING, convenience, NOT FOR CLR
         /// </summary>
         /// <returns></returns>
-        public HashSet<T> ToHashSet()
+        public HashSet<T> ToUnsafeForCLRHashSet()
         {
             return new HashSet<T>(_backingCollection.Keys);
         }
