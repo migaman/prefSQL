@@ -36,11 +36,11 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         ///     the original skyline query.
         /// </returns>
         /// <exception cref="Exception">Thrown on invocation of SkylineSamplingUtility.CheckValidityOfCountAndDimension.</exception>
-        public HashSet<HashSet<int>> GetSubspaces()
+        public IEnumerable<CLRSafeHashSet<int>> GetSubspaces()
         {
             SkylineSamplingUtility.CheckValidityOfCountAndDimension(SubspacesCount, SubspaceDimension, AllPreferencesCount);
 
-            var subspacesReturn = new HashSet<HashSet<int>>();
+            var subspacesReturn = new List<CLRSafeHashSet<int>>();
 
             while (!IsSubspaceProductionComplete(subspacesReturn))
             {
@@ -55,18 +55,18 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             return subspacesReturn;
         }
 
-        private bool IsSubspaceProductionComplete(ICollection<HashSet<int>> subspacesReturn)
+        private bool IsSubspaceProductionComplete(IReadOnlyCollection<CLRSafeHashSet<int>> subspacesReturn)
         {
             return subspacesReturn.Count == SubspacesCount &&
                    AreAllPreferencesAtLeastContainedOnceInSubspaces(subspacesReturn);
         }
 
         private bool AreAllPreferencesAtLeastContainedOnceInSubspaces(
-            IEnumerable<HashSet<int>> subspaceQueries)
+            IEnumerable<CLRSafeHashSet<int>> subspaceQueries)
         {
-            var containedPreferences = new HashSet<int>();
+            var containedPreferences = new CLRSafeHashSet<int>();
 
-            foreach (HashSet<int> subspaceQueryPreferences in subspaceQueries)
+            foreach (CLRSafeHashSet<int> subspaceQueryPreferences in subspaceQueries)
             {
                 foreach (int subspaceQueryPreference in subspaceQueryPreferences)
                 {
@@ -81,18 +81,18 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             return false;
         }
 
-        private static void RemoveOneSubspaceRandomly(ICollection<HashSet<int>> subspaceQueries)
+        private static void RemoveOneSubspaceRandomly(ICollection<CLRSafeHashSet<int>> subspaceQueries)
         {
             subspaceQueries.Remove(subspaceQueries.ElementAt(MyRandom.Next(subspaceQueries.Count)));
         }
 
-        private void AddOneRandomSubspaceNotYetContained(ISet<HashSet<int>> subspaceQueries)
+        private void AddOneRandomSubspaceNotYetContained(ICollection<CLRSafeHashSet<int>> subspaceQueries)
         {
-            HashSet<int> subspaceQueryCandidate;
-
+            CLRSafeHashSet<int> subspaceQueryCandidate;
+            
             do
             {
-                subspaceQueryCandidate = new HashSet<int>();
+                subspaceQueryCandidate = new CLRSafeHashSet<int>();
 
                 while (subspaceQueryCandidate.Count < SubspaceDimension)
                 {
@@ -104,7 +104,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         }
 
         private static bool IsSubspaceQueryCandidateContainedWithinSubspaceQueries(
-            IEnumerable<int> subspaceQueryCandidate, IEnumerable<HashSet<int>> subspaceQueries)
+            IEnumerable<int> subspaceQueryCandidate, IEnumerable<CLRSafeHashSet<int>> subspaceQueries)
         {
             return subspaceQueries.Any(element => element.SetEquals(subspaceQueryCandidate));
         }

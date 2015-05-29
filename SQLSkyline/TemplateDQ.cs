@@ -298,20 +298,15 @@ namespace prefSQL.SQLSkyline
 
             //HashSet<long> uniqueNumbers = new HashSet<long>();
             //HashSet is not supported with CLR --> use Dictionary and set all values true
-            Dictionary<long, bool> uniqueNumbers = new Dictionary<long, bool>();
+            var uniqueNumbers = new CLRSafeHashSet<long>();
             //HashSet is not allowed inside MS SQL CLR
             //generate list of unique integers of this dimension
             for (int i = 0; i < listObjects.Count; i++)
             {
-                if (!uniqueNumbers.ContainsKey((long)listObjects[i][dim]))
-                {
-                    uniqueNumbers.Add((long)listObjects[i][dim], true);
-                }
-                
-                
+                uniqueNumbers.Add((long)listObjects[i][dim]);
             }
             long[] sourceNumbers = new long[uniqueNumbers.Count];
-            uniqueNumbers.Keys.CopyTo(sourceNumbers, 0);
+            uniqueNumbers.CopyTo(sourceNumbers, 0);
 
             //make sure the list is sorted, but use a new array
             long[] sortedPNumbers = (long[])sourceNumbers.Clone();

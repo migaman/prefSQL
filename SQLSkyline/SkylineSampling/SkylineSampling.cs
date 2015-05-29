@@ -286,10 +286,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         {
             var skylineSampleFinalDatabase = new Dictionary<long, object[]>();
 
-            var hashSet = new HashSet<int>();
-            throw new Exception("here");
-                
-            foreach (HashSet<int> subspace in Utility.Subspaces)
+            foreach (CLRSafeHashSet<int> subspace in Utility.Subspaces)
             {
                 string subpaceOperators = GetOperatorsWithIgnoredEntriesString(subspace);
 
@@ -309,14 +306,14 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                     GetDatabaseForPairwiseComparison(subspaceDatabase.Values, subspace.ToList());
                 // TODO: comment: needs guaranteed stable order
 
-                IEnumerable<HashSet<long>> rowsWithEqualValuesWithRespectToSubspaceColumns =
+                IEnumerable<CLRSafeHashSet<long>> rowsWithEqualValuesWithRespectToSubspaceColumns =
                     CompareEachRowWithRespectToSubspaceColumnsPairwise(databaseForPairwiseComparison);
 
                 string subpaceComplementOperators =
                     GetOperatorsWithIgnoredEntriesString(Utility.GetSubspaceComplement(subspace));
                 SelectedStrategy.HasIncomparablePreferences = subpaceComplementOperators.Contains("INCOMPARABLE");
 
-                foreach (HashSet<long> rowsWithEqualValues in rowsWithEqualValuesWithRespectToSubspaceColumns)
+                foreach (CLRSafeHashSet<long> rowsWithEqualValues in rowsWithEqualValuesWithRespectToSubspaceColumns)
                 {
                     IReadOnlyDictionary<long, object[]> rowsWithEqualValuesDatabase = GetSubsetOfDatabase(database,
                         rowsWithEqualValues);
@@ -442,7 +439,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         /// </remarks>
         /// <param name="subspaceDatabase"></param>
         /// <returns></returns>
-        private IEnumerable<HashSet<long>> CompareEachRowWithRespectToSubspaceColumnsPairwise(
+        private IEnumerable<CLRSafeHashSet<long>> CompareEachRowWithRespectToSubspaceColumnsPairwise(
             IEnumerable<Tuple<long[], string[]>> subspaceDatabase)
         {
             List<Tuple<long[], string[]>> database = subspaceDatabase.ToList();
@@ -450,7 +447,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
             if (database.Count == 0)
             {
-                return new List<HashSet<long>>();
+                return new List<CLRSafeHashSet<long>>();
             }
 
             int columnsInSubspaceCount = database[0].Item1.Length - 2;
@@ -613,17 +610,17 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             return isDatabaseRowEqualToDatabaseForComparisonRow;
         }
 
-        private static IEnumerable<HashSet<long>> GetEqualRowsWithRespectToSubspaceColumns(IEnumerable<long[]> database,
+        private static IEnumerable<CLRSafeHashSet<long>> GetEqualRowsWithRespectToSubspaceColumns(IEnumerable<long[]> database,
             int rowIdentifierColumnIndex, int equalValuesBucketColumnIndex)
         {
-            var equalRowsWithRespectToSubspaceColumns = new Dictionary<long, HashSet<long>>();
+            var equalRowsWithRespectToSubspaceColumns = new Dictionary<long, CLRSafeHashSet<long>>();
 
             foreach (long[] i in database.Where(i => i[equalValuesBucketColumnIndex] != 0))
             {
                 long equalValuesBucket = i[equalValuesBucketColumnIndex];
                 if (!equalRowsWithRespectToSubspaceColumns.ContainsKey(equalValuesBucket))
                 {
-                    equalRowsWithRespectToSubspaceColumns.Add(equalValuesBucket, new HashSet<long>());
+                    equalRowsWithRespectToSubspaceColumns.Add(equalValuesBucket, new CLRSafeHashSet<long>());
                 }
                 equalRowsWithRespectToSubspaceColumns[equalValuesBucket].Add(i[rowIdentifierColumnIndex]);
             }

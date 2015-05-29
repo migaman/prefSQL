@@ -9,7 +9,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         private readonly ISkylineSamplingSubspacesProducer _subspacesProducer;
         private int _allPreferencesCount;
         private int _subspaceDimension;
-        private HashSet<HashSet<int>> _subspaces;
+        private IEnumerable<CLRSafeHashSet<int>> _subspaces;
         private int _subspacesCount;
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             get { return _subspacesProducer; }
         }
 
-        internal HashSet<HashSet<int>> Subspaces
+        internal IEnumerable<CLRSafeHashSet<int>> Subspaces
         {
             get { return _subspaces ?? (_subspaces = DetermineSubspaces()); }
         }
@@ -90,11 +90,11 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             _subspacesProducer = subspacesProducer;
         }
 
-        private HashSet<HashSet<int>> DetermineSubspaces()
+        private IEnumerable<CLRSafeHashSet<int>> DetermineSubspaces()
         {
             CheckValidityOfCountAndDimension(SubspacesCount, SubspaceDimension, AllPreferencesCount);
 
-            HashSet<HashSet<int>> subspacesReturn = SubspacesProducer.GetSubspaces();
+            IList<CLRSafeHashSet<int>> subspacesReturn = SubspacesProducer.GetSubspaces().ToList();
 
             if (subspacesReturn.Count != SubspacesCount)
             {
@@ -111,9 +111,9 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                 throw new Exception("Not all preferences at least once contained in produced subspaces.");
             }
 
-            foreach (HashSet<int> subspaceReturn in subspacesReturn)
+            foreach (CLRSafeHashSet<int> subspaceReturn in subspacesReturn)
             {
-                HashSet<int> subspaceReturnLocal = subspaceReturn;
+                CLRSafeHashSet<int> subspaceReturnLocal = subspaceReturn;
 
                 if (
                     subspacesReturn.Where(element => element != subspaceReturnLocal)
@@ -164,11 +164,11 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         }
 
         private bool AreAllPreferencesAtLeastOnceContainedInSubspaces(
-            IEnumerable<HashSet<int>> subspaceQueries)
+            IEnumerable<CLRSafeHashSet<int>> subspaceQueries)
         {
-            var containedPreferences = new HashSet<int>();
+            var containedPreferences = new CLRSafeHashSet<int>();
 
-            foreach (HashSet<int> subspaceQueryPreferences in subspaceQueries)
+            foreach (CLRSafeHashSet<int> subspaceQueryPreferences in subspaceQueries)
             {
                 foreach (int subspaceQueryPreference in subspaceQueryPreferences)
                 {
@@ -220,9 +220,9 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         /// </summary>
         /// <param name="subspace"></param>
         /// <returns></returns>
-        public HashSet<int> GetSubspaceComplement(HashSet<int> subspace)
+        public CLRSafeHashSet<int> GetSubspaceComplement(CLRSafeHashSet<int> subspace)
         {
-            var subspaceComplement = new HashSet<int>();
+            var subspaceComplement = new CLRSafeHashSet<int>();
             for (var i = 0; i < AllPreferencesCount; i++)
             {
                 if (!subspace.Contains(i))

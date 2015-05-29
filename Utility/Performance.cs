@@ -657,7 +657,7 @@ namespace Utility
                                             out strQuery, out operators,
                                             out numberOfRecords);
 
-                                        List<HashSet<HashSet<int>>> producedSubspaces = ProduceSubspaces(preferences);
+                                        List<IEnumerable<CLRSafeHashSet<int>>> producedSubspaces = ProduceSubspaces(preferences);
 
                                         var subspaceObjects = new List<long>();
                                         var subspaceTime = new List<long>();
@@ -667,7 +667,7 @@ namespace Utility
                                         var setCoverageBestRank = new List<double>();
                                         var setCoverageSumRank = new List<double>();
 
-                                        foreach (HashSet<HashSet<int>> subspace in producedSubspaces)
+                                        foreach (IEnumerable<CLRSafeHashSet<int>> subspace in producedSubspaces)
                                         {
                                             sw.Restart();
                                             var subspacesProducer = new FixedSkylineSamplingSubspacesProducer(subspace);
@@ -1050,7 +1050,7 @@ namespace Utility
             return sortedDataTableNormalized;
         }
 
-        private List<HashSet<HashSet<int>>> ProduceSubspaces(ArrayList preferences)
+        private List<IEnumerable<CLRSafeHashSet<int>>> ProduceSubspaces(ArrayList preferences)
         {
             var randomSubspacesesProducer = new RandomSkylineSamplingSubspacesProducer
             {
@@ -1059,7 +1059,7 @@ namespace Utility
                 SubspaceDimension = SamplingSubspaceDimension
             };
 
-            var producedSubspaces = new List<HashSet<HashSet<int>>>();
+            var producedSubspaces = new List<IEnumerable<CLRSafeHashSet<int>>>();
             for (var ii = 0; ii < SamplingSamplesCount; ii++)
             {
                 producedSubspaces.Add(randomSubspacesesProducer.GetSubspaces());

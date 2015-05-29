@@ -89,7 +89,7 @@
             prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out baseQuery, out operators,
                 out numberOfRecords);
 
-            HashSet<HashSet<int>> useSubspaces = UseSubspaces(prefSqlModelSkylineSample);
+            IEnumerable<CLRSafeHashSet<int>> useSubspaces = UseSubspaces(prefSqlModelSkylineSample);
             var subspacesProducer = new FixedSkylineSamplingSubspacesProducer(useSubspaces);
             var utility = new SkylineSamplingUtility(subspacesProducer);
             var skylineSample = new SkylineSampling(utility)
@@ -105,9 +105,9 @@
                 "Unexpected number of Sample Skyline objects.");
         }
 
-        private HashSet<HashSet<int>> UseSubspaces(PrefSQLModel prefSqlModelSkylineSample)
+        private IEnumerable<CLRSafeHashSet<int>> UseSubspaces(PrefSQLModel prefSqlModelSkylineSample)
         {
-            var preferencesInSubspacesExpected = new HashSet<HashSet<int>>();
+            var preferencesInSubspacesExpected = new List<CLRSafeHashSet<int>>();
 
             DataRow[] subspacesExpected =
                 TestContext.DataRow.GetChildRows("TestDataRow_useSubspaces")[0].GetChildRows("useSubspaces_subspace");
@@ -115,7 +115,7 @@
             foreach (DataRow subspaceExpected in subspacesExpected)
             {
                 DataRow[] subspaceExpectedDimensions = subspaceExpected.GetChildRows("subspace_dimension");
-                var preferencesInSingleSubspaceExpected = new HashSet<int>();
+                var preferencesInSingleSubspaceExpected = new CLRSafeHashSet<int>();
                 foreach (DataRow singleSubspaceExpectedDimension in subspaceExpectedDimensions)
                 {
                     for (var i = 0; i < prefSqlModelSkylineSample.Skyline.Count; i++)
@@ -163,7 +163,7 @@
             prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out baseQuery, out operators,
                 out numberOfRecords);
 
-            HashSet<HashSet<int>> useSubspaces = UseSubspaces(prefSqlModelSkylineSample);
+            IEnumerable<CLRSafeHashSet<int>> useSubspaces = UseSubspaces(prefSqlModelSkylineSample);
             var subspacesProducer = new FixedSkylineSamplingSubspacesProducer(useSubspaces);
             var utility = new SkylineSamplingUtility(subspacesProducer);
             var skylineSample = new SkylineSampling(utility)

@@ -16,7 +16,7 @@
     public sealed class SamplingTest
     {
         private const string BaseSkylineSQL =
-            "SELECT cs.*, colors.name, bodies.name, fuels.name, makes.name, conditions.name, drives.name, transmissions.name FROM cars_small cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID LEFT OUTER JOIN drives ON cs.drive_id = drives.ID LEFT OUTER JOIN transmissions ON cs.transmission_id = transmissions.ID SKYLINE OF ";
+            "SELECT cs.*, colors.name, bodies.name, fuels.name, makes.name, conditions.name, drives.name, transmissions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID LEFT OUTER JOIN drives ON cs.drive_id = drives.ID LEFT OUTER JOIN transmissions ON cs.transmission_id = transmissions.ID SKYLINE OF ";
 
         private readonly string _entireSkylineSql;
         private readonly string _entireSkylineSqlBestRank;
@@ -31,11 +31,11 @@
                 addPreferences += preference.ToString().Replace("cars", "cs") + ", ";
             }
             addPreferences = addPreferences.TrimEnd(", ".ToCharArray());
-            //_entireSkylineSql = BaseSkylineSQL + addPreferences;
-            //_skylineSampleSql = _entireSkylineSql + " SAMPLE BY RANDOM_SUBSETS COUNT 15 DIMENSION 3";
-            _entireSkylineSql =
-                "SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> 'blue' >> OTHERS EQUAL), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL)";
+            _entireSkylineSql = BaseSkylineSQL + addPreferences;
             _skylineSampleSql = _entireSkylineSql + " SAMPLE BY RANDOM_SUBSETS COUNT 15 DIMENSION 3";
+            //_entireSkylineSql =
+            //    "SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> 'blue' >> OTHERS EQUAL), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL)";
+            //_skylineSampleSql = _entireSkylineSql + " SAMPLE BY RANDOM_SUBSETS COUNT 15 DIMENSION 3";
             //_entireSkylineSql =
             //    "SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, colors.name ('red' >> 'blue' >> OTHERS EQUAL)";
             //_skylineSampleSql = _entireSkylineSql + " SAMPLE BY RANDOM_SUBSETS COUNT 3 DIMENSION 2";
@@ -49,10 +49,10 @@
         {
             var samplingTest = new SamplingTest();
 
-            //samplingTest.TestExecutionForPerformance(100);
+            samplingTest.TestExecutionForPerformance(100);
             //samplingTest.TestForSetCoverage();
             //samplingTest.TestForClusterAnalysis();            
-            samplingTest.TestForDominatedObjects();
+            //samplingTest.TestForDominatedObjects();
             //samplingTest.TestCompareAlgorithms();
 
             Console.ReadKey();
@@ -455,7 +455,7 @@
             //Console.WriteLine(dataTable.Rows.Count);
             //Console.WriteLine();
 
-            var producedSubspaces = new List<HashSet<HashSet<int>>>();
+            var producedSubspaces = new List<IEnumerable<CLRSafeHashSet<int>>>();
 
             for (var i = 0; i < runs; i++)
             {
@@ -495,7 +495,7 @@
             //ExecuteSampleSkylines(producedSubspaces, prefSqlModel, common);
         }
 
-        private void ExecuteSampleSkylines(List<HashSet<HashSet<int>>> producedSubspaces,
+        private static void ExecuteSampleSkylines(IReadOnlyCollection<IEnumerable<CLRSafeHashSet<int>>> producedSubspaces,
             PrefSQLModel prefSqlModel, SQLCommon common)
         {
             var objectsCount = 0;
@@ -511,7 +511,7 @@
             prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out strQuery, out operators,
                 out numberOfRecords);
 
-            foreach (HashSet<HashSet<int>> subspace in producedSubspaces)
+            foreach (IEnumerable<CLRSafeHashSet<int>> subspace in producedSubspaces)
             {
                 var subspacesProducer = new FixedSkylineSamplingSubspacesProducer(subspace);
                 var utility = new SkylineSamplingUtility(subspacesProducer);
@@ -526,7 +526,7 @@
 
                 objectsCount += dataTable.Rows.Count;
                 timeSpent += skylineSample.TimeMilliseconds;
-                foreach (HashSet<int> attribute in subspace)
+                foreach (CLRSafeHashSet<int> attribute in subspace)
                 {
                     Console.Write("[");
                     foreach (int attribute1 in attribute)

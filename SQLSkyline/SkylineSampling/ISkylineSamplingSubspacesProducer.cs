@@ -25,7 +25,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         int SubspaceDimension { get; set; }
 
         /// <summary>
-        ///     Number of all preferences requested in original skyline query.
+        ///     Number of all preferences requested in the entire skyline query.
         /// </summary>
         int AllPreferencesCount { get; set; }
 
@@ -34,8 +34,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         /// </summary>
         /// <returns>
         ///     The produced subspaces. Each stored integer is an index referring the zero-based position of a preference of
-        ///     the original skyline query.
+        ///     the entire skyline query.
         /// </returns>
-        HashSet<HashSet<int>> GetSubspaces();
+        IEnumerable<CLRSafeHashSet<int>> GetSubspaces();
     }
 }

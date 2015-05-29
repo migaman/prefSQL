@@ -6,6 +6,7 @@
     using System.Diagnostics;
     using System.Linq;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using SQLSkyline;
     using SQLSkyline.SkylineSampling;
 
     [TestClass]
@@ -33,7 +34,13 @@
                 SubspaceDimension = subspaceDimension
             };
 
-            HashSet<HashSet<int>> preferencesInProducedSubspaces = subjectUnderTest.Subspaces;
+            var preferencesInProducedSubspaces=new HashSet<HashSet<int>>();
+
+            foreach (CLRSafeHashSet<int> subspace in subjectUnderTest.Subspaces)
+            {
+                preferencesInProducedSubspaces.Add(subspace.ToHashSet());
+            }
+
             HashSet<HashSet<int>> preferencesInExpectedSubspaces = ExpectedSubspaces();
 
             Assert.AreEqual(preferencesInExpectedSubspaces.Count, preferencesInProducedSubspaces.Count,
@@ -101,7 +108,12 @@
 
             try
             {
-                HashSet<HashSet<int>> subspaces = subjectUnderTest.Subspaces;
+                var subspaces = new HashSet<HashSet<int>>();
+
+                foreach (CLRSafeHashSet<int> subspace in subjectUnderTest.Subspaces)
+                {
+                    subspaces.Add(subspace.ToHashSet());
+                }               
             }
             catch (Exception exception)
             {
