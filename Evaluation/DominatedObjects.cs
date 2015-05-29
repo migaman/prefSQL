@@ -1,4 +1,4 @@
-﻿namespace prefSQL.SQLParserTest
+﻿namespace prefSQL.Evaluation
 {
     using System.Collections.Generic;
     using System.Collections.ObjectModel;

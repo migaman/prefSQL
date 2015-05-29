@@ -89,6 +89,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Evaluation\Evaluation.csproj">
+      <Project>{0996a1c1-f807-4f23-8d7b-37a8d79e6607}</Project>
+      <Name>Evaluation</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SQLParserTest\SQLParserTest.csproj">
       <Project>{A16FED8B-5148-43FD-9A94-B795457346CC}</Project>
       <Name>SQLParserTest</Name>
