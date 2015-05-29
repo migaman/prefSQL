@@ -86,10 +86,13 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         public int SubspaceDimension { get; set; }
 
         /// <summary>
-        ///     A template used to report rows for the skyline algorithm if working with the CLR.
+        ///     A template used to report rows for the skyline algorithm.
         /// </summary>
         private SqlDataRecord DataRecordTemplate { get; set; }
 
+        /// <summary>
+        ///     A template used to report rows for the skyline algorithm if working with the CLR.
+        /// </summary>
         public SqlDataRecord DataRecordTemplateForStoredProcedure { get; set; }
 
         /// <summary>
@@ -108,6 +111,15 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             _utility = utility;
         }
 
+        /// <summary>
+        /// Determines the full call to the stored procedure if executing the algorithm via CLR.
+        /// </summary>
+        /// <param name="strWhere"></param>
+        /// <param name="strOrderBy"></param>
+        /// <param name="strFirstSQL"></param>
+        /// <param name="strOperators"></param>
+        /// <param name="strOrderByAttributes"></param>
+        /// <returns></returns>
         public string GetStoredProcedureCommand(string strWhere, string strOrderBy, string strFirstSQL,
             string strOperators, string strOrderByAttributes)
         {
@@ -301,7 +313,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                 SelectedStrategy.HasIncomparablePreferences = subpaceOperators.Contains("INCOMPARABLE");
 
                 SelectedStrategy.PrepareDatabaseForAlgorithm(ref useDatabase, subspace.ToList(),
-                    Utility.PreferenceColumnIndex, Utility.OperatorStrings);
+                    Utility.PreferenceColumnIndex, Utility.IsPreferenceIncomparable);
 
                 sw.Stop();
                 TimeMilliseconds += sw.ElapsedMilliseconds;
@@ -334,7 +346,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
                     useDatabase = rowsWithEqualValuesDatabase.Values;
                     SelectedStrategy.PrepareDatabaseForAlgorithm(ref useDatabase, subspaceComplementList,
-                        Utility.PreferenceColumnIndex, Utility.OperatorStrings);
+                        Utility.PreferenceColumnIndex, Utility.IsPreferenceIncomparable);
 
                     sw.Stop();
                     TimeMilliseconds += sw.ElapsedMilliseconds;
@@ -372,7 +384,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             {
                 if (!subspace.Contains(i))
                 {
-                    if (Utility.OperatorStrings[i].Contains(';'))
+                    if (Utility.IsPreferenceIncomparable[i])
                     {
                         operatorsReturn += "IGNORE;IGNORE;";
                     }
@@ -431,7 +443,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                     int rowIndex = Utility.PreferenceColumnIndex[sub];
                     rowForPairwiseComparison[count] = (long) row[rowIndex];
 
-                    if (Utility.OperatorStrings[sub].Contains(';')) // i.e., INCOMPARABLE specified in preference
+                    if (Utility.IsPreferenceIncomparable[sub])
                     {
                         rowForPairwiseComparisonIncomparable[count] = (string) row[rowIndex + 1];
                     }
@@ -604,7 +616,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
                 string eqValue = databaseRowColumnValue.ToString();
 
-                if (Utility.OperatorStrings[subspaceColumnIndex].Contains(';'))
+                if (Utility.IsPreferenceIncomparable[subspaceColumnIndex])
                 {
                     // performance; dereference only once
                     string databaseRowColumnValueIncomparable = databaseRowValue.Item2[subspaceColumnIndex];

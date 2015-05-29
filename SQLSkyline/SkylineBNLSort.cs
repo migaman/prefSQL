@@ -32,10 +32,11 @@ namespace prefSQL.SQLSkyline
             return true;
         }
 
-        public override void PrepareDatabaseForAlgorithm(ref IEnumerable<object[]> useDatabase, List<int> subspaceList, int[] preferenceColumnIndex, string[] operatorStrings)
+        public override void PrepareDatabaseForAlgorithm(ref IEnumerable<object[]> useDatabase, List<int> subspace, int[] preferenceColumnIndex, bool[] isPreferenceIncomparable)
         {
             List<object[]> useTempDatabase = useDatabase.ToList();
-            useTempDatabase.Sort((item1, item2) => comp(item1, item2, subspaceList, preferenceColumnIndex, operatorStrings));
+            List<int> databaseIndexes = subspace.Select(subspaceColumnIndex => preferenceColumnIndex[subspaceColumnIndex]).ToList();
+            useTempDatabase.Sort((item1, item2) => CompareTwoDatabaseObjects(item1, item2, databaseIndexes, isPreferenceIncomparable));
             useDatabase = useTempDatabase;
         }
       
@@ -85,33 +86,43 @@ namespace prefSQL.SQLSkyline
             return new SPSkylineBNLSortLevel();
         }
 
-        private int comp(object[] x, object[] y, IEnumerable<int> subspace, int[] preferenceColumnIndex, string[] operatorStrings)
+        private static int CompareTwoDatabaseObjects(object[] item1, object[] item2, IList<int> databaseIndexes, bool[] isPreferenceIncomparable)
         {
-            foreach (int subspaceColumnIndex in subspace)
+            int databaseIndexesCount = databaseIndexes.Count;
+
+            for(var i=0;i<databaseIndexesCount;i++)
             {
-                int databaseIndex = preferenceColumnIndex[subspaceColumnIndex];
-                if ((long)x[databaseIndex] < (long)y[databaseIndex])
+                int databaseIndex = databaseIndexes[i];
+
+                var item1ForComparison = (long) item1[databaseIndex];
+                var item2ForComparison = (long) item2[databaseIndex];
+
+                if (item1ForComparison < item2ForComparison)
                 {
                     return -1;
                 }
-                if ((long)x[databaseIndex] > (long)y[databaseIndex])
+
+                if (item1ForComparison > item2ForComparison)
                 {
                     return 1;
                 }
 
-                if (operatorStrings[subspaceColumnIndex].Contains(';'))
+                if (!isPreferenceIncomparable[i])
                 {
-                    switch (
-                        string.Compare(((string)x[databaseIndex + 1]), (string)y[databaseIndex + 1],
-                            StringComparison.InvariantCulture))
-                    {
-                        case -1:
-                            return -1;
-                        case 1:
-                            return 1;
-                    }
+                    continue;
+                }
+
+                switch (
+                    string.Compare(((string) item1[databaseIndex + 1]), (string) item2[databaseIndex + 1],
+                        StringComparison.InvariantCulture))
+                {
+                    case -1:
+                        return -1;
+                    case 1:
+                        return 1;
                 }
             }
+
             return 0;
         }
     }

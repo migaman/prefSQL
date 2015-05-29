@@ -28,7 +28,7 @@ namespace prefSQL.SQLSkyline
             return false;
         }
 
-        public override void PrepareDatabaseForAlgorithm(ref IEnumerable<object[]> useDatabase, List<int> toList, int[] preferenceColumnIndex, string[] operatorStrings)
+        public override void PrepareDatabaseForAlgorithm(ref IEnumerable<object[]> useDatabase, List<int> subspace, int[] preferenceColumnIndex, bool[] isPreferenceIncomparable)
         {
             throw new NotImplementedException();
         }

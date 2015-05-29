@@ -80,6 +80,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             get { return _subspaces ?? (_subspaces = DetermineSubspaces()); }
         }
 
+        public bool[] IsPreferenceIncomparable { get; set; }
+
         public SkylineSamplingUtility()
             : this(new RandomSkylineSamplingSubspacesProducer())
         {
@@ -243,19 +245,24 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         internal void CalculatePropertiesWithRespectToIncomparableOperators(string operators)
         {
             Operators = operators.Split(';');
-            OperatorStrings = new string[Operators.Count(op => op != "INCOMPARABLE")];
-            PreferenceColumnIndex = new int[Operators.Count(op => op != "INCOMPARABLE")];
+            int prefrencesCount = Operators.Count(op => op != "INCOMPARABLE");
+            OperatorStrings = new string[prefrencesCount];
+            PreferenceColumnIndex = new int[prefrencesCount];
+            IsPreferenceIncomparable = new bool[prefrencesCount];
+
             var nextOperatorIndex = 0;
             for (var opIndex = 0; opIndex < Operators.Length; opIndex++)
             {
                 if (Operators[opIndex] != "INCOMPARABLE")
                 {
+                    IsPreferenceIncomparable[nextOperatorIndex] = false;
                     OperatorStrings[nextOperatorIndex] = Operators[opIndex];
                     PreferenceColumnIndex[nextOperatorIndex] = opIndex;
                     nextOperatorIndex++;
                 }
                 else
                 {
+                    IsPreferenceIncomparable[nextOperatorIndex] = true;
                     // keep "LOW;INCOMPARABLE" together
                     OperatorStrings[nextOperatorIndex - 1] += ";" + Operators[opIndex];
                 }
