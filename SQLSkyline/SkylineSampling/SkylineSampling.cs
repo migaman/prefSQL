@@ -15,7 +15,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
     /// </summary>
     /// <remarks>
     ///     This implementation re-uses the already implemented algorithms of the prefSQL framework to calculate the necessary
-    ///     subspace skylines. Publication:
+    ///     subspace skylines.
+    ///     Publication:
     ///     W.-T. Balke, J. X. Zheng, and U. Güntzer, “Approaching the Efficient Frontier: Cooperative Database Retrieval Using
     ///     High-Dimensional Skylines,” in Lecture Notes in Computer Science, Database Systems for Advanced Applications, D.
     ///     Hutchison, T. Kanade, J. Kittler, J. M. Kleinberg, F. Mattern, J. C. Mitchell, M. Naor, O. Nierstrasz, C. Pandu

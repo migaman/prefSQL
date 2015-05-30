@@ -4,7 +4,7 @@
     using System.Collections.ObjectModel;
     using System.Linq;
 
-    public class DominatedObjects
+    public sealed class DominatedObjects
     {
         private readonly IReadOnlyDictionary<long, object[]> _entireDatabase;
         private readonly IReadOnlyDictionary<long, object[]> _skylineDatabase;
@@ -71,6 +71,16 @@
             get { return _result ?? (_result = GetDominatedObjects()); }
         }
 
+        /// <summary>
+        /// TODO X. Lin, Y. Yuan, Q. Zhang, and Y. Zhang (2007).
+        /// </summary>
+        /// <remarks>
+        /// Publication:
+        /// X. Lin, Y. Yuan, Q. Zhang, and Y. Zhang, “Selecting Stars: The k Most Representative Skyline Operator,” in 2007 IEEE 23rd International Conference on Data Engineering, 2007, pp. 86–95.
+        /// </remarks>
+        /// <param name="entireDatabase"></param>
+        /// <param name="skylineDatabase"></param>
+        /// <param name="useColumns"></param>
         public DominatedObjects(IReadOnlyDictionary<long, object[]> entireDatabase,
             IReadOnlyDictionary<long, object[]> skylineDatabase, int[] useColumns)
         {
