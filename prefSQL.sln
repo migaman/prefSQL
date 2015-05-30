@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLSkylineTest", "SQLSkylin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Evaluation", "Evaluation\Evaluation.csproj", "{0996A1C1-F807-4F23-8D7B-37A8D79E6607}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvaluationTest", "EvaluationTest\EvaluationTest.csproj", "{BC7C20C4-30FA-4821-821F-881B661A16A5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,10 @@ Global
 		{0996A1C1-F807-4F23-8D7B-37A8D79E6607}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0996A1C1-F807-4F23-8D7B-37A8D79E6607}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0996A1C1-F807-4F23-8D7B-37A8D79E6607}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC7C20C4-30FA-4821-821F-881B661A16A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC7C20C4-30FA-4821-821F-881B661A16A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC7C20C4-30FA-4821-821F-881B661A16A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC7C20C4-30FA-4821-821F-881B661A16A5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
