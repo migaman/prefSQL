@@ -5,7 +5,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
     using System.Data.SqlTypes;
     using Microsoft.SqlServer.Server;
 
-    public class SPSkylineSampling
+    public sealed class SPSkylineSampling
     {
         [SqlProcedure(Name = "SP_SkylineSampling")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords,
