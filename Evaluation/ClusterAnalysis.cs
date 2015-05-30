@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using System.Numerics;
 
-    internal sealed class ClusterAnalysis
+    public sealed class ClusterAnalysis
     {
         public static IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>> GetBuckets(
             IReadOnlyDictionary<long, object[]> normalizedBaseData, int[] useColumns)

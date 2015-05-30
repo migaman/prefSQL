@@ -4,7 +4,7 @@
     using System.Collections.ObjectModel;
     using System.Linq;
 
-    internal class DominatedObjects
+    public class DominatedObjects
     {
         private readonly IReadOnlyDictionary<long, object[]> _entireDatabase;
         private readonly IReadOnlyDictionary<long, object[]> _skylineDatabase;
@@ -66,7 +66,7 @@
             }
         }
 
-        private IReadOnlyDictionary<long, List<IReadOnlyDictionary<long, object[]>>> Result
+        internal IReadOnlyDictionary<long, List<IReadOnlyDictionary<long, object[]>>> Result
         {
             get { return _result ?? (_result = GetDominatedObjects()); }
         }

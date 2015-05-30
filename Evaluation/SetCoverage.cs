@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
 
-    internal sealed class SetCoverage
+    public sealed class SetCoverage
     {
         public static double GetCoverage(IReadOnlyDictionary<long, object[]> normalizedBaseData,
             IReadOnlyDictionary<long, object[]> normalizedSampleData, int[] useColumns)
