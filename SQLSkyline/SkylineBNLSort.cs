@@ -35,8 +35,8 @@ namespace prefSQL.SQLSkyline
         public override void PrepareDatabaseForAlgorithm(ref IEnumerable<object[]> useDatabase, List<int> subspace, int[] preferenceColumnIndex, bool[] isPreferenceIncomparable)
         {
             List<object[]> useTempDatabase = useDatabase.ToList();
-            List<int> databaseIndexes = subspace.Select(subspaceColumnIndex => preferenceColumnIndex[subspaceColumnIndex]).ToList();
-            useTempDatabase.Sort((item1, item2) => CompareTwoDatabaseObjects(item1, item2, databaseIndexes, isPreferenceIncomparable));
+            List<int> databaseIndices = subspace.Select(subspaceColumnIndex => preferenceColumnIndex[subspaceColumnIndex]).ToList();
+            useTempDatabase.Sort((item1, item2) => CompareTwoDatabaseObjects(item1, item2, databaseIndices, isPreferenceIncomparable));
             useDatabase = useTempDatabase;
         }
       
@@ -86,13 +86,13 @@ namespace prefSQL.SQLSkyline
             return new SPSkylineBNLSortLevel();
         }
 
-        private static int CompareTwoDatabaseObjects(object[] item1, object[] item2, IList<int> databaseIndexes, bool[] isPreferenceIncomparable)
+        private static int CompareTwoDatabaseObjects(object[] item1, object[] item2, IList<int> databaseIndices, bool[] isPreferenceIncomparable)
         {
-            int databaseIndexesCount = databaseIndexes.Count;
+            int databaseIndicesCount = databaseIndices.Count;
 
-            for(var i=0;i<databaseIndexesCount;i++)
+            for(var i=0;i<databaseIndicesCount;i++)
             {
-                int databaseIndex = databaseIndexes[i];
+                int databaseIndex = databaseIndices[i];
 
                 var item1ForComparison = (long) item1[databaseIndex];
                 var item2ForComparison = (long) item2[databaseIndex];
