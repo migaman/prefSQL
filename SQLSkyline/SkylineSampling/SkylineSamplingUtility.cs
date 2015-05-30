@@ -262,7 +262,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                 }
                 else
                 {
-                    IsPreferenceIncomparable[nextOperatorIndex] = true;
+                    IsPreferenceIncomparable[nextOperatorIndex - 1] = true;
                     // keep "LOW;INCOMPARABLE" together
                     OperatorStrings[nextOperatorIndex - 1] += ";" + Operators[opIndex];
                 }
