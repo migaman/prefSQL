@@ -136,7 +136,7 @@
                 useColumns[i] = i;
             }
 
-            double actualRepresentationError = SetCoverage.GetRepresentationError(normalizedDataToBeCovered, normalizedDataCoveringDataToBeCovered, useColumns);
+            double actualRepresentationError = SetCoverage.GetRepresentationError(normalizedDataToBeCovered, normalizedDataCoveringDataToBeCovered, useColumns).Max();
 
             Assert.AreEqual(expectedRepresentationError, actualRepresentationError, 0.000000000001);
         }

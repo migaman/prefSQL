@@ -49,6 +49,7 @@
         }
 
         /// <summary>
+        /// TODO: rephrase since all distances returned
         ///     Calculates the representation error of normalizedDataCoveringDataToBeCovered according to Y. Tao, L. Ding, X. Lin,
         ///     and J. Pei (2009).
         /// </summary>
@@ -73,7 +74,7 @@
         ///     between each object in normalizedDataToBeCovered and their covering object in
         ///     normalizedDataCoveringDataToBeCovered.
         /// </returns>
-        public static double GetRepresentationError(
+        public static Dictionary<long, double>.ValueCollection GetRepresentationError(
             IReadOnlyDictionary<long, object[]> normalizedDataToBeCovered,
             IReadOnlyDictionary<long, object[]> normalizedDataCoveringDataToBeCovered, int[] useColumns)
         {
@@ -88,7 +89,7 @@
                 distances.Add(objectToBeCovered.Key, distance);
             }
 
-            return distances.Values.Max();
+            return distances.Values;
         }
 
         /// <summary>
