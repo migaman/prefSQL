@@ -50,9 +50,9 @@
         {
             var samplingTest = new SamplingTest();
 
-            samplingTest.TestExecutionForPerformance(10);
+            //samplingTest.TestExecutionForPerformance(10);
             //samplingTest.TestForSetCoverage();
-            //samplingTest.TestForClusterAnalysis();            
+            samplingTest.TestForClusterAnalysis();            
             //samplingTest.TestForDominatedObjects();
             //samplingTest.TestCompareAlgorithms();
 
@@ -320,17 +320,7 @@
             IReadOnlyDictionary<long, object[]> sampleSkylineNormalized =
                 prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(sampleSkylineDataTable, 0);
             SkylineSamplingHelper.NormalizeColumns(sampleSkylineNormalized, skylineAttributeColumns);
-
-            IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>> entireBuckets =
-                ClusterAnalysis.GetBuckets(entireSkylineNormalized, skylineAttributeColumns);
-            IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>> sampleBuckets =
-                ClusterAnalysis.GetBuckets(sampleSkylineNormalized, skylineAttributeColumns);
-
-            IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>> aggregatedEntireBuckets =
-                ClusterAnalysis.GetAggregatedBuckets(entireBuckets);
-            IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>> aggregatedSampleBuckets =
-                ClusterAnalysis.GetAggregatedBuckets(sampleBuckets);
-
+          
             for (var i = 0; i < skylineAttributeColumns.Length; i++)
             {
                 dt.Columns.RemoveAt(0);
@@ -339,20 +329,38 @@
             IReadOnlyDictionary<long, object[]> full = prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(dt, 0);
             SkylineSamplingHelper.NormalizeColumns(full, skylineAttributeColumns);
 
+            ClusterAnalysis.CalcMedians(full,skylineAttributeColumns);
+          
+            IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>> entireBuckets =
+              ClusterAnalysis.GetBuckets(entireSkylineNormalized, skylineAttributeColumns);
+            IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>> sampleBuckets =
+                ClusterAnalysis.GetBuckets(sampleSkylineNormalized, skylineAttributeColumns);
+
+            //IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>> aggregatedEntireBuckets =
+            //    ClusterAnalysis.GetAggregatedBuckets(entireBuckets);
+            //IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>> aggregatedSampleBuckets =
+            //    ClusterAnalysis.GetAggregatedBuckets(sampleBuckets);
+
             IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>> fullB =
                 ClusterAnalysis.GetBuckets(full, skylineAttributeColumns);
-            IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>> aFullB =
-                ClusterAnalysis.GetAggregatedBuckets(fullB);
+           // IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>> aFullB =
+           //     ClusterAnalysis.GetAggregatedBuckets(fullB);
+                                  
+            IOrderedEnumerable<KeyValuePair<BigInteger, List<IReadOnlyDictionary<long, object[]>>>> sorted = fullB.OrderBy(l => l.Value.Count)
+                         .ThenBy(l => l.Key);
 
-            for (var i = 0; i < skylineAttributeColumns.Length; i++)
+            int len = Convert.ToInt32(Math.Pow(2, skylineAttributeColumns.Length));
+            //for (var i = 0; i < len; i++)
+            foreach(KeyValuePair<BigInteger, List<IReadOnlyDictionary<long, object[]>>> s in sorted)
             {
-                int entire = aggregatedEntireBuckets.ContainsKey(i) ? aggregatedEntireBuckets[i].Count : 0;
-                int sample = aggregatedSampleBuckets.ContainsKey(i) ? aggregatedSampleBuckets[i].Count : 0;
+                BigInteger i = s.Key;
+                int entire = entireBuckets.ContainsKey(i) ? entireBuckets[i].Count : 0;
+                int sample = sampleBuckets.ContainsKey(i) ? sampleBuckets[i].Count : 0;
                 double entirePercent = (double) entire / entireSkylineNormalized.Count;
                 double samplePercent = (double) sample / sampleSkylineNormalized.Count;
-                int fullX = aFullB.ContainsKey(i) ? aFullB[i].Count : 0;
+                int fullX = fullB.ContainsKey(i) ? fullB[i].Count : 0;
                 double fullP = (double) fullX / full.Count;
-                Console.WriteLine("-- {0,2} -- {5,6} ({6,7:P2} %) -- {1,6} ({3,7:P2} %) -- {2,6} ({4,7:P2} %)", i,
+                Console.WriteLine("-- {0,5} -- {5,6} ({6,7:P2} %) -- {1,6} ({3,7:P2} %) -- {2,6} ({4,7:P2} %)", i,
                     entire, sample, entirePercent,
                     samplePercent, fullX, fullP);
             }
@@ -360,6 +368,14 @@
             Console.WriteLine();
             Console.WriteLine("{0} - {1} - {2}", entireSkylineNormalized.Count, sampleSkylineNormalized.Count,
                 full.Count);
+        }
+        class DescendedDateComparer : IComparer<int>
+        {
+            public int Compare(int x, int y)
+            {
+                // use the default comparer to do the original comparison for datetimes
+               return -x.CompareTo(y);
+            }
         }
 
         private void TestForSetCoverage()
