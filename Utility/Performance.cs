@@ -47,15 +47,15 @@ namespace Utility
 
         private enum ReportsSampling
         {
-            TimeMin,TimeMax,TimeVar,TimeStdDev,TimeQ1,TimeQ3,TimeMed,SizeMin,SizeMax,SizeVar,SizeStdDev,SizeQ1,SizeQ3,SizeMed
+            TimeMin, TimeMax, TimeVar, TimeStdDev, TimeMed, TimeQ1, TimeQ3, SizeMin, SizeMax, SizeVar, SizeStdDev, SizeMed, SizeQ1, SizeQ3,
         }
 
         private enum SkylineTypesSampling
         {
-            RandomAvg, RandomMin, RandomMax, RandomVar, RandomStdDev, RandomQ1, RandomQ3, RandomMed,
-            SampleAvg, SampleMin, SampleMax, SampleVar, SampleStdDev, SampleQ1, SampleQ3, SampleMed,
-            BestRankAvg, BestRankMin, BestRankMax, BestRankVar, BestRankStdDev, BestRankQ1, BestRankQ3, BestRankMed,
-            SumRankAvg, SumRankMin, SumRankMax, SumRankVar, SumRankStdDev, SumRankQ1, SumRankQ3, SumRankMed
+            RandomAvg, RandomMin, RandomMax, RandomVar, RandomStdDev, RandomMed, RandomQ1, RandomQ3,
+            SampleAvg, SampleMin, SampleMax, SampleVar, SampleStdDev, SampleMed, SampleQ1, SampleQ3,
+            BestRankAvg, BestRankMin, BestRankMax, BestRankVar, BestRankStdDev, BestRankMed, BestRankQ1, BestRankQ3,
+            SumRankAvg, SumRankMin, SumRankMax, SumRankVar, SumRankStdDev, SumRankMed, SumRankQ1, SumRankQ3
         }
 
         private enum SkylineTypesSingleSampling
@@ -2566,17 +2566,17 @@ namespace Utility
                         .PadLeft(20, paddingChar));
                 sb.Append("|");
                 sb.Append(
-                    Mathematic.Median(setCoverageSampling[skylineTypesSingleSamplingType])
+                    Math.Round(Mathematic.Median(setCoverageSampling[skylineTypesSingleSamplingType]), 2)
                         .ToString(CultureInfo.InvariantCulture)
                         .PadLeft(20, paddingChar));
                 sb.Append("|");
                 sb.Append(
-                    Mathematic.LowerQuartile(setCoverageSampling[skylineTypesSingleSamplingType])
+                    Math.Round(Mathematic.LowerQuartile(setCoverageSampling[skylineTypesSingleSamplingType]), 2)
                         .ToString(CultureInfo.InvariantCulture)
                         .PadLeft(20, paddingChar));
                 sb.Append("|");
                 sb.Append(
-                    Mathematic.UpperQuartile(setCoverageSampling[skylineTypesSingleSamplingType])
+                    Math.Round(Mathematic.UpperQuartile(setCoverageSampling[skylineTypesSingleSamplingType]), 2)
                         .ToString(CultureInfo.InvariantCulture)
                         .PadLeft(20, paddingChar));
                 sb.Append("|");
