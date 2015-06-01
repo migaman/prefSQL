@@ -701,6 +701,17 @@ namespace Utility
                                             ClusterAnalysis.GetAggregatedBuckets(entireSkylineBuckets);
 
                                      FillTopBucketsSampling(clusterAnalysisTopBucketsSampling, ClusterAnalysisSampling.EntireSkyline, entireSkylineBuckets, entireSkylineNormalized.Count, entireDatabaseNormalized.Count, entireSkylineNormalized.Count);
+                                     foreach (
+                                          KeyValuePair<BigInteger, List<double>> bucket in clusterAnalysisTopBucketsSampling[ClusterAnalysisSampling.EntireSkyline])
+                                     {
+                                         double percent =
+                                             clusterAnalysisTopBucketsSampling[ClusterAnalysisSampling.EntireSkyline][bucket.Key][0];
+
+                                         for (var i = 1; i < producedSubspaces.Count; i++) // to enable generalized average calculation
+                                         {
+                                             clusterAnalysisTopBucketsSampling[ClusterAnalysisSampling.EntireSkyline][bucket.Key].Add(percent);
+                                         }
+                                     }
 
                                     var clusterAnalysisForMedian = new ClusterAnalysis(entireDatabaseNormalized, skylineAttributeColumns);
                                  
@@ -741,8 +752,19 @@ namespace Utility
                                       aggregatedEntireSkylineMedianBuckets =
                                          ClusterAnalysis.GetAggregatedBuckets(entireSkylineMedianBuckets);
 
-                                    FillTopBucketsSampling(clusterAnalysisMedianTopBucketsSampling, ClusterAnalysisSampling.EntireSkyline, entireSkylineMedianBuckets, entireSkylineNormalized.Count, entireDatabaseNormalized.Count, entireSkylineNormalized.Count);                            
+                                    FillTopBucketsSampling(clusterAnalysisMedianTopBucketsSampling, ClusterAnalysisSampling.EntireSkyline, entireSkylineMedianBuckets, entireSkylineNormalized.Count, entireDatabaseNormalized.Count, entireSkylineNormalized.Count);
 
+                                    foreach (
+                                       KeyValuePair<BigInteger, List<double>> bucket in clusterAnalysisMedianTopBucketsSampling[ClusterAnalysisSampling.EntireSkyline])
+                                    {
+                                        double percent =
+                                            clusterAnalysisMedianTopBucketsSampling[ClusterAnalysisSampling.EntireSkyline][bucket.Key][0];
+
+                                        for (var i = 1; i < producedSubspaces.Count; i++) // to enable generalized average calculation
+                                        {
+                                            clusterAnalysisMedianTopBucketsSampling[ClusterAnalysisSampling.EntireSkyline][bucket.Key].Add(percent);
+                                        }
+                                    }
                                     strSQL += " SAMPLE BY RANDOM_SUBSETS COUNT " + SamplingSubspacesCount +
                                               " DIMENSION " + SamplingSubspaceDimension;
 
