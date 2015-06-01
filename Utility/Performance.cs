@@ -1179,7 +1179,7 @@ namespace Utility
                                             {SkylineTypesSingleSampling.BestRank, representationErrorBestRank},
                                             {SkylineTypesSingleSampling.SumRank, representationErrorSumRank}
                                         };
-
+                                    
                                     var representationErrorSumSamplingSingle =
                                         new Dictionary<SkylineTypesSingleSampling, List<double>>
                                         {

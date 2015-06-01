@@ -4,8 +4,6 @@ using System.Linq;
 
 namespace Utility
 {
-    using System.CodeDom;
-
     class Mathematic
     {
         //http://www.codeproject.com/Articles/49723/Linear-correlation-and-statistical-functions
@@ -122,18 +120,34 @@ namespace Utility
         /// <returns></returns>
         public static T Median<T>(IEnumerable<T> list, out int midIndex)
         {
-            MathProvider<T> mathP;
+            List<T> orderedList = list.OrderBy(numbers => numbers).ToList();
 
-            if (typeof(T) == typeof(double))
-                mathP = new DoubleMathProvider() as MathProvider<T>;
+            if (orderedList.Count == 0)
+            {
+                throw new Exception("no median calculation possible for empty lists.");
+            }
+
+            if (orderedList.Count == 1)
+            {
+                midIndex = 0;
+                return orderedList.First();
+            }
+
+            MathProvider<T> mathP = null;
+
+            if (typeof (T) == typeof (double))
+            {
+                mathP = new DoubleMathProvider() as MathProvider<T>;                
+            }
             else if (typeof (T) == typeof (long))
+            {
                 mathP = new LongMathProvider() as MathProvider<T>;
-            else
+            }
+
+            if (mathP == null)
             {
                 throw new Exception("type not supported: "+typeof(T));
             }
-
-            List<T> orderedList = list.OrderBy(numbers => numbers).ToList();
 
             int listSize = orderedList.Count;
             T result;
@@ -161,6 +175,16 @@ namespace Utility
         {
             List<T> orderedList = list.OrderBy(numbers => numbers).ToList();
 
+            if (orderedList.Count == 0)
+            {
+                throw new Exception("no median calculation possible for empty lists.");
+            }
+
+            if (orderedList.Count == 1)
+            {
+                return orderedList.First();
+            }
+
             int takeElements;
             Median(orderedList, out takeElements);
 
@@ -175,6 +199,16 @@ namespace Utility
         public static T UpperQuartile<T>(IEnumerable<T> list)
         {
             List<T> orderedList = list.OrderBy(numbers => numbers).ToList();
+
+            if (orderedList.Count == 0)
+            {
+                throw new Exception("no median calculation possible for empty lists.");
+            }
+
+            if (orderedList.Count == 1)
+            {
+                return orderedList.First();
+            }
 
             int skipElements;
             Median(orderedList, out skipElements);

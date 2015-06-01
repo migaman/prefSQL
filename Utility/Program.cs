@@ -7,7 +7,7 @@ using prefSQL.SQLParser;
 using prefSQL.SQLSkyline;
 
 namespace Utility
-{
+{  
     class Program
     {
         
@@ -38,7 +38,7 @@ namespace Utility
         
 
         private void MeasurePerformance()
-        {
+        {        
             Performance p = new Performance();
 
 
@@ -66,7 +66,7 @@ namespace Utility
             p.Set = Performance.PreferenceSet.Numeric;
             //p.Set = Performance.PreferenceSet.Categoric;
             //p.Set = Performance.PreferenceSet.MinCardinality;
-
+            
             //p.Mode = Performance.PreferenceChooseMode.Combination;
             p.Mode = Performance.PreferenceChooseMode.Shuffle;
             //p.Mode = Performance.PreferenceChooseMode.Correlation;
