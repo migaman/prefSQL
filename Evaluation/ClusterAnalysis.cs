@@ -194,25 +194,32 @@
         /// <returns></returns>
         public static double Median(IEnumerable<double> list)
         {
-            List<double> orderedList = list
-                .OrderBy(numbers => numbers)
-                .ToList();
+            int midIndex;
+            return Median(list, out midIndex);
+        }
+
+        /// <summary>
+        ///     TODO: based on http://www.remondo.net/calculate-mean-median-mode-averages-csharp/
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="midIndex"></param>
+        /// <returns></returns>
+        public static double Median(IEnumerable<double> list, out int midIndex)
+        {
+            List<double> orderedList = list.OrderBy(numbers => numbers).ToList();
 
             int listSize = orderedList.Count;
             double result;
 
+            midIndex = listSize / 2;
+
             if (listSize % 2 == 0) // even
             {
-                int midIndex = listSize / 2;
-                result = ((orderedList.ElementAt(midIndex - 1) +
-                           orderedList.ElementAt(midIndex)) / 2);
+                result = ((orderedList.ElementAt(midIndex - 1) + orderedList.ElementAt(midIndex)) / 2);
             }
             else // odd
             {
-                double element = (double) listSize / 2;
-                element = Math.Round(element, MidpointRounding.AwayFromZero);
-
-                result = orderedList.ElementAt((int) (element - 1));
+                result = orderedList.ElementAt(midIndex);
             }
 
             return result;
