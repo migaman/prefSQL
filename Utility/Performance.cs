@@ -18,6 +18,7 @@ namespace Utility
     using System.Collections.ObjectModel;
     using System.Data.Common;
     using System.Globalization;
+    using System.Numerics;
     using prefSQL.Evaluation;
     using prefSQL.SQLParserTest;
     using prefSQL.SQLSkyline.SkylineSampling;
@@ -37,7 +38,7 @@ namespace Utility
     class Performance
     {
 
-        private const string Path = "E:\\Doc\\Studies\\PRJ_Thesis\\15 Performance\\Output\\";
+        private const string Path = @"C:\Users\Public\Documents\workspace\prefcom\prefSQL\root\PerformanceTests\";
         private int _trials = 5;                 //How many times each preferene query is executed  
         private int _randomDraws = 25;          //Only used for the shuffle set. How many random set will be generated
         static readonly Random Rnd = new Random();
@@ -513,7 +514,7 @@ namespace Utility
                 string strSeparatorLine;
                 if (Sampling)
                 {
-                    strSeparatorLine = FormatLineStringSample('-', "", "", "", "", "", "", "", "", "", "", "", "", "", "", new Dictionary<SkylineTypesSingleSampling, List<double>>(), new Dictionary<SkylineTypesSingleSampling, List<double>>(), new Dictionary<SkylineTypesSingleSampling, List<double>>(), new Dictionary<SkylineTypesSingleSampling, List<double>>(), new Dictionary<SkylineTypesSingleSampling, List<double>>(), new Dictionary<ClusterAnalysisSampling, string>(), new Dictionary<ClusterAnalysisSampling, string>(), "", "");
+                    strSeparatorLine = FormatLineStringSample('-', "", "", "", "", "", "", "", "", "", "", "", "", "", "", new Dictionary<SkylineTypesSingleSampling, List<double>>(), new Dictionary<SkylineTypesSingleSampling, List<double>>(), new Dictionary<SkylineTypesSingleSampling, List<double>>(), new Dictionary<SkylineTypesSingleSampling, List<double>>(), new Dictionary<SkylineTypesSingleSampling, List<double>>(), new Dictionary<ClusterAnalysisSampling, string>(), new Dictionary<ClusterAnalysisSampling, string>(), new Dictionary<ClusterAnalysisSampling, string>(), new Dictionary<ClusterAnalysisSampling, string>(), "", "");
                 }
                 else
                 {
@@ -545,7 +546,7 @@ namespace Utility
                     sb.AppendLine("");
                     if (Sampling)
                     {
-                        sb.AppendLine(FormatLineStringSample(' ', "preference set", "trial", "dimensions", "avg skyline size", "avg time total", "avg time algorithm", "min time", "max time", "variance time", "stddeviation time", "min size", "max size", "variance size", "stddeviation size", new string[] { "avg sc random", "min sc random", "max sc random", "var sc random", "stddev sc random", "avg sc sample", "min sc sample", "max sc sample", "var sc sample", "stddev sc sample", "avg sc Best", "min sc Best", "max sc Best", "var sc Best", "stddev sc Best", "avg sc Sum", "min sc Sum", "max sc Sum", "var sc Sum", "stddev sc Sum" }, new string[] { "avg re random", "min re random", "max re random", "var re random", "stddev re random", "avg re sample", "min re sample", "max re sample", "var re sample", "stddev re sample", "avg re Best", "min re Best", "max re Best", "var re Best", "stddev re Best", "avg re Sum", "min re Sum", "max re Sum", "var re Sum", "stddev re Sum" }, new string[] { "avg reSum random", "min reSum random", "max reSum random", "var reSum random", "stddev reSum random", "avg reSum sample", "min reSum sample", "max reSum sample", "var reSum sample", "stddev reSum sample", "avg reSum Best", "min reSum Best", "max reSum Best", "var reSum Best", "stddev reSum Best", "avg reSum Sum", "min reSum Sum", "max reSum Sum", "var reSum Sum", "stddev reSum Sum" }, new string[] { "avg domCnt random", "min domCnt random", "max domCnt random", "var domCnt random", "stddev domCnt random", "avg domCnt sample", "min domCnt sample", "max domCnt sample", "var domCnt sample", "stddev domCnt sample", "avg domCnt Best", "min domCnt Best", "max domCnt Best", "var domCnt Best", "stddev domCnt Best", "avg domCnt Sum", "min domCnt Sum", "max domCnt Sum", "var domCnt Sum", "stddev domCnt Sum" }, new string[] { "avg domBest random", "min domBest random", "max domBest random", "var domBest random", "stddev domBest random", "avg domBest sample", "min domBest sample", "max domBest sample", "var domBest sample", "stddev domBest sample", "avg domBest Best", "min domBest Best", "max domBest Best", "var domBest Best", "stddev domBest Best", "avg domBest Sum", "min domBest Sum", "max domBest Sum", "var domBest Sum", "stddev domBest Sum" }, new string[] { "ca entire db", "ca entire skyline", "ca sample skyline", "ca best rank", "ca sum rank" }, new string[] { "caMed entire db", "caMed entire skyline", "caMed sample skyline", "caMed best rank", "caMed sum rank" }, "sum correlation*", "product cardinality"));
+                        sb.AppendLine(FormatLineStringSample(' ', "preference set", "trial", "dimensions", "avg skyline size", "avg time total", "avg time algorithm", "min time", "max time", "variance time", "stddeviation time", "min size", "max size", "variance size", "stddeviation size", new string[] { "avg sc random", "min sc random", "max sc random", "var sc random", "stddev sc random", "avg sc sample", "min sc sample", "max sc sample", "var sc sample", "stddev sc sample", "avg sc Best", "min sc Best", "max sc Best", "var sc Best", "stddev sc Best", "avg sc Sum", "min sc Sum", "max sc Sum", "var sc Sum", "stddev sc Sum" }, new string[] { "avg re random", "min re random", "max re random", "var re random", "stddev re random", "avg re sample", "min re sample", "max re sample", "var re sample", "stddev re sample", "avg re Best", "min re Best", "max re Best", "var re Best", "stddev re Best", "avg re Sum", "min re Sum", "max re Sum", "var re Sum", "stddev re Sum" }, new string[] { "avg reSum random", "min reSum random", "max reSum random", "var reSum random", "stddev reSum random", "avg reSum sample", "min reSum sample", "max reSum sample", "var reSum sample", "stddev reSum sample", "avg reSum Best", "min reSum Best", "max reSum Best", "var reSum Best", "stddev reSum Best", "avg reSum Sum", "min reSum Sum", "max reSum Sum", "var reSum Sum", "stddev reSum Sum" }, new string[] { "avg domCnt random", "min domCnt random", "max domCnt random", "var domCnt random", "stddev domCnt random", "avg domCnt sample", "min domCnt sample", "max domCnt sample", "var domCnt sample", "stddev domCnt sample", "avg domCnt Best", "min domCnt Best", "max domCnt Best", "var domCnt Best", "stddev domCnt Best", "avg domCnt Sum", "min domCnt Sum", "max domCnt Sum", "var domCnt Sum", "stddev domCnt Sum" }, new string[] { "avg domBst random", "min domBst random", "max domBst random", "var domBst random", "stddev domBst random", "avg domBst sample", "min domBst sample", "max domBst sample", "var domBst sample", "stddev domBst sample", "avg domBst Best", "min domBst Best", "max domBst Best", "var domBst Best", "stddev domBst Best", "avg domBst Sum", "min domBst Sum", "max domBst Sum", "var domBst Sum", "stddev domBst Sum" }, new string[] { "ca entire db", "ca entire skyline", "ca sample skyline", "ca best rank", "ca sum rank" }, new string[] { "caMed entire db", "caMed entire skyline", "caMed sample skyline", "caMed best rank", "caMed sum rank" }, new string[] { "caTopB entire db", "caTopB entire skyline", "caTopB sample skyline", "caTopB best rank", "caTopB sum rank" }, new string[] { "caMedTopB entire db", "caMedTopB entire skyline", "caMedTopB sample skyline", "caMedTopB best rank", "caMedTopB sum rank" }, "sum correlation*", "product cardinality"));
                     } else
                     {
                         sb.AppendLine(FormatLineString(' ', "preference set", "trial", "dimensions", "skyline size", "time total", "time algorithm", "sum correlation*", "product cardinality"));                        
@@ -572,7 +573,9 @@ namespace Utility
                 Dictionary<SkylineTypesSampling, List<double>> dominatedObjectsOfBestObjectSampling;
                 Dictionary<ClusterAnalysisSampling, List<List<double>>> clusterAnalysisSampling;
                 Dictionary<ClusterAnalysisSampling, List<List<double>>> clusterAnalysisMedianSampling;
-                InitSamplingDataStructures(out reportsSamplingLong, out reportsSamplingDouble, out setCoverageSampling, out representationErrorSampling, out representationErrorSumSampling, out dominatedObjectsCountSampling, out dominatedObjectsOfBestObjectSampling, out clusterAnalysisSampling, out clusterAnalysisMedianSampling);
+                Dictionary<ClusterAnalysisSampling, Dictionary<BigInteger, List<double>>> clusterAnalysisTopBucketsSampling;
+                Dictionary<ClusterAnalysisSampling, Dictionary<BigInteger, List<double>>> clusterAnalysisMedianTopBucketsSampling;
+                InitSamplingDataStructures(out reportsSamplingLong, out reportsSamplingDouble, out setCoverageSampling, out representationErrorSampling, out representationErrorSumSampling, out dominatedObjectsCountSampling, out dominatedObjectsOfBestObjectSampling, out clusterAnalysisSampling, out clusterAnalysisMedianSampling, out clusterAnalysisTopBucketsSampling, out clusterAnalysisMedianTopBucketsSampling);
 
                 //For each preference set in the preference list
                 for (int iPreferenceIndex = 0; iPreferenceIndex < listPreferences.Count; iPreferenceIndex++)
@@ -628,8 +631,16 @@ namespace Utility
 
                                 if (Sampling)
                                 {
+                                    string strTrial = iTrial + 1 + " / " + _trials;
+                                    string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
+                                    Console.WriteLine(strPreferenceSet);
+
+                                    List<IEnumerable<CLRSafeHashSet<int>>> producedSubspaces = ProduceSubspaces(preferences);
+
                                     InitClusterAnalysisSamplingDataStructures(out clusterAnalysisSampling);
                                     InitClusterAnalysisSamplingDataStructures(out clusterAnalysisMedianSampling);
+                                    InitClusterAnalysisTopBucketsSamplingDataStructures(out clusterAnalysisTopBucketsSampling);
+                                    InitClusterAnalysisTopBucketsSamplingDataStructures(out clusterAnalysisMedianTopBucketsSampling);
 
                                     DataTable entireSkylineDataTable =
                                         parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
@@ -641,36 +652,96 @@ namespace Utility
                                     int[] skylineAttributeColumns =
                                         SkylineSamplingHelper.GetSkylineAttributeColumns(entireSkylineDataTable);
 
+                                    IReadOnlyDictionary<long, object[]> entireSkylineDatabase =
+                                        prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(
+                                            entireSkylineDataTable, 0);
                                     IReadOnlyDictionary<long, object[]> entireSkylineNormalized =
                                         prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(
                                             entireSkylineDataTable, 0);
                                     SkylineSamplingHelper.NormalizeColumns(entireSkylineNormalized,
                                         skylineAttributeColumns);
 
-                                    IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>>
-                                        aggregatedEntireSkylineBuckets =
-                                            ClusterAnalysis.GetAggregatedBuckets(entireSkylineNormalized,
-                                                skylineAttributeColumns);
+                                    DataTable entireDataTable;
+                                        IReadOnlyDictionary<long, object[]> entireDatabaseNormalized =
+                                        GetEntireDatabaseNormalized(parser, strSQL, skylineAttributeColumns, out entireDataTable);
+                                        IReadOnlyDictionary<long, object[]> entireDatabase =
+                                            prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(
+                                                entireDataTable, 0);
 
-                                    IReadOnlyDictionary<long, object[]> entireDatabaseNormalized =
-                                        GetEntireDatabaseNormalized(parser, strSQL, skylineAttributeColumns);
+                                      IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>>
+                                        entireDatabaseBuckets =
+                                            ClusterAnalysis.GetBuckets(entireDatabaseNormalized,
+                                                skylineAttributeColumns);
 
                                     IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>>
                                         aggregatedEntireDatabaseBuckets =
-                                            ClusterAnalysis.GetAggregatedBuckets(entireDatabaseNormalized,
+                                            ClusterAnalysis.GetAggregatedBuckets(entireDatabaseBuckets);
+
+                                      foreach (KeyValuePair<BigInteger, List<IReadOnlyDictionary<long, object[]>>> s in entireDatabaseBuckets.OrderByDescending(l => l.Value.Count)
+                         .ThenBy(l => l.Key).Take(5))
+                                    {                                       
+                                        double percent = (double) s.Value.Count / entireDatabaseNormalized.Count;
+                                        clusterAnalysisTopBucketsSampling[ClusterAnalysisSampling.EntireDb].Add(s.Key,
+                                            new List<double>());
+
+                                        for (var i = 0; i < producedSubspaces.Count; i++) // to enable generalized average calculation
+                                        {
+                                            clusterAnalysisTopBucketsSampling[ClusterAnalysisSampling.EntireDb][s.Key]
+                                                .Add(percent);
+                                        }
+                                    }
+
+                                       IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>>
+                                        entireSkylineBuckets =
+                                            ClusterAnalysis.GetBuckets(entireSkylineNormalized,
                                                 skylineAttributeColumns);
 
-                                    var clusterAnalysisForMedian = new ClusterAnalysis(entireDatabaseNormalized, skylineAttributeColumns);
-
                                     IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>>
-                                      aggregatedEntireSkylineMedianBuckets =
-                                          clusterAnalysisForMedian.GetAggregatedBuckets(entireSkylineNormalized,
-                                              skylineAttributeColumns,true);
+                                        aggregatedEntireSkylineBuckets =
+                                            ClusterAnalysis.GetAggregatedBuckets(entireSkylineBuckets);
+
+                                     FillTopBucketsSampling(clusterAnalysisTopBucketsSampling, ClusterAnalysisSampling.EntireSkyline, entireSkylineBuckets, entireSkylineNormalized.Count, entireDatabaseNormalized.Count, entireSkylineNormalized.Count);
+
+                                    var clusterAnalysisForMedian = new ClusterAnalysis(entireDatabaseNormalized, skylineAttributeColumns);
+                                 
+                                    IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>>
+                                        entireDatabaseMedianBuckets =
+                                            clusterAnalysisForMedian.GetBuckets(entireDatabaseNormalized,
+                                                skylineAttributeColumns,true);
 
                                     IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>>
                                         aggregatedEntireDatabaseMedianBuckets =
-                                            clusterAnalysisForMedian.GetAggregatedBuckets(entireDatabaseNormalized,
+                                            ClusterAnalysis.GetAggregatedBuckets(entireDatabaseMedianBuckets);
+
+                                    foreach (
+                                        KeyValuePair<BigInteger, List<IReadOnlyDictionary<long, object[]>>> s in
+                                            entireDatabaseMedianBuckets.OrderByDescending(l => l.Value.Count)
+                                                .ThenBy(l => l.Key).Take(5))
+                                    {
+                                        double percent = (double) s.Value.Count / entireDatabaseNormalized.Count;
+                                        clusterAnalysisMedianTopBucketsSampling[ClusterAnalysisSampling.EntireDb].Add(
+                                            s.Key,
+                                            new List<double>());
+
+                                        for (var i = 0; i < producedSubspaces.Count; i++)
+                                            // to enable generalized average calculation
+                                        {
+                                            clusterAnalysisMedianTopBucketsSampling[ClusterAnalysisSampling.EntireDb][
+                                                s.Key]
+                                                .Add(percent);
+                                        }
+                                    }
+
+                                    IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>>
+                                        entireSkylineMedianBuckets =
+                                            clusterAnalysisForMedian.GetBuckets(entireSkylineNormalized,
                                                 skylineAttributeColumns,true);
+
+                                    IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>>
+                                      aggregatedEntireSkylineMedianBuckets =
+                                         ClusterAnalysis.GetAggregatedBuckets(entireSkylineMedianBuckets);
+
+                                    FillTopBucketsSampling(clusterAnalysisMedianTopBucketsSampling, ClusterAnalysisSampling.EntireSkyline, entireSkylineMedianBuckets, entireSkylineNormalized.Count, entireDatabaseNormalized.Count, entireSkylineNormalized.Count);                            
 
                                     strSQL += " SAMPLE BY RANDOM_SUBSETS COUNT " + SamplingSubspacesCount +
                                               " DIMENSION " + SamplingSubspaceDimension;
@@ -685,9 +756,6 @@ namespace Utility
                                     prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter,
                                         out strQuery, out operators,
                                         out numberOfRecords);
-
-                                    List<IEnumerable<CLRSafeHashSet<int>>> producedSubspaces =
-                                        ProduceSubspaces(preferences);
 
                                     var subspaceObjects = new List<long>();
                                     var subspaceTime = new List<long>();
@@ -717,9 +785,12 @@ namespace Utility
                                     var dominatedObjectsOfBestObjectSamplingBestRank = new List<double>();
                                     var dominatedObjectsOfBestObjectSamplingSumRank = new List<double>();
 
+                                    var subspaceCount = 1;
                                     foreach (IEnumerable<CLRSafeHashSet<int>> subspace in producedSubspaces)
                                     {
-                                        sw.Restart();
+                                        Console.WriteLine(strPreferenceSet+ " (" + subspaceCount+" / " + producedSubspaces.Count+")");
+
+                                        sw.Restart(); 
                                         var subspacesProducer = new FixedSkylineSamplingSubspacesProducer(subspace);
                                         var utility = new SkylineSamplingUtility(subspacesProducer);
                                         var skylineSample = new SkylineSampling(utility)
@@ -738,6 +809,9 @@ namespace Utility
                                         subspaceTime.Add(skylineSample.TimeMilliseconds);
                                         subspaceTimeElapsed.Add(sw.ElapsedMilliseconds);
 
+                                        IReadOnlyDictionary<long, object[]> sampleSkylineDatabase =
+                                            prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(
+                                                sampleSkylineDataTable, 0);
                                         IReadOnlyDictionary<long, object[]> sampleSkylineNormalized =
                                             prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(
                                                 sampleSkylineDataTable, 0);
@@ -747,20 +821,32 @@ namespace Utility
                                         IReadOnlyDictionary<long, object[]> baseRandomSampleNormalized =
                                             SkylineSamplingHelper.GetRandomSample(entireSkylineNormalized,
                                                 sampleSkylineDataTable.Rows.Count);
-                                        IReadOnlyDictionary<long, object[]> secondRandomSampleNormalized =
-                                            SkylineSamplingHelper.GetRandomSample(entireSkylineNormalized,
+
+                                        IReadOnlyDictionary<long, object[]> secondRandomSampleDatabase =
+                                            SkylineSamplingHelper.GetRandomSample(entireSkylineDatabase,
                                                 sampleSkylineDataTable.Rows.Count);
+                                        var secondRandomSampleNormalizedToBeCreated = new Dictionary<long, object[]>();
+                                        foreach (KeyValuePair<long, object[]> k in secondRandomSampleDatabase)
+                                        {
+                                            var newValue=new object[k.Value.Length];
+                                            k.Value.CopyTo(newValue, 0);
+                                            secondRandomSampleNormalizedToBeCreated.Add(k.Key, newValue);
+                                        }
+                                        IReadOnlyDictionary<long, object[]> secondRandomSampleNormalized =
+                                            new ReadOnlyDictionary<long, object[]>(secondRandomSampleNormalizedToBeCreated);
+                                        SkylineSamplingHelper.NormalizeColumns(secondRandomSampleNormalized, skylineAttributeColumns);
 
-
+                                        IReadOnlyDictionary<long, object[]> entireSkylineDataTableBestRankDatabase;
                                         IReadOnlyDictionary<long, object[]> entireSkylineDataTableBestRankNormalized =
                                             GetEntireSkylineDataTableRankNormalized(entireSkylineDataTable.Copy(),
                                                 entireDataTableSkylineValues, skylineAttributeColumns,
-                                                sampleSkylineDataTable.Rows.Count, 1);
+                                                sampleSkylineDataTable.Rows.Count, 1, out entireSkylineDataTableBestRankDatabase);
 
+                                        IReadOnlyDictionary<long, object[]> entireSkylineDataTableSumRankDatabase;
                                         IReadOnlyDictionary<long, object[]> entireSkylineDataTableSumRankNormalized =
                                             GetEntireSkylineDataTableRankNormalized(entireSkylineDataTable.Copy(),
                                                 entireDataTableSkylineValues, skylineAttributeColumns,
-                                                sampleSkylineDataTable.Rows.Count, 2);
+                                                sampleSkylineDataTable.Rows.Count, 2, out entireSkylineDataTableSumRankDatabase);
 
                                         double setCoverageCoveredBySecondRandomSample = SetCoverage.GetCoverage(
                                             baseRandomSampleNormalized,
@@ -834,18 +920,18 @@ namespace Utility
                                         representationErrorSumSumRank.Add(representationErrorSumEntireSumRank);
 
                                         var dominatedObjectsCountRandomSample =
-                                            new DominatedObjects(entireDatabaseNormalized,
-                                                secondRandomSampleNormalized,
+                                            new DominatedObjects(entireDatabase,
+                                                secondRandomSampleDatabase,
                                                 skylineAttributeColumns);
                                         var dominatedObjectsCountSampleSkyline =
-                                            new DominatedObjects(entireDatabaseNormalized, sampleSkylineNormalized,
+                                            new DominatedObjects(entireDatabase, sampleSkylineDatabase,
                                                 skylineAttributeColumns);
                                         var dominatedObjectsCountEntireSkylineBestRank =
-                                            new DominatedObjects(entireDatabaseNormalized,
-                                                entireSkylineDataTableBestRankNormalized, skylineAttributeColumns);
+                                            new DominatedObjects(entireDatabase,
+                                                entireSkylineDataTableBestRankDatabase, skylineAttributeColumns);
                                         var dominatedObjectsCountEntireSkylineSumRank =
-                                            new DominatedObjects(entireDatabaseNormalized,
-                                                entireSkylineDataTableSumRankNormalized, skylineAttributeColumns);
+                                            new DominatedObjects(entireDatabase,
+                                                entireSkylineDataTableSumRankDatabase, skylineAttributeColumns);
 
                                         dominatedObjectsCountSamplingSecondRandom.Add(
                                             dominatedObjectsCountRandomSample.NumberOfDistinctDominatedObjects);
@@ -865,39 +951,67 @@ namespace Utility
                                         dominatedObjectsOfBestObjectSamplingBestRank.Add(
                                             dominatedObjectsCountEntireSkylineBestRank
                                                 .NumberOfObjectsDominatedByEachObjectOrderedByDescCount.First().Value);
-                                        dominatedObjectsCountSamplingSumRank.Add(
+                                        dominatedObjectsOfBestObjectSamplingSumRank.Add(
                                             dominatedObjectsCountEntireSkylineSumRank
                                                 .NumberOfObjectsDominatedByEachObjectOrderedByDescCount.First().Value);
 
+                                        IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>> sampleBuckets =
+                                                ClusterAnalysis.GetBuckets(sampleSkylineNormalized,
+                                                    skylineAttributeColumns);
                                         IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>>
                                             aggregatedSampleBuckets =
-                                                ClusterAnalysis.GetAggregatedBuckets(sampleSkylineNormalized,
+                                                ClusterAnalysis.GetAggregatedBuckets(sampleBuckets);
+                                         IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>> bestRankBuckets =
+                                                ClusterAnalysis.GetBuckets(
+                                                    entireSkylineDataTableBestRankNormalized,
                                                     skylineAttributeColumns);
                                         IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>>
                                             aggregatedBestRankBuckets =
                                                 ClusterAnalysis.GetAggregatedBuckets(
-                                                    entireSkylineDataTableBestRankNormalized,
+                                                    bestRankBuckets);
+                                        IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>>
+                                            sumRankBuckets =
+                                                ClusterAnalysis.GetBuckets(
+                                                    entireSkylineDataTableSumRankNormalized,
                                                     skylineAttributeColumns);
                                         IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>>
                                             aggregatedSumRankBuckets =
                                                 ClusterAnalysis.GetAggregatedBuckets(
-                                                    entireSkylineDataTableSumRankNormalized,
-                                                    skylineAttributeColumns);
+                                                    sumRankBuckets);
 
-                                        IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>>
-                                       aggregatedSampleMedianBuckets =
-                                           clusterAnalysisForMedian.GetAggregatedBuckets(sampleSkylineNormalized,
+                                        FillTopBucketsSampling(clusterAnalysisTopBucketsSampling, ClusterAnalysisSampling.SampleSkyline, sampleBuckets, sampleSkylineNormalized.Count, entireDatabaseNormalized.Count,entireSkylineNormalized.Count);                            
+                                        FillTopBucketsSampling(clusterAnalysisTopBucketsSampling, ClusterAnalysisSampling.BestRank, bestRankBuckets, entireSkylineDataTableBestRankNormalized.Count, entireDatabaseNormalized.Count,entireSkylineNormalized.Count);                            
+                                        FillTopBucketsSampling(clusterAnalysisTopBucketsSampling, ClusterAnalysisSampling.SumRank, sumRankBuckets, entireSkylineDataTableSumRankNormalized.Count, entireDatabaseNormalized.Count,entireSkylineNormalized.Count);                            
+
+                                         IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>>
+                                       sampleMedianBuckets =
+                                           clusterAnalysisForMedian.GetBuckets(sampleSkylineNormalized,
                                                skylineAttributeColumns,true);
                                         IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>>
-                                            aggregatedBestRankMedianBuckets =
-                                                clusterAnalysisForMedian.GetAggregatedBuckets(
+                                       aggregatedSampleMedianBuckets =
+                                           ClusterAnalysis.GetAggregatedBuckets(sampleMedianBuckets);
+                                        IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>>
+                                            bestRankMedianBuckets =
+                                                clusterAnalysisForMedian.GetBuckets(
                                                     entireSkylineDataTableBestRankNormalized,
                                                     skylineAttributeColumns, true);
                                         IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>>
-                                            aggregatedSumRankMedianBuckets =
-                                                clusterAnalysisForMedian.GetAggregatedBuckets(
+                                            aggregatedBestRankMedianBuckets =
+                                                ClusterAnalysis.GetAggregatedBuckets(
+                                                    bestRankMedianBuckets);
+                                        IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>>
+                                            sumRankMedianBuckets =
+                                                clusterAnalysisForMedian.GetBuckets(
                                                     entireSkylineDataTableSumRankNormalized,
                                                     skylineAttributeColumns, true);
+                                        IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>>
+                                            aggregatedSumRankMedianBuckets =
+                                                ClusterAnalysis.GetAggregatedBuckets(
+                                                    sumRankMedianBuckets);
+
+                                        FillTopBucketsSampling(clusterAnalysisMedianTopBucketsSampling, ClusterAnalysisSampling.SampleSkyline, sampleMedianBuckets, sampleSkylineNormalized.Count, entireDatabaseNormalized.Count,entireSkylineNormalized.Count);                            
+                                        FillTopBucketsSampling(clusterAnalysisMedianTopBucketsSampling, ClusterAnalysisSampling.BestRank, bestRankMedianBuckets, entireSkylineDataTableBestRankNormalized.Count, entireDatabaseNormalized.Count,entireSkylineNormalized.Count);                            
+                                        FillTopBucketsSampling(clusterAnalysisMedianTopBucketsSampling, ClusterAnalysisSampling.SumRank, sumRankMedianBuckets, entireSkylineDataTableSumRankNormalized.Count, entireDatabaseNormalized.Count,entireSkylineNormalized.Count);                            
 
                                         var caEntireDbNew = new List<double>();
                                         var caEntireSkylineNew = new List<double>();
@@ -971,7 +1085,7 @@ namespace Utility
                                             int sumRank = aggregatedSumRankMedianBuckets.ContainsKey(ii)
                                                 ? aggregatedSumRankMedianBuckets[ii].Count
                                                 : 0;
-
+                                            
                                             double bestRankPercent = (double)bestRank /
                                                                      entireSkylineDataTableBestRankNormalized.Count;
                                             double sumRankPercent = (double)sumRank /
@@ -1002,12 +1116,18 @@ namespace Utility
                                             caMedianBestRankNew);
                                         clusterAnalysisMedianSampling[ClusterAnalysisSampling.SumRank].Add(
                                             caMedianSumRankNew);
+
+                                        subspaceCount++;
                                     }
 
                                     Dictionary<ClusterAnalysisSampling, string> clusterAnalysisStrings =
                                         GetClusterAnalysisStrings(skylineAttributeColumns, clusterAnalysisSampling);
                                     Dictionary<ClusterAnalysisSampling, string> clusterAnalysisMedianStrings =
                                         GetClusterAnalysisStrings(skylineAttributeColumns, clusterAnalysisMedianSampling);
+                                    Dictionary<ClusterAnalysisSampling, string> clusterAnalysisTopBucketsStrings =
+                                       GetClusterAnalysisTopBucketsStrings(clusterAnalysisTopBucketsSampling);
+                                    Dictionary<ClusterAnalysisSampling, string> clusterAnalysisMedianTopBucketsStrings =
+                                        GetClusterAnalysisTopBucketsStrings(clusterAnalysisMedianTopBucketsSampling);
 
                                     var time = (long) (subspaceTime.Average() + .5);
                                     var objects = (long) (subspaceObjects.Average() + .5);
@@ -1101,22 +1221,17 @@ namespace Utility
                                     AddToSetCoverageSampling(dominatedObjectsOfBestObjectSampling,
                                         dominatedObjectsOfBestObjectSamplingSingle);
 
-                                    //trial|dimensions|skyline size|time total|time algorithm
-                                    string strTrial = iTrial + 1 + " / " + _trials;
-                                    string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
-                                    Console.WriteLine(strPreferenceSet);
-
                                     string strLine = FormatLineStringSample(strPreferenceSet, strTrial,
                                         preferences.Count, objects,
                                         elapsed, time, subspaceTime.Min(), subspaceTime.Max(),
-                                        Mathematic.GetVariance(subspaceTime),
-                                        Mathematic.GetStdDeviation(subspaceTime), subspaceObjects.Min(),
-                                        subspaceObjects.Max(), Mathematic.GetVariance(subspaceObjects),
-                                        Mathematic.GetStdDeviation(subspaceObjects),
+                                        Mathematic.GetSampleVariance(subspaceTime),
+                                        Mathematic.GetSampleStdDeviation(subspaceTime), subspaceObjects.Min(),
+                                        subspaceObjects.Max(), Mathematic.GetSampleVariance(subspaceObjects),
+                                        Mathematic.GetSampleStdDeviation(subspaceObjects),
                                         setCoverageSamplingSingle, representationErrorSamplingSingle,
                                         representationErrorSumSamplingSingle, dominatedObjectsCountSamplingSingle,
                                         dominatedObjectsOfBestObjectSamplingSingle,
-                                        clusterAnalysisStrings, clusterAnalysisMedianStrings, correlation,                                   
+                                        clusterAnalysisStrings, clusterAnalysisMedianStrings, clusterAnalysisTopBucketsStrings, clusterAnalysisMedianTopBucketsStrings, correlation,                                   
                                         cardinality);
 
                                     Debug.WriteLine(strLine);
@@ -1154,11 +1269,9 @@ namespace Utility
                                     string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
                                     Console.WriteLine(strPreferenceSet);
 
-
                                     string strLine = FormatLineString(strPreferenceSet, strTrial, preferences.Count,
                                         dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality);
-
-
+                                    
                                     Debug.WriteLine(strLine);
                                     sb.AppendLine(strLine);
                                 }
@@ -1244,6 +1357,58 @@ namespace Utility
             
         }
 
+        private static void FillTopBucketsSampling(Dictionary<ClusterAnalysisSampling, Dictionary<BigInteger, List<double>>> clusterAnalysisTopBuckets, ClusterAnalysisSampling sampleSkylineType, IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>> skylineTypeBuckets, int skylineCount, int entireDbCount, int entireSkylineCount)
+        {            
+            List<KeyValuePair<BigInteger, List<IReadOnlyDictionary<long, object[]>>>> sortedTop5 =
+                skylineTypeBuckets.OrderByDescending(l => l.Value.Count).ThenBy(l => l.Key).Take(5).ToList(); // track top 5 buckets
+
+            foreach (KeyValuePair<BigInteger, List<IReadOnlyDictionary<long, object[]>>> skylineTypeBucket in sortedTop5)
+            {
+                if (!clusterAnalysisTopBuckets[sampleSkylineType].ContainsKey(skylineTypeBucket.Key))
+                {
+                    clusterAnalysisTopBuckets[sampleSkylineType].Add(skylineTypeBucket.Key, new List<double>());
+                }
+                double percent = (double)skylineTypeBucket.Value.Count / skylineCount;
+                clusterAnalysisTopBuckets[sampleSkylineType][skylineTypeBucket.Key].Add(percent);
+            }
+
+            foreach (KeyValuePair<BigInteger, List<double>> entireDbBucket in clusterAnalysisTopBuckets[ClusterAnalysisSampling.EntireDb]) // additionally track top 5 buckets of entire db
+            {
+                if (!clusterAnalysisTopBuckets[sampleSkylineType].ContainsKey(entireDbBucket.Key))
+                {
+                    clusterAnalysisTopBuckets[sampleSkylineType].Add(entireDbBucket.Key, new List<double>());
+                }
+
+                if (!skylineTypeBuckets.ContainsKey(entireDbBucket.Key)) // not contained => percentage = 0
+                {
+                    clusterAnalysisTopBuckets[sampleSkylineType][entireDbBucket.Key].Add(0);
+                }
+                else if (sortedTop5.All(item => item.Key != entireDbBucket.Key)) // else: already added in previous foreach => no need to add again
+                {
+                    double percent = (double) skylineTypeBuckets[entireDbBucket.Key].Count / entireDbCount;
+                    clusterAnalysisTopBuckets[sampleSkylineType][entireDbBucket.Key].Add(percent);
+                }
+            }
+
+            foreach (KeyValuePair<BigInteger, List<double>> entireSkylineBucket in clusterAnalysisTopBuckets[ClusterAnalysisSampling.EntireSkyline]) // additionally track top 5 buckets of entire skyline
+            {
+                if (!clusterAnalysisTopBuckets[sampleSkylineType].ContainsKey(entireSkylineBucket.Key))
+                {
+                    clusterAnalysisTopBuckets[sampleSkylineType].Add(entireSkylineBucket.Key, new List<double>());
+                }
+
+                if (!skylineTypeBuckets.ContainsKey(entireSkylineBucket.Key)) // not contained => percentage = 0
+                {
+                    clusterAnalysisTopBuckets[sampleSkylineType][entireSkylineBucket.Key].Add(0);
+                }
+                else if (sortedTop5.All(item => item.Key != entireSkylineBucket.Key)) // else: already added in previous foreach => no need to add again
+                {
+                    double percent = (double)skylineTypeBuckets[entireSkylineBucket.Key].Count / entireSkylineCount;
+                    clusterAnalysisTopBuckets[sampleSkylineType][entireSkylineBucket.Key].Add(percent);
+                }
+            }
+        }
+
         private IReadOnlyDictionary<long, object[]> GetReducedSkyline(IReadOnlyDictionary<long, object[]> baseSkylineNormalized, IReadOnlyDictionary<long, object[]> subtractSkylineNormalized)
         {
             var ret = new Dictionary<long, object[]>();
@@ -1257,6 +1422,76 @@ namespace Utility
             }
 
             return new ReadOnlyDictionary<long, object[]>(ret);
+        }
+
+        private static Dictionary<ClusterAnalysisSampling, string> GetClusterAnalysisTopBucketsStrings(Dictionary<ClusterAnalysisSampling, Dictionary<BigInteger, List<double>>> clusterAnalysisTopBuckets)
+        {
+            var clusterAnalysisStrings =
+              new Dictionary<ClusterAnalysisSampling, string>()
+                {
+                    {ClusterAnalysisSampling.EntireDb, ""},
+                    {ClusterAnalysisSampling.EntireSkyline, ""},
+                    {ClusterAnalysisSampling.SampleSkyline, ""},
+                    {ClusterAnalysisSampling.BestRank, ""},
+                    {ClusterAnalysisSampling.SumRank, ""}
+                };
+
+            int subspacesCount = clusterAnalysisTopBuckets[ClusterAnalysisSampling.EntireDb].Values.First().Count;
+
+            IOrderedEnumerable<KeyValuePair<BigInteger, List<double>>> allEntireDbBuckets = clusterAnalysisTopBuckets[ClusterAnalysisSampling.EntireDb].OrderByDescending(
+                l => l.Value.Sum() / subspacesCount).ThenBy(l => l.Key);
+            IOrderedEnumerable<KeyValuePair<BigInteger, List<double>>> allEntireSkylineBuckets = clusterAnalysisTopBuckets[ClusterAnalysisSampling.EntireSkyline].OrderByDescending(
+               l => l.Value.Sum() / subspacesCount).ThenBy(l => l.Key);
+
+            foreach (
+                ClusterAnalysisSampling clusterAnalysisType in
+                    Enum.GetValues(typeof (ClusterAnalysisSampling)).Cast<ClusterAnalysisSampling>())
+            {
+                foreach (KeyValuePair<BigInteger, List<double>> bucket in allEntireDbBuckets)
+                {
+                    double percent = clusterAnalysisTopBuckets[clusterAnalysisType][bucket.Key].Sum() / subspacesCount;
+                    clusterAnalysisStrings[clusterAnalysisType] += "EB-" + bucket.Key + ":" +
+                                                                   string.Format("{0:0.00},", percent * 100);
+                }
+
+                clusterAnalysisStrings[clusterAnalysisType] = clusterAnalysisStrings[clusterAnalysisType].TrimEnd(',');
+
+                if (clusterAnalysisType != ClusterAnalysisSampling.EntireDb)
+                {
+                    clusterAnalysisStrings[clusterAnalysisType] += ";";
+
+                    foreach (KeyValuePair<BigInteger, List<double>> bucket in allEntireSkylineBuckets.Take(5))
+                    {
+                        double percent = clusterAnalysisTopBuckets[clusterAnalysisType][bucket.Key].Sum() /
+                                         subspacesCount;
+                        clusterAnalysisStrings[clusterAnalysisType] += "ESB-" + bucket.Key + ":" +
+                                                                       string.Format("{0:0.00},", percent * 100);
+                    }
+
+                    clusterAnalysisStrings[clusterAnalysisType] =
+                        clusterAnalysisStrings[clusterAnalysisType].TrimEnd(',');
+                    if (clusterAnalysisType != ClusterAnalysisSampling.EntireSkyline)
+                    {
+                        clusterAnalysisStrings[clusterAnalysisType] += ";";
+
+                        foreach (
+                            KeyValuePair<BigInteger, List<double>> bucket in
+                                clusterAnalysisTopBuckets[clusterAnalysisType].OrderByDescending(
+                                    l => l.Value.Sum() / subspacesCount).ThenBy(l => l.Key).Take(5))
+                        {
+                            double percent = clusterAnalysisTopBuckets[clusterAnalysisType][bucket.Key].Sum() /
+                                             subspacesCount;
+                            clusterAnalysisStrings[clusterAnalysisType] += "SB-" + bucket.Key + ":" +
+                                                                           string.Format("{0:0.00},", percent * 100);
+                        }
+
+                        clusterAnalysisStrings[clusterAnalysisType] =
+                            clusterAnalysisStrings[clusterAnalysisType].TrimEnd(',');
+                    }
+                }
+            }
+
+            return clusterAnalysisStrings;
         }
 
         private static Dictionary<ClusterAnalysisSampling, string> GetClusterAnalysisStrings(int[] skylineAttributeColumns, Dictionary<ClusterAnalysisSampling, List<List<double>>> clusterAnalysisSampling)
@@ -1317,7 +1552,7 @@ namespace Utility
             return clusterAnalysisStrings;
         }
 
-        private static IReadOnlyDictionary<long, object[]> GetEntireSkylineDataTableRankNormalized(DataTable entireSkyline, List<long[]> skylineValues, int[] skylineAttributeColumns, int numberOfRecords, int sortType)
+        private static IReadOnlyDictionary<long, object[]> GetEntireSkylineDataTableRankNormalized(DataTable entireSkyline, List<long[]> skylineValues, int[] skylineAttributeColumns, int numberOfRecords, int sortType, out  IReadOnlyDictionary<long, object[]> skylineDatabase)
         {
             var sortedDataTable=new DataTable();
 
@@ -1332,6 +1567,8 @@ namespace Utility
 
               prefSQL.SQLSkyline.Helper.GetAmountOfTuples(sortedDataTable, numberOfRecords);
 
+            skylineDatabase = prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(sortedDataTable, 0);      
+      
               IReadOnlyDictionary<long, object[]> sortedDataTableNormalized =
                 prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(sortedDataTable, 0);
             SkylineSamplingHelper.NormalizeColumns(sortedDataTableNormalized, skylineAttributeColumns);
@@ -1340,7 +1577,7 @@ namespace Utility
 
         private List<IEnumerable<CLRSafeHashSet<int>>> ProduceSubspaces(ArrayList preferences)
         {
-            var randomSubspacesesProducer = new RandomSkylineSamplingSubspacesProducer
+            var randomSubspacesProducer = new RandomSkylineSamplingSubspacesProducer
             {
                 AllPreferencesCount = preferences.Count,
                 SubspacesCount = SamplingSubspacesCount,
@@ -1350,12 +1587,12 @@ namespace Utility
             var producedSubspaces = new List<IEnumerable<CLRSafeHashSet<int>>>();
             for (var ii = 0; ii < SamplingSamplesCount; ii++)
             {
-                producedSubspaces.Add(randomSubspacesesProducer.GetSubspaces());
+                producedSubspaces.Add(randomSubspacesProducer.GetSubspaces());
             }
             return producedSubspaces;
         }
 
-        private static IReadOnlyDictionary<long, object[]> GetEntireDatabaseNormalized(SQLCommon parser, string strSQL, int[] skylineAttributeColumns)
+        private static IReadOnlyDictionary<long, object[]> GetEntireDatabaseNormalized(SQLCommon parser, string strSQL, int[] skylineAttributeColumns, out DataTable dtEntire)
         {
             DbProviderFactory factory = DbProviderFactories.GetFactory(Helper.ProviderName);
 
@@ -1364,7 +1601,7 @@ namespace Utility
             // will return the connection object (i.e. SqlConnection ...)
             connection.ConnectionString = Helper.ConnectionString;
 
-            var dtEntire = new DataTable();
+            dtEntire = new DataTable();
 
             connection.Open();
 
@@ -1407,24 +1644,24 @@ namespace Utility
             setCoverageSampling[SkylineTypesSampling.RandomAvg].Add(setCoverageSingleSampling[SkylineTypesSingleSampling.Random].Average());
             setCoverageSampling[SkylineTypesSampling.RandomMin].Add(setCoverageSingleSampling[SkylineTypesSingleSampling.Random].Min());
             setCoverageSampling[SkylineTypesSampling.RandomMax].Add(setCoverageSingleSampling[SkylineTypesSingleSampling.Random].Max());
-            setCoverageSampling[SkylineTypesSampling.RandomVar].Add(Mathematic.GetVariance(setCoverageSingleSampling[SkylineTypesSingleSampling.Random]));
-            setCoverageSampling[SkylineTypesSampling.RandomStdDev].Add(Mathematic.GetStdDeviation(setCoverageSingleSampling[SkylineTypesSingleSampling.Random]));
+            setCoverageSampling[SkylineTypesSampling.RandomVar].Add(Mathematic.GetSampleVariance(setCoverageSingleSampling[SkylineTypesSingleSampling.Random]));
+            setCoverageSampling[SkylineTypesSampling.RandomStdDev].Add(Mathematic.GetSampleStdDeviation(setCoverageSingleSampling[SkylineTypesSingleSampling.Random]));
             setCoverageSampling[SkylineTypesSampling.SampleAvg].Add(setCoverageSingleSampling[SkylineTypesSingleSampling.Sample].Average());
             setCoverageSampling[SkylineTypesSampling.SampleMin].Add(setCoverageSingleSampling[SkylineTypesSingleSampling.Sample].Min());
             setCoverageSampling[SkylineTypesSampling.SampleMax].Add(setCoverageSingleSampling[SkylineTypesSingleSampling.Sample].Max());
-            setCoverageSampling[SkylineTypesSampling.SampleVar].Add(Mathematic.GetVariance(setCoverageSingleSampling[SkylineTypesSingleSampling.Sample]));
-            setCoverageSampling[SkylineTypesSampling.SampleStdDev].Add(Mathematic.GetStdDeviation(setCoverageSingleSampling[SkylineTypesSingleSampling.Sample]));
+            setCoverageSampling[SkylineTypesSampling.SampleVar].Add(Mathematic.GetSampleVariance(setCoverageSingleSampling[SkylineTypesSingleSampling.Sample]));
+            setCoverageSampling[SkylineTypesSampling.SampleStdDev].Add(Mathematic.GetSampleStdDeviation(setCoverageSingleSampling[SkylineTypesSingleSampling.Sample]));
 
             setCoverageSampling[SkylineTypesSampling.BestRankAvg].Add(setCoverageSingleSampling[SkylineTypesSingleSampling.BestRank].Average());
             setCoverageSampling[SkylineTypesSampling.BestRankMin].Add(setCoverageSingleSampling[SkylineTypesSingleSampling.BestRank].Min());
             setCoverageSampling[SkylineTypesSampling.BestRankMax].Add(setCoverageSingleSampling[SkylineTypesSingleSampling.BestRank].Max());
-            setCoverageSampling[SkylineTypesSampling.BestRankVar].Add(Mathematic.GetVariance(setCoverageSingleSampling[SkylineTypesSingleSampling.BestRank]));
-            setCoverageSampling[SkylineTypesSampling.BestRankStdDev].Add(Mathematic.GetStdDeviation(setCoverageSingleSampling[SkylineTypesSingleSampling.BestRank]));
+            setCoverageSampling[SkylineTypesSampling.BestRankVar].Add(Mathematic.GetSampleVariance(setCoverageSingleSampling[SkylineTypesSingleSampling.BestRank]));
+            setCoverageSampling[SkylineTypesSampling.BestRankStdDev].Add(Mathematic.GetSampleStdDeviation(setCoverageSingleSampling[SkylineTypesSingleSampling.BestRank]));
             setCoverageSampling[SkylineTypesSampling.SumRankAvg].Add(setCoverageSingleSampling[SkylineTypesSingleSampling.SumRank].Average());
             setCoverageSampling[SkylineTypesSampling.SumRankMin].Add(setCoverageSingleSampling[SkylineTypesSingleSampling.SumRank].Min());
             setCoverageSampling[SkylineTypesSampling.SumRankMax].Add(setCoverageSingleSampling[SkylineTypesSingleSampling.SumRank].Max());
-            setCoverageSampling[SkylineTypesSampling.SumRankVar].Add(Mathematic.GetVariance(setCoverageSingleSampling[SkylineTypesSingleSampling.SumRank]));
-            setCoverageSampling[SkylineTypesSampling.SumRankStdDev].Add(Mathematic.GetStdDeviation(setCoverageSingleSampling[SkylineTypesSingleSampling.SumRank]));
+            setCoverageSampling[SkylineTypesSampling.SumRankVar].Add(Mathematic.GetSampleVariance(setCoverageSingleSampling[SkylineTypesSingleSampling.SumRank]));
+            setCoverageSampling[SkylineTypesSampling.SumRankStdDev].Add(Mathematic.GetSampleStdDeviation(setCoverageSingleSampling[SkylineTypesSingleSampling.SumRank]));
         }
 
         private static void AddToReportsSampling(Dictionary<ReportsSampling, List<long>> reportsSamplingLong, List<long> subspaceObjects, List<long> subspaceTime,
@@ -1434,10 +1671,10 @@ namespace Utility
             reportsSamplingLong[ReportsSampling.TimeMin].Add(subspaceTime.Min());
             reportsSamplingLong[ReportsSampling.SizeMax].Add(subspaceObjects.Max());
             reportsSamplingLong[ReportsSampling.TimeMax].Add(subspaceTime.Max());
-            reportsSamplingDouble[ReportsSampling.SizeVar].Add(Mathematic.GetVariance(subspaceObjects));
-            reportsSamplingDouble[ReportsSampling.TimeVar].Add(Mathematic.GetVariance(subspaceTime));
-            reportsSamplingDouble[ReportsSampling.SizeStdDev].Add(Mathematic.GetStdDeviation(subspaceObjects));
-            reportsSamplingDouble[ReportsSampling.TimeStdDev].Add(Mathematic.GetStdDeviation(subspaceTime));
+            reportsSamplingDouble[ReportsSampling.SizeVar].Add(Mathematic.GetSampleVariance(subspaceObjects));
+            reportsSamplingDouble[ReportsSampling.TimeVar].Add(Mathematic.GetSampleVariance(subspaceTime));
+            reportsSamplingDouble[ReportsSampling.SizeStdDev].Add(Mathematic.GetSampleStdDeviation(subspaceObjects));
+            reportsSamplingDouble[ReportsSampling.TimeStdDev].Add(Mathematic.GetSampleStdDeviation(subspaceTime));
         }
 
         private static void InitClusterAnalysisSamplingDataStructures(out Dictionary<ClusterAnalysisSampling, List<List<double>>> clusterAnalysisSampling)
@@ -1452,7 +1689,19 @@ namespace Utility
             };
         }
 
-        private static void InitSamplingDataStructures(out Dictionary<ReportsSampling, List<long>> reportsSamplingLong, out Dictionary<ReportsSampling, List<double>> reportsSamplingDouble, out Dictionary<SkylineTypesSampling, List<double>> setCoverageSampling, out Dictionary<SkylineTypesSampling, List<double>> representationErrorSampling, out Dictionary<SkylineTypesSampling, List<double>> representationErrorSumSampling, out Dictionary<SkylineTypesSampling, List<double>> dominatedObjectsCountSampling, out Dictionary<SkylineTypesSampling, List<double>> dominatedObjectsByBestObjectSampling, out Dictionary<ClusterAnalysisSampling, List<List<double>>> clusterAnalysisSampling, out Dictionary<ClusterAnalysisSampling, List<List<double>>> clusterAnalysisMedianSampling)
+        private static void InitClusterAnalysisTopBucketsSamplingDataStructures(out Dictionary<ClusterAnalysisSampling, Dictionary<BigInteger, List<double>>> clusterAnalysisTopBucketsSampling)
+        {
+            clusterAnalysisTopBucketsSampling = new Dictionary<ClusterAnalysisSampling, Dictionary<BigInteger, List<double>>>()
+            {
+                {ClusterAnalysisSampling.EntireDb, new Dictionary<BigInteger, List<double>>()},
+                {ClusterAnalysisSampling.EntireSkyline, new Dictionary<BigInteger, List<double>>()},
+                {ClusterAnalysisSampling.SampleSkyline, new Dictionary<BigInteger, List<double>>()},
+                {ClusterAnalysisSampling.BestRank, new Dictionary<BigInteger, List<double>>()},
+                {ClusterAnalysisSampling.SumRank, new Dictionary<BigInteger, List<double>>()}
+            };
+        }
+
+        private static void InitSamplingDataStructures(out Dictionary<ReportsSampling, List<long>> reportsSamplingLong, out Dictionary<ReportsSampling, List<double>> reportsSamplingDouble, out Dictionary<SkylineTypesSampling, List<double>> setCoverageSampling, out Dictionary<SkylineTypesSampling, List<double>> representationErrorSampling, out Dictionary<SkylineTypesSampling, List<double>> representationErrorSumSampling, out Dictionary<SkylineTypesSampling, List<double>> dominatedObjectsCountSampling, out Dictionary<SkylineTypesSampling, List<double>> dominatedObjectsByBestObjectSampling, out Dictionary<ClusterAnalysisSampling, List<List<double>>> clusterAnalysisSampling, out Dictionary<ClusterAnalysisSampling, List<List<double>>> clusterAnalysisMedianSampling, out Dictionary<ClusterAnalysisSampling, Dictionary<BigInteger, List<double>>> clusterAnalysisTopBucketsSampling, out Dictionary<ClusterAnalysisSampling, Dictionary<BigInteger, List<double>>> clusterAnalysisMedianTopBucketsSampling)
         {
             reportsSamplingLong = new Dictionary<ReportsSampling, List<long>>
             {
@@ -1591,6 +1840,8 @@ namespace Utility
 
             InitClusterAnalysisSamplingDataStructures(out clusterAnalysisSampling); 
             InitClusterAnalysisSamplingDataStructures(out clusterAnalysisMedianSampling);
+            InitClusterAnalysisTopBucketsSamplingDataStructures(out clusterAnalysisTopBucketsSampling);
+            InitClusterAnalysisTopBucketsSamplingDataStructures(out clusterAnalysisMedianTopBucketsSampling);
         }
 
         private DataTable GetSQLFromPreferences(ArrayList preferences, bool cardinality)
@@ -1873,11 +2124,11 @@ namespace Utility
              string[] dominatedObjectsCountSamplingStdDev = GetSummaryStdDev(dominatedObjectsCountSampling);
              string[] dominatedObjectsOfBestObjectSamplingStdDev = GetSummaryStdDev(dominatedObjectsOfBestObjectSampling);
 
-             string strAverage = FormatLineStringSample("average", "", reportDimensions.Average(), reportSkylineSize.Average(), reportTimeTotal.Average(), reportTimeAlgorithm.Average(), rsl[ReportsSampling.TimeMin].Average(), rsl[ReportsSampling.TimeMax].Average(), rsd[ReportsSampling.TimeVar].Average(), rsd[ReportsSampling.TimeStdDev].Average(), rsl[ReportsSampling.SizeMin].Average(), rsl[ReportsSampling.SizeMax].Average(), rsd[ReportsSampling.SizeVar].Average(), rsd[ReportsSampling.SizeStdDev].Average(), setCoverageSamplingAverage, representationErrorSamplingAverage, representationErrorSumSamplingAverage, dominatedObjectsCountSamplingAverage, dominatedObjectsOfBestObjectSamplingAverage, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, reportCorrelation.Average(), reportCardinality.Average());
-             string strMin = FormatLineStringSample("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(), reportTimeTotal.Min(), reportTimeAlgorithm.Min(), rsl[ReportsSampling.TimeMin].Min(), rsl[ReportsSampling.TimeMax].Min(), rsd[ReportsSampling.TimeVar].Min(), rsd[ReportsSampling.TimeStdDev].Min(), rsl[ReportsSampling.SizeMin].Min(), rsl[ReportsSampling.SizeMax].Min(), rsd[ReportsSampling.SizeVar].Min(), rsd[ReportsSampling.SizeStdDev].Min(), setCoverageSamplingMin, representationErrorSamplingMin, representationErrorSumSamplingMin, dominatedObjectsCountSamplingMin, dominatedObjectsOfBestObjectSamplingMin, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, reportCorrelation.Min(), reportCardinality.Min());
-            string strMax = FormatLineStringSample("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), rsl[ReportsSampling.TimeMin].Max(), rsl[ReportsSampling.TimeMax].Max(), rsd[ReportsSampling.TimeVar].Max(), rsd[ReportsSampling.TimeStdDev].Max(), rsl[ReportsSampling.SizeMin].Max(), rsl[ReportsSampling.SizeMax].Max(), rsd[ReportsSampling.SizeVar].Max(), rsd[ReportsSampling.SizeStdDev].Max(), setCoverageSamplingMax, representationErrorSamplingMax, representationErrorSumSamplingMax, dominatedObjectsCountSamplingMax, dominatedObjectsOfBestObjectSamplingMax, new[]{"","","","",""}, new[]{"","","","",""}, reportCorrelation.Max(), reportCardinality.Max());
-            string strVar = FormatLineStringSample("variance", "", Mathematic.GetVariance(reportDimensions), Mathematic.GetVariance(reportSkylineSize), Mathematic.GetVariance(reportTimeTotal), Mathematic.GetVariance(reportTimeAlgorithm), Mathematic.GetVariance(rsl[ReportsSampling.TimeMin]), Mathematic.GetVariance(rsl[ReportsSampling.TimeMax]), Mathematic.GetVariance(rsd[ReportsSampling.TimeVar]), Mathematic.GetVariance(rsd[ReportsSampling.TimeStdDev]), Mathematic.GetVariance(rsl[ReportsSampling.SizeMin]), Mathematic.GetVariance(rsl[ReportsSampling.SizeMax]), Mathematic.GetVariance(rsd[ReportsSampling.SizeVar]), Mathematic.GetVariance(rsd[ReportsSampling.SizeStdDev]), setCoverageSamplingVariance, representationErrorSamplingVariance, representationErrorSumSamplingVariance, dominatedObjectsCountSamplingVariance, dominatedObjectsOfBestObjectSamplingVariance, new[]{"","","","",""}, new[]{"","","","",""}, Mathematic.GetVariance(reportCorrelation), Mathematic.GetVariance(reportCardinality));
-            string strStd = FormatLineStringSample("stddeviation", "", Mathematic.GetStdDeviation(reportDimensions), Mathematic.GetStdDeviation(reportSkylineSize), Mathematic.GetStdDeviation(reportTimeTotal), Mathematic.GetStdDeviation(reportTimeAlgorithm), Mathematic.GetStdDeviation(rsl[ReportsSampling.TimeMin]), Mathematic.GetStdDeviation(rsl[ReportsSampling.TimeMax]), Mathematic.GetStdDeviation(rsd[ReportsSampling.TimeVar]), Mathematic.GetStdDeviation(rsd[ReportsSampling.TimeStdDev]), Mathematic.GetStdDeviation(rsl[ReportsSampling.SizeMin]), Mathematic.GetStdDeviation(rsl[ReportsSampling.SizeMax]), Mathematic.GetStdDeviation(rsd[ReportsSampling.SizeVar]), Mathematic.GetStdDeviation(rsd[ReportsSampling.SizeStdDev]), setCoverageSamplingStdDev, representationErrorSamplingStdDev, representationErrorSumSamplingStdDev, dominatedObjectsCountSamplingStdDev, dominatedObjectsOfBestObjectSamplingStdDev, new[]{"","","","",""}, new[]{"","","","",""}, Mathematic.GetStdDeviation(reportCorrelation), Mathematic.GetStdDeviation(reportCardinality));
+             string strAverage = FormatLineStringSample("average", "", reportDimensions.Average(), reportSkylineSize.Average(), reportTimeTotal.Average(), reportTimeAlgorithm.Average(), rsl[ReportsSampling.TimeMin].Average(), rsl[ReportsSampling.TimeMax].Average(), rsd[ReportsSampling.TimeVar].Average(), rsd[ReportsSampling.TimeStdDev].Average(), rsl[ReportsSampling.SizeMin].Average(), rsl[ReportsSampling.SizeMax].Average(), rsd[ReportsSampling.SizeVar].Average(), rsd[ReportsSampling.SizeStdDev].Average(), setCoverageSamplingAverage, representationErrorSamplingAverage, representationErrorSumSamplingAverage, dominatedObjectsCountSamplingAverage, dominatedObjectsOfBestObjectSamplingAverage, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, reportCorrelation.Average(), reportCardinality.Average());
+             string strMin = FormatLineStringSample("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(), reportTimeTotal.Min(), reportTimeAlgorithm.Min(), rsl[ReportsSampling.TimeMin].Min(), rsl[ReportsSampling.TimeMax].Min(), rsd[ReportsSampling.TimeVar].Min(), rsd[ReportsSampling.TimeStdDev].Min(), rsl[ReportsSampling.SizeMin].Min(), rsl[ReportsSampling.SizeMax].Min(), rsd[ReportsSampling.SizeVar].Min(), rsd[ReportsSampling.SizeStdDev].Min(), setCoverageSamplingMin, representationErrorSamplingMin, representationErrorSumSamplingMin, dominatedObjectsCountSamplingMin, dominatedObjectsOfBestObjectSamplingMin, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, reportCorrelation.Min(), reportCardinality.Min());
+             string strMax = FormatLineStringSample("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), rsl[ReportsSampling.TimeMin].Max(), rsl[ReportsSampling.TimeMax].Max(), rsd[ReportsSampling.TimeVar].Max(), rsd[ReportsSampling.TimeStdDev].Max(), rsl[ReportsSampling.SizeMin].Max(), rsl[ReportsSampling.SizeMax].Max(), rsd[ReportsSampling.SizeVar].Max(), rsd[ReportsSampling.SizeStdDev].Max(), setCoverageSamplingMax, representationErrorSamplingMax, representationErrorSumSamplingMax, dominatedObjectsCountSamplingMax, dominatedObjectsOfBestObjectSamplingMax, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, reportCorrelation.Max(), reportCardinality.Max());
+             string strVar = FormatLineStringSample("variance", "", Mathematic.GetSampleVariance(reportDimensions), Mathematic.GetSampleVariance(reportSkylineSize), Mathematic.GetSampleVariance(reportTimeTotal), Mathematic.GetSampleVariance(reportTimeAlgorithm), Mathematic.GetSampleVariance(rsl[ReportsSampling.TimeMin]), Mathematic.GetSampleVariance(rsl[ReportsSampling.TimeMax]), Mathematic.GetSampleVariance(rsd[ReportsSampling.TimeVar]), Mathematic.GetSampleVariance(rsd[ReportsSampling.TimeStdDev]), Mathematic.GetSampleVariance(rsl[ReportsSampling.SizeMin]), Mathematic.GetSampleVariance(rsl[ReportsSampling.SizeMax]), Mathematic.GetSampleVariance(rsd[ReportsSampling.SizeVar]), Mathematic.GetSampleVariance(rsd[ReportsSampling.SizeStdDev]), setCoverageSamplingVariance, representationErrorSamplingVariance, representationErrorSumSamplingVariance, dominatedObjectsCountSamplingVariance, dominatedObjectsOfBestObjectSamplingVariance, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, Mathematic.GetSampleVariance(reportCorrelation), Mathematic.GetSampleVariance(reportCardinality));
+             string strStd = FormatLineStringSample("stddeviation", "", Mathematic.GetSampleStdDeviation(reportDimensions), Mathematic.GetSampleStdDeviation(reportSkylineSize), Mathematic.GetSampleStdDeviation(reportTimeTotal), Mathematic.GetSampleStdDeviation(reportTimeAlgorithm), Mathematic.GetSampleStdDeviation(rsl[ReportsSampling.TimeMin]), Mathematic.GetSampleStdDeviation(rsl[ReportsSampling.TimeMax]), Mathematic.GetSampleStdDeviation(rsd[ReportsSampling.TimeVar]), Mathematic.GetSampleStdDeviation(rsd[ReportsSampling.TimeStdDev]), Mathematic.GetSampleStdDeviation(rsl[ReportsSampling.SizeMin]), Mathematic.GetSampleStdDeviation(rsl[ReportsSampling.SizeMax]), Mathematic.GetSampleStdDeviation(rsd[ReportsSampling.SizeVar]), Mathematic.GetSampleStdDeviation(rsd[ReportsSampling.SizeStdDev]), setCoverageSamplingStdDev, representationErrorSamplingStdDev, representationErrorSumSamplingStdDev, dominatedObjectsCountSamplingStdDev, dominatedObjectsOfBestObjectSamplingStdDev, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, Mathematic.GetSampleStdDeviation(reportCorrelation), Mathematic.GetSampleStdDeviation(reportCardinality));
 
             sb.AppendLine(strAverage);
             sb.AppendLine(strMin);
@@ -2095,7 +2346,7 @@ namespace Utility
             string[] representationErrorSampling,
             string[] representationErrorSumSampling,
             string[] dominatedObjectsCountSampling,
-            string[] dominatedObjectsOfBestObjectSampling, string[] clusterAnalysisStrings, string[] clusterAnalysisMedianStrings, string strCorrelation,
+            string[] dominatedObjectsOfBestObjectSampling, string[] clusterAnalysisStrings, string[] clusterAnalysisMedianStrings, string[] clusterAnalysisTopBucketsStrings, string[] clusterAnalysisMedianTopBucketsStrings, string strCorrelation,
             string strCardinality)
         {
                var sb=new StringBuilder();
@@ -2162,7 +2413,17 @@ namespace Utility
             {
                 sb.Append(s.PadLeft(130, paddingChar));
                 sb.Append("|");
-            }             
+            }
+            foreach (string s in clusterAnalysisTopBucketsStrings)
+            {
+                sb.Append(s.PadLeft(250, paddingChar));
+                sb.Append("|");
+            }
+            foreach (string s in clusterAnalysisMedianTopBucketsStrings)
+            {
+                sb.Append(s.PadLeft(250, paddingChar));
+                sb.Append("|");
+            }      
             sb.Append(strCorrelation.PadLeft(20, paddingChar));
             sb.Append("|");
             sb.Append(strCardinality.PadLeft(25, paddingChar));
@@ -2171,7 +2432,7 @@ namespace Utility
             return sb.ToString();
         }
 
-        private static string FormatLineStringSample(char paddingChar, string strTitle, string strTrial, string strDimension, string strSkyline, string strTimeTotal, string strTimeAlgo, string minTime, string maxTime, string varianceTime, string sedDevTime, string minSize, string maxSize, string varianceSize, string stdDevSize, Dictionary<SkylineTypesSingleSampling, List<double>> setCoverageSampling, Dictionary<SkylineTypesSingleSampling, List<double>> representationErrorSampling, Dictionary<SkylineTypesSingleSampling, List<double>> representationErrorSumSampling, Dictionary<SkylineTypesSingleSampling, List<double>> dominatedObjectsCountSampling, Dictionary<SkylineTypesSingleSampling, List<double>> dominatedObjectsOfBestObjectSampling, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisStrings, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisMedianStrings, string strCorrelation, string strCardinality)
+        private static string FormatLineStringSample(char paddingChar, string strTitle, string strTrial, string strDimension, string strSkyline, string strTimeTotal, string strTimeAlgo, string minTime, string maxTime, string varianceTime, string sedDevTime, string minSize, string maxSize, string varianceSize, string stdDevSize, Dictionary<SkylineTypesSingleSampling, List<double>> setCoverageSampling, Dictionary<SkylineTypesSingleSampling, List<double>> representationErrorSampling, Dictionary<SkylineTypesSingleSampling, List<double>> representationErrorSumSampling, Dictionary<SkylineTypesSingleSampling, List<double>> dominatedObjectsCountSampling, Dictionary<SkylineTypesSingleSampling, List<double>> dominatedObjectsOfBestObjectSampling, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisStrings, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisMedianStrings, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisTopBucketsStrings, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisMedianTopBucketsStrings, string strCorrelation, string strCardinality)
         {
             var sb=new StringBuilder();
 
@@ -2208,8 +2469,10 @@ namespace Utility
             AppendValues(sb, paddingChar, representationErrorSumSampling);
             AppendValues(sb, paddingChar, dominatedObjectsCountSampling);
             AppendValues(sb, paddingChar, dominatedObjectsOfBestObjectSampling);
-            AppendClusterAnalysisValues(sb, paddingChar, clusterAnalysisStrings);
-            AppendClusterAnalysisValues(sb, paddingChar, clusterAnalysisMedianStrings);           
+            AppendClusterAnalysisValues(sb, paddingChar, 130, clusterAnalysisStrings);
+            AppendClusterAnalysisValues(sb, paddingChar, 130, clusterAnalysisMedianStrings);
+            AppendClusterAnalysisValues(sb, paddingChar, 250, clusterAnalysisTopBucketsStrings);
+            AppendClusterAnalysisValues(sb, paddingChar, 250, clusterAnalysisMedianTopBucketsStrings); 
             sb.Append(strCorrelation.PadLeft(20, paddingChar));
             sb.Append("|");
             sb.Append(strCardinality.PadLeft(25, paddingChar));
@@ -2333,28 +2596,28 @@ namespace Utility
             sb.Append("|");
         }
 
-        private static void AppendClusterAnalysisValues(StringBuilder sb, char paddingChar, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisStrings)
+        private static void AppendClusterAnalysisValues(StringBuilder sb, char paddingChar, int paddingCount, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisStrings)
         {
             if (clusterAnalysisStrings.Count == 0)
             {
                 for (var i = 0; i < 5; i++)
                 {
-                    sb.Append("".PadLeft(130, paddingChar));
+                    sb.Append("".PadLeft(paddingCount, paddingChar));
                     sb.Append("|");
                 }
 
                 return;
             }
 
-            sb.Append(clusterAnalysisStrings[ClusterAnalysisSampling.EntireDb].PadLeft(130, paddingChar));
+            sb.Append(clusterAnalysisStrings[ClusterAnalysisSampling.EntireDb].PadLeft(paddingCount, paddingChar));
             sb.Append("|");
-            sb.Append(clusterAnalysisStrings[ClusterAnalysisSampling.EntireSkyline].PadLeft(130, paddingChar));
+            sb.Append(clusterAnalysisStrings[ClusterAnalysisSampling.EntireSkyline].PadLeft(paddingCount, paddingChar));
             sb.Append("|");
-            sb.Append(clusterAnalysisStrings[ClusterAnalysisSampling.SampleSkyline].PadLeft(130, paddingChar));
+            sb.Append(clusterAnalysisStrings[ClusterAnalysisSampling.SampleSkyline].PadLeft(paddingCount, paddingChar));
             sb.Append("|");
-            sb.Append(clusterAnalysisStrings[ClusterAnalysisSampling.BestRank].PadLeft(130, paddingChar));
+            sb.Append(clusterAnalysisStrings[ClusterAnalysisSampling.BestRank].PadLeft(paddingCount, paddingChar));
             sb.Append("|");
-            sb.Append(clusterAnalysisStrings[ClusterAnalysisSampling.SumRank].PadLeft(130, paddingChar));
+            sb.Append(clusterAnalysisStrings[ClusterAnalysisSampling.SumRank].PadLeft(paddingCount, paddingChar));
             sb.Append("|");
         }
 
@@ -2363,14 +2626,14 @@ namespace Utility
             return FormatLineString(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(CultureInfo.InvariantCulture), Math.Round(skyline, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeTotal, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeAlgo, 2).ToString(CultureInfo.InvariantCulture), Math.Round(correlation, 2).ToString(CultureInfo.InvariantCulture), ToLongString(Math.Round(cardinality, 2)));
         }
 
-        private string FormatLineStringSample(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double minTime, double maxTime, double varianceTime, double stddeviationTime, double minSize, double maxSize, double varianceSize, double stddeviationSize, Dictionary<SkylineTypesSingleSampling, List<double>> setCoverageSampling, Dictionary<SkylineTypesSingleSampling, List<double>> representationErrorSampling, Dictionary<SkylineTypesSingleSampling, List<double>> representationErrorSumSampling, Dictionary<SkylineTypesSingleSampling, List<double>> dominatedObjectsCountSampling, Dictionary<SkylineTypesSingleSampling, List<double>> dominatedObjectsOfBestObjectSampling, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisStrings, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisMedianStrings, double correlation, double cardinality)
+        private string FormatLineStringSample(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double minTime, double maxTime, double varianceTime, double stddeviationTime, double minSize, double maxSize, double varianceSize, double stddeviationSize, Dictionary<SkylineTypesSingleSampling, List<double>> setCoverageSampling, Dictionary<SkylineTypesSingleSampling, List<double>> representationErrorSampling, Dictionary<SkylineTypesSingleSampling, List<double>> representationErrorSumSampling, Dictionary<SkylineTypesSingleSampling, List<double>> dominatedObjectsCountSampling, Dictionary<SkylineTypesSingleSampling, List<double>> dominatedObjectsOfBestObjectSampling, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisStrings, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisMedianStrings, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisTopBucketsStrings, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisMedianTopBucketsStrings, double correlation, double cardinality)
         {
-            return FormatLineStringSample(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(CultureInfo.InvariantCulture), Math.Round(skyline, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeTotal, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeAlgo, 2).ToString(CultureInfo.InvariantCulture), Math.Round(minTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(maxTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(varianceTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(stddeviationTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(minSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(maxSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(varianceSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(stddeviationSize, 2).ToString(CultureInfo.InvariantCulture), setCoverageSampling,  representationErrorSampling,  representationErrorSumSampling,  dominatedObjectsCountSampling,  dominatedObjectsOfBestObjectSampling,  clusterAnalysisStrings,  clusterAnalysisMedianStrings, Math.Round(correlation, 2).ToString(CultureInfo.InvariantCulture), ToLongString(Math.Round(cardinality, 2)));
+            return FormatLineStringSample(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(CultureInfo.InvariantCulture), Math.Round(skyline, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeTotal, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeAlgo, 2).ToString(CultureInfo.InvariantCulture), Math.Round(minTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(maxTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(varianceTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(stddeviationTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(minSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(maxSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(varianceSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(stddeviationSize, 2).ToString(CultureInfo.InvariantCulture), setCoverageSampling, representationErrorSampling, representationErrorSumSampling, dominatedObjectsCountSampling, dominatedObjectsOfBestObjectSampling, clusterAnalysisStrings, clusterAnalysisMedianStrings, clusterAnalysisTopBucketsStrings, clusterAnalysisMedianTopBucketsStrings, Math.Round(correlation, 2).ToString(CultureInfo.InvariantCulture), ToLongString(Math.Round(cardinality, 2)));
         }
 
-        private string FormatLineStringSample(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double minTime, double maxTime, double varianceTime, double stddeviationTime, double minSize, double maxSize, double varianceSize, double stddeviationSize, string[] setCoverageSampling, string[] representationErrorSampling, string[] representationErrorSumSampling, string[] dominatedObjectsCountSampling, string[] dominatedObjectsOfBestObjectSampling, string[] clusterAnalysisStrings, string[] clusterAnalysisMedianStrings, double correlation, double cardinality)
+        private string FormatLineStringSample(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double minTime, double maxTime, double varianceTime, double stddeviationTime, double minSize, double maxSize, double varianceSize, double stddeviationSize, string[] setCoverageSampling, string[] representationErrorSampling, string[] representationErrorSumSampling, string[] dominatedObjectsCountSampling, string[] dominatedObjectsOfBestObjectSampling, string[] clusterAnalysisStrings, string[] clusterAnalysisMedianStrings, string[] clusterAnalysisTopBucketsStrings, string[] clusterAnalysisMedianTopBucketsStrings, double correlation, double cardinality)
         {
-            return FormatLineStringSample(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(CultureInfo.InvariantCulture), Math.Round(skyline, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeTotal, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeAlgo, 2).ToString(CultureInfo.InvariantCulture), Math.Round(minTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(maxTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(varianceTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(stddeviationTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(minSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(maxSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(varianceSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(stddeviationSize, 2).ToString(CultureInfo.InvariantCulture), setCoverageSampling, representationErrorSampling, representationErrorSumSampling, dominatedObjectsCountSampling, dominatedObjectsOfBestObjectSampling, clusterAnalysisStrings, clusterAnalysisMedianStrings, Math.Round(correlation, 2).ToString(CultureInfo.InvariantCulture), ToLongString(Math.Round(cardinality, 2)));
+            return FormatLineStringSample(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(CultureInfo.InvariantCulture), Math.Round(skyline, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeTotal, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeAlgo, 2).ToString(CultureInfo.InvariantCulture), Math.Round(minTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(maxTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(varianceTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(stddeviationTime, 2).ToString(CultureInfo.InvariantCulture), Math.Round(minSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(maxSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(varianceSize, 2).ToString(CultureInfo.InvariantCulture), Math.Round(stddeviationSize, 2).ToString(CultureInfo.InvariantCulture), setCoverageSampling, representationErrorSampling, representationErrorSumSampling, dominatedObjectsCountSampling, dominatedObjectsOfBestObjectSampling, clusterAnalysisStrings, clusterAnalysisMedianStrings, clusterAnalysisTopBucketsStrings, clusterAnalysisMedianTopBucketsStrings, Math.Round(correlation, 2).ToString(CultureInfo.InvariantCulture), ToLongString(Math.Round(cardinality, 2)));
         }
 
         

@@ -47,7 +47,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>Utility.SamplingTest</StartupObject>
+    <StartupObject>Utility.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
