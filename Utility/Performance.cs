@@ -312,7 +312,7 @@ namespace Utility
 
             //Open DBConnection --> Otherwise first query is slower as usual, because DBConnection is not open
             SQLCommon parser = new SQLCommon();
-            DataTable dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, "SELECT CAST(cars.id AS BIGINT) AS id FROM cars SKYLINE OF cars.price LOW");
+            DataTable dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, "SELECT cars.id FROM cars SKYLINE OF cars.price LOW");
 
             //Use the correct line, depending on how incomparable items should be compared
             ArrayList listPreferences = new ArrayList();
@@ -589,7 +589,7 @@ namespace Utility
                     string strSkylineOf = "SKYLINE OF " + string.Join(",", (string[])subPreferences.ToArray(Type.GetType("System.String")));
 
                     //SELECT FROM
-                    string strSQL = "SELECT CAST CAST(cars.id AS BIGINT) AS id FROM ";
+                    string strSQL = "SELECT cars.id FROM ";
                     if (TableSize == Size.Small)
                     {
                         strSQL += "cars_small";
@@ -1869,7 +1869,7 @@ namespace Utility
         private DataTable GetSQLFromPreferences(ArrayList preferences, bool cardinality)
         {
             SQLCommon common = new SQLCommon();
-            string strPrefSQL = "SELECT CAST(cars.id AS BIGINT) AS id FROM ";
+            string strPrefSQL = "SELECT cars.id FROM ";
             if (TableSize == Size.Small)
             {
                 strPrefSQL += "cars_small";
