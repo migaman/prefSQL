@@ -26,3 +26,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("SQLSkylineTest")]
 [assembly: InternalsVisibleTo("SQLParserTest")]
 [assembly: InternalsVisibleTo("Utility")]
+[assembly: InternalsVisibleTo("Evaluation")]

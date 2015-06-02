@@ -100,5 +100,160 @@ namespace Utility
             List<double> doubleList = numbers.ConvertAll(x => (double)x);
             return GetSampleVariance(doubleList);
         }
+
+        /// <summary>
+        ///     TODO: from http://www.remondo.net/calculate-mean-median-mode-averages-csharp/
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static T Median<T>(IEnumerable<T> list)
+        {
+            int midIndex;
+            return Median(list, out midIndex);
+        }
+
+        /// <summary>
+        ///     TODO: based on http://www.remondo.net/calculate-mean-median-mode-averages-csharp/
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="midIndex"></param>
+        /// <returns></returns>
+        public static T Median<T>(IEnumerable<T> list, out int midIndex)
+        {
+            List<T> orderedList = list.OrderBy(numbers => numbers).ToList();
+
+            if (orderedList.Count == 0)
+            {
+                throw new Exception("no median calculation possible for empty lists.");
+            }
+
+            if (orderedList.Count == 1)
+            {
+                midIndex = 0;
+                return orderedList.First();
+            }
+
+            MathProvider<T> mathP = null;
+
+            if (typeof (T) == typeof (double))
+            {
+                mathP = new DoubleMathProvider() as MathProvider<T>;                
+            }
+            else if (typeof (T) == typeof (long))
+            {
+                mathP = new LongMathProvider() as MathProvider<T>;
+            }
+
+            if (mathP == null)
+            {
+                throw new Exception("type not supported: "+typeof(T));
+            }
+
+            int listSize = orderedList.Count;
+            T result;
+
+            midIndex = listSize / 2;
+
+            if (listSize % 2 == 0) // even
+            {
+                result = mathP.Half(mathP.Add(orderedList.ElementAt(midIndex - 1), orderedList.ElementAt(midIndex)));
+            }
+            else // odd
+            {
+                result = orderedList.ElementAt(midIndex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// TODO: http://en.wikipedia.org/wiki/Quartile#Method_1
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static T LowerQuartile<T>(IEnumerable<T> list)
+        {
+            List<T> orderedList = list.OrderBy(numbers => numbers).ToList();
+
+            if (orderedList.Count == 0)
+            {
+                throw new Exception("no median calculation possible for empty lists.");
+            }
+
+            if (orderedList.Count == 1)
+            {
+                return orderedList.First();
+            }
+
+            int takeElements;
+            Median(orderedList, out takeElements);
+
+            return Median(orderedList.Take(takeElements));
+        }
+
+        /// <summary>
+        /// TODO: http://en.wikipedia.org/wiki/Quartile#Method_1
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static T UpperQuartile<T>(IEnumerable<T> list)
+        {
+            List<T> orderedList = list.OrderBy(numbers => numbers).ToList();
+
+            if (orderedList.Count == 0)
+            {
+                throw new Exception("no median calculation possible for empty lists.");
+            }
+
+            if (orderedList.Count == 1)
+            {
+                return orderedList.First();
+            }
+
+            int skipElements;
+            Median(orderedList, out skipElements);
+
+            if (orderedList.Count % 2 == 1)
+            {
+                skipElements++;
+            }
+
+            return Median(orderedList.Skip(skipElements));
+        }
+
+        /// <summary>
+        /// TODO: based on http://stackoverflow.com/a/64142/2406389
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        private abstract class MathProvider<T>
+        {
+            public abstract T Add(T a, T b);
+            public abstract T Half(T a);
+        }
+
+        private class DoubleMathProvider : MathProvider<double>
+        {
+            public override double Half(double a)
+            {
+                return a / 2;
+            }
+            public override double Add(double a, double b)
+            {
+                return a + b;
+            }
+        }
+
+          private class LongMathProvider : MathProvider<long>
+        {
+              public override long Half(long a)
+              {
+                  return a / 2;
+              }
+              public override long Add(long a, long b)
+              {
+                  return a + b;
+              }
+        }
     }
 }
+

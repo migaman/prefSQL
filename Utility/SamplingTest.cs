@@ -4,21 +4,20 @@
     using System.Collections.Generic;
     using System.Data;
     using System.Data.Common;
-    using System.Data.SqlClient;
     using System.Diagnostics;
     using System.Linq;
     using System.Numerics;
-    using System.Windows.Forms;
+    using prefSQL.Evaluation;
     using prefSQL.SQLParser;
     using prefSQL.SQLParser.Models;
     using prefSQL.SQLParserTest;
     using prefSQL.SQLSkyline;
-    using prefSQL.SQLSkyline.SamplingSkyline;
+    using prefSQL.SQLSkyline.SkylineSampling;
 
     public sealed class SamplingTest
     {
         private const string BaseSkylineSQL =
-            "SELECT cs.*, colors.name, bodies.name, fuels.name, makes.name, conditions.name, drives.name, transmissions.name FROM cars_small cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID LEFT OUTER JOIN drives ON cs.drive_id = drives.ID LEFT OUTER JOIN transmissions ON cs.transmission_id = transmissions.ID SKYLINE OF ";
+            "SELECT cs.*, colors.name, bodies.name, fuels.name, makes.name, conditions.name, drives.name, transmissions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID LEFT OUTER JOIN drives ON cs.drive_id = drives.ID LEFT OUTER JOIN transmissions ON cs.transmission_id = transmissions.ID SKYLINE OF ";
 
         private readonly string _entireSkylineSql;
         private readonly string _entireSkylineSqlBestRank;
@@ -32,7 +31,7 @@
             {
                 addPreferences += preference.ToString().Replace("cars", "cs") + ", ";
             }
-            addPreferences = addPreferences.TrimEnd(", ".ToCharArray());
+            //addPreferences = addPreferences.TrimEnd(", ".ToCharArray());
             //_entireSkylineSql = BaseSkylineSQL + addPreferences;
             //_skylineSampleSql = _entireSkylineSql + " SAMPLE BY RANDOM_SUBSETS COUNT 15 DIMENSION 3";
             _entireSkylineSql =
@@ -51,9 +50,9 @@
         {
             var samplingTest = new SamplingTest();
 
-            samplingTest.TestExecutionForPerformance(100);
+            //samplingTest.TestExecutionForPerformance(10);
             //samplingTest.TestForSetCoverage();
-            //samplingTest.TestForClusterAnalysis();            
+            samplingTest.TestForClusterAnalysis();            
             //samplingTest.TestForDominatedObjects();
             //samplingTest.TestCompareAlgorithms();
 
@@ -187,108 +186,83 @@
                 Helper.ProviderName,
                 _skylineSampleSql);
 
+            DataTable entireSkylineDataTableBestRank = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
+                Helper.ProviderName,
+                _entireSkylineSqlBestRank.Replace("XXX", sampleSkylineDataTable.Rows.Count.ToString()));
+            DataTable entireSkylineDataTableSumRank = common.ParseAndExecutePrefSQL(Helper.ConnectionString,
+                Helper.ProviderName,
+                _entireSkylineSqlSumRank.Replace("XXX", sampleSkylineDataTable.Rows.Count.ToString()));
+
             IReadOnlyDictionary<long, object[]> sampleSkylineDatabase =
                 prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(sampleSkylineDataTable, 0);
-            IReadOnlyDictionary<long, object[]> entireDatabase = prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(dtEntire, 0);
+            IReadOnlyDictionary<long, object[]> entireDatabase =
+                prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(dtEntire, 0);
             IReadOnlyDictionary<long, object[]> entireSkylineDatabase =
-              prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(entireSkylineDataTable, 0);
+                prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(entireSkylineDataTable, 0);
+            IReadOnlyDictionary<long, object[]> entireSkylineDatabaseBestRank =
+                prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(entireSkylineDataTableBestRank, 0);
+            IReadOnlyDictionary<long, object[]> entireSkylineDatabaseSumRank =
+                prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(entireSkylineDataTableSumRank, 0);
+            IReadOnlyDictionary<long, object[]> randomSample =
+                SkylineSamplingHelper.GetRandomSample(entireSkylineDatabase, sampleSkylineDataTable.Rows.Count);
 
-            var dominatedObjects = new Dictionary<long, long>();
-            var dominatedObjectsSet = new HashSet<long>();
-            var dominatingObjectsSet = new HashSet<long>();
-
-            var dominatedObjectsEntire = new Dictionary<long, long>();
-            var dominatedObjectsSetEntire = new HashSet<long>();
-            var dominatingObjectsSetEntire = new HashSet<long>();
-
-            foreach (KeyValuePair<long, object[]> i in sampleSkylineDatabase)
-            {
-                dominatedObjects.Add(i.Key, 0);
-            }
-
-            foreach (KeyValuePair<long, object[]> i in entireSkylineDatabase)
-            {
-                dominatedObjectsEntire.Add(i.Key, 0);
-            }
-
-            int[] dimensions = Enumerable.Range(0, skylineAttributeColumns.Length).ToArray();
-
-            foreach (KeyValuePair<long, object[]> j in entireDatabase)
-            {
-                var potentiallyDominatedTuple = new long[skylineAttributeColumns.Length];
-
-                for (var column = 0; column < skylineAttributeColumns.Length; column++)
-                {
-                    int index = skylineAttributeColumns[column];
-                    potentiallyDominatedTuple[column] = (long) j.Value[index];
-                }
-
-                foreach (KeyValuePair<long, object[]> i in sampleSkylineDatabase)
-                {                  
-                    var dominatingTuple = new long[skylineAttributeColumns.Length];
-
-                    for (var column = 0; column < skylineAttributeColumns.Length; column++)
-                    {
-                        int index = skylineAttributeColumns[column];
-                        dominatingTuple[column] = (long) i.Value[index];
-                    }
-
-                    if (prefSQL.SQLSkyline.Helper.IsTupleDominated(dominatingTuple, potentiallyDominatedTuple,
-                        dimensions))
-                    {
-                        dominatedObjectsSet.Add(j.Key);
-                        dominatingObjectsSet.Add(i.Key);
-
-                        dominatedObjects[i.Key]++;
-                    }
-                }
-
-                foreach (KeyValuePair<long, object[]> i in entireSkylineDatabase)
-                {
-                    var dominatingTuple = new long[skylineAttributeColumns.Length];
-
-                    for (var column = 0; column < skylineAttributeColumns.Length; column++)
-                    {
-                        int index = skylineAttributeColumns[column];
-                        dominatingTuple[column] = (long)i.Value[index];
-                    }
-
-                    if (prefSQL.SQLSkyline.Helper.IsTupleDominated(dominatingTuple, potentiallyDominatedTuple,
-                        dimensions))
-                    {
-                        dominatedObjectsSetEntire.Add(j.Key);
-                        dominatingObjectsSetEntire.Add(i.Key);
-
-                        dominatedObjectsEntire[i.Key]++;
-                    }
-                }
-            }
+            var dominatedObjectsEntireSkyline = new DominatedObjects(entireDatabase, entireSkylineDatabase,
+                skylineAttributeColumns);
+            var dominatedObjectsSampleSkyline = new DominatedObjects(entireDatabase, sampleSkylineDatabase,
+                skylineAttributeColumns);
+            var dominatedObjectsEntireSkylineBestRank = new DominatedObjects(entireDatabase,
+                entireSkylineDatabaseBestRank, skylineAttributeColumns);
+            var dominatedObjectsEntireSkylineSumRank = new DominatedObjects(entireDatabase, entireSkylineDatabaseSumRank,
+                skylineAttributeColumns);
+            var dominatedObjectsRandomSample = new DominatedObjects(entireDatabase, randomSample,
+                skylineAttributeColumns);
 
             Debug.WriteLine("entire database size: {0}", entireDatabase.Keys.ToList().Count);
-            Debug.WriteLine("sample skyline size: {0}", sampleSkylineDatabase.Keys.ToList().Count);
-            Debug.WriteLine("objects that dominate other objects: {0}", dominatingObjectsSet.Count);
-            Debug.WriteLine("dominated objects: {0}", dominatedObjectsSet.Count);
-            Debug.WriteLine("dominated objects multiple: {0}", dominatedObjects.Values.Sum());
             Debug.WriteLine("entire skyline size: {0}", entireSkylineDataTable.Rows.Count);
-            Debug.WriteLine("entire objects that dominate other objects: {0}", dominatingObjectsSetEntire.Count);
-            Debug.WriteLine("entire dominated objects: {0}", dominatedObjectsSetEntire.Count);
-            Debug.WriteLine("entire dominated objects multiple: {0}", dominatedObjectsEntire.Values.Sum());
+            Debug.WriteLine("sample skyline size: {0}", sampleSkylineDatabase.Keys.ToList().Count);
+            Debug.WriteLine("random skyline size: {0}", randomSample.Keys.ToList().Count);
+            Debug.WriteLine("best skyline size: {0}", entireSkylineDatabaseBestRank.Keys.ToList().Count);
+            Debug.WriteLine("sum skyline size: {0}", entireSkylineDatabaseSumRank.Keys.ToList().Count);
+            Debug.WriteLine("");
             Debug.WriteLine("");
 
-            foreach (KeyValuePair<long, long> v in dominatedObjects.OrderByDescending(key => key.Value))
-            {
-                Debug.WriteLine("object {0:00000} dominates {1:00000} other objects", v.Key, v.Value);
-            }
+            WriteSummary("entire", dominatedObjectsEntireSkyline);
+            WriteSummary("sample", dominatedObjectsSampleSkyline);
+            WriteSummary("random", dominatedObjectsRandomSample);
+            WriteSummary("best", dominatedObjectsEntireSkylineBestRank);
+            WriteSummary("sum", dominatedObjectsEntireSkylineSumRank);
 
-            Debug.WriteLine("");
+            WriteDominatingObjects("entire", dominatedObjectsEntireSkyline);
+            WriteDominatingObjects("sample", dominatedObjectsSampleSkyline);
+            WriteDominatingObjects("random", dominatedObjectsRandomSample);
+            WriteDominatingObjects("best", dominatedObjectsEntireSkylineBestRank);
+            WriteDominatingObjects("sum", dominatedObjectsEntireSkylineSumRank);
+        }
 
-            foreach (KeyValuePair<long, long> v in dominatedObjectsEntire.OrderByDescending(key => key.Value))
+        private static void WriteDominatingObjects(string objectsEntireSkyline, DominatedObjects dominatedObjects)
+        {
+            foreach (
+                KeyValuePair<long, long> dominatingObject in
+                    dominatedObjects.NumberOfObjectsDominatedByEachObjectOrderedByDescCount)
             {
-                if (v.Value > 0)
+                if (dominatingObject.Value > 0)
                 {
-                    Debug.WriteLine("entire object {0:00000} dominates {1:00000} other objects", v.Key, v.Value);                    
+                    Debug.WriteLine(objectsEntireSkyline + " object {0:00000} dominates {1:00000} other objects",
+                        dominatingObject.Key,
+                        dominatingObject.Value);
                 }
             }
+        }
+
+        private static void WriteSummary(string objectsEntireSkyline, DominatedObjects dominatedObjects)
+        {
+            Debug.WriteLine(objectsEntireSkyline + " objects that dominate other objects: {0}",
+                dominatedObjects.NumberOfObjectsDominatingOtherObjects);
+            Debug.WriteLine(objectsEntireSkyline + " dominated objects: {0}",
+                dominatedObjects.NumberOfDistinctDominatedObjects);
+            Debug.WriteLine(objectsEntireSkyline + " dominated objects multiple: {0}",
+                dominatedObjects.NumberOfDominatedObjectsIncludingDuplicates);
+            Debug.WriteLine("");
         }
 
         private void TestForClusterAnalysis()
@@ -346,17 +320,7 @@
             IReadOnlyDictionary<long, object[]> sampleSkylineNormalized =
                 prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(sampleSkylineDataTable, 0);
             SkylineSamplingHelper.NormalizeColumns(sampleSkylineNormalized, skylineAttributeColumns);
-
-            IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>> entireBuckets =
-                ClusterAnalysis.GetBuckets(entireSkylineNormalized, skylineAttributeColumns);
-            IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>> sampleBuckets =
-                ClusterAnalysis.GetBuckets(sampleSkylineNormalized, skylineAttributeColumns);
-
-            IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>> aggregatedEntireBuckets =
-                ClusterAnalysis.GetAggregatedBuckets(entireBuckets);
-            IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>> aggregatedSampleBuckets =
-                ClusterAnalysis.GetAggregatedBuckets(sampleBuckets);
-
+          
             for (var i = 0; i < skylineAttributeColumns.Length; i++)
             {
                 dt.Columns.RemoveAt(0);
@@ -365,20 +329,38 @@
             IReadOnlyDictionary<long, object[]> full = prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(dt, 0);
             SkylineSamplingHelper.NormalizeColumns(full, skylineAttributeColumns);
 
+            ClusterAnalysis.CalcMedians(full,skylineAttributeColumns);
+          
+            IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>> entireBuckets =
+              ClusterAnalysis.GetBuckets(entireSkylineNormalized, skylineAttributeColumns);
+            IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>> sampleBuckets =
+                ClusterAnalysis.GetBuckets(sampleSkylineNormalized, skylineAttributeColumns);
+
+            //IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>> aggregatedEntireBuckets =
+            //    ClusterAnalysis.GetAggregatedBuckets(entireBuckets);
+            //IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>> aggregatedSampleBuckets =
+            //    ClusterAnalysis.GetAggregatedBuckets(sampleBuckets);
+
             IReadOnlyDictionary<BigInteger, List<IReadOnlyDictionary<long, object[]>>> fullB =
                 ClusterAnalysis.GetBuckets(full, skylineAttributeColumns);
-            IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>> aFullB =
-                ClusterAnalysis.GetAggregatedBuckets(fullB);
+           // IReadOnlyDictionary<int, List<IReadOnlyDictionary<long, object[]>>> aFullB =
+           //     ClusterAnalysis.GetAggregatedBuckets(fullB);
+                                  
+            IOrderedEnumerable<KeyValuePair<BigInteger, List<IReadOnlyDictionary<long, object[]>>>> sorted = fullB.OrderBy(l => l.Value.Count)
+                         .ThenBy(l => l.Key);
 
-            for (var i = 0; i < skylineAttributeColumns.Length; i++)
+            int len = Convert.ToInt32(Math.Pow(2, skylineAttributeColumns.Length));
+            //for (var i = 0; i < len; i++)
+            foreach(KeyValuePair<BigInteger, List<IReadOnlyDictionary<long, object[]>>> s in sorted)
             {
-                int entire = aggregatedEntireBuckets.ContainsKey(i) ? aggregatedEntireBuckets[i].Count : 0;
-                int sample = aggregatedSampleBuckets.ContainsKey(i) ? aggregatedSampleBuckets[i].Count : 0;
+                BigInteger i = s.Key;
+                int entire = entireBuckets.ContainsKey(i) ? entireBuckets[i].Count : 0;
+                int sample = sampleBuckets.ContainsKey(i) ? sampleBuckets[i].Count : 0;
                 double entirePercent = (double) entire / entireSkylineNormalized.Count;
                 double samplePercent = (double) sample / sampleSkylineNormalized.Count;
-                int fullX = aFullB.ContainsKey(i) ? aFullB[i].Count : 0;
+                int fullX = fullB.ContainsKey(i) ? fullB[i].Count : 0;
                 double fullP = (double) fullX / full.Count;
-                Console.WriteLine("-- {0,2} -- {5,6} ({6,7:P2} %) -- {1,6} ({3,7:P2} %) -- {2,6} ({4,7:P2} %)", i,
+                Console.WriteLine("-- {0,5} -- {5,6} ({6,7:P2} %) -- {1,6} ({3,7:P2} %) -- {2,6} ({4,7:P2} %)", i,
                     entire, sample, entirePercent,
                     samplePercent, fullX, fullP);
             }
@@ -386,6 +368,14 @@
             Console.WriteLine();
             Console.WriteLine("{0} - {1} - {2}", entireSkylineNormalized.Count, sampleSkylineNormalized.Count,
                 full.Count);
+        }
+        class DescendedDateComparer : IComparer<int>
+        {
+            public int Compare(int x, int y)
+            {
+                // use the default comparer to do the original comparison for datetimes
+               return -x.CompareTo(y);
+            }
         }
 
         private void TestForSetCoverage()
@@ -459,7 +449,7 @@
                 //Console.WriteLine("set coverage covered by skyline sample: " + setCoverageCoveredBySkylineSample);
             }
         }
-
+        
         private void TestExecutionForPerformance(int runs)
         {
             var common = new SQLCommon
@@ -467,22 +457,27 @@
                 SkylineType =
                     new SkylineBNL() {Provider = Helper.ProviderName, ConnectionString = Helper.ConnectionString}
             };
+            var commonSort = new SQLCommon
+            {
+                SkylineType =
+                    new SkylineBNLSort() { Provider = Helper.ProviderName, ConnectionString = Helper.ConnectionString }
+            };
 
             PrefSQLModel prefSqlModel = common.GetPrefSqlModelFromPreferenceSql(_skylineSampleSql);
-            var randomSubspacesesProducer = new RandomSamplingSkylineSubspacesProducer
+            var randomSubspacesesProducer = new RandomSkylineSamplingSubspacesProducer
             {
                 AllPreferencesCount = prefSqlModel.Skyline.Count,
                 SubspacesCount = prefSqlModel.SkylineSampleCount,
                 SubspaceDimension = prefSqlModel.SkylineSampleDimension
             };
 
-            //DataTable dataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
-            //    _entireSkylineSql);
-            //Console.WriteLine(common.TimeInMilliseconds);
-            //Console.WriteLine(dataTable.Rows.Count);
-            //Console.WriteLine();
+            DataTable dataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+                _entireSkylineSql);
+            Console.WriteLine(common.TimeInMilliseconds);
+            Console.WriteLine(dataTable.Rows.Count);
+            Console.WriteLine();
 
-            var producedSubspaces = new List<HashSet<HashSet<int>>>();
+            var producedSubspaces = new List<IEnumerable<CLRSafeHashSet<int>>>();
 
             for (var i = 0; i < runs; i++)
             {
@@ -517,12 +512,13 @@
             //};
 
             //producedSubspaces.Add(temp);
-            ExecuteSampleSkylines(producedSubspaces, prefSqlModel, common);
-            //ExecuteSampleSkylines(producedSubspaces, prefSqlModel, common);
+            ExecuteSampleSkylines(producedSubspaces, prefSqlModel, common);            
+            Console.WriteLine();
+            ExecuteSampleSkylines(producedSubspaces, prefSqlModel, commonSort);
             //ExecuteSampleSkylines(producedSubspaces, prefSqlModel, common);
         }
 
-        private void ExecuteSampleSkylines(List<HashSet<HashSet<int>>> producedSubspaces,
+        private static void ExecuteSampleSkylines(IReadOnlyCollection<IEnumerable<CLRSafeHashSet<int>>> producedSubspaces,
             PrefSQLModel prefSqlModel, SQLCommon common)
         {
             var objectsCount = 0;
@@ -538,21 +534,22 @@
             prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out strQuery, out operators,
                 out numberOfRecords);
 
-            foreach (HashSet<HashSet<int>> subspace in producedSubspaces)
+            foreach (IEnumerable<CLRSafeHashSet<int>> subspace in producedSubspaces)
             {
-                var subspacesProducer = new FixedSamplingSkylineSubspacesProducer(subspace);
-                var utility = new SamplingSkylineUtility(subspacesProducer);
-                var skylineSample = new SamplingSkyline(utility)
+                var subspacesProducer = new FixedSkylineSamplingSubspacesProducer(subspace);
+                var utility = new SkylineSamplingUtility(subspacesProducer);
+                var skylineSample = new SkylineSampling(utility)
                 {
                     SubspacesCount = prefSqlModel.SkylineSampleCount,
-                    SubspaceDimension = prefSqlModel.SkylineSampleDimension
+                    SubspaceDimension = prefSqlModel.SkylineSampleDimension,
+                    SelectedStrategy = common.SkylineType
                 };
 
-                DataTable dataTable = skylineSample.GetSkylineTable(strQuery, operators, common.SkylineType);
+                DataTable dataTable = skylineSample.GetSkylineTable(strQuery, operators);
 
                 objectsCount += dataTable.Rows.Count;
                 timeSpent += skylineSample.TimeMilliseconds;
-                foreach (HashSet<int> attribute in subspace)
+                foreach (CLRSafeHashSet<int> attribute in subspace)
                 {
                     Console.Write("[");
                     foreach (int attribute1 in attribute)

@@ -5,6 +5,7 @@ using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using prefSQL.SQLParser.Models;
 using prefSQL.SQLSkyline;
+using prefSQL.SQLSkyline.SkylineSampling;
 
 namespace prefSQL.SQLParser
 {
@@ -230,12 +231,24 @@ namespace prefSQL.SQLParser
                         _skylineType.MultipleSkylineUpToLevel = _skylineUpToLevel;
                         _skylineType.AdditionParameters = additionalParameters;
                         _skylineType.HasIncomparablePreferences = prefSQL.WithIncomparable;
-                        
 
                         //Now create the query depending on the Skyline algorithm
-                        strSQLReturn = _skylineType.GetStoredProcedureCommand(strWhere, strOrderBy, strFirstSQL, strOperators, strOrderByAttributes);
-
-                        
+                        if (!prefSQL.HasSkylineSample)
+                        {
+                            strSQLReturn = _skylineType.GetStoredProcedureCommand(strWhere, strOrderBy, strFirstSQL,
+                                strOperators, strOrderByAttributes);
+                        }
+                        else
+                        {
+                            var skylineSample = new SkylineSampling
+                            {
+                                SubspacesCount = prefSQL.SkylineSampleCount,
+                                SubspaceDimension = prefSQL.SkylineSampleDimension,
+                                SelectedStrategy = _skylineType
+                            };
+                            strSQLReturn = skylineSample.GetStoredProcedureCommand(strWhere, strOrderBy, strFirstSQL,
+                                strOperators, strOrderByAttributes);
+                        }
                     }
                     if(prefSQL.Ranking.Count > 0)
                     {

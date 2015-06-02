@@ -1,16 +1,41 @@
-namespace prefSQL.SQLSkyline.SamplingSkyline
+namespace prefSQL.SQLSkyline.SkylineSampling
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
 
-    internal sealed class SamplingSkylineUtility
+    internal sealed class SkylineSamplingUtility
     {
-        private readonly ISamplingSkylineSubspacesProducer _subspacesProducer;
+        private readonly ISkylineSamplingSubspacesProducer _subspacesProducer;
         private int _allPreferencesCount;
         private int _subspaceDimension;
-        private HashSet<HashSet<int>> _subspaces;
+        private IEnumerable<CLRSafeHashSet<int>> _subspaces;
         private int _subspacesCount;
+
+        /// <summary>
+        ///     All Operators over the preferences (e.g., "LOW", "INCOMPARABLE").
+        /// </summary>
+        internal string[] Operators { get; set; }
+
+        /// <summary>
+        ///     All strings for the Operators (e.g., "LOW", "LOW;INCOMPARABLE").
+        /// </summary>
+        /// <remarks>
+        ///     Since INCOMPARABLE preferences are represented by two columns resp. operators, OperatorStrings is used to represent
+        ///     this situation. There are two possibilities: Either an element of OperatorStrings contains "LOW", or it contains
+        ///     "LOW;INCOMPARABLE". This is also used for convenience when executing the skyline algorithm over a subspace of all
+        ///     preferences - the operators for this subspace can be simply concatenated from the OperatorStrings property.
+        /// </remarks>
+        internal string[] OperatorStrings { get; set; }
+
+        /// <summary>
+        ///     The positions of the preferences (i.e., the columns) within the skyline reported from the skyline algorithm.
+        /// </summary>
+        /// <remarks>
+        ///     This is used to skip over INCOMPARABLE columns when they're not used (e.g., when collecting the skylineValues for
+        ///     sorting methods).
+        /// </remarks>
+        internal int[] PreferenceColumnIndex { get; set; }
 
         internal int SubspacesCount
         {
@@ -45,31 +70,33 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         internal int ArtificialUniqueRowIdentifierColumnIndex { get; set; }
         internal int EqualValuesBucketColumnIndex { get; set; }
 
-        internal ISamplingSkylineSubspacesProducer SubspacesProducer
+        internal ISkylineSamplingSubspacesProducer SubspacesProducer
         {
             get { return _subspacesProducer; }
         }
 
-        internal HashSet<HashSet<int>> Subspaces
+        internal IEnumerable<CLRSafeHashSet<int>> Subspaces
         {
             get { return _subspaces ?? (_subspaces = DetermineSubspaces()); }
         }
 
-        public SamplingSkylineUtility()
-            : this(new RandomSamplingSkylineSubspacesProducer())
+        public bool[] IsPreferenceIncomparable { get; set; }
+
+        public SkylineSamplingUtility()
+            : this(new RandomSkylineSamplingSubspacesProducer())
         {
         }
 
-        public SamplingSkylineUtility(ISamplingSkylineSubspacesProducer subspacesProducer)
+        public SkylineSamplingUtility(ISkylineSamplingSubspacesProducer subspacesProducer)
         {
             _subspacesProducer = subspacesProducer;
         }
 
-        private HashSet<HashSet<int>> DetermineSubspaces()
+        private IEnumerable<CLRSafeHashSet<int>> DetermineSubspaces()
         {
             CheckValidityOfCountAndDimension(SubspacesCount, SubspaceDimension, AllPreferencesCount);
 
-            HashSet<HashSet<int>> subspacesReturn = SubspacesProducer.GetSubspaces();
+            IList<CLRSafeHashSet<int>> subspacesReturn = SubspacesProducer.GetSubspaces().ToList();
 
             if (subspacesReturn.Count != SubspacesCount)
             {
@@ -86,9 +113,9 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                 throw new Exception("Not all preferences at least once contained in produced subspaces.");
             }
 
-            foreach (HashSet<int> subspaceReturn in subspacesReturn)
+            foreach (CLRSafeHashSet<int> subspaceReturn in subspacesReturn)
             {
-                HashSet<int> subspaceReturnLocal = subspaceReturn;
+                CLRSafeHashSet<int> subspaceReturnLocal = subspaceReturn;
 
                 if (
                     subspacesReturn.Where(element => element != subspaceReturnLocal)
@@ -139,11 +166,11 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         }
 
         private bool AreAllPreferencesAtLeastOnceContainedInSubspaces(
-            IEnumerable<HashSet<int>> subspaceQueries)
+            IEnumerable<CLRSafeHashSet<int>> subspaceQueries)
         {
-            var containedPreferences = new HashSet<int>();
+            var containedPreferences = new CLRSafeHashSet<int>();
 
-            foreach (HashSet<int> subspaceQueryPreferences in subspaceQueries)
+            foreach (CLRSafeHashSet<int> subspaceQueryPreferences in subspaceQueries)
             {
                 foreach (int subspaceQueryPreference in subspaceQueryPreferences)
                 {
@@ -195,9 +222,9 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
         /// </summary>
         /// <param name="subspace"></param>
         /// <returns></returns>
-        public HashSet<int> GetSubspaceComplement(HashSet<int> subspace)
+        public CLRSafeHashSet<int> GetSubspaceComplement(CLRSafeHashSet<int> subspace)
         {
-            var subspaceComplement = new HashSet<int>();
+            var subspaceComplement = new CLRSafeHashSet<int>();
             for (var i = 0; i < AllPreferencesCount; i++)
             {
                 if (!subspace.Contains(i))
@@ -206,6 +233,40 @@ namespace prefSQL.SQLSkyline.SamplingSkyline
                 }
             }
             return subspaceComplement;
+        }
+
+        /// <summary>
+        ///     Fill Operators, OperatorStrings and PreferenceColumnIndex properties.
+        /// </summary>
+        /// <param name="operators">
+        ///     The operators with which the preferences are handled; can be either "LOW" or "INCOMPARABLE",
+        ///     specified in the format "LOW;LOW;INCOMPARABLE;LOW;LOW;...", i.e., separated via ";".
+        /// </param>
+        internal void CalculatePropertiesWithRespectToIncomparableOperators(string operators)
+        {
+            Operators = operators.Split(';');
+            int prefrencesCount = Operators.Count(op => op != "INCOMPARABLE");
+            OperatorStrings = new string[prefrencesCount];
+            PreferenceColumnIndex = new int[prefrencesCount];
+            IsPreferenceIncomparable = new bool[prefrencesCount];
+
+            var nextOperatorIndex = 0;
+            for (var opIndex = 0; opIndex < Operators.Length; opIndex++)
+            {
+                if (Operators[opIndex] != "INCOMPARABLE")
+                {
+                    IsPreferenceIncomparable[nextOperatorIndex] = false;
+                    OperatorStrings[nextOperatorIndex] = Operators[opIndex];
+                    PreferenceColumnIndex[nextOperatorIndex] = opIndex;
+                    nextOperatorIndex++;
+                }
+                else
+                {
+                    IsPreferenceIncomparable[nextOperatorIndex - 1] = true;
+                    // keep "LOW;INCOMPARABLE" together
+                    OperatorStrings[nextOperatorIndex - 1] += ";" + Operators[opIndex];
+                }
+            }
         }
     }
 }

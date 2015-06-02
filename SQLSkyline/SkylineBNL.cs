@@ -26,7 +26,12 @@ namespace prefSQL.SQLSkyline
         public override bool SupportIncomparable()
         {
             return true;
-        }        
+        }
+
+        public override void PrepareDatabaseForAlgorithm(ref IEnumerable<object[]> useDatabase, List<int> subspace, int[] preferenceColumnIndex, bool[] isPreferenceIncomparable)
+        {
+            // deliberately empty since no preparations necessary
+        }
 
         public override string GetStoredProcedureCommand(string strWhere, string strOrderBy, string strFirstSQL, string strOperators, string strOrderByAttributes)
         {

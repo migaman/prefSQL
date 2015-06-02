@@ -7,7 +7,7 @@ using prefSQL.SQLParser;
 using prefSQL.SQLSkyline;
 
 namespace Utility
-{
+{  
     class Program
     {
         
@@ -38,7 +38,7 @@ namespace Utility
         
 
         private void MeasurePerformance()
-        {
+        {        
             Performance p = new Performance();
 
 
@@ -48,9 +48,9 @@ namespace Utility
             p.UseCLR = false;
             p.Trials = 1;           //Amount of trials for each single sql preference statement
             
-            p.MinDimensions = 15;   //Up from x dimensions
-            p.MaxDimensions = 15;   //Up to x dimensions
-            p.RandomDraws = 50;    //Amount of draws (x times randomly choose a some preferences)
+            p.MinDimensions = 9;   //Up from x dimensions
+            p.MaxDimensions = 9;   //Up to x dimensions
+            p.RandomDraws = 10;    //Amount of draws (x times randomly choose a some preferences)
             
             //p.TableSize = Performance.Size.Small;
             //p.TableSize = Performance.Size.Medium;
@@ -62,13 +62,13 @@ namespace Utility
             //p.Set = Performance.PreferenceSet.Jon;
             //p.Set = Performance.PreferenceSet.Mya;
             //p.Set = Performance.PreferenceSet.Barra;
-            p.Set = Performance.PreferenceSet.All;
-            //p.Set = Performance.PreferenceSet.Numeric;
+            //p.Set = Performance.PreferenceSet.All;
+            p.Set = Performance.PreferenceSet.Numeric;
             //p.Set = Performance.PreferenceSet.Categoric;
             //p.Set = Performance.PreferenceSet.MinCardinality;
-
-            //p.Mode = Performance.PreferenceChooseMode.Combination;
-            p.Mode = Performance.PreferenceChooseMode.Shuffle;
+            
+            p.Mode = Performance.PreferenceChooseMode.Combination;
+            //p.Mode = Performance.PreferenceChooseMode.Shuffle;
             //p.Mode = Performance.PreferenceChooseMode.Correlation;
             //p.Mode = Performance.PreferenceChooseMode.AntiCorrelation;
             //p.Mode = Performance.PreferenceChooseMode.Independent;
@@ -81,10 +81,10 @@ namespace Utility
             //p.Strategy = new SkylineHexagon();
             //p.Strategy = new SkylineDecisionTree();
 
-            //p.Sampling = true;
-            p.SamplingSubspacesCount = 15;
+            p.Sampling = true;
+            p.SamplingSubspacesCount = 10;
             p.SamplingSubspaceDimension = 3;
-            p.SamplingSamplesCount = 100;
+            p.SamplingSamplesCount = 10;
 
             p.GeneratePerformanceQueries();
         }

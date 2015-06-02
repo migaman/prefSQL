@@ -116,22 +116,18 @@ namespace prefSQL.SQLSkyline
                 //long value = (long)dataReader[iCol];
                 //long value = tupletoCheck[iCol].Value;
                 long value = newTuple[nextComparisonIndex]; //.Value;
+                long tmpValue = windowTuple[nextComparisonIndex];
 
-                int comparison = CompareValue(value, windowTuple[nextComparisonIndex]);
-
-                if (comparison >= 1)
+                if (value < tmpValue)
                 {
-                    if (comparison == 2)
-                    {
-                        //at least one must be greater than
-                        greaterThan = true;
-                    }
-                }
-                else
-                {
-                    //Value is smaller --> return false
                     return false;
                 }
+
+                if (value > tmpValue)
+                {
+                    //at least one must be greater than
+                    greaterThan = true;
+                }            
 
                 nextComparisonIndex++;
             }
@@ -160,23 +156,19 @@ namespace prefSQL.SQLSkyline
             {
                 //Use long array instead of dataReader --> is 100% faster!!!
                 long value = newTuple[nextComparisonIndex];
+                long tmpValue = windowTuple[nextComparisonIndex];
 
-                //interchange values for comparison
-                int comparison = CompareValue(windowTuple[nextComparisonIndex], value);
-
-                if (comparison >= 1)
+                //interchange values for comparison                
+                if (tmpValue < value)
                 {
-                    if (comparison == 2)
-                    {
-                        //at least one must be greater than
-                        greaterThan = true;
-                    }
-                }
-                else
-                {
-                    //Value is smaller --> return false
                     return false;
                 }
+
+                if (tmpValue > value)
+                {
+                    //at least one must be greater than
+                    greaterThan = true;
+                }           
 
                 nextComparisonIndex++;
             }
@@ -211,38 +203,36 @@ namespace prefSQL.SQLSkyline
                 {
                     long value = newTuple[nextComparisonIndex];
                     long tmpValue = windowTuple[nextComparisonIndex];
-                    int comparison = CompareValue(value, tmpValue);
 
-                    if (comparison >= 1)
-                    {
-                        if (comparison == 2)
-                        {
-                            //at least one must be greater than
-                            greaterThan = true;
-                        }
-                        else
-                        {
-                            //It is the same long value
-                            //Check if the value must be text compared
-                            if (iCol + 1 < operators.Length && operators[iCol + 1].Equals("INCOMPARABLE"))
-                            {
-                                //string value is always the next field
-                                string strValue = (string)newTupleAllValues[iCol + 1];
-                                //If it is not the same string value, the values are incomparable!!
-                                //If two values are comparable the strings will be empty!
-                                if (strValue.Equals("INCOMPARABLE") || !strValue.Equals(resultIncomparable[nextComparisonIndex]))
-                                {
-                                    //Value is incomparable --> return false
-                                    return false;
-                                }
-                            }
-                        }
-                    }
-                    else
+                    if (value < tmpValue)
                     {
                         //Value is smaller --> return false
                         return false;
                     }
+
+                    if (value > tmpValue)
+                    {
+                        //at least one must be greater than
+                        greaterThan = true;
+                    }
+                    else
+                    {
+                        //It is the same long value
+                        //Check if the value must be text compared
+                        if (iCol + 1 < operators.Length && operators[iCol + 1].Equals("INCOMPARABLE"))
+                        {
+                            //string value is always the next field
+                            var strValue = (string) newTupleAllValues[iCol + 1];
+                            //If it is not the same string value, the values are incomparable!!
+                            //If two values are comparable the strings will be empty!
+                            if (strValue.Equals("INCOMPARABLE") ||
+                                !strValue.Equals(resultIncomparable[nextComparisonIndex]))
+                            {
+                                //Value is incomparable --> return false
+                                return false;
+                            }
+                        }
+                    }               
 
                     nextComparisonIndex++;
                 }
@@ -279,38 +269,33 @@ namespace prefSQL.SQLSkyline
                     long tmpValue = windowTuple[nextComparisonIndex];
 
                     //interchange values for comparison
-                    int comparison = CompareValue(tmpValue, value);
-
-                    if (comparison >= 1)
+                    if (tmpValue < value)
                     {
-                        if (comparison == 2)
-                        {
-                            //at least one must be greater than
-                            greaterThan = true;
-                        }
-                        else
-                        {
-                            //It is the same long value
-                            //Check if the value must be text compared
-                            if (iCol + 1 < operators.Length && operators[iCol + 1].Equals("INCOMPARABLE"))
-                            {
-                                //string value is always the next field
-                                string strValue = (string)newTupleAllValues[iCol + 1];
-                                //If it is not the same string value, the values are incomparable!!
-                                //If two values are comparable the strings will be empty!
-                                if (!strValue.Equals(stringResult[nextComparisonIndex]))
-                                {
-                                    //Value is incomparable --> return false
-                                    return false;
-                                }
-                            }
-                        }
+                        return false;
+                    }
+
+                    if (tmpValue > value)
+                    {
+                        //at least one must be greater than
+                        greaterThan = true;
                     }
                     else
                     {
-                        //Value is smaller --> return false
-                        return false;
-                    }
+                        //It is the same long value
+                        //Check if the value must be text compared
+                        if (iCol + 1 < operators.Length && operators[iCol + 1].Equals("INCOMPARABLE"))
+                        {
+                            //string value is always the next field
+                            var strValue = (string) newTupleAllValues[iCol + 1];
+                            //If it is not the same string value, the values are incomparable!!
+                            //If two values are comparable the strings will be empty!
+                            if (!strValue.Equals(stringResult[nextComparisonIndex]))
+                            {
+                                //Value is incomparable --> return false
+                                return false;
+                            }
+                        }
+                    }                 
 
                     nextComparisonIndex++;
                 }                
@@ -418,35 +403,10 @@ namespace prefSQL.SQLSkyline
         }
 
         /// <summary>
-        /// Compares two values according to preference logic
-        /// </summary>
-        /// <param name="value1"></param>
-        /// <param name="value2"></param>
-        /// <returns>
-        /// 0 = false
-        /// 1 = equal
-        /// 2 = greater than
-        /// </returns>
-        private static int CompareValue(long value1, long value2)
-        {
-            if (value1 >= value2)
-            {
-                if (value1 > value2)
-                    return 2;
-                else
-                    return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
-        /// <summary>
-        /// Gets the ItemArray from each row of dataTable and converts it to a List.
+        ///     Gets the ItemArray from each row of dataTable and converts it to a List.
         /// </summary>
         /// <remarks>
-        /// Implemented as a bulk operation, this is faster than conversion by iterating over each row of dataTable.
+        ///     Implemented as a bulk operation, this is faster than conversion by iterating over each row of dataTable.
         /// </remarks>
         /// <param name="dataTable">The DataTable from which the rows resp. ItemArrays are extracted.</param>
         /// <returns>A List containing the ItemArrays of each row of dataTable.</returns>
@@ -458,16 +418,64 @@ namespace prefSQL.SQLSkyline
         }
 
         /// <summary>
-        /// Produces a Collection by which a dataTable's row can be accessed via its unique ID existing in the column specified by uniqueIdColumnIndex.
+        ///     Produces a Collection by which a dataTable's row can be accessed via its unique ID existing in the column specified
+        ///     by uniqueIdColumnIndex.
+        /// </summary>
+        /// <remarks>
+        /// Delegates to <see cref="GetDatabaseAccessibleByUniqueId(System.Data.DataTable,int,bool)"/> with the last parameter, fillUniqueIdColumn, set to false.
+        /// </remarks>
+        /// <param name="dataTable">The DataTable from which the rows resp. ItemArrays are extracted.</param>
+        /// <param name="uniqueIdColumnIndex">
+        ///     The index of the column containing a unique ID. The type of this column has to be
+        ///     typeof(long).
+        /// </param>
+        /// <returns>A Collection by which a row can be accessed via its unique ID.</returns>
+        public static IReadOnlyDictionary<long, object[]> GetDatabaseAccessibleByUniqueId(DataTable dataTable,
+            int uniqueIdColumnIndex)
+        {
+            return GetDatabaseAccessibleByUniqueId(dataTable, uniqueIdColumnIndex, false);
+        }
+
+        /// <summary>
+        ///     Produces a Collection by which a dataTable's row can be accessed via its unique ID existing in the column specified
+        ///     by uniqueIdColumnIndex.
         /// </summary>
         /// <param name="dataTable">The DataTable from which the rows resp. ItemArrays are extracted.</param>
-        /// <param name="uniqueIdColumnIndex">The index of the column containing a unique ID.</param>
+        /// <param name="uniqueIdColumnIndex">
+        ///     The index of the column containing a unique ID. The type of this column has to be
+        ///     typeof(long).
+        /// </param>
+        /// <param name="fillUniqueIdColumn">
+        ///     Specifies whether to create artificial unique identifiers for each row and fill them into the column at position
+        ///     uniqueIdColumnIndex or not (i.e., the column already is filled, e.g., when using a already SELECTed unique column).
+        /// </param>
         /// <returns>A Collection by which a row can be accessed via its unique ID.</returns>
-        public static IReadOnlyDictionary<long, object[]> GetDatabaseAccessibleByUniqueId(DataTable dataTable, int uniqueIdColumnIndex)
+        public static IReadOnlyDictionary<long, object[]> GetDatabaseAccessibleByUniqueId(DataTable dataTable,
+            int uniqueIdColumnIndex, bool fillUniqueIdColumn)
         {
-            // Convert.ToInt64 because type of column might be int (e.g., when selecting an ID column of type int and using this column as uniqueIdColumnIndex)
-            return new ReadOnlyDictionary<long, object[]>(dataTable.Rows.Cast<DataRow>()
-                .ToDictionary(row => Convert.ToInt64(row[uniqueIdColumnIndex]), row => row.ItemArray));
+            IDictionary<long, object[]> ret = null;
+
+            if (fillUniqueIdColumn)
+            {
+                ret = new Dictionary<long, object[]>();
+
+                long count = 0;
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    object[] itemArray = row.ItemArray;
+                    itemArray[uniqueIdColumnIndex] = count;
+                    ret.Add(count, itemArray);
+                    count++;
+                }
+            }
+            else
+            {
+                // Convert.ToInt64 because type of column might be int (e.g., when selecting an ID column of type int and using this column as uniqueIdColumnIndex)
+                ret = dataTable.Rows.Cast<DataRow>()
+                    .ToDictionary(row => Convert.ToInt64(row[uniqueIdColumnIndex]), row => row.ItemArray);
+            }
+
+            return new ReadOnlyDictionary<long, object[]>(ret);
         }
 
         public static DataTable GetDataTableFromSQL(string strQuery, string strConnection, string strProvider)
