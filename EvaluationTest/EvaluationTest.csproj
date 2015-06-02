@@ -43,6 +43,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="ClusterAnalysisTests.cs" />
     <Compile Include="SetCoverageTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

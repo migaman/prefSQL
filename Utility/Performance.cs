@@ -49,7 +49,7 @@ namespace Utility
         {
             TimeMin, TimeMax, TimeVar, TimeStdDev, TimeMed, TimeQ1, TimeQ3, SizeMin, SizeMax, SizeVar, SizeStdDev, SizeMed, SizeQ1, SizeQ3,
         }
-
+        
         private enum SkylineTypesSampling
         {
             RandomAvg, RandomMin, RandomMax, RandomVar, RandomStdDev, RandomMed, RandomQ1, RandomQ3,
