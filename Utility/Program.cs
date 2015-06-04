@@ -50,7 +50,7 @@ namespace Utility
             
             p.MinDimensions = 7;   //Up from x dimensions
             p.MaxDimensions = 7;   //Up to x dimensions
-            p.RandomDraws = 3;    //Amount of draws (x times randomly choose a some preferences)
+            p.RandomDraws = 5;    //Amount of draws (x times randomly choose a some preferences)
             
             //p.TableSize = Performance.Size.Small;
             //p.TableSize = Performance.Size.Medium;
@@ -84,7 +84,7 @@ namespace Utility
             p.Sampling = true;
             p.SamplingSubspacesCount = 10;
             p.SamplingSubspaceDimension = 3;
-            p.SamplingSamplesCount = 1;
+            p.SamplingSamplesCount = 10;
 
             p.GeneratePerformanceQueries();
         }
