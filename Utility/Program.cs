@@ -48,9 +48,9 @@ namespace Utility
             p.UseCLR = false;
             p.Trials = 1;           //Amount of trials for each single sql preference statement
             
-            p.MinDimensions = 9;   //Up from x dimensions
-            p.MaxDimensions = 9;   //Up to x dimensions
-            p.RandomDraws = 10;    //Amount of draws (x times randomly choose a some preferences)
+            p.MinDimensions = 7;   //Up from x dimensions
+            p.MaxDimensions = 7;   //Up to x dimensions
+            p.RandomDraws = 3;    //Amount of draws (x times randomly choose a some preferences)
             
             //p.TableSize = Performance.Size.Small;
             //p.TableSize = Performance.Size.Medium;
@@ -62,13 +62,13 @@ namespace Utility
             //p.Set = Performance.PreferenceSet.Jon;
             //p.Set = Performance.PreferenceSet.Mya;
             //p.Set = Performance.PreferenceSet.Barra;
-            //p.Set = Performance.PreferenceSet.All;
-            p.Set = Performance.PreferenceSet.Numeric;
+            p.Set = Performance.PreferenceSet.All;
+            //p.Set = Performance.PreferenceSet.Numeric;
             //p.Set = Performance.PreferenceSet.Categoric;
             //p.Set = Performance.PreferenceSet.MinCardinality;
             
-            p.Mode = Performance.PreferenceChooseMode.Combination;
-            //p.Mode = Performance.PreferenceChooseMode.Shuffle;
+            //p.Mode = Performance.PreferenceChooseMode.Combination;
+            p.Mode = Performance.PreferenceChooseMode.Shuffle;
             //p.Mode = Performance.PreferenceChooseMode.Correlation;
             //p.Mode = Performance.PreferenceChooseMode.AntiCorrelation;
             //p.Mode = Performance.PreferenceChooseMode.Independent;
@@ -84,7 +84,7 @@ namespace Utility
             p.Sampling = true;
             p.SamplingSubspacesCount = 10;
             p.SamplingSubspaceDimension = 3;
-            p.SamplingSamplesCount = 10;
+            p.SamplingSamplesCount = 1;
 
             p.GeneratePerformanceQueries();
         }
