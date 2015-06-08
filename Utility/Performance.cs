@@ -42,6 +42,7 @@ namespace Utility
         private const string Path = @"C:\Users\Public\Documents\workspace\prefcom\prefSQL\root\PerformanceTests\";
         private int _trials = 5;                 //How many times each preferene query is executed  
         private int _randomDraws = 25;          //Only used for the shuffle set. How many random set will be generated
+        private bool _excessiveTests = true;
         static readonly Random Rnd = new Random();
         static readonly Mathematic MyMathematic = new Mathematic();
 
@@ -121,6 +122,12 @@ namespace Utility
         internal int SamplingSubspaceDimension { get; set; }
 
         internal int SamplingSamplesCount { get; set; }
+
+        public bool ExcessiveTests
+        {
+            get { return _excessiveTests; }
+            set { _excessiveTests = value; }
+        }
 
         #endregion
 
@@ -488,7 +495,7 @@ namespace Utility
                 string strSeparatorLine;
                 if (Sampling)
                 {
-                    strSeparatorLine = PerformanceSampling.GetSeparatorLine();
+                    strSeparatorLine = PerformanceSampling.GetSeparatorLine(ExcessiveTests);
                 }
                 else
                 {
@@ -538,7 +545,7 @@ namespace Utility
                 List<double> reportCorrelation = new List<double>();
                 List<double> reportCardinality = new List<double>();
 
-                var perfSampling = new PerformanceSampling(SamplingSubspacesCount, SamplingSubspaceDimension, SamplingSamplesCount);
+                var perfSampling = new PerformanceSampling(SamplingSubspacesCount, SamplingSubspaceDimension, SamplingSamplesCount, ExcessiveTests);
 
                 //For each preference set in the preference list
                 for (int iPreferenceIndex = 0; iPreferenceIndex < listPreferences.Count; iPreferenceIndex++)

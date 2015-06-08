@@ -48,15 +48,15 @@ namespace Utility
             p.UseCLR = false;
             p.Trials = 1;           //Amount of trials for each single sql preference statement
             
-            p.MinDimensions = 7;   //Up from x dimensions
-            p.MaxDimensions = 7;   //Up to x dimensions
-            p.RandomDraws = 5;    //Amount of draws (x times randomly choose a some preferences)
+            p.MinDimensions = 15;   //Up from x dimensions
+            p.MaxDimensions = 15;   //Up to x dimensions
+            p.RandomDraws = 50;    //Amount of draws (x times randomly choose a some preferences)
             
             //p.TableSize = Performance.Size.Small;
             //p.TableSize = Performance.Size.Medium;
             //p.TableSize = Performance.Size.Large;
             p.TableSize = Performance.Size.Superlarge;
-
+            
             //p.Set = Performance.PreferenceSet.ArchiveComparable;
             //p.Set = Performance.PreferenceSet.ArchiveIncomparable;
             //p.Set = Performance.PreferenceSet.Jon;
@@ -81,10 +81,11 @@ namespace Utility
             //p.Strategy = new SkylineHexagon();
             //p.Strategy = new SkylineDecisionTree();
 
+            p.ExcessiveTests = false;
             p.Sampling = true;
-            p.SamplingSubspacesCount = 10;
+            p.SamplingSubspacesCount = 15;
             p.SamplingSubspaceDimension = 3;
-            p.SamplingSamplesCount = 10;
+            p.SamplingSamplesCount = 100;
 
             p.GeneratePerformanceQueries();
         }
