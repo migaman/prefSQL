@@ -45,7 +45,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         /// </summary>
         /// <remarks>
         ///     Includes the calculation of the various subpace skylines via the already existing skyline algorithms. Excludes the
-        ///     time spent to query SQL server and retrieve database.
+        ///     time spent to query SQL server and initially retrieve database.
         /// </remarks>
         public long TimeMilliseconds { get; set; }
 
@@ -64,7 +64,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         public long NumberOfOperations { get; set; }
 
         /// <summary>
-        ///     The strategs selected, i.e., the base skyline algorithm that should be executed when calculating the various
+        ///     The strategy selected, i.e., the base skyline algorithm that should be executed when calculating the various
         ///     subset skylines.
         /// </summary>
         public SkylineStrategy SelectedStrategy { get; set; }
@@ -113,7 +113,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         }
 
         /// <summary>
-        /// Determines the full call to the stored procedure if executing the algorithm via CLR.
+        ///     Determines the full call to the stored procedure if executing the algorithm via CLR.
         /// </summary>
         /// <param name="strWhere"></param>
         /// <param name="strOrderBy"></param>

@@ -14,11 +14,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
     internal sealed class RandomSkylineSamplingSubsetsProducer : ISkylineSamplingSubsetsProducer
     {
         private static readonly Random MyRandom = new Random();
-
         public int SubsetsCount { get; set; }
-
         public int SubsetDimension { get; set; }
-
         public int AllPreferencesCount { get; set; }
 
         /// <summary>
@@ -89,7 +86,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         private void AddOneRandomSubsetNotYetContained(ICollection<CLRSafeHashSet<int>> subsetQueries)
         {
             CLRSafeHashSet<int> subsetQueryCandidate;
-            
+
             do
             {
                 subsetQueryCandidate = new CLRSafeHashSet<int>();

@@ -13,9 +13,9 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         {
             try
             {
-                Type strategyType = Type.GetType("prefSQL.SQLSkyline."+algorithm.ToString());
+                Type strategyType = Type.GetType("prefSQL.SQLSkyline." + algorithm.ToString());
 
-                if (!typeof(SkylineStrategy).IsAssignableFrom(strategyType))
+                if (!typeof (SkylineStrategy).IsAssignableFrom(strategyType))
                 {
                     throw new Exception("passed algorithm is not of type SkylineStrategy.");
                 }

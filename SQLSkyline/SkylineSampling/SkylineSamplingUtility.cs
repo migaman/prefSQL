@@ -8,9 +8,9 @@ namespace prefSQL.SQLSkyline.SkylineSampling
     {
         private readonly ISkylineSamplingSubsetsProducer _subsetsProducer;
         private int _allPreferencesCount;
+        private int _subsetCount;
         private int _subsetDimension;
         private IEnumerable<CLRSafeHashSet<int>> _subsets;
-        private int _subsetCount;
 
         /// <summary>
         ///     All Operators over the preferences (e.g., "LOW", "INCOMPARABLE").
