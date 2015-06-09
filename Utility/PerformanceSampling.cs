@@ -412,50 +412,24 @@
                         GetEntireSkylineDataTableRankNormalized(entireSkylineDataTable.Copy(),
                             entireDataTableSkylineValues, skylineAttributeColumns,
                             sampleSkylineDataTable.Rows.Count, 2,
-                            out entireSkylineDataTableSumRankDatabase);
-              
-                var tempList = new List<List<double>>
-                {
-                    new List<double>(),
-                    new List<double>(),
-                    new List<double>(),
-                    new List<double>()
-                };
+                            out entireSkylineDataTableSumRankDatabase);                        
 
-                    for (var ii = 0; ii < 100; ii++)
-                    {
                         IReadOnlyDictionary<long, object[]> baseRandomSampleNormalized =
                             SkylineSamplingHelper.GetRandomSample(entireSkylineNormalized,
-                                sampleSkylineDataTable.Rows.Count);
+                                sampleSkylineDataTable.Rows.Count);                                              
 
-                        var tempList2 = new List<double>();
-
-                        for (var jj = 0; jj < 100; jj++)
-                        {
-                            tempList2.Add(SetCoverage.GetCoverage(
+                        double setCoverageCoveredBySecondRandomSample = SetCoverage.GetCoverage(
+                                    baseRandomSampleNormalized,
+                                    secondRandomSampleNormalized, skylineAttributeColumns) * 100.0;
+                        double setCoverageCoveredBySkylineSample = SetCoverage.GetCoverage(
                                 baseRandomSampleNormalized,
-                                secondRandomSampleNormalized, skylineAttributeColumns) * 100.0);
-                        }
-
-                        tempList[0].Add(tempList2.Average());
-
-                        tempList[1].Add(SetCoverage.GetCoverage(
-                            baseRandomSampleNormalized,
-                            sampleSkylineNormalized, skylineAttributeColumns) * 100.0);
-
-                        tempList[2].Add(SetCoverage.GetCoverage(
-                            baseRandomSampleNormalized,
-                            sampleSkylineNormalized, skylineAttributeColumns) * 100.0);
-
-                        tempList[3].Add(SetCoverage.GetCoverage(baseRandomSampleNormalized,
-                            entireSkylineDataTableSumRankNormalized, skylineAttributeColumns) *
-                                        100.0);
-                    }
-
-                    double setCoverageCoveredBySecondRandomSample = tempList[0].Average();
-                    double setCoverageCoveredBySkylineSample = tempList[1].Average();
-                    double setCoverageCoveredByEntireBestRank = tempList[2].Average();
-                    double setCoverageCoveredByEntireSumRank = tempList[3].Average();
+                                sampleSkylineNormalized, skylineAttributeColumns) * 100.0;
+                        double setCoverageCoveredByEntireBestRank = SetCoverage.GetCoverage(
+                                baseRandomSampleNormalized,
+                                sampleSkylineNormalized, skylineAttributeColumns) * 100.0;
+                        double setCoverageCoveredByEntireSumRank = SetCoverage.GetCoverage(baseRandomSampleNormalized,
+                                entireSkylineDataTableSumRankNormalized, skylineAttributeColumns) *
+                                            100.0;
 
                     setCoverageSecondRandom.Add(setCoverageCoveredBySecondRandomSample);
                     setCoverageSample.Add(setCoverageCoveredBySkylineSample);
