@@ -3,7 +3,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
     using System.Collections.Generic;
 
     /// <summary>
-    ///     Interface to calculate and provide the necessary subsets to the skyline sampling algorithm.
+    ///     Interface to calculate and provide the necessary subsets of preferences to the skyline sampling algorithm.
     /// </summary>
     /// <remarks>
     ///     Since the skyline sampling algorithm calculates a number of low-dimensional subset skylines (lower than the
@@ -15,12 +15,12 @@ namespace prefSQL.SQLSkyline.SkylineSampling
     internal interface ISkylineSamplingSubsetsProducer
     {
         /// <summary>
-        ///     Number of desired subsets.
+        ///     Number of desired subsets of preferences.
         /// </summary>
         int SubsetsCount { get; set; }
 
         /// <summary>
-        ///     Dimensionality of each subset.
+        ///     Dimensionality of each subset of preferences.
         /// </summary>
         int SubsetDimension { get; set; }
 
@@ -30,11 +30,11 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         int AllPreferencesCount { get; set; }
 
         /// <summary>
-        ///     Get all subsets that the skyline sampling algorithm will use to calculate its subset skylines.
+        ///     Get all subsets of preferences that the skyline sampling algorithm will use to calculate its subset skylines.
         /// </summary>
         /// <returns>
-        ///     The produced subsets. Each stored integer is an index referring the zero-based position of a preference of
-        ///     the entire skyline query.
+        ///     The produced subsets of preferences. Each stored integer is an index referring the zero-based position of a
+        ///     preference of the entire skyline query.
         /// </returns>
         IEnumerable<CLRSafeHashSet<int>> GetSubsets();
     }

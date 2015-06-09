@@ -113,19 +113,20 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         }
 
         /// <summary>
-        ///     Determines the full call to the stored procedure if executing the algorithm via CLR.
+        ///     Determines the complete call to the stored procedure if executing the algorithm via CLR.
         /// </summary>
-        /// <param name="strWhere"></param>
-        /// <param name="strOrderBy"></param>
-        /// <param name="strFirstSQL"></param>
-        /// <param name="strOperators"></param>
-        /// <param name="strOrderByAttributes"></param>
-        /// <returns></returns>
+        /// <param name="strWhere">passed to the SelectedStrategy's parameter.</param>
+        /// <param name="strOrderBy">passed to the SelectedStrategy's parameter.</param>
+        /// <param name="strFirstSQL">passed to the SelectedStrategy's parameter.</param>
+        /// <param name="strOperators">passed to the SelectedStrategy's parameter.</param>
+        /// <param name="strOrderByAttributes">passed to the SelectedStrategy's parameter.</param>
+        /// <returns>A string to be used to execute the stored procedure.</returns>
         public string GetStoredProcedureCommand(string strWhere, string strOrderBy, string strFirstSQL,
             string strOperators, string strOrderByAttributes)
         {
             string storedProcedureCommand = SelectedStrategy.GetStoredProcedureCommand(strWhere, strOrderBy, strFirstSQL,
                 strOperators, strOrderByAttributes);
+
             storedProcedureCommand = Regex.Replace(storedProcedureCommand, @"dbo\.SP_[^ ]* ", "dbo.SP_SkylineSampling ");
 
             if (SelectedStrategy.GetType() != typeof (SkylineSQL))
@@ -139,7 +140,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         }
 
         /// <summary>
-        ///     Entry point for calculating a skyline sample via the skyline sampling^algorithm.
+        ///     Entry point for calculating a skyline sample via the skyline sampling algorithm.
         /// </summary>
         /// <param name="query">
         ///     An ANSI SQL statement to query the SQL server in order to fetch the whole database including its SkylineAttribute
@@ -155,6 +156,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         {
             Utility.CalculatePropertiesWithRespectToIncomparableOperators(operators);
 
+            // get complete database just once, not for every subset skyline => performance, network traffic
             DataTable fullDataTable = Helper.GetDataTableFromSQL(query, SelectedStrategy.ConnectionString,
                 SelectedStrategy.Provider);
 
@@ -164,7 +166,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
             AddGeneratedInternalColumns(fullDataTable);
 
-            FillUtilityProperties(fullDataTable, operators);
+            FillUtilityProperties(fullDataTable);
 
             IReadOnlyDictionary<long, object[]> database = Helper.GetDatabaseAccessibleByUniqueId(fullDataTable,
                 Utility.ArtificialUniqueRowIdentifierColumnIndex, true);
@@ -207,12 +209,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         ///     A DataTable to which the columns InternalArtificialUniqueRowIdentifierColumnName and
         ///     InternalEqualValuesBucketColumnName have already been added.
         /// </param>
-        /// <param name="operators">
-        ///     The operators with which the preferences are handled; can be either "LOW" or "INCOMPARABLE",
-        ///     specified in the format "LOW;LOW;INCOMPARABLE;LOW;LOW;...", i.e., separated via ";". The position of the keyword
-        ///     has to correspond to the position of its preference.
-        /// </param>
-        private void FillUtilityProperties(DataTable dataTable, string operators)
+        private void FillUtilityProperties(DataTable dataTable)
         {
             Utility.SubsetCount = SubsetCount;
             Utility.SubsetDimension = SubsetDimension;
@@ -239,7 +236,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             var sw = new Stopwatch();
             sw.Start();
 
-            // preserve current skyline algorithm's settings
+            // preserve current skyline algorithm's settings in order to restore them before returning
             int recordAmountLimit = SelectedStrategy.RecordAmountLimit;
             int sortType = SelectedStrategy.SortType;
             bool hasIncomparablePreferences = SelectedStrategy.HasIncomparablePreferences;
@@ -251,6 +248,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             TimeMilliseconds = 0;
             NumberOfOperations = 0;
 
+            // clone since 
             DataTable skylineSampleReturn = dataTableTemplate.Clone();
             var skylineValues = new List<long[]>();
 
@@ -261,15 +259,15 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
             RemoveGeneratedInternalColumns(skylineSampleReturn);
 
-            SortDataTable(skylineSampleReturn, skylineValues);
-
-            //Remove certain amount of rows if query contains TOP Keyword
-            Helper.GetAmountOfTuples(skylineSampleReturn, recordAmountLimit);
-
             // restore current skyline algorithm's settings
             SelectedStrategy.RecordAmountLimit = recordAmountLimit;
             SelectedStrategy.SortType = sortType;
             SelectedStrategy.HasIncomparablePreferences = hasIncomparablePreferences;
+
+            SortDataTable(skylineSampleReturn, skylineValues);
+
+            //Remove certain amount of rows if query contains TOP Keyword
+            Helper.GetAmountOfTuples(skylineSampleReturn, recordAmountLimit);
 
             sw.Stop();
             TimeMilliseconds += sw.ElapsedMilliseconds;
@@ -282,7 +280,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         ///     the skyline sampling algorithm.
         /// </summary>
         /// <remarks>
-        ///     Calculate subsets. For each subset, calculate a skyline via the selected skyline algorithm. Determine the
+        ///     Calculate subsets of preferences. For each subset, calculate a skyline via the selected skyline algorithm. Determine the
         ///     objects for which the calculation of a subset skyline with respect to the subset's complement is necessary; if
         ///     so, calculate this subset complement skyline via the selected skyline algorithm and remove dominated objects from
         ///     the subset skyline. Finally, merge the subset skyline into the skyline sample which will be reported by the
@@ -328,7 +326,6 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
                 IEnumerable<Tuple<long[], string[]>> databaseForPairwiseComparison =
                     GetDatabaseForPairwiseComparison(subsetDatabase.Values, subset.ToList());
-                // TODO: comment: needs guaranteed stable order
 
                 IEnumerable<CLRSafeHashSet<long>> rowsWithEqualValuesWithRespectToSubsetColumns =
                     CompareEachRowWithRespectToSubsetColumnsPairwise(databaseForPairwiseComparison);
@@ -427,13 +424,19 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                     row => database[(long) row[rowIdentifierColumnIndex]]);
         }
 
+        /// <summary>
+        ///     Get attribute's values (and strings if INCOMPARABLE) of the database.
+        /// </summary>
+        /// <param name="database">Database from which to extract attributes.</param>
+        /// <param name="subset">Subset used for the subset skyline. Needs guaranteed stable order.</param>
+        /// <returns>IEnumerable of the attribute's values together with string values if attribute is INCOMPPARABLE.</returns>
         private IEnumerable<Tuple<long[], string[]>> GetDatabaseForPairwiseComparison(
-            IEnumerable<object[]> subsetDatabase,
-            IReadOnlyCollection<int> subset)
+            IEnumerable<object[]> database,
+            IList<int> subset)
         {
             var subsetForPairwiseComparison = new List<Tuple<long[], string[]>>();
 
-            foreach (object[] row in subsetDatabase)
+            foreach (object[] row in database)
             {
                 var rowForPairwiseComparison = new long[subset.Count + 2];
                 var rowForPairwiseComparisonIncomparable = new string[subset.Count];
@@ -669,11 +672,12 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         }
 
         /// <summary>
-        ///     TODO: comment
+        ///     Remove objects from destinationDatabase that are contained in potentiallyDominatedObjects but not in
+        ///     dominatingObjectsDatabase.
         /// </summary>
-        /// <param name="potentiallyDominatedObjects"></param>
-        /// <param name="dominatingObjectsDatabase"></param>
-        /// <param name="destinationDatabase"></param>
+        /// <param name="potentiallyDominatedObjects">Objects with equal values with respect to a subset of preferences that might be dominated with respect to all preferences.</param>
+        /// <param name="dominatingObjectsDatabase">Objects in potentiallyDominatedObjects that are not dominated with respect to all preferences.</param>
+        /// <param name="destinationDatabase">Database from which to remove objects dominated with respect to all preferences.</param>
         private static void RemoveDominatedObjects(
             IEnumerable<long> potentiallyDominatedObjects,
             IReadOnlyDictionary<long, object[]> dominatingObjectsDatabase,

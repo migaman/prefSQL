@@ -129,7 +129,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         }
 
         /// <summary>
-        ///     Checks whether the provided parameters are valid for the production of the requested subsets.
+        ///     Checks whether the provided parameters are valid for the production of the requested subsets of preferences.
         /// </summary>
         /// <remarks>
         ///     The provided parameters are valid if all preferences requested in the original skyline can be included in

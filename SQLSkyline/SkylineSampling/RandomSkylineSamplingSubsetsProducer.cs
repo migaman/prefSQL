@@ -19,8 +19,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         public int AllPreferencesCount { get; set; }
 
         /// <summary>
-        ///     Get all subsets that the skyline sampling algorithm will use to calculate its subset skylines. The subsets
-        ///     are calculated randomly.
+        ///     Get all subsets of preferences that the skyline sampling algorithm will use to calculate its subset skylines. The subsets are calculated randomly.
         /// </summary>
         /// <remarks>
         ///     As long as the desired number of subsets (i.e., SubsetsCount) is not reached, new subsets are randomly

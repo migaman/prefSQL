@@ -155,16 +155,18 @@
         {
             long minimumDistanceObjectKey = -1;
             double minimumDistance = double.MaxValue;
-            double cap = double.MaxValue;
+            double breakOnLimit = double.MaxValue;
 
             foreach (KeyValuePair<long, double[]> potentiallyCoveredObject in normalizedDataToBeCovered)
             {
-                double euclideanDistance = CalculateSquaredEuclideanDistanceBreakOnCap(coveringObject, potentiallyCoveredObject.Value, cap);
+                double euclideanDistance = CalculateEuclideanDistance(coveringObject, potentiallyCoveredObject.Value,
+                    breakOnLimit);
+
                 if (euclideanDistance < double.MaxValue)
                 {
-                    cap = euclideanDistance;
-                    euclideanDistance = Math.Sqrt(euclideanDistance);
+                    breakOnLimit = euclideanDistance;
                 }
+
                 if (euclideanDistance < minimumDistance)
                 {
                     minimumDistance = euclideanDistance;
@@ -176,29 +178,28 @@
         }
 
         /// <summary>
-        ///     Calculates the Euclidean Distance between two objects with respect to the dimensions specified in useColumns.
+        ///     Calculates the Euclidean Distance between two objects.
         /// </summary>
         /// <param name="item1">First object used for distance calculation.</param>
         /// <param name="item2">Second object used for distance calculation.</param>
-        /// <param name="useColumns">
-        ///     Array indices which should be used for the distance calculation.
-        /// </param>
-        /// <returns></returns>
+        /// <returns>The Euclidean distance between item1 and item2.</returns>
         internal static double CalculateEuclideanDistance(double[] item1, double[] item2)
         {
-            double sum = 0;
-            int length = item1.Length;
-
-            for (var i = 0; i < length; i++)
-            {
-                double distance = item1[i] - item2[i];
-                sum += distance * distance;            
-            }
-
-            return Math.Sqrt(sum);
+            return CalculateEuclideanDistance(item1, item2, double.MaxValue);
         }
 
-        internal static double CalculateSquaredEuclideanDistanceBreakOnCap(double[] item1, double[] item2, double cap)
+        /// <summary>
+        ///     Calculates the Euclidean Distance between two objects. Returns double.MaxValue if the distance is greater than the
+        ///     specified breakOnLimit.
+        /// </summary>
+        /// <param name="item1">First object used for distance calculation.</param>
+        /// <param name="item2">Second object used for distance calculation.</param>
+        /// <param name="breakOnLimit">
+        ///     If the distance is greater than this parameter, double.MaxValue is returned => faster
+        ///     performance when searching for a minimum distance between a set of objects.
+        /// </param>
+        /// <returns>The Euclidean distance between item1 and item2, or double.MaxValue.</returns>
+        internal static double CalculateEuclideanDistance(double[] item1, double[] item2, double breakOnLimit)
         {
             double sum = 0;
             int length = item1.Length;
@@ -207,13 +208,13 @@
             {
                 double distance = item1[i] - item2[i];
                 sum += distance * distance;
-                if (sum > cap)
+                if (sum > breakOnLimit)
                 {
-                    return Double.MaxValue;
+                    return double.MaxValue;
                 }
             }
 
-            return sum;
+            return Math.Sqrt(sum);
         }
     }
 }
