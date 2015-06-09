@@ -68,7 +68,6 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         }
 
         internal int ArtificialUniqueRowIdentifierColumnIndex { get; set; }
-        internal int EqualValuesBucketColumnIndex { get; set; }
 
         internal ISkylineSamplingSubsetsProducer SubsetsProducer
         {

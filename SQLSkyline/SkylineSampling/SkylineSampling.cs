@@ -31,11 +31,6 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         private const string InternalArtificialUniqueRowIdentifierColumnName = "_internalArtificialUniqueRowIdentifier";
 
         /// <summary>
-        ///     Name of additional column which holds
-        /// </summary>
-        private const string InternalEqualValuesBucketColumnName = "_internalEqualValuesBucket";
-
-        /// <summary>
         ///     Declared as backing variable in order to provide "readonly" semantics.
         /// </summary>
         private readonly SkylineSamplingUtility _utility;
@@ -164,7 +159,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             DataRecordTemplateForStoredProcedure = Helper.BuildDataRecord(fullDataTable, Utility.Operators.ToArray(),
                 dataTableTemplate);
 
-            AddGeneratedInternalColumns(fullDataTable);
+            AddGeneratedInternalColumn(fullDataTable);
 
             FillUtilityProperties(fullDataTable);
 
@@ -179,43 +174,32 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         }
 
         /// <summary>
-        ///     Add InternalArtificialUniqueRowIdentifierColumnName and InternalEqualValuesBucketColumnName, respectively. First,
-        ///     InternalArtificialUniqueRowIdentifierColumnName is added, then InternalEqualValuesBucketColumnName; i.e.,
-        ///     InternalEqualValuesBucketColumnName is the new last column of the DataTable.
+        ///     Add InternalArtificialUniqueRowIdentifierColumnName.
         /// </summary>
-        /// <param name="dataTable">The DataTable on which to add the two columns.</param>
-        private static void AddGeneratedInternalColumns(DataTable dataTable)
+        /// <param name="dataTable">The DataTable on which to add the column.</param>
+        private static void AddGeneratedInternalColumn(DataTable dataTable)
         {
             var internalArtificialUniqueRowIdentifierColumn = new DataColumn()
             {
                 ColumnName = InternalArtificialUniqueRowIdentifierColumnName,
                 DataType = typeof (long),
                 DefaultValue = 0
-            };
-            var internalEqualValuesBucketColumn = new DataColumn()
-            {
-                ColumnName = InternalEqualValuesBucketColumnName,
-                DataType = typeof (long),
-                DefaultValue = 0
-            };
+            };          
             dataTable.Columns.Add(internalArtificialUniqueRowIdentifierColumn);
-            dataTable.Columns.Add(internalEqualValuesBucketColumn);
         }
 
         /// <summary>
         ///     Sets necessary properties of Utility.
         /// </summary>
         /// <param name="dataTable">
-        ///     A DataTable to which the columns InternalArtificialUniqueRowIdentifierColumnName and
-        ///     InternalEqualValuesBucketColumnName have already been added.
+        ///     A DataTable to which the column InternalArtificialUniqueRowIdentifierColumnName has already been added.
         /// </param>
         private void FillUtilityProperties(DataTable dataTable)
         {
             Utility.SubsetCount = SubsetCount;
             Utility.SubsetDimension = SubsetDimension;
             Utility.AllPreferencesCount = Utility.Operators.Count(op => op != "INCOMPARABLE");
-            Utility.ArtificialUniqueRowIdentifierColumnIndex = dataTable.Columns.Count - 2;
-            Utility.EqualValuesBucketColumnIndex = dataTable.Columns.Count - 1;
+            Utility.ArtificialUniqueRowIdentifierColumnIndex = dataTable.Columns.Count - 1;
         }
 
         /// <summary>
@@ -227,8 +211,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         ///     rows including the preceding SkylineAttribute columns.
         /// </param>
         /// <param name="dataTableTemplate">
-        ///     An empty DataTable with all columns to return to which the columns InternalArtificialUniqueRowIdentifierColumnName
-        ///     and InternalEqualValuesBucketColumnName have already been added.
+        ///     An empty DataTable with all columns to return to which the column InternalArtificialUniqueRowIdentifierColumnName
+        ///     has already been added.
         /// </param>
         /// <returns>The skyline sample.</returns>
         internal DataTable GetSkyline(IReadOnlyDictionary<long, object[]> database, DataTable dataTableTemplate)
@@ -257,7 +241,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                     dataTableTemplate, sw);
             CalculateSkylineSample(skylineSampleFinalDatabase, skylineSampleReturn, skylineValues);
 
-            RemoveGeneratedInternalColumns(skylineSampleReturn);
+            RemoveGeneratedInternalColumn(skylineSampleReturn);
 
             // restore current skyline algorithm's settings
             SelectedStrategy.RecordAmountLimit = recordAmountLimit;
@@ -291,8 +275,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         ///     rows including the preceding SkylineAttribute columns.
         /// </param>
         /// <param name="dataTableTemplate">
-        ///     An empty DataTable with all columns to return to which the columns
-        ///     InternalArtificialUniqueRowIdentifierColumnName and InternalEqualValuesBucketColumnName have already been added.
+        ///     An empty DataTable with all columns to return to which the column
+        ///     InternalArtificialUniqueRowIdentifierColumnName has already been added.
         /// </param>
         /// <param name="sw">
         ///     To measture the time spent to perform this whole algorithm. Has to be started before calling this
@@ -429,7 +413,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         /// </summary>
         /// <param name="database">Database from which to extract attributes.</param>
         /// <param name="subset">Subset used for the subset skyline. Needs guaranteed stable order.</param>
-        /// <returns>IEnumerable of the attribute's values together with string values if attribute is INCOMPPARABLE.</returns>
+        /// <returns>IEnumerable of the attribute's values together with string values if attribute is INCOMPARABLE.</returns>
         private IEnumerable<Tuple<long[], string[]>> GetDatabaseForPairwiseComparison(
             IEnumerable<object[]> database,
             IList<int> subset)
@@ -438,7 +422,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
             foreach (object[] row in database)
             {
-                var rowForPairwiseComparison = new long[subset.Count + 2];
+                var rowForPairwiseComparison = new long[subset.Count + 1];
                 var rowForPairwiseComparisonIncomparable = new string[subset.Count];
 
                 var count = 0;
@@ -456,7 +440,6 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                 }
 
                 rowForPairwiseComparison[count] = (long) row[Utility.ArtificialUniqueRowIdentifierColumnIndex];
-                rowForPairwiseComparison[count + 1] = 0;
 
                 subsetForPairwiseComparison.Add(new Tuple<long[], string[]>(rowForPairwiseComparison,
                     rowForPairwiseComparisonIncomparable));
@@ -484,9 +467,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                 return new List<CLRSafeHashSet<long>>();
             }
 
-            int columnsInSubsetCount = database[0].Item1.Length - 2;
-            int rowIdentifierColumnIndex = database[0].Item1.Length - 2;
-            int equalValuesBucketColumnIndex = database[0].Item1.Length - 1;
+            int columnsInSubsetCount = database[0].Item1.Length-1;
+            int rowIdentifierColumnIndex = database[0].Item1.Length-1;
 
             // sort on first subset attribute in order to skip some comparisons later
             database.Sort((row1, row2) => (row1.Item1[0]).CompareTo(row2.Item1[0]));
@@ -500,6 +482,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
             // performance; access counter only once
             int databaseCount = database.Count;
+
+            var equalRowsWithRespectToSubsetColumns = new Dictionary<long, CLRSafeHashSet<long>>();
 
             for (var databaseIndex = 0; databaseIndex < databaseCount; databaseIndex++)
             {
@@ -576,9 +560,14 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
                     // these rows have equal values, mark the rows with the corresponding hash which can be
                     // viewed as a bucket for all rows with the same hash, i.e. for all rows with the same
-                    // values in their subset
-                    databaseRowValue[equalValuesBucketColumnIndex] = equalValuesBucket;
-                    databaseForComparisonRowValue[equalValuesBucketColumnIndex] = equalValuesBucket;
+                    // values in their subset                  
+                    if (!equalRowsWithRespectToSubsetColumns.ContainsKey(equalValuesBucket))
+                    {
+                        equalRowsWithRespectToSubsetColumns.Add(equalValuesBucket, new CLRSafeHashSet<long>());
+                    }
+
+                    equalRowsWithRespectToSubsetColumns[equalValuesBucket].Add(databaseRowValue[rowIdentifierColumnIndex]);
+                    equalRowsWithRespectToSubsetColumns[equalValuesBucket].Add(databaseForComparisonRowValue[rowIdentifierColumnIndex]);
                 }
 
                 databaseForComparison = databaseForComparisonForNextIteration;
@@ -590,10 +579,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                 }
             }
 
-            // return list of row identifiers for each row in each bucket
-            return GetEqualRowsWithRespectToSubsetColumns(database.Select(item => item.Item1),
-                rowIdentifierColumnIndex,
-                equalValuesBucketColumnIndex);
+            // return list of row identifiers for each row in each bucket          
+            return equalRowsWithRespectToSubsetColumns.Values;
         }
 
         private bool DetermineEqualValues(int columnsInSubsetCount, Tuple<long[], string[]> databaseRowValue,
@@ -642,26 +629,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             }
 
             return isDatabaseRowEqualToDatabaseForComparisonRow;
-        }
-
-        private static IEnumerable<CLRSafeHashSet<long>> GetEqualRowsWithRespectToSubsetColumns(
-            IEnumerable<long[]> database,
-            int rowIdentifierColumnIndex, int equalValuesBucketColumnIndex)
-        {
-            var equalRowsWithRespectToSubsetColumns = new Dictionary<long, CLRSafeHashSet<long>>();
-
-            foreach (long[] i in database.Where(i => i[equalValuesBucketColumnIndex] != 0))
-            {
-                long equalValuesBucket = i[equalValuesBucketColumnIndex];
-                if (!equalRowsWithRespectToSubsetColumns.ContainsKey(equalValuesBucket))
-                {
-                    equalRowsWithRespectToSubsetColumns.Add(equalValuesBucket, new CLRSafeHashSet<long>());
-                }
-                equalRowsWithRespectToSubsetColumns[equalValuesBucket].Add(i[rowIdentifierColumnIndex]);
-            }
-
-            return equalRowsWithRespectToSubsetColumns.Values;
-        }
+        }  
 
         private static IReadOnlyDictionary<long, object[]> GetSubsetOfDatabase(
             IReadOnlyDictionary<long, object[]> database,
@@ -741,9 +709,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             }
         }
 
-        private static void RemoveGeneratedInternalColumns(DataTable dataTable)
+        private static void RemoveGeneratedInternalColumn(DataTable dataTable)
         {
-            dataTable.Columns.RemoveAt(dataTable.Columns.Count - 1); // InternalEqualValuesBucketColumnName
             dataTable.Columns.RemoveAt(dataTable.Columns.Count - 1); // InternalArtificialUniqueRowIdentifierColumnName
         }
 
