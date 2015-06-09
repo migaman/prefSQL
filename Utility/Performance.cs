@@ -75,7 +75,8 @@ namespace Utility
             Categoric,              //Take only categoric preferences
             MinCardinality,         //Special collection of preferences which should perform well on Hexagon
 
-
+            LowCardinality,
+            HighCardinality
         };
 
         public enum PreferenceChooseMode
@@ -239,7 +240,7 @@ namespace Utility
 
             return preferences;
         }
-
+     
         internal static ArrayList GetCategoricalPreferences()
         {
             ArrayList preferences = new ArrayList();
@@ -254,6 +255,39 @@ namespace Utility
             preferences.Add("transmissions.name ('manual' >> 'automatic' >> OTHERS EQUAL)");
 
 
+            return preferences;
+        }
+
+        internal static ArrayList GetLowCardinalityPreferences()
+        {
+            ArrayList preferences = new ArrayList();
+           
+            preferences.Add("transmissions.name ('manual' >> 'automatic' >> OTHERS EQUAL)"); // cardinality 2 in superlarge
+            preferences.Add("drives.name ('front wheel' >> 'all wheel' >> 'rear wheel' >> OTHERS EQUAL)"); // cardinality 3 in superlarge
+            preferences.Add("conditions.name ('new' >> 'occasion' >> 'demonstration car' >> 'oldtimer' >> OTHERS EQUAL)"); // cardinality 4 in superlarge
+            preferences.Add("cars.doors HIGH"); // cardinality 5 in superlarge
+            preferences.Add("fuels.name ('petrol' >> 'diesel' >> 'bioethanol' >> 'electro' >> 'gas' >> 'hybrid' >> OTHERS EQUAL)"); // cardinality 6 in superlarge
+            preferences.Add("cars.gears HIGH"); // cardinality 7 in superlarge
+            preferences.Add("cars.cylinders HIGH"); // cardinality 8 in superlarge
+            preferences.Add("cars.seats HIGH"); // cardinality 10 in superlarge
+            preferences.Add("bodies.name ('bus' >> 'cabriolet' >> 'limousine' >> 'coupé' >> 'van' >> 'estate car' >> OTHERS EQUAL)"); // cardinality 11 in superlarge
+            preferences.Add("colors.name ('red' >> 'blue' >> 'green' >> 'gold' >> 'black' >> 'gray' >> 'bordeaux' >> OTHERS EQUAL)"); // cardinality 17 in superlarge
+
+            return preferences;
+        }
+
+        internal static ArrayList GetHighCardinalityPreferences()
+        {
+            ArrayList preferences = new ArrayList();
+
+            preferences.Add("cars.mileage LOW"); // cardinality 6515 in superlarge
+            preferences.Add("cars.price LOW"); // cardinality 5988 in superlarge
+            preferences.Add("cars.enginesize HIGH"); // cardinality 507 in superlarge
+            preferences.Add("cars.horsepower HIGH"); // cardinality 397 in superlarge
+            preferences.Add("cars.registrationNumeric HIGH"); // cardinality 270 in superlarge
+            preferences.Add("cars.consumption LOW"); // cardinality 181 in superlarge
+            preferences.Add("makes.name ('BENTLEY' >> 'DAIMLER' >> 'FIAT'>> 'FORD'  >> OTHERS EQUAL)"); // cardinality 71 in superlarge
+            
             return preferences;
         }
 
@@ -333,6 +367,12 @@ namespace Utility
                     break;
                 case PreferenceSet.MinCardinality:
                     preferencesMode = GetSpecialHexagonPreferences();
+                    break;
+                case PreferenceSet.LowCardinality:
+                    preferencesMode = GetLowCardinalityPreferences();
+                    break;
+                case PreferenceSet.HighCardinality:
+                    preferencesMode = GetHighCardinalityPreferences();
                     break;
             }
 

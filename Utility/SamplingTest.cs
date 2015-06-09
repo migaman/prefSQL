@@ -33,10 +33,13 @@
             }
             //addPreferences = addPreferences.TrimEnd(", ".ToCharArray());
             //_entireSkylineSql = BaseSkylineSQL + addPreferences;
-            //_skylineSampleSql = _entireSkylineSql + " SAMPLE BY RANDOM_SUBSETS COUNT 15 DIMENSION 3";
+            //_skylineSampleSql = _entireSkylineSql + " SAMPLE BY RANDOM_SUBSETS COUNT 10 DIMENSION 3";
             _entireSkylineSql =
                 "SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> 'blue' >> OTHERS EQUAL), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL)";
             _skylineSampleSql = _entireSkylineSql + " SAMPLE BY RANDOM_SUBSETS COUNT 15 DIMENSION 3";
+            //_entireSkylineSql =
+            //    "SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF colors.name ('red' >> OTHERS INCOMPARABLE), cs.price LOW, cs.mileage LOW";
+            //_skylineSampleSql = _entireSkylineSql + " SAMPLE BY RANDOM_SUBSETS COUNT 1 DIMENSION 3";
             //_entireSkylineSql =
             //    "SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, colors.name ('red' >> 'blue' >> OTHERS EQUAL)";
             //_skylineSampleSql = _entireSkylineSql + " SAMPLE BY RANDOM_SUBSETS COUNT 3 DIMENSION 2";
@@ -50,10 +53,10 @@
         {
             var samplingTest = new SamplingTest();
 
-            //samplingTest.TestExecutionForPerformance(10);
+            samplingTest.TestExecutionForPerformance(10);
             //samplingTest.TestForSetCoverage();
             //samplingTest.TestForClusterAnalysis();            
-            samplingTest.TestForDominatedObjects();
+            //samplingTest.TestForDominatedObjects();
             //samplingTest.TestCompareAlgorithms();
 
             Console.ReadKey();
@@ -471,11 +474,11 @@
                 SubsetDimension = prefSqlModel.SkylineSampleDimension
             };
 
-            DataTable dataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
-                _entireSkylineSql);
-            Console.WriteLine(common.TimeInMilliseconds);
-            Console.WriteLine(dataTable.Rows.Count);
-            Console.WriteLine();
+            //DataTable dataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
+            //    _entireSkylineSql);
+            //Console.WriteLine(common.TimeInMilliseconds);
+            //Console.WriteLine(dataTable.Rows.Count);
+            //Console.WriteLine();
 
             var producedSubsets = new List<IEnumerable<CLRSafeHashSet<int>>>();
 
@@ -513,8 +516,8 @@
 
             //producedSubsets.Add(temp);
             ExecuteSampleSkylines(producedSubsets, prefSqlModel, common);            
-            Console.WriteLine();
-            ExecuteSampleSkylines(producedSubsets, prefSqlModel, commonSort);
+            //Console.WriteLine();
+            //ExecuteSampleSkylines(producedSubsets, prefSqlModel, commonSort);
             //ExecuteSampleSkylines(producedSubsets, prefSqlModel, common);
         }
 

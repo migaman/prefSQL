@@ -47,9 +47,9 @@ namespace Utility
             //p.UseCLR = true;
             p.UseCLR = false;
             p.Trials = 1;           //Amount of trials for each single sql preference statement
-            
-            p.MinDimensions = 15;   //Up from x dimensions
-            p.MaxDimensions = 15;   //Up to x dimensions
+
+            p.MinDimensions = 5;   //Up from x dimensions
+            p.MaxDimensions = 5;   //Up to x dimensions
             p.RandomDraws = 50;    //Amount of draws (x times randomly choose a some preferences)
             
             //p.TableSize = Performance.Size.Small;
@@ -62,13 +62,15 @@ namespace Utility
             //p.Set = Performance.PreferenceSet.Jon;
             //p.Set = Performance.PreferenceSet.Mya;
             //p.Set = Performance.PreferenceSet.Barra;
-            p.Set = Performance.PreferenceSet.All;
+            //p.Set = Performance.PreferenceSet.All;
             //p.Set = Performance.PreferenceSet.Numeric;
             //p.Set = Performance.PreferenceSet.Categoric;
             //p.Set = Performance.PreferenceSet.MinCardinality;
+            //p.Set = Performance.PreferenceSet.LowCardinality;
+            p.Set = Performance.PreferenceSet.HighCardinality;
             
-            //p.Mode = Performance.PreferenceChooseMode.Combination;
-            p.Mode = Performance.PreferenceChooseMode.Shuffle;
+            p.Mode = Performance.PreferenceChooseMode.Combination;
+            //p.Mode = Performance.PreferenceChooseMode.Shuffle;
             //p.Mode = Performance.PreferenceChooseMode.Correlation;
             //p.Mode = Performance.PreferenceChooseMode.AntiCorrelation;
             //p.Mode = Performance.PreferenceChooseMode.Independent;
@@ -81,11 +83,11 @@ namespace Utility
             //p.Strategy = new SkylineHexagon();
             //p.Strategy = new SkylineDecisionTree();
 
-            p.ExcessiveTests = false;
+            //p.ExcessiveTests = false;
             p.Sampling = true;
-            p.SamplingSubsetsCount = 15;
+            p.SamplingSubsetsCount = 5;
             p.SamplingSubsetDimension = 3;
-            p.SamplingSamplesCount = 100;
+            p.SamplingSamplesCount = 20;
 
             p.GeneratePerformanceQueries();
         }
