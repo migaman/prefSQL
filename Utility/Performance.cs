@@ -76,7 +76,8 @@ namespace Utility
             MinCardinality,         //Special collection of preferences which should perform well on Hexagon
 
             LowCardinality,
-            HighCardinality
+            HighCardinality,
+            LowAndHighCardinality
         };
 
         public enum PreferenceChooseMode
@@ -270,8 +271,8 @@ namespace Utility
             preferences.Add("cars.gears HIGH"); // cardinality 7 in superlarge
             preferences.Add("cars.cylinders HIGH"); // cardinality 8 in superlarge
             preferences.Add("cars.seats HIGH"); // cardinality 10 in superlarge
-            preferences.Add("bodies.name ('bus' >> 'cabriolet' >> 'limousine' >> 'coupé' >> 'van' >> 'estate car' >> OTHERS EQUAL)"); // cardinality 11 in superlarge
-            preferences.Add("colors.name ('red' >> 'blue' >> 'green' >> 'gold' >> 'black' >> 'gray' >> 'bordeaux' >> OTHERS EQUAL)"); // cardinality 17 in superlarge
+            preferences.Add("cars.Body_Id HIGH"); // cardinality 11 in superlarge
+            preferences.Add("cars.Color_Id HIGH"); // cardinality 17 in superlarge
 
             return preferences;
         }
@@ -282,12 +283,21 @@ namespace Utility
 
             preferences.Add("cars.mileage LOW"); // cardinality 6515 in superlarge
             preferences.Add("cars.price LOW"); // cardinality 5988 in superlarge
+            preferences.Add("cars.Model_Id HIGH"); // cardinality 813 in superlarge
             preferences.Add("cars.enginesize HIGH"); // cardinality 507 in superlarge
             preferences.Add("cars.horsepower HIGH"); // cardinality 397 in superlarge
             preferences.Add("cars.registrationNumeric HIGH"); // cardinality 270 in superlarge
             preferences.Add("cars.consumption LOW"); // cardinality 181 in superlarge
-            preferences.Add("makes.name ('BENTLEY' >> 'DAIMLER' >> 'FIAT'>> 'FORD'  >> OTHERS EQUAL)"); // cardinality 71 in superlarge
+            preferences.Add("cars.Make_Id HIGH"); // cardinality 71 in superlarge
             
+            return preferences;
+        }
+
+        internal static ArrayList GetLowAndHighCardinalityPreferences()
+        {
+            ArrayList preferences = new ArrayList();
+            preferences.AddRange(GetHighCardinalityPreferences());
+            preferences.AddRange(GetLowCardinalityPreferences());
             return preferences;
         }
 
@@ -373,6 +383,9 @@ namespace Utility
                     break;
                 case PreferenceSet.HighCardinality:
                     preferencesMode = GetHighCardinalityPreferences();
+                    break;
+                case PreferenceSet.LowAndHighCardinality:
+                    preferencesMode = GetLowAndHighCardinalityPreferences();
                     break;
             }
 
