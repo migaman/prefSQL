@@ -32,10 +32,10 @@ namespace prefSQL.SQLSkyline
             return true;
         }
 
-        public override void PrepareDatabaseForAlgorithm(ref IEnumerable<object[]> useDatabase, List<int> subspace, int[] preferenceColumnIndex, bool[] isPreferenceIncomparable)
+        public override void PrepareDatabaseForAlgorithm(ref IEnumerable<object[]> useDatabase, List<int> subset, int[] preferenceColumnIndex, bool[] isPreferenceIncomparable)
         {
             List<object[]> useTempDatabase = useDatabase.ToList();
-            List<int> databaseIndices = subspace.Select(subspaceColumnIndex => preferenceColumnIndex[subspaceColumnIndex]).ToList();
+            List<int> databaseIndices = subset.Select(subsetColumnIndex => preferenceColumnIndex[subsetColumnIndex]).ToList();
             useTempDatabase.Sort((item1, item2) => CompareTwoDatabaseObjects(item1, item2, databaseIndices, isPreferenceIncomparable));
             useDatabase = useTempDatabase;
         }

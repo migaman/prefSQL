@@ -157,8 +157,8 @@ namespace prefSQL.SQLParser
                     {
                         var skylineSample = new SkylineSampling
                         {
-                            SubspacesCount = model.SkylineSampleCount,
-                            SubspaceDimension = model.SkylineSampleDimension,
+                            SubsetCount = model.SkylineSampleCount,
+                            SubsetDimension = model.SkylineSampleDimension,
                             SelectedStrategy = strategy
                         };
                         dt = skylineSample.GetSkylineTable(strQuery, strOperators);

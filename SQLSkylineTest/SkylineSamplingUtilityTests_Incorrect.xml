@@ -1,86 +1,86 @@
 <TestData>
   <TestDataRow>
-    <comment>3 samples, each of dimension 1: cannot choose 1 from 2 in order to gain 3 subspaces, max 2 subspaces possible.</comment>
+    <comment>3 samples, each of dimension 1: cannot choose 1 from 2 in order to gain 3 subsets, max 2 subsets possible.</comment>
     <attributesCount>2</attributesCount>
-    <subspacesCount>3</subspacesCount>
-    <subspaceDimension>1</subspaceDimension>
+    <subsetsCount>3</subsetsCount>
+    <subsetDimension>1</subsetDimension>
   </TestDataRow>
   <TestDataRow>
-    <comment>4 samples, each of dimension 2: cannot choose 2 from 3 in order to gain 4 subspaces, max 3 subspaces possible.</comment>
+    <comment>4 samples, each of dimension 2: cannot choose 2 from 3 in order to gain 4 subsets, max 3 subsets possible.</comment>
     <attributesCount>3</attributesCount>
-    <subspacesCount>4</subspacesCount>
-    <subspaceDimension>2</subspaceDimension>
+    <subsetsCount>4</subsetsCount>
+    <subsetDimension>2</subsetDimension>
   </TestDataRow>
   <TestDataRow>
-    <comment>5 samples, each of dimension 2: cannot choose 2 from 3 in order to gain 5 subspaces, max 3 subspaces possible.</comment>
+    <comment>5 samples, each of dimension 2: cannot choose 2 from 3 in order to gain 5 subsets, max 3 subsets possible.</comment>
     <attributesCount>3</attributesCount>
-    <subspacesCount>5</subspacesCount>
-    <subspaceDimension>2</subspaceDimension>
+    <subsetsCount>5</subsetsCount>
+    <subsetDimension>2</subsetDimension>
   </TestDataRow>
   <TestDataRow>
-    <comment>5 samples, each of dimension 1: cannot choose 1 from 3 in order to gain 5 subspaces, max 3 subspaces possible.</comment>
+    <comment>5 samples, each of dimension 1: cannot choose 1 from 3 in order to gain 5 subsets, max 3 subsets possible.</comment>
     <attributesCount>3</attributesCount>
-    <subspacesCount>5</subspacesCount>
-    <subspaceDimension>1</subspaceDimension>
+    <subsetsCount>5</subsetsCount>
+    <subsetDimension>1</subsetDimension>
   </TestDataRow>
   <TestDataRow>
     <comment>count 0, dimension 0 impossible.</comment>
     <attributesCount>4</attributesCount>
-    <subspacesCount>0</subspacesCount>
-    <subspaceDimension>0</subspaceDimension>
+    <subsetsCount>0</subsetsCount>
+    <subsetDimension>0</subsetDimension>
   </TestDataRow>
   <TestDataRow>
     <comment>count 1, dimension 0 impossible.</comment>
     <attributesCount>4</attributesCount>
-    <subspacesCount>1</subspacesCount>
-    <subspaceDimension>0</subspaceDimension>
+    <subsetsCount>1</subsetsCount>
+    <subsetDimension>0</subsetDimension>
   </TestDataRow>
   <TestDataRow>
     <comment>count 10, dimension 0 impossible.</comment>
     <attributesCount>4</attributesCount>
-    <subspacesCount>10</subspacesCount>
-    <subspaceDimension>0</subspaceDimension>
+    <subsetsCount>10</subsetsCount>
+    <subsetDimension>0</subsetDimension>
   </TestDataRow>
   <TestDataRow>
     <comment>count 0, dimension 1 impossible.</comment>
     <attributesCount>4</attributesCount>
-    <subspacesCount>0</subspacesCount>
-    <subspaceDimension>1</subspaceDimension>
+    <subsetsCount>0</subsetsCount>
+    <subsetDimension>1</subsetDimension>
   </TestDataRow>
   <TestDataRow>
     <comment>count 0, dimension 10 impossible.</comment>
     <attributesCount>4</attributesCount>
-    <subspacesCount>0</subspacesCount>
-    <subspaceDimension>10</subspaceDimension>
+    <subsetsCount>0</subsetsCount>
+    <subsetDimension>10</subsetDimension>
   </TestDataRow>
   <TestDataRow>
-    <comment>1 sample of dimension 5: cannot choose 5 from 4 in order to gain 1 subspace, no subspace possible.</comment>
+    <comment>1 sample of dimension 5: cannot choose 5 from 4 in order to gain 1 subset, no subset possible.</comment>
     <attributesCount>4</attributesCount>
-    <subspacesCount>1</subspacesCount>
-    <subspaceDimension>5</subspaceDimension>
+    <subsetsCount>1</subsetsCount>
+    <subsetDimension>5</subsetDimension>
   </TestDataRow>
   <TestDataRow>
-    <comment>2 samples, each of dimension 4: cannot choose 4 from 4 in order to gain 2 subspaces, max 1 subspace possible.</comment>
+    <comment>2 samples, each of dimension 4: cannot choose 4 from 4 in order to gain 2 subsets, max 1 subset possible.</comment>
     <attributesCount>4</attributesCount>
-    <subspacesCount>2</subspacesCount>
-    <subspaceDimension>4</subspaceDimension>
+    <subsetsCount>2</subsetsCount>
+    <subsetDimension>4</subsetDimension>
   </TestDataRow>
   <TestDataRow>
-    <comment>5 samples, each of dimension 3: cannot choose 3 from 4 in order to gain 5 subspaces, max 4 subspaces possible.</comment>
+    <comment>5 samples, each of dimension 3: cannot choose 3 from 4 in order to gain 5 subsets, max 4 subsets possible.</comment>
     <attributesCount>4</attributesCount>
-    <subspacesCount>5</subspacesCount>
-    <subspaceDimension>3</subspaceDimension>
+    <subsetsCount>5</subsetsCount>
+    <subsetDimension>3</subsetDimension>
   </TestDataRow>
   <TestDataRow>
-    <comment>7 samples, each of dimension 2: cannot choose 2 from 4 in order to gain 7 subspaces, max 6 subspaces possible.</comment>
+    <comment>7 samples, each of dimension 2: cannot choose 2 from 4 in order to gain 7 subsets, max 6 subsets possible.</comment>
     <attributesCount>4</attributesCount>
-    <subspacesCount>7</subspacesCount>
-    <subspaceDimension>2</subspaceDimension>
+    <subsetsCount>7</subsetsCount>
+    <subsetDimension>2</subsetDimension>
   </TestDataRow>
   <TestDataRow>
-    <comment>5 samples, each of dimension 1: cannot choose 1 from 4 in order to gain 5 subspaces, max 4 subspaces possible.</comment>
+    <comment>5 samples, each of dimension 1: cannot choose 1 from 4 in order to gain 5 subsets, max 4 subsets possible.</comment>
     <attributesCount>4</attributesCount>
-    <subspacesCount>5</subspacesCount>
-    <subspaceDimension>1</subspaceDimension>
+    <subsetsCount>5</subsetsCount>
+    <subsetDimension>1</subsetDimension>
   </TestDataRow>
 </TestData>

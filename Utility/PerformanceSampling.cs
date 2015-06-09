@@ -104,14 +104,14 @@
         private Dictionary<SkylineTypes, List<double>> _representationErrorSum;
         private Dictionary<SkylineTypes, List<double>> _setCoverage;
         private bool _excessiveTests = true;
-        internal int SubspacesCount { get; set; }
-        internal int SubspaceDimension { get; set; }
+        internal int SubsetsCount { get; set; }
+        internal int SubsetDimension { get; set; }
         internal int SamplesCount { get; set; }
 
-        public PerformanceSampling(int subspacesCount, int subspaceDimension, int samplesCount, bool excessiveTests)
+        public PerformanceSampling(int subsetsCount, int subsetDimension, int samplesCount, bool excessiveTests)
         {
-            SubspacesCount = subspacesCount;
-            SubspaceDimension = subspaceDimension;
+            SubsetsCount = subsetsCount;
+            SubsetDimension = subsetDimension;
             SamplesCount = samplesCount;
             ExcessiveTests = excessiveTests;
 
@@ -137,8 +137,8 @@
             Dictionary<ClusterAnalysis, Dictionary<BigInteger, List<double>>> clusterAnalysisTopBuckets;
             Dictionary<ClusterAnalysis, Dictionary<BigInteger, List<double>>> clusterAnalysisMedianTopBuckets;
 
-            List<IEnumerable<CLRSafeHashSet<int>>> producedSubspaces =
-                ProduceSubspaces(preferences);
+            List<IEnumerable<CLRSafeHashSet<int>>> producedSubsets =
+                ProduceSubsets(preferences);
 
             InitClusterAnalysisDataStructures(out clusterAnalysis);
             InitClusterAnalysisDataStructures(out clusterAnalysisMedian);
@@ -158,8 +158,8 @@
             {
                 entireSkylineDataTable =
                 parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
-                    strSQL+ " SAMPLE BY RANDOM_SUBSETS COUNT " + SubspacesCount +
-                      " DIMENSION " + SubspaceDimension);
+                    strSQL+ " SAMPLE BY RANDOM_SUBSETS COUNT " + SubsetsCount +
+                      " DIMENSION " + SubsetDimension);
             }
             
             List<long[]> entireDataTableSkylineValues =
@@ -203,7 +203,7 @@
                 clusterAnalysisTopBuckets[ClusterAnalysis.EntireDb].Add(s.Key,
                     new List<double>());
 
-                for (var i = 0; i < producedSubspaces.Count; i++)
+                for (var i = 0; i < producedSubsets.Count; i++)
                     // to enable generalized average calculation
                 {
                     clusterAnalysisTopBuckets[ClusterAnalysis.EntireDb][s.Key]
@@ -232,7 +232,7 @@
                     clusterAnalysisTopBuckets[ClusterAnalysis.EntireSkyline][
                         bucket.Key][0];
 
-                for (var i = 1; i < producedSubspaces.Count; i++)
+                for (var i = 1; i < producedSubsets.Count; i++)
                     // to enable generalized average calculation
                 {
                     clusterAnalysisTopBuckets[ClusterAnalysis.EntireSkyline][
@@ -262,7 +262,7 @@
                     s.Key,
                     new List<double>());
 
-                for (var i = 0; i < producedSubspaces.Count; i++)
+                for (var i = 0; i < producedSubsets.Count; i++)
                     // to enable generalized average calculation
                 {
                     clusterAnalysisMedianTopBuckets[ClusterAnalysis.EntireDb][
@@ -294,15 +294,15 @@
                     clusterAnalysisMedianTopBuckets[
                         ClusterAnalysis.EntireSkyline][bucket.Key][0];
 
-                for (var i = 1; i < producedSubspaces.Count; i++)
+                for (var i = 1; i < producedSubsets.Count; i++)
                     // to enable generalized average calculation
                 {
                     clusterAnalysisMedianTopBuckets[
                         ClusterAnalysis.EntireSkyline][bucket.Key].Add(percent);
                 }
             }
-            strSQL += " SAMPLE BY RANDOM_SUBSETS COUNT " + SubspacesCount +
-                      " DIMENSION " + SubspaceDimension;
+            strSQL += " SAMPLE BY RANDOM_SUBSETS COUNT " + SubsetsCount +
+                      " DIMENSION " + SubsetDimension;
 
             string strQuery;
             string operators;
@@ -315,9 +315,9 @@
                 out strQuery, out operators,
                 out numberOfRecords);
 
-            var subspaceObjects = new List<long>();
-            var subspaceTime = new List<long>();
-            var subspaceTimeElapsed = new List<long>();
+            var subsetObjects = new List<long>();
+            var subsetTime = new List<long>();
+            var subsetTimeElapsed = new List<long>();
             var setCoverageSecondRandom = new List<double>();
             var setCoverageSample = new List<double>();
             var setCoverageBestRank = new List<double>();
@@ -343,19 +343,19 @@
             var dominatedObjectsOfBestObjectBestRank = new List<double>();
             var dominatedObjectsOfBestObjectSumRank = new List<double>();
 
-            var subspaceCount = 1;
-            foreach (IEnumerable<CLRSafeHashSet<int>> subspace in producedSubspaces)
+            var subsetCount = 1;
+            foreach (IEnumerable<CLRSafeHashSet<int>> subset in producedSubsets)
             {
-                Console.WriteLine(strPreferenceSet + " (" + subspaceCount + " / " +
-                                  producedSubspaces.Count + ")");
+                Console.WriteLine(strPreferenceSet + " (" + subsetCount + " / " +
+                                  producedSubsets.Count + ")");
 
                 sw.Restart();
-                var subspacesProducer = new FixedSkylineSamplingSubspacesProducer(subspace);
-                var utility = new SkylineSamplingUtility(subspacesProducer);
+                var subsetsProducer = new FixedSkylineSamplingSubsetsProducer(subset);
+                var utility = new SkylineSamplingUtility(subsetsProducer);
                 var skylineSample = new SkylineSampling(utility)
                 {
-                    SubspacesCount = prefSqlModel.SkylineSampleCount,
-                    SubspaceDimension = prefSqlModel.SkylineSampleDimension,
+                    SubsetCount = prefSqlModel.SkylineSampleCount,
+                    SubsetDimension = prefSqlModel.SkylineSampleDimension,
                     SelectedStrategy = parser.SkylineType
                 };
 
@@ -364,9 +364,9 @@
 
                 sw.Stop();
 
-                subspaceObjects.Add(sampleSkylineDataTable.Rows.Count);
-                subspaceTime.Add(skylineSample.TimeMilliseconds);
-                subspaceTimeElapsed.Add(sw.ElapsedMilliseconds);
+                subsetObjects.Add(sampleSkylineDataTable.Rows.Count);
+                subsetTime.Add(skylineSample.TimeMilliseconds);
+                subsetTimeElapsed.Add(sw.ElapsedMilliseconds);
 
                 IReadOnlyDictionary<long, object[]> sampleSkylineDatabase =
                     prefSQL.SQLSkyline.Helper.GetDatabaseAccessibleByUniqueId(
@@ -733,7 +733,7 @@
                     caMedianSumRankNew);
                 }
 
-                subspaceCount++;
+                subsetCount++;
             }
 
             Dictionary<ClusterAnalysis, string> clusterAnalysisStrings =
@@ -745,19 +745,19 @@
             Dictionary<ClusterAnalysis, string> clusterAnalysisMedianTopBucketsStrings =
                 GetClusterAnalysisTopBucketsStrings(clusterAnalysisMedianTopBuckets, ExcessiveTests);
 
-            var time = (long) (subspaceTime.Average() + .5);
-            var objects = (long) (subspaceObjects.Average() + .5);
-            var elapsed = (long) (subspaceTimeElapsed.Average() + .5);
+            var time = (long) (subsetTime.Average() + .5);
+            var objects = (long) (subsetObjects.Average() + .5);
+            var elapsed = (long) (subsetTimeElapsed.Average() + .5);
 
-            Console.WriteLine("subspaceTime");
-            foreach (var i in subspaceTime)
+            Console.WriteLine("subsetTime");
+            foreach (var i in subsetTime)
             {
                 Console.WriteLine(i);
             }
             Console.WriteLine("");
 
-            Console.WriteLine("subspaceObjects");
-            foreach (var i in subspaceObjects)
+            Console.WriteLine("subsetObjects");
+            foreach (var i in subsetObjects)
             {
                 Console.WriteLine(i);
             }
@@ -839,7 +839,7 @@
                     }
                 };
 
-            AddToReports(_reportsLong, subspaceObjects, subspaceTime,
+            AddToReports(_reportsLong, subsetObjects, subsetTime,
                 _reportsDouble);
             if (ExcessiveTests)
             {
@@ -856,15 +856,15 @@
 
             string strLine = FormatLineString(strPreferenceSet, strTrial,
                 preferences.Count, objects,
-                elapsed, time, subspaceTime.Min(), subspaceTime.Max(),
-                MyMathematic.GetSampleVariance(subspaceTime),
-                MyMathematic.GetSampleStdDeviation(subspaceTime),
-                Mathematic.Median(subspaceTime), Mathematic.LowerQuartile(subspaceTime),
-                Mathematic.UpperQuartile(subspaceTime), subspaceObjects.Min(),
-                subspaceObjects.Max(), MyMathematic.GetSampleVariance(subspaceObjects),
-                MyMathematic.GetSampleStdDeviation(subspaceObjects),
-                Mathematic.Median(subspaceObjects), Mathematic.LowerQuartile(subspaceObjects),
-                Mathematic.UpperQuartile(subspaceObjects),
+                elapsed, time, subsetTime.Min(), subsetTime.Max(),
+                MyMathematic.GetSampleVariance(subsetTime),
+                MyMathematic.GetSampleStdDeviation(subsetTime),
+                Mathematic.Median(subsetTime), Mathematic.LowerQuartile(subsetTime),
+                Mathematic.UpperQuartile(subsetTime), subsetObjects.Min(),
+                subsetObjects.Max(), MyMathematic.GetSampleVariance(subsetObjects),
+                MyMathematic.GetSampleStdDeviation(subsetObjects),
+                Mathematic.Median(subsetObjects), Mathematic.LowerQuartile(subsetObjects),
+                Mathematic.UpperQuartile(subsetObjects),
                 setCoverageSingle, representationErrorSingle,
                 representationErrorSumSingle, dominatedObjectsCountSingle,
                 dominatedObjectsOfBestObjectSingle,
@@ -1310,23 +1310,23 @@
         }
 
         private static void AddToReports(IReadOnlyDictionary<Reports, List<long>> reportsSamplingLong,
-            List<long> subspaceObjects, List<long> subspaceTime,
+            List<long> subsetObjects, List<long> subsetTime,
             IReadOnlyDictionary<Reports, List<double>> reportsSamplingDouble)
         {
-            reportsSamplingLong[Reports.SizeMin].Add(subspaceObjects.Min());
-            reportsSamplingLong[Reports.TimeMin].Add(subspaceTime.Min());
-            reportsSamplingLong[Reports.SizeMax].Add(subspaceObjects.Max());
-            reportsSamplingLong[Reports.TimeMax].Add(subspaceTime.Max());
-            reportsSamplingLong[Reports.SizeMed].Add(Mathematic.Median(subspaceObjects));
-            reportsSamplingLong[Reports.TimeMed].Add(Mathematic.Median(subspaceTime));
-            reportsSamplingLong[Reports.SizeQ1].Add(Mathematic.LowerQuartile(subspaceObjects));
-            reportsSamplingLong[Reports.TimeQ1].Add(Mathematic.LowerQuartile(subspaceTime));
-            reportsSamplingLong[Reports.SizeQ3].Add(Mathematic.UpperQuartile(subspaceObjects));
-            reportsSamplingLong[Reports.TimeQ3].Add(Mathematic.UpperQuartile(subspaceTime));
-            reportsSamplingDouble[Reports.SizeVar].Add(MyMathematic.GetSampleVariance(subspaceObjects));
-            reportsSamplingDouble[Reports.TimeVar].Add(MyMathematic.GetSampleVariance(subspaceTime));
-            reportsSamplingDouble[Reports.SizeStdDev].Add(MyMathematic.GetSampleStdDeviation(subspaceObjects));
-            reportsSamplingDouble[Reports.TimeStdDev].Add(MyMathematic.GetSampleStdDeviation(subspaceTime));
+            reportsSamplingLong[Reports.SizeMin].Add(subsetObjects.Min());
+            reportsSamplingLong[Reports.TimeMin].Add(subsetTime.Min());
+            reportsSamplingLong[Reports.SizeMax].Add(subsetObjects.Max());
+            reportsSamplingLong[Reports.TimeMax].Add(subsetTime.Max());
+            reportsSamplingLong[Reports.SizeMed].Add(Mathematic.Median(subsetObjects));
+            reportsSamplingLong[Reports.TimeMed].Add(Mathematic.Median(subsetTime));
+            reportsSamplingLong[Reports.SizeQ1].Add(Mathematic.LowerQuartile(subsetObjects));
+            reportsSamplingLong[Reports.TimeQ1].Add(Mathematic.LowerQuartile(subsetTime));
+            reportsSamplingLong[Reports.SizeQ3].Add(Mathematic.UpperQuartile(subsetObjects));
+            reportsSamplingLong[Reports.TimeQ3].Add(Mathematic.UpperQuartile(subsetTime));
+            reportsSamplingDouble[Reports.SizeVar].Add(MyMathematic.GetSampleVariance(subsetObjects));
+            reportsSamplingDouble[Reports.TimeVar].Add(MyMathematic.GetSampleVariance(subsetTime));
+            reportsSamplingDouble[Reports.SizeStdDev].Add(MyMathematic.GetSampleStdDeviation(subsetObjects));
+            reportsSamplingDouble[Reports.TimeStdDev].Add(MyMathematic.GetSampleStdDeviation(subsetTime));
         }
 
         private static void InitClusterAnalysisDataStructures(
@@ -1499,21 +1499,21 @@
                 }, "sum correlation*", "product cardinality");
         }
 
-        private List<IEnumerable<CLRSafeHashSet<int>>> ProduceSubspaces(ArrayList preferences)
+        private List<IEnumerable<CLRSafeHashSet<int>>> ProduceSubsets(ArrayList preferences)
         {
-            var randomSubspacesProducer = new RandomSkylineSamplingSubspacesProducer
+            var randomSubsetsProducer = new RandomSkylineSamplingSubsetsProducer
             {
                 AllPreferencesCount = preferences.Count,
-                SubspacesCount = SubspacesCount,
-                SubspaceDimension = SubspaceDimension
+                SubsetsCount = SubsetsCount,
+                SubsetDimension = SubsetDimension
             };
 
-            var producedSubspaces = new List<IEnumerable<CLRSafeHashSet<int>>>();
+            var producedSubsets = new List<IEnumerable<CLRSafeHashSet<int>>>();
             for (var ii = 0; ii < SamplesCount; ii++)
             {
-                producedSubspaces.Add(randomSubspacesProducer.GetSubspaces());
+                producedSubsets.Add(randomSubsetsProducer.GetSubsets());
             }
-            return producedSubspaces;
+            return producedSubsets;
         }
 
         private static IReadOnlyDictionary<long, object[]> GetEntireDatabaseNormalized(SQLCommon parser, string strSQL,
@@ -2158,14 +2158,14 @@
                 return clusterAnalysisStrings;
             }
 
-            int subspacesCount = clusterAnalysisTopBuckets[ClusterAnalysis.EntireDb].Values.First().Count;
+            int subsetsCount = clusterAnalysisTopBuckets[ClusterAnalysis.EntireDb].Values.First().Count;
 
             IOrderedEnumerable<KeyValuePair<BigInteger, List<double>>> allEntireDbBuckets = clusterAnalysisTopBuckets[
                 ClusterAnalysis.EntireDb].OrderByDescending(
-                    l => l.Value.Sum() / subspacesCount).ThenBy(l => l.Key);
+                    l => l.Value.Sum() / subsetsCount).ThenBy(l => l.Key);
             IOrderedEnumerable<KeyValuePair<BigInteger, List<double>>> allEntireSkylineBuckets = clusterAnalysisTopBuckets
                 [ClusterAnalysis.EntireSkyline].OrderByDescending(
-                    l => l.Value.Sum() / subspacesCount).ThenBy(l => l.Key);
+                    l => l.Value.Sum() / subsetsCount).ThenBy(l => l.Key);
 
             foreach (
                 ClusterAnalysis clusterAnalysisType in
@@ -2173,7 +2173,7 @@
             {
                 foreach (KeyValuePair<BigInteger, List<double>> bucket in allEntireDbBuckets)
                 {
-                    double percent = clusterAnalysisTopBuckets[clusterAnalysisType][bucket.Key].Sum() / subspacesCount;
+                    double percent = clusterAnalysisTopBuckets[clusterAnalysisType][bucket.Key].Sum() / subsetsCount;
                     clusterAnalysisStrings[clusterAnalysisType] += "EB-" + bucket.Key + ":" +
                                                                    string.Format("{0:0.00},", percent * 100);
                 }
@@ -2187,7 +2187,7 @@
                     foreach (KeyValuePair<BigInteger, List<double>> bucket in allEntireSkylineBuckets.Take(5))
                     {
                         double percent = clusterAnalysisTopBuckets[clusterAnalysisType][bucket.Key].Sum() /
-                                         subspacesCount;
+                                         subsetsCount;
                         clusterAnalysisStrings[clusterAnalysisType] += "ESB-" + bucket.Key + ":" +
                                                                        string.Format("{0:0.00},", percent * 100);
                     }
@@ -2201,10 +2201,10 @@
                         foreach (
                             KeyValuePair<BigInteger, List<double>> bucket in
                                 clusterAnalysisTopBuckets[clusterAnalysisType].OrderByDescending(
-                                    l => l.Value.Sum() / subspacesCount).ThenBy(l => l.Key).Take(5))
+                                    l => l.Value.Sum() / subsetsCount).ThenBy(l => l.Key).Take(5))
                         {
                             double percent = clusterAnalysisTopBuckets[clusterAnalysisType][bucket.Key].Sum() /
-                                             subspacesCount;
+                                             subsetsCount;
                             clusterAnalysisStrings[clusterAnalysisType] += "SB-" + bucket.Key + ":" +
                                                                            string.Format("{0:0.00},", percent * 100);
                         }

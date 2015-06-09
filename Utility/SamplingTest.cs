@@ -464,11 +464,11 @@
             };
 
             PrefSQLModel prefSqlModel = common.GetPrefSqlModelFromPreferenceSql(_skylineSampleSql);
-            var randomSubspacesesProducer = new RandomSkylineSamplingSubspacesProducer
+            var randomSubsetsProducer = new RandomSkylineSamplingSubsetsProducer
             {
                 AllPreferencesCount = prefSqlModel.Skyline.Count,
-                SubspacesCount = prefSqlModel.SkylineSampleCount,
-                SubspaceDimension = prefSqlModel.SkylineSampleDimension
+                SubsetsCount = prefSqlModel.SkylineSampleCount,
+                SubsetDimension = prefSqlModel.SkylineSampleDimension
             };
 
             DataTable dataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
@@ -477,11 +477,11 @@
             Console.WriteLine(dataTable.Rows.Count);
             Console.WriteLine();
 
-            var producedSubspaces = new List<IEnumerable<CLRSafeHashSet<int>>>();
+            var producedSubsets = new List<IEnumerable<CLRSafeHashSet<int>>>();
 
             for (var i = 0; i < runs; i++)
             {
-                producedSubspaces.Add(randomSubspacesesProducer.GetSubspaces());
+                producedSubsets.Add(randomSubsetsProducer.GetSubsets());
             }
 
             //var temp = new HashSet<HashSet<int>>
@@ -491,7 +491,7 @@
             //    new HashSet<int>() {4, 5, 6}
             //};
 
-            //producedSubspaces.Add(temp);
+            //producedSubsets.Add(temp);
             //var temp = new HashSet<HashSet<int>>
             //{
             //    new HashSet<int>() {0, 1, 2},
@@ -511,14 +511,14 @@
             //    new HashSet<int>() {13, 10, 7}
             //};
 
-            //producedSubspaces.Add(temp);
-            ExecuteSampleSkylines(producedSubspaces, prefSqlModel, common);            
+            //producedSubsets.Add(temp);
+            ExecuteSampleSkylines(producedSubsets, prefSqlModel, common);            
             Console.WriteLine();
-            ExecuteSampleSkylines(producedSubspaces, prefSqlModel, commonSort);
-            //ExecuteSampleSkylines(producedSubspaces, prefSqlModel, common);
+            ExecuteSampleSkylines(producedSubsets, prefSqlModel, commonSort);
+            //ExecuteSampleSkylines(producedSubsets, prefSqlModel, common);
         }
 
-        private static void ExecuteSampleSkylines(IReadOnlyCollection<IEnumerable<CLRSafeHashSet<int>>> producedSubspaces,
+        private static void ExecuteSampleSkylines(IReadOnlyCollection<IEnumerable<CLRSafeHashSet<int>>> producedSubsets,
             PrefSQLModel prefSqlModel, SQLCommon common)
         {
             var objectsCount = 0;
@@ -534,14 +534,14 @@
             prefSQL.SQLParser.Helper.DetermineParameters(ansiSql, out parameter, out strQuery, out operators,
                 out numberOfRecords);
 
-            foreach (IEnumerable<CLRSafeHashSet<int>> subspace in producedSubspaces)
+            foreach (IEnumerable<CLRSafeHashSet<int>> subset in producedSubsets)
             {
-                var subspacesProducer = new FixedSkylineSamplingSubspacesProducer(subspace);
-                var utility = new SkylineSamplingUtility(subspacesProducer);
+                var subsetsProducer = new FixedSkylineSamplingSubsetsProducer(subset);
+                var utility = new SkylineSamplingUtility(subsetsProducer);
                 var skylineSample = new SkylineSampling(utility)
                 {
-                    SubspacesCount = prefSqlModel.SkylineSampleCount,
-                    SubspaceDimension = prefSqlModel.SkylineSampleDimension,
+                    SubsetCount = prefSqlModel.SkylineSampleCount,
+                    SubsetDimension = prefSqlModel.SkylineSampleDimension,
                     SelectedStrategy = common.SkylineType
                 };
 
@@ -549,7 +549,7 @@
 
                 objectsCount += dataTable.Rows.Count;
                 timeSpent += skylineSample.TimeMilliseconds;
-                foreach (CLRSafeHashSet<int> attribute in subspace)
+                foreach (CLRSafeHashSet<int> attribute in subset)
                 {
                     Console.Write("[");
                     foreach (int attribute1 in attribute)
@@ -563,8 +563,8 @@
                 Console.WriteLine("objects : " + dataTable.Rows.Count);
             }
 
-            Console.WriteLine("time average: " + (double) timeSpent / producedSubspaces.Count);
-            Console.WriteLine("objects average: " + (double) objectsCount / producedSubspaces.Count);
+            Console.WriteLine("time average: " + (double) timeSpent / producedSubsets.Count);
+            Console.WriteLine("objects average: " + (double) objectsCount / producedSubsets.Count);
         }
     }
 }

@@ -87,8 +87,8 @@
     <Compile Include="Models\HexagonRemoveModel.cs" />
     <Compile Include="TemplateStrategy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SkylineSampling\ISkylineSamplingSubspacesProducer.cs" />
-    <Compile Include="SkylineSampling\RandomSkylineSamplingSubspacesProducer.cs" />
+    <Compile Include="SkylineSampling\ISkylineSamplingSubsetsProducer.cs" />
+    <Compile Include="SkylineSampling\RandomSkylineSamplingSubsetsProducer.cs" />
     <Compile Include="SkylineSampling\SkylineSampling.cs" />
     <Compile Include="SkylineSampling\SkylineSamplingUtility.cs" />
     <Compile Include="SkylineDecisionTree.cs" />

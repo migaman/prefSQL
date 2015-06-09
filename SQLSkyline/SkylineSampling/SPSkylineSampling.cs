@@ -30,8 +30,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
                 var skylineSample = new SkylineSampling
                 {
-                    SubspacesCount = count.Value,
-                    SubspaceDimension = dimension.Value,
+                    SubsetCount = count.Value,
+                    SubsetDimension = dimension.Value,
                     SelectedStrategy = strategy
                 };
 

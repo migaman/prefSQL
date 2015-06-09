@@ -83,8 +83,8 @@ namespace Utility
 
             p.ExcessiveTests = false;
             p.Sampling = true;
-            p.SamplingSubspacesCount = 15;
-            p.SamplingSubspaceDimension = 3;
+            p.SamplingSubsetsCount = 15;
+            p.SamplingSubsetDimension = 3;
             p.SamplingSamplesCount = 100;
 
             p.GeneratePerformanceQueries();

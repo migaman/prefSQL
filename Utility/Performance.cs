@@ -117,9 +117,9 @@ namespace Utility
 
         public bool Sampling { get; set; }
 
-        internal int SamplingSubspacesCount { get; set; }
+        internal int SamplingSubsetsCount { get; set; }
 
-        internal int SamplingSubspaceDimension { get; set; }
+        internal int SamplingSubsetDimension { get; set; }
 
         internal int SamplingSamplesCount { get; set; }
 
@@ -520,8 +520,8 @@ namespace Utility
                     if (Sampling)
                     {
                         sb.AppendLine("                Sampling: true");
-                        sb.AppendLine("         Subspaces Count: " + SamplingSubspacesCount);
-                        sb.AppendLine("      Subspace Dimension: " + SamplingSubspaceDimension);
+                        sb.AppendLine("           Subsets Count: " + SamplingSubsetsCount);
+                        sb.AppendLine("        Subset Dimension: " + SamplingSubsetDimension);
                         sb.AppendLine("           Sampling Runs: " + SamplingSamplesCount);
                     }
                     sb.AppendLine("");
@@ -545,7 +545,7 @@ namespace Utility
                 List<double> reportCorrelation = new List<double>();
                 List<double> reportCardinality = new List<double>();
 
-                var perfSampling = new PerformanceSampling(SamplingSubspacesCount, SamplingSubspaceDimension, SamplingSamplesCount, ExcessiveTests);
+                var perfSampling = new PerformanceSampling(SamplingSubsetsCount, SamplingSubsetDimension, SamplingSamplesCount, ExcessiveTests);
 
                 //For each preference set in the preference list
                 for (int iPreferenceIndex = 0; iPreferenceIndex < listPreferences.Count; iPreferenceIndex++)
