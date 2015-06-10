@@ -47,18 +47,12 @@
                 if (_numberOfDistinctDominatedObjects == -1)
                 {
                     var s = new HashSet<long>();
-                    foreach (KeyValuePair<long, ISet<long>> i in Result)
+                    foreach (long j in Result.SelectMany(i => i.Value))
                     {
-                        s.Add(i.Key);
+                        s.Add(j);
                     }
 
-                    _numberOfDistinctDominatedObjects = s.Count;
-                    /*
-                    _numberOfDistinctDominatedObjects =
-                        Result.Values.SelectMany(
-                            objectsDominatedByOneObject =>
-                                objectsDominatedByOneObject.SelectMany(
-                                    objectDominatedByOneObject => objectDominatedByOneObject.Keys)).Distinct().Count();*/
+                    _numberOfDistinctDominatedObjects = s.Count;                 
                 }
                 return _numberOfDistinctDominatedObjects;
             }
