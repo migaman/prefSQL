@@ -163,9 +163,9 @@
 
                 if (euclideanDistance < minimumDistance)
                 {
-                    breakOnLimit = euclideanDistance * euclideanDistance;
                     minimumDistance = euclideanDistance;
                     minimumDistanceObjectKey = potentiallyCoveredObject.Key;
+                    breakOnLimit = minimumDistance * minimumDistance;
                 }
             }
 

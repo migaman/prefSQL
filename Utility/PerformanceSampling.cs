@@ -436,56 +436,33 @@
                     setCoverageBestRank.Add(setCoverageCoveredByEntireBestRank);
                     setCoverageSumRank.Add(setCoverageCoveredByEntireSumRank);
 
-                    double representationErrorSecondRandomSample = SetCoverage
-                        .GetRepresentationError(
-                            GetReducedSkyline(entireSkylineNormalized, secondRandomSampleNormalized),
-                            secondRandomSampleNormalized, skylineAttributeColumns).Max() * 100.0;
-                    double representationErrorSkylineSample = SetCoverage.GetRepresentationError(
+                    Dictionary<long, double>.ValueCollection baseRepresentationErrorSecondRandomSample = SetCoverage
+                    .GetRepresentationError(
+                        GetReducedSkyline(entireSkylineNormalized, secondRandomSampleNormalized),
+                        secondRandomSampleNormalized, skylineAttributeColumns);
+                    Dictionary<long, double>.ValueCollection baseRepresentationErrorSkylineSample = SetCoverage.GetRepresentationError(
                         GetReducedSkyline(entireSkylineNormalized, sampleSkylineNormalized),
-                        sampleSkylineNormalized, skylineAttributeColumns).Max() * 100.0;
-                    double representationErrorEntireBestRank =
+                        sampleSkylineNormalized, skylineAttributeColumns);
+                    Dictionary<long, double>.ValueCollection baseRepresentationErrorEntireBestRank =
                         SetCoverage.GetRepresentationError(
                             GetReducedSkyline(entireSkylineNormalized,
                                 entireSkylineDataTableBestRankNormalized),
-                            entireSkylineDataTableBestRankNormalized, skylineAttributeColumns).Max() *
-                        100.0;
-                    double representationErrorEntireSumRank =
+                            entireSkylineDataTableBestRankNormalized, skylineAttributeColumns);
+                    Dictionary<long, double>.ValueCollection baseRepresentationErrorEntireSumRank =
                         SetCoverage.GetRepresentationError(
                             GetReducedSkyline(entireSkylineNormalized,
                                 entireSkylineDataTableSumRankNormalized),
-                            entireSkylineDataTableSumRankNormalized, skylineAttributeColumns).Max() *
-                        100.0;
+                            entireSkylineDataTableSumRankNormalized, skylineAttributeColumns);
 
-                    representationErrorSecondRandom.Add(representationErrorSecondRandomSample);
-                    representationErrorSample.Add(representationErrorSkylineSample);
-                    representationErrorBestRank.Add(representationErrorEntireBestRank);
-                    representationErrorSumRank.Add(representationErrorEntireSumRank);
+                    representationErrorSecondRandom.Add(baseRepresentationErrorSecondRandomSample.Max()*100.0);
+                    representationErrorSample.Add(baseRepresentationErrorSkylineSample.Max() * 100.0);
+                    representationErrorBestRank.Add(baseRepresentationErrorEntireBestRank.Max() * 100.0);
+                    representationErrorSumRank.Add(baseRepresentationErrorEntireSumRank.Max() * 100.0);                  
 
-                    double representationErrorSumSecondRandomSample = SetCoverage
-                        .GetRepresentationError(
-                            GetReducedSkyline(entireSkylineNormalized, secondRandomSampleNormalized),
-                            secondRandomSampleNormalized, skylineAttributeColumns).Sum() * 100.0;
-                    double representationErrorSumSkylineSample = SetCoverage.GetRepresentationError(
-                        GetReducedSkyline(entireSkylineNormalized, sampleSkylineNormalized),
-                        sampleSkylineNormalized, skylineAttributeColumns).Sum() * 100.0;
-                    double representationErrorSumEntireBestRank =
-                        SetCoverage.GetRepresentationError(
-                            GetReducedSkyline(entireSkylineNormalized,
-                                entireSkylineDataTableBestRankNormalized),
-                            entireSkylineDataTableBestRankNormalized, skylineAttributeColumns).Sum() *
-                        100.0;
-                    double representationErrorSumEntireSumRank =
-                        SetCoverage.GetRepresentationError(
-                            GetReducedSkyline(entireSkylineNormalized,
-                                entireSkylineDataTableSumRankNormalized),
-                            entireSkylineDataTableSumRankNormalized, skylineAttributeColumns)
-                            .Sum() * 100.0;
-
-                    representationErrorSumSecondRandom.Add(
-                        representationErrorSumSecondRandomSample);
-                    representationErrorSumSample.Add(representationErrorSumSkylineSample);
-                    representationErrorSumBestRank.Add(representationErrorSumEntireBestRank);
-                    representationErrorSumSumRank.Add(representationErrorSumEntireSumRank);
+                    representationErrorSumSecondRandom.Add(baseRepresentationErrorSecondRandomSample.Sum() * 100.0);
+                    representationErrorSumSample.Add(baseRepresentationErrorSkylineSample.Sum() * 100.0);
+                    representationErrorSumBestRank.Add(baseRepresentationErrorEntireBestRank.Sum() * 100.0);
+                    representationErrorSumSumRank.Add(baseRepresentationErrorEntireSumRank.Sum() * 100.0);
 
                     var dominatedObjectsCountRandomSample =
                         new DominatedObjects(entireDatabase,
