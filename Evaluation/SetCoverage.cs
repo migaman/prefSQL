@@ -148,7 +148,6 @@
         ///     The set examined for coverage. The coveringObject covers the object in
         ///     normalizedDataToBeCovered when its distance to coveringObject is minimal.
         /// </param>
-        /// <param name="useColumns">Array indices which should be used for the distance calculation.</param>
         /// <returns>A Tuple with the key of the covered object in Item1 and its distance to coveringObject in Item2.</returns>
         internal static Tuple<long, double> GetCoveredObject(double[] coveringObject,
             Dictionary<long, double[]> normalizedDataToBeCovered)
@@ -162,13 +161,9 @@
                 double euclideanDistance = CalculateEuclideanDistance(coveringObject, potentiallyCoveredObject.Value,
                     breakOnLimit);
 
-                if (euclideanDistance < double.MaxValue)
-                {
-                    breakOnLimit = euclideanDistance;
-                }
-
                 if (euclideanDistance < minimumDistance)
                 {
+                    breakOnLimit = euclideanDistance * euclideanDistance;
                     minimumDistance = euclideanDistance;
                     minimumDistanceObjectKey = potentiallyCoveredObject.Key;
                 }
