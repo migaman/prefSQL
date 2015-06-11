@@ -1,3 +1,37 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 by Bart Kiers
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Project      : sqlite-parser; an ANTLR4 grammar for SQLite
+ *                https://github.com/bkiers/sqlite-parser
+ * Developed by : Bart Kiers, bart@big-o.nl
+ */
+
+
+//This input grammar file contains a substantial portion of the SQLite parser mentioned above.
+//It was reduced to the SELECT operation and preference based logic was added
 grammar SQL;
 
 options
@@ -45,7 +79,7 @@ select_stmt : select_or_values ( compound_operator select_or_values )*  ( order_
  ;
 
 order_by
-	: K_ORDER K_BY op=(K_SUMRANK|K_BESTRANK) '(' + ')'			#orderBySpecial
+	: K_ORDER K_BY op=(K_SUMRANK|K_BESTRANK) '(' ')'			#orderBySpecial
 	| K_ORDER K_BY ordering_term ( ',' ordering_term )*	 		#orderByDefault
 ;
 
@@ -111,18 +145,18 @@ expr
  
 exprSkyline
  : exprSkyline ',' exprSkyline																			#skylineAnd
- | column_term op=(K_LOW | K_HIGH)	(signed_number (K_EQUAL | K_INCOMPARABLE))?	#skylinePreferenceLowHigh
+ | column_term op=(K_LOW | K_HIGH)	(signed_number (K_EQUAL | K_INCOMPARABLE))?							#skylinePreferenceLowHigh
  | column_term ('(' exprCategory ')')																	#skylinePreferenceCategory
- | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term)			#skylinePreferenceAround
+ | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|column_term)						#skylinePreferenceAround
  | exprSkyline K_IS K_MORE K_IMPORTANT K_THAN exprSkyline												#skylineMoreImportant
  ;
 
 
 exprRanking
- : exprRanking ',' exprRanking																						#weightedsumAnd   
- | column_term op=(K_LOW | K_HIGH) (signed_number (K_EQUAL))?	signed_number										#weightedsumLowHigh
- | column_term ('(' exprCategoryNoIncomparable ')')	 signed_number															#weightedsumCategory
- | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|geocoordinate|column_term) signed_number		#weightedsumAround
+ : exprRanking ',' exprRanking																			#weightedsumAnd   
+ | column_term op=(K_LOW | K_HIGH) (signed_number (K_EQUAL))?	signed_number							#weightedsumLowHigh
+ | column_term ('(' exprCategoryNoIncomparable ')')	 signed_number										#weightedsumCategory
+ | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|column_term) signed_number			#weightedsumAround
  ;
 
 exprSkylineSample
@@ -159,7 +193,6 @@ exprOthers
 	: K_OTHERS (K_EQUAL)
 	| K_OTHERS (K_INCOMPARABLE);
 
-geocoordinate :'(' expr ',' expr ')';
 
 //For own preferences 
 exprOwnPreference
