@@ -2172,10 +2172,10 @@
                 {
                     double percent = clusterAnalysisTopBuckets[clusterAnalysisType][bucket.Key].Sum() / subsetsCount;
                     clusterAnalysisStrings[clusterAnalysisType] += "EB-" + bucket.Key + ":" +
-                                                                   string.Format("{0:0.00},", percent * 100);
+                                                                   string.Format("{0:0.00}/", percent * 100);
                 }
 
-                clusterAnalysisStrings[clusterAnalysisType] = clusterAnalysisStrings[clusterAnalysisType].TrimEnd(',');
+                clusterAnalysisStrings[clusterAnalysisType] = clusterAnalysisStrings[clusterAnalysisType].TrimEnd('/');
 
                 if (clusterAnalysisType != ClusterAnalysis.EntireDb)
                 {
@@ -2186,11 +2186,11 @@
                         double percent = clusterAnalysisTopBuckets[clusterAnalysisType][bucket.Key].Sum() /
                                          subsetsCount;
                         clusterAnalysisStrings[clusterAnalysisType] += "ESB-" + bucket.Key + ":" +
-                                                                       string.Format("{0:0.00},", percent * 100);
+                                                                       string.Format("{0:0.00}/", percent * 100);
                     }
 
                     clusterAnalysisStrings[clusterAnalysisType] =
-                        clusterAnalysisStrings[clusterAnalysisType].TrimEnd(',');
+                        clusterAnalysisStrings[clusterAnalysisType].TrimEnd('/');
                     if (clusterAnalysisType != ClusterAnalysis.EntireSkyline)
                     {
                         clusterAnalysisStrings[clusterAnalysisType] += ";";
@@ -2203,11 +2203,11 @@
                             double percent = clusterAnalysisTopBuckets[clusterAnalysisType][bucket.Key].Sum() /
                                              subsetsCount;
                             clusterAnalysisStrings[clusterAnalysisType] += "SB-" + bucket.Key + ":" +
-                                                                           string.Format("{0:0.00},", percent * 100);
+                                                                           string.Format("{0:0.00}/", percent * 100);
                         }
 
                         clusterAnalysisStrings[clusterAnalysisType] =
-                            clusterAnalysisStrings[clusterAnalysisType].TrimEnd(',');
+                            clusterAnalysisStrings[clusterAnalysisType].TrimEnd('/');
                     }
                 }
             }
