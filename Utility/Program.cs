@@ -48,8 +48,8 @@ namespace Utility
             p.UseCLR = false;
             p.Trials = 1;           //Amount of trials for each single sql preference statement
             
-            p.MinDimensions = 9;   //Up from x dimensions
-            p.MaxDimensions = 9;   //Up to x dimensions
+            p.MinDimensions = 7;   //Up from x dimensions
+            p.MaxDimensions = 7;   //Up to x dimensions
             p.RandomDraws = 10;    //Amount of draws (x times randomly choose a some preferences)
             
             //p.TableSize = Performance.Size.Small;
@@ -68,6 +68,7 @@ namespace Utility
             //p.Set = Performance.PreferenceSet.MinCardinality;
             
             p.Mode = Performance.PreferenceChooseMode.Combination;
+            //p.Mode = Performance.PreferenceChooseMode.SameOrder;
             //p.Mode = Performance.PreferenceChooseMode.Shuffle;
             //p.Mode = Performance.PreferenceChooseMode.Correlation;
             //p.Mode = Performance.PreferenceChooseMode.AntiCorrelation;
@@ -75,16 +76,16 @@ namespace Utility
 
             //p.Strategy = null; //all algorithms should be tested
             //p.Strategy = new SkylineSQL();
-            p.Strategy = new SkylineBNL();
-            //p.Strategy = new SkylineBNLSort();
+            //p.Strategy = new SkylineBNL();
+            p.Strategy = new SkylineBNLSort();
             //p.Strategy = new SkylineDQ();
             //p.Strategy = new SkylineHexagon();
             //p.Strategy = new SkylineDecisionTree();
 
-            p.Sampling = true;
-            p.SamplingSubspacesCount = 10;
-            p.SamplingSubspaceDimension = 3;
-            p.SamplingSamplesCount = 10;
+            //p.Sampling = true;
+            //p.SamplingSubspacesCount = 10;
+            //p.SamplingSubspaceDimension = 3;
+            //p.SamplingSamplesCount = 10;
 
             p.GeneratePerformanceQueries();
         }
@@ -117,9 +118,21 @@ namespace Utility
                 //string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 10000 SKYLINE OF t1.price LOW, colors.name ('red' >> 'blue' >> OTHERS INCOMPARABLE)";
                 //string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 10000 SKYLINE OF t1.price LOW, colors.name (OTHERS INCOMPARABLE >> 'blue' >> 'red')";
                 //string strPrefSQL = "SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT 2 DIMENSION 1";
-                //string strPrefSQL = "SELECT t1.id                          FROM cars_small t1  SKYLINE OF t1.price LOW";
                 //string strPrefSQL = "SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW";
-                string strPrefSQL = "SELECT t1.id, t1.price, t1.mileage FROM cars_small t1 SKYLINE OF t1.price LOW, t1.mileage LOW";
+                //string strPrefSQL = "SELECT t1.id, t1.price, t1.mileage FROM cars_small t1 SKYLINE OF t1.price LOW, t1.mileage LOW ORDER BY SUM_RANK()";
+                //string strPrefSQL = "SELECT t1.id                          FROM cars t1  SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW";
+
+                //string strPrefSQL = "SELECT c.id, c.price                  FROM cars_medium c   LEFT OUTER JOIN colors cc ON c.color_id = cc.id LEFT OUTER JOIN fuels f ON f.id = c.fuel_id SKYLINE OF c.price LOW 1000 INCOMPARABLE, cc.name ('red' == 'blue' >> OTHERS INCOMPARABLE >> 'gray'), f.name ('petrol' >> OTHERS INCOMPARABLE >> 'diesel')";
+                //string strPrefSQL = "SELECT c.title AS Name, c.Price, c.Mileage, co.Name AS Color, b.Name AS Body FROM Cars AS c LEFT OUTER JOIN colors co ON c.color_id = co.ID LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.Price LOW, c.Mileage LOW";
+
+                //string strPrefSQL = "EXEC dbo.SP_SkylineBNLSortLevel 'SELECT  CAST(c.Price AS bigint) AS SkylineAttribute0, CAST(c.Mileage AS bigint) AS SkylineAttribute1 , c.title AS Name, c.Price, c.Mileage, co.Name AS Color, b.Name AS Body FROM Cars AS c LEFT OUTER JOIN colors co ON c.color_id = co.ID LEFT OUTER JOIN bodies b ON c.body_id = b.ID ORDER BY c.Price, c.Mileage', 'LOW;LOW', 0, 0";
+
+                //string strPrefSQL = "SELECT t.id FROM cars t SKYLINE OF t.price LOW, t.mileage LOW";
+                //string strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name FROM cars t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 10000 SKYLINE OF t1.price LOW, colors.name ('silver' >> 'yellow' >> OTHERS INCOMPARABLE)";
+                //string strPrefSQL = "SELECT cars.id, cars.title FROM  cars SKYLINE OF cars.price LOW,cars.mileage LOW,cars.horsepower HIGH,cars.enginesize HIGH,cars.consumption LOW,cars.doors HIGH,cars.seats HIGH";
+
+                //string strPrefSQL = "SELECT t.id, t.title, t.price, colors.name AS colour FROM cars t LEFT OUTER JOIN colors ON t.color_id = colors.id SKYLINE OF t.price LOW, t.mileage LOW, colors.name ('red' >> {'blue', 'yellow'} >> OTHERS INCOMPARABLE)";
+                string strPrefSQL = "SELECT t.id, t.title FROM cars t RANKING OF t.price LOW 0.8, t.mileage LOW 0.2";
 
                 Debug.WriteLine(strPrefSQL);
                 SQLCommon parser = new SQLCommon();
@@ -128,10 +141,10 @@ namespace Utility
                 //Choose here your algorithm
                 //parser.SkylineType = new SkylineSQL();
                 //parser.SkylineType = new SkylineBNL();
-                //parser.SkylineType = new SkylineBNLSort();
+                parser.SkylineType = new SkylineBNLSort();
                 //parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new SkylineDQ();
-                parser.SkylineType = new MultipleSkylineBNL();
+                //parser.SkylineType = new MultipleSkylineBNL();
                 
                 
                 //Some other available properties
