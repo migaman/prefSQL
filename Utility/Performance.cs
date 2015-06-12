@@ -33,7 +33,7 @@ namespace Utility
     /// Bitbucket.      /// Available online at https://bitbucket.org/clofi/skyline_simulator.
     /// 
     /// </remarks>
-    
+
 
 
     class Performance
@@ -69,7 +69,7 @@ namespace Utility
             Jon,                    //Preference set from 2nd peformance phase
             Mya,                    //Preference set from 2nd peformance phase
             Barra,                  //Preference set from 2nd peformance phase
-            
+
             All,                    //Take all preferences
             Numeric,                //Take only numeric preferences
             Categoric,              //Take only categoric preferences
@@ -77,7 +77,9 @@ namespace Utility
 
             LowCardinality,
             HighCardinality,
-            LowAndHighCardinality
+            LowAndHighCardinality,
+            ForRandom10,
+            ForRandom17
         };
 
         public enum PreferenceChooseMode
@@ -95,7 +97,7 @@ namespace Utility
         public bool UseCLR { get; set; }
 
         internal Size TableSize { get; set; }
-        
+
 
         public SkylineStrategy Strategy { get; set; }
 
@@ -241,7 +243,7 @@ namespace Utility
 
             return preferences;
         }
-     
+
         internal static ArrayList GetCategoricalPreferences()
         {
             ArrayList preferences = new ArrayList();
@@ -262,7 +264,7 @@ namespace Utility
         internal static ArrayList GetLowCardinalityPreferences()
         {
             ArrayList preferences = new ArrayList();
-           
+
             preferences.Add("transmissions.name ('manual' >> 'automatic' >> OTHERS EQUAL)"); // cardinality 2 in superlarge
             preferences.Add("drives.name ('front wheel' >> 'all wheel' >> 'rear wheel' >> OTHERS EQUAL)"); // cardinality 3 in superlarge
             preferences.Add("conditions.name ('new' >> 'occasion' >> 'demonstration car' >> 'oldtimer' >> OTHERS EQUAL)"); // cardinality 4 in superlarge
@@ -289,7 +291,30 @@ namespace Utility
             preferences.Add("cars.registrationNumeric HIGH"); // cardinality 270 in superlarge
             preferences.Add("cars.consumption LOW"); // cardinality 181 in superlarge
             preferences.Add("cars.Make_Id HIGH"); // cardinality 71 in superlarge
-            
+
+            return preferences;
+        }
+
+        internal static ArrayList Get10ForRandomPreferences()
+        {
+            ArrayList preferences = new ArrayList();
+            preferences.AddRange(GetNumericPreferences());
+            return preferences;
+        }
+
+        internal static ArrayList Get17ForRandomPreferences()
+        {
+            ArrayList preferences = new ArrayList();
+
+            preferences.AddRange(Get10ForRandomPreferences());
+            preferences.Add("cars.Body_Id HIGH");
+            preferences.Add("cars.Color_Id LOW");
+            preferences.Add("cars.Make_Id LOW");
+            preferences.Add("cars.Model_Id HIGH");
+            preferences.Add("cars.Drive_Id HIGH");
+            preferences.Add("cars.Transmission_Id HIGH");
+            preferences.Add("cars.Fuel_Id LOW");
+
             return preferences;
         }
 
@@ -387,13 +412,19 @@ namespace Utility
                 case PreferenceSet.LowAndHighCardinality:
                     preferencesMode = GetLowAndHighCardinalityPreferences();
                     break;
+                case PreferenceSet.ForRandom10:
+                    preferencesMode = Get10ForRandomPreferences();
+                    break;
+                case PreferenceSet.ForRandom17:
+                    preferencesMode = Get17ForRandomPreferences();
+                    break;
             }
 
 
             //Calculate correlationmatrix and cardinality from the preferences
             ArrayList correlationMatrix = GetCorrelationMatrix(preferencesMode);
             ArrayList listCardinality = GetCardinalityOfPreferences(preferencesMode);
-            
+
             //Depending on the mode create the sets from the preferences
             if (Mode == PreferenceChooseMode.Combination)
             {
@@ -408,9 +439,9 @@ namespace Utility
                 //create all possible combinations and add it to listPreferences
                 for (int i = MinDimensions; i <= MaxDimensions; i++)
                 {
-                    GetCombinations(preferencesMode, i, 0, new ArrayList(), ref listPreferences);    
+                    GetCombinations(preferencesMode, i, 0, new ArrayList(), ref listPreferences);
                 }
-                
+
 
             }
             else if (Mode == PreferenceChooseMode.Shuffle)
@@ -424,7 +455,7 @@ namespace Utility
                     //First define define randomly how many dimensions
                     int differentDimensions = MaxDimensions - MinDimensions + 1;
                     int sampleDimensions = Rnd.Next(differentDimensions) + MinDimensions;
-                    
+
                     //Choose x preferences randomly
                     for (int i = 0; i < sampleDimensions; i++)
                     {
@@ -538,7 +569,7 @@ namespace Utility
             {
                 listStrategy.Add(Strategy);
             }
-            foreach(SkylineStrategy currentStrategy in listStrategy)
+            foreach (SkylineStrategy currentStrategy in listStrategy)
             {
                 //Take all strategies
 
@@ -552,9 +583,9 @@ namespace Utility
                 }
                 else
                 {
-                     strSeparatorLine = FormatLineString('-', "", "", "", "", "", "", "", "");
+                    strSeparatorLine = FormatLineString('-', "", "", "", "", "", "", "", "");
                 }
-                
+
                 if (GenerateScript == false)
                 {
                     //Header
@@ -581,9 +612,10 @@ namespace Utility
                     if (Sampling)
                     {
                         sb.AppendLine(PerformanceSampling.GetHeaderLine());
-                    } else
+                    }
+                    else
                     {
-                        sb.AppendLine(FormatLineString(' ', "preference set", "trial", "dimensions", "skyline size", "time total", "time algorithm", "sum correlation*", "product cardinality"));                        
+                        sb.AppendLine(FormatLineString(' ', "preference set", "trial", "dimensions", "skyline size", "time total", "time algorithm", "sum correlation*", "product cardinality"));
                     }
                     sb.AppendLine(strSeparatorLine);
                     Debug.Write(sb);
@@ -614,7 +646,7 @@ namespace Utility
                     //SELECT FROM
                     string strSQL = "SELECT cars.id FROM ";
                     if (TableSize == Size.Small)
-                    { 
+                    {
                         strSQL += "cars_small";
                     }
                     else if (TableSize == Size.Medium)
@@ -675,7 +707,7 @@ namespace Utility
                                     }
                                     else
                                     {
-                                        parser.Cardinality = (long) cardinality;
+                                        parser.Cardinality = (long)cardinality;
                                         dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
                                             strSQL);
                                     }
@@ -697,7 +729,7 @@ namespace Utility
 
                                     string strLine = FormatLineString(strPreferenceSet, strTrial, preferences.Count,
                                         dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, correlation, cardinality);
-                                    
+
                                     Debug.WriteLine(strLine);
                                     sb.AppendLine(strLine);
                                 }
@@ -728,7 +760,7 @@ namespace Utility
 
                         }
 
-                            
+
                     }
 
                     //}
@@ -781,7 +813,7 @@ namespace Utility
             {
                 cnnSQL.Close();
             }
-            
+
         }
 
         private DataTable GetSQLFromPreferences(ArrayList preferences, bool cardinality)
@@ -935,7 +967,7 @@ namespace Utility
             double sumCorrelation = 0;
             for (int i = 0; i < preferences.Count; i++)
             {
-                for (int ii = i+1; ii < preferences.Count; ii++)
+                for (int ii = i + 1; ii < preferences.Count; ii++)
                 {
                     bool bFound = false;
                     for (int iModel = 0; iModel < correlationMatrix.Count; iModel++)
@@ -1001,13 +1033,13 @@ namespace Utility
         /// <param name="returnArray"></param>
         private void GetCombinations(ArrayList arr, int len, int startPosition, ArrayList result, ref ArrayList returnArray)
         {
-            if(result.Count == 0)
+            if (result.Count == 0)
             {
                 for (int i = 0; i < len; i++)
                 {
                     result.Add("");
                 }
-                    
+
             }
 
             if (len == 0)
@@ -1022,12 +1054,12 @@ namespace Utility
             }
         }
 
-        
+
 
 
         #region formatOutput
 
-    
+
 
         private void AddSummary(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions, List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, List<double> reportCorrelation, List<double> reportCardinality)
         {
@@ -1082,12 +1114,12 @@ namespace Utility
             return string.Join("|", line);
         }
 
-    
+
         private string FormatLineString(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double correlation, double cardinality)
         {
             return FormatLineString(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(CultureInfo.InvariantCulture), Math.Round(skyline, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeTotal, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeAlgo, 2).ToString(CultureInfo.InvariantCulture), Math.Round(correlation, 2).ToString(CultureInfo.InvariantCulture), ToLongString(Math.Round(cardinality, 2)));
-        }  
-        
+        }
+
         /// <summary>
         /// Source: http://stackoverflow.com/questions/1546113/double-to-string-conversion-without-scientific-notation
         /// </summary>
@@ -1170,9 +1202,9 @@ namespace Utility
 
 
 
-        
+
 
     }
-    
+
 
 }

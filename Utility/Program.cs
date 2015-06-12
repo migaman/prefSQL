@@ -7,10 +7,10 @@ using prefSQL.SQLParser;
 using prefSQL.SQLSkyline;
 
 namespace Utility
-{  
+{
     class Program
     {
-        
+
 
         static void Main(string[] args)
         {
@@ -30,15 +30,15 @@ namespace Utility
             DominanceGraph graph = new DominanceGraph();
             graph.run();
             */
-            
+
             //Application.Run(new FrmSQLParser());
-            
+
         }
 
-        
+
 
         private void MeasurePerformance()
-        {        
+        {
             Performance p = new Performance();
 
 
@@ -48,15 +48,15 @@ namespace Utility
             p.UseCLR = false;
             p.Trials = 1;           //Amount of trials for each single sql preference statement
 
-            p.MinDimensions = 7;   //Up from x dimensions
-            p.MaxDimensions = 7;   //Up to x dimensions
+            p.MinDimensions = 16;   //Up from x dimensions
+            p.MaxDimensions = 16;   //Up to x dimensions
             p.RandomDraws = 50;    //Amount of draws (x times randomly choose a some preferences)
-            
+
             //p.TableSize = Performance.Size.Small;
             //p.TableSize = Performance.Size.Medium;
             //p.TableSize = Performance.Size.Large;
             p.TableSize = Performance.Size.Superlarge;
-            
+
             //p.Set = Performance.PreferenceSet.ArchiveComparable;
             //p.Set = Performance.PreferenceSet.ArchiveIncomparable;
             //p.Set = Performance.PreferenceSet.Jon;
@@ -67,9 +67,11 @@ namespace Utility
             //p.Set = Performance.PreferenceSet.Categoric;
             //p.Set = Performance.PreferenceSet.MinCardinality;
             //p.Set = Performance.PreferenceSet.LowCardinality;
-            p.Set = Performance.PreferenceSet.HighCardinality;
+            //p.Set = Performance.PreferenceSet.HighCardinality;
             //p.Set = Performance.PreferenceSet.LowAndHighCardinality;
-            
+            //p.Set = Performance.PreferenceSet.ForRandom10;
+            p.Set = Performance.PreferenceSet.ForRandom17;
+
             p.Mode = Performance.PreferenceChooseMode.Combination;
             //p.Mode = Performance.PreferenceChooseMode.Shuffle;
             //p.Mode = Performance.PreferenceChooseMode.Correlation;
@@ -83,7 +85,7 @@ namespace Utility
             //p.Strategy = new SkylineDQ();
             //p.Strategy = new SkylineHexagon();
             //p.Strategy = new SkylineDecisionTree();
-            
+
             //p.ExcessiveTests = false;
             p.Sampling = true;
             p.SamplingSubsetsCount = 10;
@@ -136,13 +138,13 @@ namespace Utility
                 //parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new SkylineDQ();
                 parser.SkylineType = new MultipleSkylineBNL();
-                
-                
+
+
                 //Some other available properties
                 //parser.ShowSkylineAttributes = true;
                 //parser.SkylineUpToLevel = 1;
 
-                
+
                 //First parse only (to get the parsed string for CLR)
                 Debug.WriteLine(parser.ParsePreferenceSQL(strPrefSQL));
 
@@ -152,7 +154,7 @@ namespace Utility
                 DataTable dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strPrefSQL);
                 sw.Stop();
 
-                
+
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine("------------------------------------------");
                 sb.AppendLine("STATISTIC");
