@@ -35,12 +35,14 @@ namespace prefSQL.SQLSkyline
             //load some variables from the additional paraemters
             if(additionalParameters.Length > 4)
             {
-                weightHexagonIncomparable = int.Parse(additionalParameters[5].Trim());
+                //weightHexagonIncomparable = int.Parse(additionalParameters[5].Trim());
+                string[] addition = additionalParameters[5].Trim(' ').Trim('\'').Split(';');
+                weightHexagonIncomparable = int.Parse(addition[0]);
             }
             
 
 
-            DataTable dtResult = dataTableTemplate;
+            DataTable dtResult = dataTableTemplate.Clone();
             
             ArrayList[] btg = null;
             int[] next = null;

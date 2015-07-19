@@ -32,6 +32,11 @@ namespace prefSQL.SQLParser
                 case SQLCommon.Ordering.Random:
                     strSQL = GetSortRandomClause();
                     break;
+                case SQLCommon.Ordering.EntropyFunction:
+                    {
+                        strSQL = GetSortEntropyValue(model);
+                        break;
+                    }
             }
 
             if (strSQL.Length > 0)
@@ -62,6 +67,28 @@ namespace prefSQL.SQLParser
                 }
                 //strSQL += model.Skyline[iChild].OrderBy.ToString();
 
+                strSQL += model.Skyline[iChild].Expression;
+            }
+            return strSQL;
+        }
+
+        /// <summary>
+        ///  Sorts the results according to the attributes values. the first attribute has the highest priority.
+        ///  For example a tuple has the attributes price and color. The result will be sorted after price and color, whereas 
+        ///  the price has the higher priority
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        private string GetSortEntropyValue(PrefSQLModel model)
+        {
+            string strSQL = "";
+            for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
+            {
+                //First record doesn't need a comma to separate
+                if (iChild > 0)
+                {
+                    strSQL += " + ";
+                }
                 strSQL += model.Skyline[iChild].Expression;
             }
             return strSQL;

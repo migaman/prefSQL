@@ -147,6 +147,7 @@ namespace prefSQL.SQLParser
                     strategy.Provider = DriverString;
                     strategy.ConnectionString = ConnectionString;
                     strategy.Cardinality = Cardinality;
+                    strategy.WindowHandling = WindowHandling;
                     strategy.RecordAmountLimit = numberOfRecords;
                     strategy.HasIncomparablePreferences = model.WithIncomparable;
                     strategy.AdditionParameters = parameter;

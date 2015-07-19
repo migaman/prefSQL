@@ -17,6 +17,8 @@ namespace prefSQL.SQLSkyline
 
         public string ConnectionString { get; set; }
 
+        public int WindowHandling { get; set; }
+
         internal TemplateStrategy Strategy { get; set; }
 
         /// <summary>

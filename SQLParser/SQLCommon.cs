@@ -56,7 +56,8 @@ namespace prefSQL.SQLParser
             RankingSummarize,       //Sorted according to the the sum of the rank of all attributes
             RankingBestOf,          //Sorted according to the best rank of all attributes
             Random,                 //Randomly sorted, Every query results in a different sort order
-            AsIs                    //Without OrderBy-Clause as it comes from the database
+            AsIs,                   //Without OrderBy-Clause as it comes from the database
+            EntropyFunction         //For testing BNL window with entropy function
         }
 
         public bool ShowSkylineAttributes { get; set; }
@@ -82,7 +83,26 @@ namespace prefSQL.SQLParser
         /// <returns>Returns a DataTable with the requested values</returns>
         public DataTable ParseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSql)
         {
-            return ParseAndExecutePrefSQL(connectionString, driverString, GetPrefSqlModelFromPreferenceSql(strPrefSql));
+            //return ParseAndExecutePrefSQL(connectionString, driverString, GetPrefSqlModelFromPreferenceSql(strPrefSql));
+
+
+            //Do not build 2 times the model!
+            Helper.ConnectionString = connectionString;
+            Helper.DriverString = driverString;
+            Helper.Cardinality = Cardinality;
+            Helper.WindowHandling = WindowHandling;
+
+            PrefSQLModel model = GetPrefSqlModelFromPreferenceSql(strPrefSql);
+            string sqlCommand = ParsePreferenceSQL(strPrefSql, model);
+
+
+            DataTable dt = Helper.GetResults(sqlCommand, SkylineType, model);
+            TimeInMilliseconds = Helper.TimeInMilliseconds;
+            NumberOfComparisons = Helper.NumberOfComparisons;
+            NumberOfMoves = Helper.NumberOfMoves;
+
+            return dt;
+
         }
 
         internal DataTable ParseAndExecutePrefSQL(string connectionString, string driverString, PrefSQLModel prefSqlModel)
@@ -207,7 +227,7 @@ namespace prefSQL.SQLParser
                             strFirstSQL = strSQLReturn;
                         }
 
-                        string strOrderByAttributes = sqlSort.GetSortClause(prefSQL, Ordering.AttributePosition);
+                        string strOrderByAttributes = sqlSort.GetSortClause(prefSQL, WindowSort);
 
 
                         ////////////////////////////////////////////
@@ -225,14 +245,14 @@ namespace prefSQL.SQLParser
 
                         //Quote quotes because it is a parameter of the stored procedure
                         //string strSelectDistinctIncomparable = "";
-                        int weightHexagonIncomparable = 0;
+                        string weightHexagonIncomparable = "";
                         string strSelectDistinctIncomparable = BuildIncomparableHexagon(prefSQL, ref weightHexagonIncomparable);
                         strSelectDistinctIncomparable = strSelectDistinctIncomparable.Replace("'", "''");
 
                         additionalParameters[0] = strFirstSQLHexagon;
                         additionalParameters[1] = strOperatorsHexagon;
                         additionalParameters[2] = strSelectDistinctIncomparable;
-                        additionalParameters[3] = weightHexagonIncomparable.ToString();
+                        additionalParameters[3] = weightHexagonIncomparable;
                         
                         _skylineType.SortType = (int)prefSQL.Ordering;
                         _skylineType.RecordAmountLimit = prefSQL.NumberOfRecords;
@@ -384,14 +404,15 @@ namespace prefSQL.SQLParser
         /// <param name="model">model of parsed Preference SQL Statement</param>
         /// <param name="weight"></param>
         /// <returns>TODO</returns>
-        private string BuildIncomparableHexagon(PrefSQLModel model, ref int weight)
+        private string BuildIncomparableHexagon(PrefSQLModel model, ref string weight)
         {
             string strDistinctSelect = "";
+
 
             //Add a RankColumn for each PRIORITIZE preference
             for (int iChild = 0; iChild < model.Skyline.Count; iChild++)
             {
-                
+
                 //Add additional columns if attribute is incomparable
                 if (model.Skyline[iChild].Comparable == false && model.Skyline[iChild].AmountOfIncomparables > 0)
                 {
@@ -399,12 +420,14 @@ namespace prefSQL.SQLParser
                     //99 means OTHER INCOMPARABLE --> not clear at the moment how many distinct values exists
                     if (model.Skyline[iChild].AmountOfIncomparables == 99)
                     {
-                        strDistinctSelect = model.Skyline[iChild].IncomparableAttribute;
-                        weight = model.Skyline[iChild].HexagonWeightIncomparable;
+                        strDistinctSelect += model.Skyline[iChild].IncomparableAttribute + ";";
+                        weight += model.Skyline[iChild].HexagonWeightIncomparable.ToString() + ";";
                     }
                 }
             }
-            
+            strDistinctSelect = strDistinctSelect.TrimEnd(';');
+            weight = weight.TrimEnd(';');
+
 
             return strDistinctSelect;
         }

@@ -8,6 +8,7 @@ namespace prefSQL.SQLSkyline
 {
     public abstract class TemplateStrategy
     {
+        public int WindowHandling { get; set; }
         public long TimeInMs { get; set; }
         public long NumberOfOperations { get; set; }
         public long NumberOfMoves { get; set; }
