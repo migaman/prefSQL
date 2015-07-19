@@ -321,7 +321,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                 DataTable subspaceDataTable = SelectedStrategy.GetSkylineTable(useDatabase,
                     dataTableTemplate.Clone(), DataRecordTemplate, subpaceOperators);
                 TimeMilliseconds += SelectedStrategy.TimeMilliseconds;
-                NumberOfOperations += SelectedStrategy.NumberOfOperations;
+                NumberOfOperations += SelectedStrategy.NumberOfComparisons;
                 sw.Restart();
 
                 IDictionary<long, object[]> subspaceDatabase = GetDatabaseFromDataTable(database, subspaceDataTable);
@@ -355,7 +355,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                         SelectedStrategy.GetSkylineTable(useDatabase,
                             dataTableTemplate.Clone(), DataRecordTemplate, subpaceComplementOperators);
                     TimeMilliseconds += SelectedStrategy.TimeMilliseconds;
-                    NumberOfOperations += SelectedStrategy.NumberOfOperations;
+                    NumberOfOperations += SelectedStrategy.NumberOfComparisons;
                     sw.Restart();
 
                     IReadOnlyDictionary<long, object[]> subspaceComplementDatabase =

@@ -37,7 +37,7 @@ namespace Utility
 
     class Performance
     {
-        private const string Path = @"C:\Users\Public\Documents\workspace\prefcom\prefSQL\root\PerformanceTests\";
+        private string Path = System.IO.Path.GetTempPath(); // @"C:\Users\Public\Documents\workspace\prefcom\prefSQL\root\PerformanceTests\";
         private int _trials = 5;                 //How many times each preferene query is executed  
         private int _randomDraws = 25;          //Only used for the shuffle set. How many random set will be generated
         static readonly Random Rnd = new Random();
@@ -73,10 +73,15 @@ namespace Utility
         public Performance()
         {
             UseCLR = false;
+            UseNormalizedValues = false;
         }
 
         public int MinDimensions { get; set; }  //Up from this amount of dimension should be tested
         public int MaxDimensions { get; set; }  //Up to this amount of dimension should be tested
+
+        public int WindowHandling { get; set; }
+
+        public SQLCommon.Ordering WindowSort { get; set; }
 
         public enum Size
         {
@@ -95,10 +100,10 @@ namespace Utility
             Barra,                  //Preference set from 2nd performance phase
             All,                    //Take all preferences
             Numeric,                //Take only numeric preferences
+            NumericIncomparable,    //Take only numeric preferences with incomparable levels
             Categoric,              //Take only categoric preferences
+            CategoricIncomparable,  //Take only categoric preferences that contain incomparable tuples
             MinCardinality,         //Special collection of preferences which should perform well on Hexagon
-
-
         };
 
         public enum PreferenceChooseMode
@@ -115,6 +120,10 @@ namespace Utility
         #region getter/setters
 
         public bool UseCLR { get; set; }
+
+        public bool UseNormalizedValues { get; set; }
+
+        public int SkylineUpToLevel { get; set; }
 
         internal Size TableSize { get; set; }
         
@@ -258,6 +267,29 @@ namespace Utility
             return preferences;
         }
 
+
+        internal static ArrayList GetNumericIncomparablePreferences()
+        {
+            ArrayList preferences = new ArrayList();
+
+            //Numeric preferences
+
+            preferences.Add("colors.name ('red' >> 'blue' >> 'green' >> 'gold' >> 'black' >> 'gray' >> 'bordeaux' >> OTHERS INCOMPARABLE)");
+            preferences.Add("cars.price LOW");
+            preferences.Add("cars.mileage LOW");
+            preferences.Add("cars.horsepower HIGH");
+            preferences.Add("cars.enginesize HIGH");
+            preferences.Add("cars.consumption LOW");
+            preferences.Add("cars.doors HIGH");
+            preferences.Add("cars.seats HIGH");
+            preferences.Add("cars.cylinders HIGH");
+            preferences.Add("cars.gears HIGH");
+            //preferences.Add("cars.registrationNumeric HIGH");
+
+            return preferences;
+        }
+
+
         internal static ArrayList GetCategoricalPreferences()
         {
             ArrayList preferences = new ArrayList();
@@ -271,6 +303,22 @@ namespace Utility
             preferences.Add("drives.name ('front wheel' >> 'all wheel' >> 'rear wheel' >> OTHERS EQUAL)");
             preferences.Add("transmissions.name ('manual' >> 'automatic' >> OTHERS EQUAL)");
 
+
+            return preferences;
+        }
+
+        private ArrayList GetCategoricalIncomparablePreferences()
+        {
+            ArrayList preferences = new ArrayList();
+
+            //Categorical preferences with a cardinality from 2 to 8 (descending)
+            preferences.Add("colors.name ('red' >> OTHERS INCOMPARABLE >> 'blue' >> 'green' >> 'gold' >> 'black' >> 'gray' >> 'bordeaux')");
+            preferences.Add("bodies.name ('bus' >> OTHERS EQUAL >> 'cabriolet' >> 'limousine' >> 'coupé' >> 'van' >> 'estate car')");
+            preferences.Add("fuels.name ('petrol' >> OTHERS EQUAL >> 'diesel' >> 'electro' >> 'gas' >> 'hybrid')");
+            preferences.Add("makes.name ('BENTLEY' >> OTHERS EQUAL >> 'DAIMLER' >> 'FIAT'>> 'FORD')");
+            preferences.Add("conditions.name ('new' >> OTHERS EQUAL >> 'occasion' >> 'oldtimer')");
+            preferences.Add("drives.name ('front wheel' >> OTHERS EQUAL >> 'all wheel')");
+            preferences.Add("transmissions.name ('manual' >> OTHERS EQUAL)");
 
             return preferences;
         }
@@ -346,8 +394,14 @@ namespace Utility
                 case PreferenceSet.Numeric:
                     preferencesMode = GetNumericPreferences();
                     break;
+                case PreferenceSet.NumericIncomparable:
+                    preferencesMode = GetNumericIncomparablePreferences();
+                    break;
                 case PreferenceSet.Categoric:
                     preferencesMode = GetCategoricalPreferences();
+                    break;
+                case PreferenceSet.CategoricIncomparable:
+                    preferencesMode = GetCategoricalIncomparablePreferences();
                     break;
                 case PreferenceSet.MinCardinality:
                     preferencesMode = GetMinimalCardinalityPreferences();
@@ -523,6 +577,7 @@ namespace Utility
                 listStrategy.Add(new SkylineBNLSort());
                 listStrategy.Add(new SkylineDQ());
                 listStrategy.Add(new SkylineHexagon());
+                listStrategy.Add(new SkylineDecisionTree());
             }
             else
             {
@@ -542,12 +597,13 @@ namespace Utility
                 }
                 else
                 {
-                     strSeparatorLine = FormatLineString('-', "", "", "", "", "", "", "", "", "");
+                     strSeparatorLine = FormatLineString('-', "", "", "", "", "", "", "", "", "", "", "");
                 }
                 
                 if (GenerateScript == false)
                 {
                     //Header
+                    sb.AppendLine("                    Path: " + Path);
                     sb.AppendLine("               Algorithm: " + currentStrategy);
                     sb.AppendLine("                 Use CLR: " + UseCLR);
                     sb.AppendLine("          Preference Set: " + Set.ToString());
@@ -558,6 +614,8 @@ namespace Utility
                     sb.AppendLine("              Table size: " + TableSize.ToString());
                     sb.AppendLine("          Dimension from: " + MinDimensions.ToString());
                     sb.AppendLine("            Dimension to: " + MaxDimensions.ToString());
+                    sb.AppendLine("        BNL Initial Sort: " + WindowSort.ToString());
+                    sb.AppendLine("     BNL Window Handling: " + WindowHandling.ToString());
                     //sb.AppendLine("Correlation Coefficients:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
                     //sb.AppendLine("           Cardinalities:" + string.Join(",", (string[])preferences.ToArray(Type.GetType("System.String"))));
                     if (Sampling)
@@ -573,7 +631,7 @@ namespace Utility
                         sb.AppendLine(FormatLineStringSample(' ', "preference set", "trial", "dimensions", "avg skyline size", "avg time total", "avg time algorithm", "min time", "max time", "variance time", "stddeviation time", "median time", "q1 time", "q3 time", "min size", "max size", "variance size", "stddeviation size", "median size", "q1 size", "q3 size", new[] { "avg sc random", "min sc random", "max sc random", "var sc random", "stddev sc random", "med sc random", "q1 sc random", "q3 sc random", "avg sc sample", "min sc sample", "max sc sample", "var sc sample", "stddev sc sample", "med sc sample", "q1 sc sample", "q3 sc sample", "avg sc Best", "min sc Best", "max sc Best", "var sc Best", "stddev sc Best", "med sc Best", "q1 sc Best", "q3 sc Best", "avg sc Sum", "min sc Sum", "max sc Sum", "var sc Sum", "stddev sc Sum", "med sc Sum", "q1 sc Sum", "q3 sc Sum" }, new[] { "avg re random", "min re random", "max re random", "var re random", "stddev re random", "med re random", "q1 re random", "q3 re random", "avg re sample", "min re sample", "max re sample", "var re sample", "stddev re sample", "med re sample", "q1 re sample", "q3 re sample", "avg re Best", "min re Best", "max re Best", "var re Best", "stddev re Best", "med re Best", "q1 re Best", "q3 re Best", "avg re Sum", "min re Sum", "max re Sum", "var re Sum", "stddev re Sum", "med re Sum", "q1 re Sum", "q3 re Sum" }, new[] { "avg reSum random", "min reSum random", "max reSum random", "var reSum random", "stddev reSum random", "med reSum random", "q1 reSum random", "q3 reSum random", "avg reSum sample", "min reSum sample", "max reSum sample", "var reSum sample", "stddev reSum sample", "med reSum sample", "q1 reSum sample", "q3 reSum sample", "avg reSum Best", "min reSum Best", "max reSum Best", "var reSum Best", "stddev reSum Best", "med reSum Best", "q1 reSum Best", "q3 reSum Best", "avg reSum Sum", "min reSum Sum", "max reSum Sum", "var reSum Sum", "stddev reSum Sum", "med reSum Sum", "q1 reSum Sum", "q3 reSum Sum" }, new[] { "avg domCnt random", "min domCnt random", "max domCnt random", "var domCnt random", "stddev domCnt random", "med domCnt random", "q1 domCnt random", "q3 domCnt random", "avg domCnt sample", "min domCnt sample", "max domCnt sample", "var domCnt sample", "stddev domCnt sample", "med domCnt sample", "q1 domCnt sample", "q3 domCnt sample", "avg domCnt Best", "min domCnt Best", "max domCnt Best", "var domCnt Best", "stddev domCnt Best", "med domCnt Best", "q1 domCnt Best", "q3 domCnt Best", "avg domCnt Sum", "min domCnt Sum", "max domCnt Sum", "var domCnt Sum", "stddev domCnt Sum", "med domCnt Sum", "q1 domCnt Sum", "q3 domCnt Sum" }, new[] { "avg domBst random", "min domBst random", "max domBst random", "var domBst random", "stddev domBst random", "med domBst random", "q1 domBst random", "q3 domBst random", "avg domBst sample", "min domBst sample", "max domBst sample", "var domBst sample", "stddev domBst sample", "med domBst sample", "q1 domBst sample", "q3 domBst sample", "avg domBst Best", "min domBst Best", "max domBst Best", "var domBst Best", "stddev domBst Best", "med domBst Best", "q1 domBst Best", "q3 domBst Best", "avg domBst Sum", "min domBst Sum", "max domBst Sum", "var domBst Sum", "stddev domBst Sum", "med domBst Sum", "q1 domBst Sum", "q3 domBst Sum" }, new[] { "ca entire db", "ca entire skyline", "ca sample skyline", "ca best rank", "ca sum rank" }, new[] { "caMed entire db", "caMed entire skyline", "caMed sample skyline", "caMed best rank", "caMed sum rank" }, new[] { "caTopB entire db", "caTopB entire skyline", "caTopB sample skyline", "caTopB best rank", "caTopB sum rank" }, new[] { "caMedTopB entire db", "caMedTopB entire skyline", "caMedTopB sample skyline", "caMedTopB best rank", "caMedTopB sum rank" }, "min correlation", "max correlation", "product cardinality"));
                     } else
                     {
-                        sb.AppendLine(FormatLineString(' ', "preference set", "trial", "dimensions", "skyline size", "time total", "time algorithm", "min correlation", "max correlation", "product cardinality"));                        
+                        sb.AppendLine(FormatLineString(' ', "preference set", "trial", "dimensions", "skyline size", "time total", "time algorithm", "min correlation", "max correlation", "product cardinality", "number of moves", "number of comparisons"));                        
                     }
                     sb.AppendLine(strSeparatorLine);
                     Debug.Write(sb);
@@ -585,6 +643,8 @@ namespace Utility
                 List<long> reportSkylineSize = new List<long>();
                 List<long> reportTimeTotal = new List<long>();
                 List<long> reportTimeAlgorithm = new List<long>();
+                List<long> reportNumberOfMoves = new List<long>();
+                List<long> reportNumberOfComparisons = new List<long>();
                 List<double> reportMinCorrelation = new List<double>();
                 List<double> reportMaxCorrelation = new List<double>();
                 List<double> reportCardinality = new List<double>();
@@ -627,7 +687,18 @@ namespace Utility
                     {
                         strSQL += "cars_large";
                     }
-                    strSQL += " cars ";
+                    if (!UseNormalizedValues)
+                    {
+                        strSQL += " cars ";
+                    }
+                    else
+                    {
+                        strSQL += "cars_normalized cars ";
+                    }
+
+
+
+
                     //Add Joins
                     strSQL += GetJoinsForPreferences(strSkylineOf);
 
@@ -641,6 +712,8 @@ namespace Utility
                     parser = new SQLCommon();
                     parser.SkylineType = currentStrategy;
                     parser.ShowSkylineAttributes = true;
+                    parser.WindowHandling = WindowHandling;
+                    parser.WindowSort = WindowSort;
 
 
                     if (GenerateScript == false)
@@ -654,8 +727,13 @@ namespace Utility
                                 double minCorrelation = 0;
                                 double maxCorrelation = 0;
 
+
                                 SearchCorrelation(subPreferences, correlationMatrix, ref minCorrelation, ref maxCorrelation);
                                 double cardinality = SearchCardinality(subPreferences, listCardinality);
+                                long timeAlgorithm = 0;
+                                long skylineSize = 0;
+                                long numberOfMoves = 0;
+                                long numberOfComparisons = 0;
 
                                 if (Sampling)
                                 {
@@ -1291,27 +1369,78 @@ namespace Utility
                                 else
                                 {
                                     sw.Start();
-                                    if (UseCLR)
+
+                                    ArrayList clauseID = new ArrayList();
+                                    String strIDs = "";
+                                    for (int skylineLevel = 1; skylineLevel <= SkylineUpToLevel; skylineLevel++)
                                     {
-                                        string strSP = parser.ParsePreferenceSQL(strSQL);
-                                        var dap = new SqlDataAdapter(strSP, cnnSQL);
-                                        dt.Clear(); //clear datatable
-                                        dap.Fill(dt);
+                                        if (UseCLR)
+                                        {
+                                            string strSP = parser.ParsePreferenceSQL(strSQL);
+                                            SqlDataAdapter dap = new SqlDataAdapter(strSP, cnnSQL);
+                                            dt.Clear(); //clear datatable
+                                            dap.Fill(dt);
+                                        }
+                                        else
+                                        {
+                                            parser.Cardinality = (long)cardinality;
+
+                                            string strSQLWithWHERE = strSQL;
+                                            strSQLWithWHERE = strSQL.Substring(0, strSQL.IndexOf("SKYLINE OF"));
+                                            strSQLWithWHERE += strIDs;
+                                            strSQLWithWHERE += strSQL.Substring(strSQL.IndexOf("SKYLINE OF"));
+                                            dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strSQLWithWHERE);
+
+                                        }
+
+                                        timeAlgorithm += parser.TimeInMilliseconds;
+                                        numberOfMoves += parser.NumberOfMoves;
+                                        numberOfComparisons += parser.NumberOfComparisons;
+
+                                        skylineSize += dt.Rows.Count;
+
+                                        //only if more queries are requested
+
+                                        if (skylineLevel < SkylineUpToLevel && currentStrategy.GetType() != typeof(prefSQL.SQLSkyline.MultipleSkylineBNL))
+                                        {
+                                            //Add ids to WHERE clause
+                                            foreach (DataRow row in dt.Rows)
+                                            {
+                                                clauseID.Add((int)row[0]);
+                                            }
+
+
+
+                                            //Add WHERE clause with IDs that were already in the skyline
+                                            strIDs = "";
+                                            foreach (int id in clauseID)
+                                            {
+                                                strIDs += id + ",";
+                                            }
+                                            if (strIDs.Length > 0)
+                                            {
+                                                strIDs = "WHERE cars.id NOT IN (" + strIDs.TrimEnd(',') + ") ";
+                                            }
+
+
+                                        }
+                                        else
+                                        {
+                                            skylineLevel = SkylineUpToLevel;
+                                        }
+
                                     }
-                                    else
-                                    {
-                                        parser.Cardinality = (long) cardinality;
-                                        dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName,
-                                            strSQL);
-                                    }
-                                    long timeAlgorithm = parser.TimeInMilliseconds;
-                                    long numberOfOperations = parser.NumberOfOperations;
+
+                                    
+                                    
                                     sw.Stop();
 
                                     reportDimensions.Add(preferences.Count);
-                                    reportSkylineSize.Add(dt.Rows.Count);
+                                    reportSkylineSize.Add(skylineSize);
                                     reportTimeTotal.Add(sw.ElapsedMilliseconds);
                                     reportTimeAlgorithm.Add(timeAlgorithm);
+                                    reportNumberOfMoves.Add(numberOfMoves);
+                                    reportNumberOfComparisons.Add(numberOfComparisons);
                                     reportMinCorrelation.Add(minCorrelation);
                                     reportMaxCorrelation.Add(maxCorrelation);
                                     reportCardinality.Add(cardinality);
@@ -1326,11 +1455,11 @@ namespace Utility
                                     //Was there an error?
                                     if (dt.Rows.Count == 0)
                                     {
-                                        strLine = FormatLineString("Error! " + strPreferenceSet, strTrial, preferences.Count, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, minCorrelation, maxCorrelation, cardinality);    
+                                        strLine = FormatLineString("Error! " + strPreferenceSet, strTrial, preferences.Count, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, minCorrelation, maxCorrelation, cardinality, numberOfMoves, numberOfComparisons);    
                                     }
                                     else
                                     {
-                                        strLine = FormatLineString(strPreferenceSet, strTrial, preferences.Count, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, minCorrelation, maxCorrelation, cardinality);    
+                                        strLine = FormatLineString(strPreferenceSet, strTrial, preferences.Count, dt.Rows.Count, sw.ElapsedMilliseconds, timeAlgorithm, minCorrelation, maxCorrelation, cardinality, numberOfMoves, numberOfComparisons);    
                                     }
                                     
                                     Debug.WriteLine(strLine);
@@ -1381,7 +1510,7 @@ namespace Utility
                     }
                     else
                     {
-                        AddSummary(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportMinCorrelation, reportMaxCorrelation, reportCardinality);
+                        AddSummary(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportMinCorrelation, reportMaxCorrelation, reportCardinality, reportNumberOfMoves, reportNumberOfComparisons);
                     }
                 }
 
@@ -2356,20 +2485,20 @@ namespace Utility
 
             return array;            
         }
-
-        private void AddSummary(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions, List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, List<double> reportMinCorrelation, List<double> reportMaxCorrelation, List<double> reportCardinality)
+    
+        private void AddSummary(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions, List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, List<double> reportMinCorrelation, List<double> reportMaxCorrelation, List<double> reportCardinality, List<long> reportNumberOfMoves, List<long> reportNumberOfOperations)
         {
             //Separator Line
             Debug.WriteLine(strSeparatorLine);
             sb.AppendLine(strSeparatorLine);
-
-            string strAverage = FormatLineString("average", "", reportDimensions.Average(), reportSkylineSize.Average(), reportTimeTotal.Average(), reportTimeAlgorithm.Average(), reportMinCorrelation.Average(), reportMaxCorrelation.Average(), reportCardinality.Average());
-            string strMin = FormatLineString("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(), reportTimeTotal.Min(), reportTimeAlgorithm.Min(), reportMinCorrelation.Min(), reportMaxCorrelation.Min(), reportCardinality.Min());
-            string strMax = FormatLineString("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), reportMinCorrelation.Max(), reportMaxCorrelation.Max(), reportCardinality.Max());
-            //string strVar = FormatLineString("variance", "", MyMathematic.GetVariance(reportDimensions), MyMathematic.GetVariance(reportSkylineSize), MyMathematic.GetVariance(reportTimeTotal), MyMathematic.GetVariance(reportTimeAlgorithm), MyMathematic.GetVariance(reportCorrelation), MyMathematic.GetVariance(reportCardinality));
-            //string strStd = FormatLineString("stddeviation", "", MyMathematic.GetStdDeviation(reportDimensions), MyMathematic.GetStdDeviation(reportSkylineSize), MyMathematic.GetStdDeviation(reportTimeTotal), MyMathematic.GetStdDeviation(reportTimeAlgorithm), MyMathematic.GetStdDeviation(reportCorrelation), MyMathematic.GetStdDeviation(reportCardinality));
-            string strSamplevar = FormatLineString("sample variance", "", MyMathematic.GetSampleVariance(reportDimensions), MyMathematic.GetSampleVariance(reportSkylineSize), MyMathematic.GetSampleVariance(reportTimeTotal), MyMathematic.GetSampleVariance(reportTimeAlgorithm), MyMathematic.GetSampleVariance(reportMinCorrelation), MyMathematic.GetSampleVariance(reportMaxCorrelation), MyMathematic.GetSampleVariance(reportCardinality));
-            string strSampleStd = FormatLineString("sample stddeviation", "", MyMathematic.GetSampleStdDeviation(reportDimensions), MyMathematic.GetSampleStdDeviation(reportSkylineSize), MyMathematic.GetSampleStdDeviation(reportTimeTotal), MyMathematic.GetSampleStdDeviation(reportTimeAlgorithm), MyMathematic.GetSampleStdDeviation(reportMinCorrelation), MyMathematic.GetSampleStdDeviation(reportMaxCorrelation), MyMathematic.GetSampleStdDeviation(reportCardinality));
+            
+            string strAverage = FormatLineString("average", "", reportDimensions.Average(), reportSkylineSize.Average(), reportTimeTotal.Average(), reportTimeAlgorithm.Average(), reportMinCorrelation.Average(), reportMaxCorrelation.Average(), reportCardinality.Average(), reportNumberOfMoves.Average(), reportNumberOfOperations.Average());
+            string strMin = FormatLineString("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(), reportTimeTotal.Min(), reportTimeAlgorithm.Min(), reportMinCorrelation.Min(), reportMaxCorrelation.Min(), reportCardinality.Min(), reportNumberOfMoves.Min(), reportNumberOfOperations.Min());
+            string strMax = FormatLineString("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), reportMinCorrelation.Max(), reportMaxCorrelation.Max(), reportCardinality.Max(), reportNumberOfMoves.Max(), reportNumberOfOperations.Max());
+            //string strVar = FormatLineString("variance", "", mathematic.GetVariance(reportDimensions), mathematic.GetVariance(reportSkylineSize), mathematic.GetVariance(reportTimeTotal), mathematic.GetVariance(reportTimeAlgorithm), mathematic.GetVariance(reportMinCorrelation), mathematic.GetVariance(reportMaxCorrelation), mathematic.GetVariance(reportCardinality));
+            //string strStd = FormatLineString("stddeviation", "", mathematic.GetStdDeviation(reportDimensions), mathematic.GetStdDeviation(reportSkylineSize), mathematic.GetStdDeviation(reportTimeTotal), mathematic.GetStdDeviation(reportTimeAlgorithm), mathematic.GetStdDeviation(reportMinCorrelation), mathematic.GetStdDeviation(reportCardinality));
+            string strSamplevar = FormatLineString("sample variance", "", MyMathematic.GetSampleVariance(reportDimensions), MyMathematic.GetSampleVariance(reportSkylineSize), MyMathematic.GetSampleVariance(reportTimeTotal), MyMathematic.GetSampleVariance(reportTimeAlgorithm), MyMathematic.GetSampleVariance(reportMinCorrelation), MyMathematic.GetSampleVariance(reportMaxCorrelation), MyMathematic.GetSampleVariance(reportCardinality), MyMathematic.GetSampleVariance(reportNumberOfMoves), MyMathematic.GetSampleVariance(reportNumberOfOperations));
+            string strSampleStd = FormatLineString("sample stddeviation", "", MyMathematic.GetSampleStdDeviation(reportDimensions), MyMathematic.GetSampleStdDeviation(reportSkylineSize), MyMathematic.GetSampleStdDeviation(reportTimeTotal), MyMathematic.GetSampleStdDeviation(reportTimeAlgorithm), MyMathematic.GetSampleStdDeviation(reportMinCorrelation), MyMathematic.GetSampleStdDeviation(reportMaxCorrelation), MyMathematic.GetSampleStdDeviation(reportCardinality), MyMathematic.GetSampleStdDeviation(reportNumberOfMoves), MyMathematic.GetSampleStdDeviation(reportNumberOfOperations));
 
             sb.AppendLine(strAverage);
             sb.AppendLine(strMin);
@@ -2393,11 +2522,11 @@ namespace Utility
 
 
 
-        private string FormatLineString(char paddingChar, string strTitle, string strTrial, string strDimension, string strSkyline, string strTimeTotal, string strTimeAlgo, string strMinCorrelation, string strMaxCorrelation, string strCardinality)
+        private string FormatLineString(char paddingChar, string strTitle, string strTrial, string strDimension, string strSkyline, string strTimeTotal, string strTimeAlgo, string strMinCorrelation, string strMaxCorrelation, string strCardinality, string strNumberOfMoves, string strNumberOfComparisons)
         {
             //average line
             //trial|dimensions|skyline size|time total|time algorithm|correlation|
-            string[] line = new string[10];
+            string[] line = new string[12];
             line[0] = strTitle.PadLeft(19, paddingChar);
             line[1] = strTrial.PadLeft(11, paddingChar);
             line[2] = strDimension.PadLeft(10, paddingChar);
@@ -2407,7 +2536,9 @@ namespace Utility
             line[6] = strMinCorrelation.PadLeft(20, paddingChar);
             line[7] = strMaxCorrelation.PadLeft(20, paddingChar);
             line[8] = strCardinality.PadLeft(25, paddingChar);
-            line[9] = "";
+            line[9] = strNumberOfMoves.PadLeft(20, paddingChar);
+            line[10] = strNumberOfComparisons.PadLeft(20, paddingChar);
+            line[11] = "";
             return string.Join("|", line);
         }
 
@@ -2668,9 +2799,9 @@ namespace Utility
             sb.Append("|");
         }
 
-        private string FormatLineString(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double minCorrelation, double maxCorrelation, double cardinality)
+        private string FormatLineString(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double minCorrelation, double maxCorrelation, double cardinality, double numberOfMoves, double numberOfComparisons)
         {
-            return FormatLineString(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(CultureInfo.InvariantCulture), Math.Round(skyline, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeTotal, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeAlgo, 2).ToString(CultureInfo.InvariantCulture), Math.Round(minCorrelation, 2).ToString(), Math.Round(maxCorrelation, 2).ToString(), ToLongString(Math.Round(cardinality, 2)));
+            return FormatLineString(' ', strTitle, strTrial, Math.Round(dimension, 2).ToString(CultureInfo.InvariantCulture), Math.Round(skyline, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeTotal, 2).ToString(CultureInfo.InvariantCulture), Math.Round(timeAlgo, 2).ToString(CultureInfo.InvariantCulture), Math.Round(minCorrelation, 2).ToString(), Math.Round(maxCorrelation, 2).ToString(), ToLongString(Math.Round(cardinality, 2)), Math.Round(numberOfMoves, 2).ToString(), Math.Round(numberOfComparisons, 2).ToString());
         }
 
         private string FormatLineStringSample(string strTitle, string strTrial, double dimension, double skyline, double timeTotal, double timeAlgo, double minTime, double maxTime, double varianceTime, double stddeviationTime, double medTime, double q1Time, double q3Time, double minSize, double maxSize, double varianceSize, double stddeviationSize, double medSize, double q1Size, double q3Size, Dictionary<SkylineTypesSingleSampling, List<double>> setCoverageSampling, Dictionary<SkylineTypesSingleSampling, List<double>> representationErrorSampling, Dictionary<SkylineTypesSingleSampling, List<double>> representationErrorSumSampling, Dictionary<SkylineTypesSingleSampling, List<double>> dominatedObjectsCountSampling, Dictionary<SkylineTypesSingleSampling, List<double>> dominatedObjectsOfBestObjectSampling, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisStrings, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisMedianStrings, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisTopBucketsStrings, Dictionary<ClusterAnalysisSampling, string> clusterAnalysisMedianTopBucketsStrings, double minCorrelation, double maxCorrelation, double cardinality)

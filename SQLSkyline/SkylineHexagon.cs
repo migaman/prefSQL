@@ -73,14 +73,16 @@ namespace prefSQL.SQLSkyline
 
                 dt = skyline.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
                 TimeMilliseconds = skyline.TimeInMs;
-                NumberOfOperations = skyline.NumberOfOperations;
+                NumberOfComparisons = skyline.NumberOfOperations;
+                NumberOfMoves = skyline.NumberOfMoves;
             }
             else
             {
                 SPSkylineHexagonLevel skyline = new SPSkylineHexagonLevel();
                 dt = skyline.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
                 TimeMilliseconds = skyline.TimeInMs;
-                NumberOfOperations = skyline.NumberOfOperations;
+                NumberOfComparisons = skyline.NumberOfOperations;
+                NumberOfMoves = skyline.NumberOfMoves;
             }
             return dt;
         }

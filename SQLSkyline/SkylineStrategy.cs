@@ -47,7 +47,9 @@ namespace prefSQL.SQLSkyline
         /// <summary>
         /// Only used for performance measurement
         /// </summary>
-        public long NumberOfOperations { get; set; }
+        public long NumberOfComparisons { get; set; }
+
+        public long NumberOfMoves { get; set; }
 
         /// <summary>
         /// To measure the time that the algorithm needs

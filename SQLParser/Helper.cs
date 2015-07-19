@@ -23,7 +23,11 @@ namespace prefSQL.SQLParser
 
         public long TimeInMilliseconds { get; set; }
 
-        public long NumberOfOperations { get; set; }
+        public int WindowHandling { get; set; }
+
+        public long NumberOfComparisons { get; set; }
+
+        public long NumberOfMoves { get; set; }
 
         public long Cardinality { get; set; }
 
@@ -151,7 +155,8 @@ namespace prefSQL.SQLParser
                     {
                         dt = strategy.GetSkylineTable(strQuery, strOperators);
                         TimeInMilliseconds = strategy.TimeMilliseconds;
-                        NumberOfOperations = strategy.NumberOfOperations;
+                        NumberOfComparisons = strategy.NumberOfComparisons;
+                        NumberOfMoves = strategy.NumberOfMoves;
                     }
                     else
                     {
@@ -163,7 +168,7 @@ namespace prefSQL.SQLParser
                         };
                         dt = skylineSample.GetSkylineTable(strQuery, strOperators);
                         TimeInMilliseconds = skylineSample.TimeMilliseconds;
-                        NumberOfOperations = skylineSample.NumberOfOperations;
+                        //NumberOfOperations = skylineSample.NumberOfOperations;
                     }
                 }
 

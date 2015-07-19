@@ -30,7 +30,13 @@ namespace prefSQL.SQLParser
         }
         public long TimeInMilliseconds { get; set; }
 
-        public long NumberOfOperations { get; set; }
+        public long NumberOfComparisons { get; set; }
+
+        public long NumberOfMoves { get; set; }
+
+        public int WindowHandling { get; set; }
+
+        public Ordering WindowSort { get; set; }
 
 
         /*
@@ -84,9 +90,11 @@ namespace prefSQL.SQLParser
             Helper.ConnectionString = connectionString;
             Helper.DriverString = driverString;
             Helper.Cardinality = Cardinality;
+            Helper.WindowHandling = WindowHandling;
             DataTable dt = Helper.GetResults(ParsePreferenceSQL(prefSqlModel), SkylineType, prefSqlModel);
             TimeInMilliseconds = Helper.TimeInMilliseconds;
-            NumberOfOperations = Helper.NumberOfOperations;
+            NumberOfComparisons = Helper.NumberOfComparisons;
+            NumberOfMoves = Helper.NumberOfMoves;
 
             return dt;
         }
