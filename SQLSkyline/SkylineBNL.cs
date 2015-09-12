@@ -57,6 +57,7 @@ namespace prefSQL.SQLSkyline
             DataTable dt = Strategy.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
             TimeMilliseconds = Strategy.TimeInMs;
             NumberOfComparisons = Strategy.NumberOfOperations;
+            NumberOfMoves = Strategy.NumberOfMoves;
             return dt;         
         }
 
@@ -66,6 +67,7 @@ namespace prefSQL.SQLSkyline
             DataTable dt = Strategy.GetSkylineTable(database, dataTableTemplate, dataRecordTemplate, preferenceOperators, RecordAmountLimit, true, SortType, AdditionParameters);
             TimeMilliseconds = Strategy.TimeInMs;
             NumberOfComparisons = Strategy.NumberOfOperations;
+            NumberOfMoves = Strategy.NumberOfMoves;
             return dt;
         }
 

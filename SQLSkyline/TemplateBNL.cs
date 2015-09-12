@@ -64,34 +64,143 @@ namespace prefSQL.SQLSkyline
                 foreach (int dimension in dimensionsTuple)
                 {
                     newTuple[next] = (long)dbValuesObject[dimension];
+
+
+                    //TODO: Fix: For incomparable tuple the index must be the same and not the next index
+                    //Otherwise function IsTupleDominated must be changed!!
+                    //newTuple[j] = (long)dbValuesObject[j];
+
+
                     next++;
                 }         
 
                 bool isDominated = false;
 
-                //check if record is dominated (compare against the records in the window)
-                for (int i = window.Count - 1; i >= 0; i--)
+                //Do not move. start with last tuple in window.   
+                if (WindowHandling == 0)
                 {
-                    //long[] windowTuple = window[i];
-                    //Level BNL performance drops 2 times with using the next line
-                    //string[] incomparableTuple = (string[])windowIncomparable[i];
-
-                    //Only use this for tests (Drops performance 10%)
-                    //NumberOfOperations++;
-
-                    //TODO: Using the Helper directly is sligthly faster, but than every bnl algorithm needs it own logic
-                    //if(Helper.IsTupleDominated(window, newTuple, dimensions))
-                    //Helper.IsTupleDominated()
-                    if (IsTupleDominated(window, newTuple, dimensions, operatorsArray, windowIncomparable, i, dataTableReturn, dbValuesObject))
+                    //check if record is dominated (compare against the records in the window)
+                    //Attention: List is used DESCENDING
+                    for (int i = window.Count - 1; i >= 0; i--)
                     {
-                        isDominated = true;
-                        break;
+
+                        //long[] windowTuple = window[i];
+                        //Level BNL performance drops 2 times with using the next line
+                        //string[] incomparableTuple = (string[])windowIncomparable[i];
+
+                        //Only use this for tests (Drops performance 10%)
+                        //NumberOfOperations++;
+
+                        //TODO: Using the Helper directly is sligthly faster, but than every bnl algorithm needs it own logic
+                        //if(Helper.IsTupleDominated(window, newTuple, dimensions))
+                        //Helper.IsTupleDominated()
+
+                        //TODO: Comment out for high performance
+                        NumberOfOperations++;
+
+                        if (IsTupleDominated(window, newTuple, dimensions, operatorsArray, windowIncomparable, i, dataTableReturn, dbValuesObject))
+                        {
+                            //NumberOfMoves++;
+                            isDominated = true;
+                            break;
+                        }
+                    }
+                    if (isDominated == false)
+                    {
+                        AddToWindow(dbValuesObject, window, windowIncomparable, operatorsArray, dimensions, dataTableReturn);
                     }
                 }
-                if (isDominated == false)
+                //Do not move. start with first tuple in window.   
+                else if (WindowHandling == 1)
                 {
-                    AddToWindow(dbValuesObject, window, windowIncomparable, operatorsArray, dimensions, dataTableReturn);
+                    //check if record is dominated (compare against the records in the window)
+                    //Attention: List is used ASCENDING
+                    for (int i = 0; i < window.Count; i++)
+                    {
+                        NumberOfOperations++;
+
+                        if (IsTupleDominated(window, newTuple, dimensions, operatorsArray, windowIncomparable, i, dataTableReturn, dbValuesObject))
+                        {
+                            //NumberOfMoves++;
+                            isDominated = true;
+                            break;
+                        }
+                    }
+                    if (isDominated == false)
+                    {
+                        //Work with operatorsArray length instead of dimensions (because of sampling skyline algorithms)
+                        AddToWindow(dbValuesObject, window, windowIncomparable, operatorsArray, dimensions, dataTableReturn);
+                    }
                 }
+                //Move To End   start with last tuple in window.   
+                else if (WindowHandling == 2)
+                {
+                    //check if record is dominated (compare against the records in the window)
+                    for (int i = window.Count - 1; i >= 0; i--)
+                    {
+                        NumberOfOperations++;
+
+                        if (IsTupleDominated(window, newTuple, dimensions, operatorsArray, windowIncomparable, i, dataTableReturn, dbValuesObject))
+                        {
+                            long[] headNext = window[window.Count - 1];
+                            long[] current = window[i];
+                            if (current != headNext)
+                            {
+                                //Tupel i an position 0
+                                //Tupel 0 an position 1
+                                //Move to End
+                                long[] newFirst = current;
+                                window.RemoveAt(i);
+                                //window.Insert(0, newFirst);
+                                window.Add(newFirst);
+                                NumberOfMoves++;
+                            }
+
+                            isDominated = true;
+                            break;
+                        }
+                    }
+                    if (isDominated == false)
+                    {
+                        //Work with operatorsArray length instead of dimensions (because of sampling skyline algorithms)
+                        AddToWindow(dbValuesObject, window, windowIncomparable, operatorsArray, dimensions, dataTableReturn);
+                    }
+                }
+                //Move To Beginning   start with first tuple in window.   
+                else if (WindowHandling == 3)
+                {
+                    //check if record is dominated (compare against the records in the window)
+                    for (int i = 0; i < window.Count; i++)
+                    {
+                        NumberOfOperations++;
+
+                        if (IsTupleDominated(window, newTuple, dimensions, operatorsArray, windowIncomparable, i, dataTableReturn, dbValuesObject))
+                        {
+                            long[] headNext = window[0];
+                            long[] current = window[i];
+                            if (current != headNext)
+                            {
+
+                                //Tupel i an position 0
+                                //Tupel 0 an position 1
+                                long[] newFirst = current;
+                                window.RemoveAt(i);
+                                window.Insert(0, newFirst);
+                                NumberOfMoves++;
+                            }
+
+                            isDominated = true;
+                            break;
+                        }
+                    }
+                    if (isDominated == false)
+                    {
+                        //Work with operatorsArray length instead of dimensions (because of sampling skyline algorithms)
+                        AddToWindow(dbValuesObject, window, windowIncomparable, operatorsArray, dimensions, dataTableReturn);
+                    }
+                }
+               
+               
 
                 
             }

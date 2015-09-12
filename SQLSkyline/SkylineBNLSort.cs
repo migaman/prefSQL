@@ -61,6 +61,7 @@ namespace prefSQL.SQLSkyline
         public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
             Strategy = getSP_Skyline();
+            Strategy.WindowHandling = WindowHandling;
             DataTable dt = Strategy.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
             TimeMilliseconds = Strategy.TimeInMs;
             NumberOfComparisons = Strategy.NumberOfOperations;
@@ -71,6 +72,7 @@ namespace prefSQL.SQLSkyline
         internal override DataTable GetSkylineTable(IEnumerable<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string preferenceOperators)
         {
             Strategy = getSP_Skyline();
+            Strategy.WindowHandling = WindowHandling;
             DataTable dt = Strategy.GetSkylineTable(database, dataTableTemplate, dataRecordTemplate, preferenceOperators, RecordAmountLimit, true, SortType, AdditionParameters);
             TimeMilliseconds = Strategy.TimeInMs;
             NumberOfComparisons = Strategy.NumberOfOperations;

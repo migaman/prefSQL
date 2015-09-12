@@ -17,10 +17,9 @@ namespace prefSQL.SQLSkyline
         public DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, string[] additionalParameters, int sortType)
         {
             string[] operators = strOperators.Split(';');
-            DataTable dt = Helper.GetDataTableFromSQL(strQuery, strConnection, strProvider);
-            List<object[]> listObjects = Helper.GetItemArraysAsList(dt);
             DataTable dtResult = new DataTable();
-            SqlDataRecord record = Helper.BuildDataRecord(dt, operators, dtResult);
+            SqlDataRecord record = null;
+            List<object[]> listObjects = Helper.GetObjectArrayFromSQL(strQuery, strConnection, strProvider, dtResult, operators, out record);
             return GetSkylineTable(listObjects, dtResult, record, strOperators, numberOfRecords, isIndependent, sortType, additionalParameters);
         }
 

@@ -1,4 +1,4 @@
-using System;
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -6,13 +6,15 @@ using System.Data.Common;
 using System.Data.SqlTypes;
 using System.Diagnostics;
 using Microsoft.SqlServer.Server;
-using System.Linq;
 
 //Caution: Attention small changes in this code can lead to performance issues, i.e. using a startswith instead of an equal can increase by 10 times
 //Important: Only use equal for comparing text (otherwise performance issues)
 namespace prefSQL.SQLSkyline
 {
-    public class SPMultipleSkylineBNLLevel
+    using System;
+    using System.Linq;
+
+    public class SPMultipleSkylineBNLLevel : TemplateStrategy
     {
         /// <summary>
         /// Calculate the skyline points from a dataset
@@ -26,224 +28,132 @@ namespace prefSQL.SQLSkyline
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType, SqlInt32 upToLevel)
         {
             SPMultipleSkylineBNLLevel skyline = new SPMultipleSkylineBNLLevel();
-            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, sortType.Value, upToLevel.Value);
-
+            string[] additionalParameters = new string[5];
+            additionalParameters[4] = upToLevel.ToString();
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, additionalParameters, sortType.Value);
         }
 
 
-        public DataTable GetSkylineTable(string strQuery, string strOperators, string strConnection, string strProvider, int numberOfRecords, int sortType, int upToLevel)
+        protected override DataTable GetSkylineFromAlgorithm(IEnumerable<object[]> database, DataTable dataTableTemplate, string[] operatorsArray, string[] additionalParameters)
         {
-            return GetSkylineTable(strQuery, strOperators, numberOfRecords, true, strConnection, strProvider, sortType, upToLevel);
-        }
+           
+            //load some variables from the additional paraemters
+            int upToLevel = int.Parse(additionalParameters[4].Trim());
 
-
-        private DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, int sortType, int upToLevel)
-        {
-            ArrayList resultCollection = new ArrayList();
-            string[] operators = strOperators.Split(';');
-            DataTable dtResult = new DataTable();
-
-            string[] operatorsArray = strOperators.Split(';');
-
+            List<long[]> window = new List<long[]>();
+            ArrayList windowIncomparable = new ArrayList();
             int dimensionsCount = operatorsArray.Count(op => op != "IGNORE");
+            int dimensionsTupleCount = operatorsArray.Count(op => op != "IGNORE" && op != "INCOMPARABLE");
+            //int dimensions = 0; //operatorsArray.GetUpperBound(0)+1;
             int[] dimensions = new int[dimensionsCount];
+
             int nextDim = 0;
-            for (int d = 0; d < operatorsArray.Length; d++)
+            for (int i = 0; i < operatorsArray.Length; i++)
             {
-                if (operatorsArray[d] != "IGNORE")
+                if (operatorsArray[i] != "IGNORE")
                 {
-                    dimensions[nextDim] = d;
+                    //dimensions++;
+                    dimensions[nextDim] = i;
                     nextDim++;
                 }
             }
 
-            DbProviderFactory factory = DbProviderFactories.GetFactory(strProvider);
+            DataTable dataTableReturn = dataTableTemplate.Clone();
 
-            // use the factory object to create Data access objects.
-            DbConnection connection = factory.CreateConnection();
-            if (connection != null)
+            //trees erstellen mit n nodes (n = anzahl tupels)
+            List<int> levels = new List<int>();
+            dataTableReturn.Columns.Add("level", typeof(int));
+            int iMaxLevel = 0;
+
+            //For each tuple
+            foreach (object[] dbValuesObject in database)
             {
-                connection.ConnectionString = strConnection;
-
-                try
+                long[] newTuple = new long[dimensionsTupleCount];
+                int next = 0;
+                for (int j = 0; j < operatorsArray.Length; j++)
                 {
-                    //Some checks
-                    if (strQuery.Length == Helper.MaxSize)
+                    if (operatorsArray[j] != "IGNORE" && operatorsArray[j] != "INCOMPARABLE")
                     {
-                        throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
+                        //Fix: For incomparable tuple the index must be the same and not the next index
+                        //Otherwise function IsTupleDominated must be changed!!
+                        newTuple[j] = (long)dbValuesObject[j];
+                        next++;
                     }
-                    connection.Open();
+                }
 
-                    DbDataAdapter dap = factory.CreateDataAdapter();
-                    DbCommand selectCommand = connection.CreateCommand();
-                    selectCommand.CommandTimeout = 0; //infinite timeout
-                    selectCommand.CommandText = strQuery;
-                    if (dap != null)
+
+                //Insert the new record to the tree
+                bool bFound = false;
+
+                //Start wie level 0 nodes (until uptolevels or maximum levels)
+                for (int iLevel = 0; iLevel <= iMaxLevel && iLevel < upToLevel; iLevel++)
+                {
+                    bool isDominated = false;
+                    for (int i = 0; i < window.Count; i++)
                     {
-                        dap.SelectCommand = selectCommand;
-                        DataTable dt = new DataTable();
-                        dap.Fill(dt);
-
-
-                        //trees erstellen mit n nodes (n = anzahl tupels)
-                        //int[] levels = new int[dt.Rows.Count];
-                        List<int> levels = new List<int>();
-
-
-                        // Build our record schema 
-                        List<SqlMetaData> outputColumns = Helper.BuildRecordSchema(dt, operators, dtResult);
-                        //Add Level column
-                        SqlMetaData outputColumnLevel = new SqlMetaData("Level", SqlDbType.Int);
-                        outputColumns.Add(outputColumnLevel);
-                        dtResult.Columns.Add("level", typeof(int));
-                        SqlDataRecord record = new SqlDataRecord(outputColumns.ToArray());
-                        if (isIndependent == false)
+                        if (levels[i] == iLevel)
                         {
-                            SqlContext.Pipe.SendResultsStart(record);
-                        }
-
-                        int iMaxLevel = 0;
-                
-                        List<object[]> listObjects = Helper.GetItemArraysAsList(dt);
-
-                        foreach (object[] dbValuesObject in listObjects)
-                        {
-                            long[] newTuple = new long[dimensionsCount];
-                            int next = 0;
-                            for (int j = 0; j < operatorsArray.Length; j++)
+                            //Dominanz
+                            if (Helper.IsTupleDominated(window[i], newTuple, dimensions))
                             {
-                                if (operatorsArray[j] != "INCOMPARABLE")
-                                {
-                                    newTuple[next] = (long)dbValuesObject[j];
-                                    next++;
-                                }
-                            }
-
-
-                            //Check if window list is empty
-                            if (resultCollection.Count == 0)
-                            {
-                                // Build our SqlDataRecord and start the results 
-                                levels.Add(0);
-                                iMaxLevel = 0;
-                                AddToWindow(dbValuesObject, operators, ref resultCollection, record, isIndependent, levels[levels.Count - 1], ref dtResult);
-                            }
-                            else
-                            {
-
-                                //Insert the new record to the tree
-                                bool bFound = false;
-
-                                //Start wie level 0 nodes (until uptolevels or maximum levels)
-                                for (int iLevel = 0; iLevel <= iMaxLevel && iLevel < upToLevel; iLevel++)
-                                {
-                                    bool isDominated = false;
-                                    for (int i = 0; i < resultCollection.Count; i++)
-                                    {
-                                        if (levels[i] == iLevel)
-                                        {
-                                            long[] windowTuple = (long[])resultCollection[i];
-
-                                            //Dominanz
-                                            if (Helper.IsTupleDominated(windowTuple, newTuple, dimensions))
-                                            {
-                                                //Dominated in this level. Next level
-                                                isDominated = true;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    //Check if the record is dominated in this level
-                                    if (isDominated == false)
-                                    {
-                                        levels.Add(iLevel);
-                                        bFound = true;
-                                        break;
-                                    }
-                                }
-                                if (bFound == false)
-                                {
-                                    iMaxLevel++;
-                                    if (iMaxLevel < upToLevel)
-                                    {
-                                        levels.Add(iMaxLevel);
-                                        AddToWindow(dbValuesObject, operators, ref resultCollection, record, isIndependent, levels[levels.Count - 1], ref dtResult);
-                                    }
-                                }
-                                else
-                                {
-                                    AddToWindow(dbValuesObject, operators, ref resultCollection, record, isIndependent, levels[levels.Count - 1], ref dtResult);
-                                }
+                                //Dominated in this level. Next level
+                                isDominated = true;
+                                break;
                             }
                         }
                     }
-
-
-                    if (isIndependent == false)
+                    //Check if the record is dominated in this level
+                    if (isDominated == false)
                     {
-                        SqlContext.Pipe.SendResultsEnd();
+                        levels.Add(iLevel);
+                        bFound = true;
+                        break;
                     }
-
-
                 }
-                catch (Exception ex)
+                if (bFound == false)
                 {
-                    //Pack Errormessage in a SQL and return the result
-                    string strError = "Fehler in SP_MultipleSkylineBNL: ";
-                    strError += ex.Message;
-
-                    if (isIndependent)
+                    iMaxLevel++;
+                    if (iMaxLevel < upToLevel)
                     {
-                        Debug.WriteLine(strError);
-
+                        levels.Add(iMaxLevel);
+                        AddToWindow(dbValuesObject, window, operatorsArray.GetLength(0), dataTableReturn, levels[levels.Count - 1]);
                     }
-                    else
-                    {
-                        SqlContext.Pipe.Send(strError);
-                    }
-
-                }
-                finally
-                {
-                    connection.Close();
-                }
-            }
-            return dtResult;
-        }
-
-
-        private void AddToWindow(object[] dataReader, string[] operators, ref ArrayList resultCollection, SqlDataRecord record, SqlBoolean isFrameworkMode, int level, ref DataTable dtResult)
-        {
-
-            //Erste Spalte ist die ID
-            long[] recordInt = new long[operators.GetUpperBound(0) + 1];
-            DataRow row = dtResult.NewRow();
-
-            for (int iCol = 0; iCol <= dataReader.GetUpperBound(0); iCol++)
-            {
-                //Only the real columns (skyline columns are not output fields)
-                if (iCol <= operators.GetUpperBound(0))
-                {
-                    recordInt[iCol] = (long)dataReader[iCol];
                 }
                 else
                 {
-                    row[iCol - (operators.GetUpperBound(0) + 1)] = dataReader[iCol];
-                    record.SetValue(iCol - (operators.GetUpperBound(0) + 1), dataReader[iCol]);
+                    AddToWindow(dbValuesObject, window, operatorsArray.GetLength(0), dataTableReturn, levels[levels.Count - 1]);
+                }
+
+
+            }
+
+            return dataTableReturn;
+        }
+
+
+        private void AddToWindow(object[] newTuple, List<long[]> window, int dimensions, DataTable dtResult, int level)
+        {
+            long[] record = new long[dimensions];
+            DataRow row = dtResult.NewRow();
+
+            for (int iCol = 0; iCol < newTuple.Length; iCol++)
+            {
+                //Only the real columns (skyline columns are not output fields)
+                if (iCol <= dimensions - 1)
+                {
+                    record[iCol] = (long)newTuple[iCol];
+                }
+                else
+                {
+                    row[iCol - dimensions] = newTuple[iCol];
                 }
             }
-            row[record.FieldCount - 1] = level;
-            record.SetValue(record.FieldCount - 1, level);
+            row[record.Length + 1] = level;
 
-            if (isFrameworkMode == true)
-            {
-                dtResult.Rows.Add(row);
-            }
-            else
-            {
-                SqlContext.Pipe.SendResultsRow(record);
-            }
-            resultCollection.Add(recordInt);
+            //DataTable is for the returning values
+            dtResult.Rows.Add(row);
+            //ResultCollection contains the skyline values (for the algorithm)
+            window.Add(record);
         }
 
 

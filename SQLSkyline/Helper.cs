@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Data.SqlClient;
 using System.Linq;
 using Microsoft.SqlServer.Server;
 
@@ -30,6 +31,93 @@ namespace prefSQL.SQLSkyline
         public const string CnnStringSqlclr = "context connection=true";
         public const string ProviderClr = "System.Data.SqlClient";
         public const int MaxSize = 4000;
+
+        public static List<object[]> GetObjectArrayFromSQL(string strQuery, string strConnection, string strProvider, DataTable dt, string[] operators, out SqlDataRecord record)
+        {
+            record = null;
+            List<object[]> listObjects = new List<object[]>();
+            DbProviderFactory factory = DbProviderFactories.GetFactory(strProvider);
+
+            // use the factory object to create Data access objects.
+            DbConnection connection = factory.CreateConnection(); // will return the connection object (i.e. SqlConnection ...)
+            if (connection != null)
+            {
+                connection.ConnectionString = strConnection;
+
+                try
+                {
+                    //Some checks
+                    if (strQuery.Length == MaxSize)
+                    {
+                        throw new Exception("Query is too long. Maximum size is " + MaxSize);
+                    }
+                    connection.Open();
+
+                    DbDataAdapter dap = factory.CreateDataAdapter();
+                    DbCommand selectCommand = connection.CreateCommand();
+                    selectCommand.CommandTimeout = 0; //infinite timeout
+                    selectCommand.CommandText = strQuery;
+
+                    if (dap != null)
+                    {
+                        DbDataReader reader = selectCommand.ExecuteReader();
+
+                        reader.Read();
+                        List<SqlMetaData> outputColumns = new List<SqlMetaData>();
+                        object[] recordObjectStart = new object[reader.FieldCount];
+                        for (int iCol = 0; iCol < reader.FieldCount; iCol++)
+                        {
+                            recordObjectStart[iCol] = (object)reader[iCol];
+
+                            if (iCol >= operators.Length)
+                            {
+                                DataColumn col = new DataColumn(reader.GetName(iCol), reader.GetFieldType(iCol));
+
+                                SqlMetaData outputColumn;
+                                if (col.DataType == typeof(Int32) || col.DataType == typeof(Int64) || col.DataType == typeof(DateTime))
+                                {
+                                    outputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType));
+                                }
+                                else
+                                {
+                                    outputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
+                                }
+                                outputColumns.Add(outputColumn);
+                                dt.Columns.Add(col);
+                            }
+                        }
+                        listObjects.Add(recordObjectStart);
+
+                        record = new SqlDataRecord(outputColumns.ToArray());
+
+                        //Now save all records to array (Profiling: faster than working with the reader in the algorithms)
+                        while (reader.Read())
+                        {
+                            object[] recordObject = new object[reader.FieldCount];
+                            for (int iCol = 0; iCol < reader.FieldCount; iCol++)
+                            {
+                                recordObject[iCol] = (object)reader[iCol];
+
+                            }
+                            listObjects.Add(recordObject);
+                        }
+                        reader.Close();
+
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new Exception(e.Message);
+                }
+                finally
+                {
+                    connection.Close();
+                }
+
+
+            }
+            return listObjects;
+        }
 
         /// <summary>
         /// Returns the TOP n first tupels of a datatable
@@ -227,6 +315,7 @@ namespace prefSQL.SQLSkyline
                             //If two values are comparable the strings will be empty!
                             if (strValue.Equals("INCOMPARABLE") ||
                                 !strValue.Equals(resultIncomparable[nextComparisonIndex]))
+                            //TODO: check if strValue.equals incomparable is necessary... if (!strValue.Equals(resultIncomparable[iCol]))
                             {
                                 //Value is incomparable --> return false
                                 return false;
