@@ -56,7 +56,7 @@ namespace prefSQL.SQLSkyline
         public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
             //Calculate cardinality
-            long thresholdCardinality = 1000;
+            long thresholdCardinality = 300;
 
             TemplateStrategy strategy;
             if (Cardinality <= thresholdCardinality)
@@ -75,8 +75,11 @@ namespace prefSQL.SQLSkyline
                 }
             }
 
+            strategy.WindowHandling = WindowHandling;
             DataTable dt = strategy.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
             TimeMilliseconds = strategy.TimeInMs;
+            NumberOfComparisons = strategy.NumberOfOperations;
+            NumberOfMoves = strategy.NumberOfMoves;
             return dt;
         }
 

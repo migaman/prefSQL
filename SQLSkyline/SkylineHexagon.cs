@@ -47,11 +47,11 @@ namespace prefSQL.SQLSkyline
             strFirstSQL = AdditionParameters[0];
             strOperators = AdditionParameters[1];
             string strSelectDistinctIncomparable = AdditionParameters[2];
-            int weightHexagonIncomparable = int.Parse(AdditionParameters[3]);
+            string weightHexagonIncomparable = AdditionParameters[3];
             string strSQLReturn;
             if (HasIncomparablePreferences)
             {
-                strSQLReturn = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType +  ", '" + strSelectDistinctIncomparable + "', " + weightHexagonIncomparable;
+                strSQLReturn = "EXEC dbo.SP_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType + ", '" + strSelectDistinctIncomparable + "', '" + weightHexagonIncomparable + "'";
             }
             else
             {

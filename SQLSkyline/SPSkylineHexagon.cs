@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Data;
+using System.Data.Common;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
 
@@ -7,10 +9,9 @@ using Microsoft.SqlServer.Server;
 //Important: Only use equal for comparing text (otherwise performance issues)
 namespace prefSQL.SQLSkyline
 {
-    using System.Data;
 
     public class SPSkylineHexagon : TemplateHexagon
-    {        
+    {
         [SqlProcedure(Name = "SP_SkylineHexagon")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType, SqlString strSelectIncomparable, int weightHexagonIncomparable)
         {
@@ -23,7 +24,7 @@ namespace prefSQL.SQLSkyline
 
             //Change operators array and SQL query (replace INCOMPARABLES values)
             skyline.CalculateOperators(ref preferenceOperators, additionalParameters, Helper.CnnStringSqlclr, Helper.ProviderClr, ref querySQL);
-            
+
             skyline.GetSkylineTable(querySQL, preferenceOperators, numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, additionalParameters, sortType.Value);
         }
 
@@ -37,72 +38,90 @@ namespace prefSQL.SQLSkyline
         /// <param name="strSQL"></param>
         public void CalculateOperators(ref string strOperators, string[] additionalParameters, string connectionString, string factory, ref string strSQL)
         {
-            string strSelectIncomparable = additionalParameters[4];
+            string[] strSelectIncomparableAll = additionalParameters[4].Split(';');
 
-            if (!strSelectIncomparable.Equals(""))
+            foreach (string strSelectIncomparable in strSelectIncomparableAll)
             {
-                //Check amount of incomparables
-                int posOfFrom = strSQL.IndexOf("FROM", StringComparison.Ordinal);
-                string strSQLIncomparable = "SELECT DISTINCT " + strSelectIncomparable + " " + strSQL.Substring(posOfFrom);
-
-                DataTable dt = Helper.GetDataTableFromSQL(strSQLIncomparable, connectionString, factory);
-
-                //Create hexagon single value statement for incomparable tuples
-                string strHexagonIncomparable = "CASE ";
-                string strHexagonFieldName = "colors.name";
-                int amountOfIncomparable = 0;
-                string strAddOperators = "";
-                int iIndexRow = 0;
-                foreach (DataRow row in dt.Rows)
+                if (!strSelectIncomparable.Equals(""))
                 {
-                    string strCategory = (string)row[0];
-                    if (!strCategory.Equals(""))
-                    {
-                        //string strBitPattern = new String('0', dt.Rows.Count - 1);
-                        string strBitPattern = new String('0', dt.Rows.Count - 1);
-                        strBitPattern = strBitPattern.Substring(0, amountOfIncomparable) + "1" + strBitPattern.Substring(amountOfIncomparable + 1);
-                        strHexagonIncomparable += " WHEN " + strHexagonFieldName + " = '" + strCategory.Replace("(", "").Replace(")", "") + "' THEN '" + strBitPattern + "'";
-                        amountOfIncomparable++;
+                    //Check amount of incomparables
+                    int posOfFrom = strSQL.IndexOf("FROM", StringComparison.Ordinal);
+                    string strSQLIncomparable = "SELECT DISTINCT " + strSelectIncomparable + " " + strSQL.Substring(posOfFrom);
 
-                        //if (iIndexRow > 0)
-                        //{
-                        strAddOperators += "INCOMPARABLE;";
-                        //}
-                        iIndexRow++;
+                    DataTable dt = Helper.GetDataTableFromSQL(strSQLIncomparable, connectionString, factory);
+
+                    //Create hexagon single value statement for incomparable tuples
+                    string strHexagonIncomparable = "CASE ";
+                    int iPosCaseWhen = strSelectIncomparable.IndexOf("CASE WHEN") + 10;
+                    int iPosEnd = strSelectIncomparable.Substring(iPosCaseWhen).IndexOf(" ");
+                    string strHexagonFieldName = strSelectIncomparable.Substring(iPosCaseWhen, iPosEnd); // "colors.name";
+                    int amountOfIncomparable = 0;
+                    string strAddOperators = "";
+                    int iIndexRow = 0;
+                    foreach (DataRow row in dt.Rows)
+                    {
+                        string strCategory = (string)row[0];
+                        if (!strCategory.Equals(""))
+                        {
+                            //string strBitPattern = new String('0', dt.Rows.Count - 1);
+                            string strBitPattern = new String('0', dt.Rows.Count - 1);
+                            strBitPattern = strBitPattern.Substring(0, amountOfIncomparable) + "1" + strBitPattern.Substring(amountOfIncomparable + 1);
+                            strHexagonIncomparable += " WHEN " + strHexagonFieldName + " = '" + strCategory.Replace("(", "").Replace(")", "") + "' THEN '" + strBitPattern + "'";
+                            amountOfIncomparable++;
+
+                            //if (iIndexRow > 0)
+                            //{
+                            strAddOperators += "INCOMPARABLE;";
+                            //}
+                            iIndexRow++;
+                        }
+
                     }
+                    strAddOperators = strAddOperators.TrimEnd(';');
+
+                    string strBitPatternFull = new String('x', amountOfIncomparable); // string of 20 spaces;
+                    strHexagonIncomparable += " ELSE '" + strBitPatternFull + "' END AS HexagonIncomparable" + strHexagonFieldName.Replace(".", "");
+
+
+                    string strAddSQL = "";
+                    iIndexRow = 0;
+                    foreach (DataRow row in dt.Rows)
+                    {
+                        string strCategory = (string)row[0];
+                        if (!strCategory.Equals(""))
+                        {
+                            //if (iIndexRow > 0)
+                            //{
+                            strAddSQL += strHexagonIncomparable + iIndexRow + ",";
+                            //}
+                            iIndexRow++;
+                        }
+
+                    }
+                    strAddSQL = strAddSQL.TrimEnd(',');
+
+
+                    //Manipulate construction sql
+                    strSQL = ReplaceFirst(strSQL, "CALCULATEINCOMPARABLE", strAddSQL);
+                    //strSQL = strSQL.Replace("CALCULATEINCOMPARABLE", strAddSQL);
+                    //strOperators = strOperators.Replace("CALCULATEINCOMPARABLE", strAddOperators);
+                    strOperators = ReplaceFirst(strOperators, "CALCULATEINCOMPARABLE", strAddOperators);
+
+
 
                 }
-                strAddOperators = strAddOperators.TrimEnd(';');
-
-                string strBitPatternFull = new String('x', amountOfIncomparable); // string of 20 spaces;
-                strHexagonIncomparable += " ELSE '" + strBitPatternFull + "' END AS HexagonIncomparable" + strHexagonFieldName.Replace(".", "");
-
-
-                string strAddSQL = "";
-                iIndexRow = 0;
-                foreach (DataRow row in dt.Rows)
-                {
-                    string strCategory = (string)row[0];
-                    if (!strCategory.Equals(""))
-                    {
-                        //if (iIndexRow > 0)
-                        //{
-                        strAddSQL += strHexagonIncomparable + iIndexRow + ",";
-                        //}
-                        iIndexRow++;
-                    }
-
-                }
-                strAddSQL = strAddSQL.TrimEnd(',');
-
-
-                //Manipulate construction sql
-                strSQL = strSQL.Replace("CALCULATEINCOMPARABLE", strAddSQL);
-                strOperators = strOperators.Replace("CALCULATEINCOMPARABLE", strAddOperators);
-
-
-
             }
+        }
+
+
+        private string ReplaceFirst(string text, string search, string replace)
+        {
+            int pos = text.IndexOf(search);
+            if (pos < 0)
+            {
+                return text;
+            }
+            return text.Substring(0, pos) + replace + text.Substring(pos + search.Length);
         }
 
 
@@ -193,5 +212,5 @@ namespace prefSQL.SQLSkyline
     }
 
 
-    
+
 }
