@@ -55,11 +55,6 @@ namespace prefSQL.SQLSkyline
 
                 try
                 {
-                    //Some checks
-                    if (strQuery.Length == Helper.MaxSize)
-                    {
-                        throw new Exception("Query is too long. Maximum size is " + Helper.MaxSize);
-                    }
                     connection.Open();
 
                     DbDataAdapter dap = factory.CreateDataAdapter();

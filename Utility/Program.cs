@@ -15,8 +15,8 @@ namespace Utility
         static void Main(string[] args)
         {
             Program prg = new Program();
-            prg.MeasurePerformance();
-            //prg.Run();
+            //prg.MeasurePerformance();
+            prg.Run();
 
             /*
             DominanceGraph graph = new DominanceGraph();
@@ -177,12 +177,52 @@ namespace Utility
 
                 //string strPrefSQL = "EXEC dbo.SP_SkylineBNLSortLevel 'SELECT  CAST(c.Price AS bigint) AS SkylineAttribute0, CAST(c.Mileage AS bigint) AS SkylineAttribute1 , c.title AS Name, c.Price, c.Mileage, co.Name AS Color, b.Name AS Body FROM Cars AS c LEFT OUTER JOIN colors co ON c.color_id = co.ID LEFT OUTER JOIN bodies b ON c.body_id = b.ID ORDER BY c.Price, c.Mileage', 'LOW;LOW', 0, 0";
 
-                string strPrefSQL = "SELECT t.id FROM cars t SKYLINE OF t.price LOW, t.mileage LOW";
+                //string strPrefSQL = "SELECT t.id FROM cars t SKYLINE OF t.price LOW, t.mileage LOW";
                 //string strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name FROM cars t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 10000 SKYLINE OF t1.price LOW, colors.name ('silver' >> 'yellow' >> OTHERS INCOMPARABLE)";
                 //string strPrefSQL = "SELECT cars.id, cars.title FROM  cars SKYLINE OF cars.price LOW,cars.mileage LOW,cars.horsepower HIGH,cars.enginesize HIGH,cars.consumption LOW,cars.doors HIGH,cars.seats HIGH";
 
                 //string strPrefSQL = "SELECT t.id, t.title, t.price, colors.name AS colour FROM cars t LEFT OUTER JOIN colors ON t.color_id = colors.id SKYLINE OF t.price LOW, t.mileage LOW, colors.name ('red' >> {'blue', 'yellow'} >> OTHERS INCOMPARABLE)";
                 //string strPrefSQL = "SELECT t.id, t.title FROM cars t RANKING OF t.price LOW 0.8, t.mileage LOW 0.2";
+
+                //string strPrefSQL = "SELECT t.id, t.title  FROM cars t    RANKING OF t.price LOW 0.8, t.mileage LOW 0.2";
+
+                //Query that results in more than 4000 Characters
+                string strPrefSQL = "SELECT  t1.id	, t1.title	, t1.price	, t1.mileage	, colors.name FROM cars_small t1 " +
+                                    "LEFT OUTER JOIN colors ON t1.color_id = colors.ID " + 
+                                    "LEFT OUTER JOIN bodies ON t1.body_id = bodies.id " +
+                                    "LEFT OUTER JOIN Conditions ON t1.Condition_Id = Conditions.Id " +
+                                    "LEFT OUTER JOIN Models ON t1.Model_Id = Models.Id " +
+                                    "LEFT OUTER JOIN Makes ON t1.Make_Id = Makes.Id " +
+                                    "LEFT OUTER JOIN Drives ON t1.Drive_Id = Drives.Id " +
+                                    "LEFT OUTER JOIN Efficiencies ON t1.Efficiency_Id = Efficiencies.Id " +
+                                    "LEFT OUTER JOIN Pollutions ON t1.Pollution_Id = Pollutions.Id " +
+                                    "LEFT OUTER JOIN Transmissions ON t1.Transmission_Id = Transmissions.Id " +
+                                    "LEFT OUTER JOIN Fuels ON t1.Fuel_Id = Fuels.Id " +
+                                    "WHERE t1.price < 10000  " +
+                                    "SKYLINE OF  " +
+	                                "t1.price LOW " +
+	                                ", colors.name " +
+		                            "(" + 
+			                        "'anthracite' >> 'beige' >> 'blue' >> 'bordeaux' >> " +
+			                        "    'brown' >> 'yellow' >> 'gold' >> 'gray' >> 'green' >> " +
+			                        "    'orange' >> 'pink' >> 'red' >> 'black' >> 'silver' >> " +
+			                        "    'turquoise' >> 'violet' >> 'white'" +
+		                            ") " +
+                                    
+                                    ", bodies.name " +
+                                    "(" +
+                                    "    'bus' >> 'cabriolet' >> 'coupé' >> 'van' >> " +
+                                    "    'compact car' >> 'estate car' >> 'minivan' >> " +
+                                    "    'limousine' >> 'pick-up' >> 'scooter' >> 'suv' "  +
+                                    ")" +
+                                    ", fuels.name " +
+                                    "(" +
+                                    "    'hybrid' >> 'bioethanol' >> 'diesel' >> 'gas' >> " +
+                                    "    'electro' >> 'petrol' " +
+                                    ")";
+
+
+
 
                 Debug.WriteLine(strPrefSQL);
                 SQLCommon parser = new SQLCommon();
@@ -191,11 +231,11 @@ namespace Utility
                 //Choose here your algorithm
                 //parser.SkylineType = new SkylineSQL();
                 //parser.SkylineType = new SkylineBNL();
-                //parser.SkylineType = new SkylineBNLSort();
+                parser.SkylineType = new SkylineBNLSort();
                 //parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new SkylineDQ();
                 //parser.SkylineType = new MultipleSkylineBNL();
-                parser.SkylineType = new SkylineDecisionTree();
+                //parser.SkylineType = new SkylineDecisionTree();
 
 
                 //Some other available properties
@@ -206,6 +246,8 @@ namespace Utility
                 
                 //First parse only (to get the parsed string for CLR)
                 Debug.WriteLine(parser.ParsePreferenceSQL(strPrefSQL));
+
+
 
                 //Now parse and execute
                 Stopwatch sw = new Stopwatch();

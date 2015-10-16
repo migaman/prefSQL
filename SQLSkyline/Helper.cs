@@ -30,7 +30,6 @@ namespace prefSQL.SQLSkyline
         //Only this parameters are different beteen SQL CLR function and Utility class
         public const string CnnStringSqlclr = "context connection=true";
         public const string ProviderClr = "System.Data.SqlClient";
-        public const int MaxSize = 4000;
 
         public static List<object[]> GetObjectArrayFromSQL(string strQuery, string strConnection, string strProvider, DataTable dt, string[] operators, out SqlDataRecord record)
         {
@@ -46,11 +45,6 @@ namespace prefSQL.SQLSkyline
 
                 try
                 {
-                    //Some checks
-                    if (strQuery.Length == MaxSize)
-                    {
-                        throw new Exception("Query is too long. Maximum size is " + MaxSize);
-                    }
                     connection.Open();
 
                     DbDataAdapter dap = factory.CreateDataAdapter();
@@ -579,11 +573,6 @@ namespace prefSQL.SQLSkyline
 
                 try
                 {
-                    //Some checks
-                    if (strQuery.Length == MaxSize)
-                    {
-                        throw new Exception("Query is too long. Maximum size is " + MaxSize);
-                    }
                     connection.Open();
 
                     DbDataAdapter dap = factory.CreateDataAdapter();
