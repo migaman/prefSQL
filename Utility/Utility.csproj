@@ -63,9 +63,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BNLTest.cs" />
-    <Compile Include="BNLTest2.cs" />
-    <Compile Include="BNLTest3.cs" />
     <Compile Include="PerformanceSampling.cs" />
     <Compile Include="DominanceGraph.cs" />
     <Compile Include="FrmSQLParser.cs">
