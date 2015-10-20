@@ -4,7 +4,7 @@
 ** Desc:	Install the prefSQL assembly and its functions
 **			Change the path of the assembly (Variable ASSEMBLY_PATH) before running
 ** Auth:	Michael
-** Date:	16/10/2015
+** Date:	20/10/2015
 **************************
 ** Change History
 **************************
@@ -12,6 +12,7 @@
 ** --   --------		-------		------------------------------------
 ** 1    05/01/2015      Michael		First version
 ** 2    16/10/2015      Michael		Remove the 4000 character limit for queries
+** 3    20/10/2015      Stefan      Add Skyline Sampling procedure
 *******************************/
 
 
