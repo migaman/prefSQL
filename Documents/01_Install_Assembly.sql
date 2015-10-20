@@ -54,6 +54,9 @@ IF EXISTS (SELECT * FROM sys.objects WHERE type = 'PC' AND name = 'SP_MultipleSk
 IF EXISTS (SELECT * FROM sys.objects WHERE type = 'PC' AND name = 'SP_MultipleSkylineBNLLevel')
 	DROP PROCEDURE SP_MultipleSkylineBNLLevel
 
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'PC' AND name = 'SP_SkylineSampling')
+    DROP PROCEDURE SP_SkylineSampling
+
 
 
 --Drop Assembly
@@ -105,4 +108,7 @@ GO
 CREATE PROCEDURE SP_MultipleSkylineBNLLevel (@Name nvarchar(MAX), @Operators nvarchar(200), @NumberOfRecords int,  @SortType int, @UpToLevel int)
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SPMultipleSkylineBNLLevel].GetSkyline;
 GO
-
+--Create SP for SkylineSampling
+CREATE PROCEDURE SP_SkylineSampling (@Name nvarchar(MAX), @Operators nvarchar(200), @NumberOfRecords int, @SortType int, @Count int, @Dimension int, @Algorithm nvarchar(200), @HasIncomparable bit)
+AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SkylineSampling.SPSkylineSampling].GetSkyline;
+GO
