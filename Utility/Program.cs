@@ -50,9 +50,9 @@ namespace Utility
             p.UseCLR = false;
             p.Trials = 1;           //Amount of trials for each single sql preference statement
 
-            p.MinDimensions = 17;   //Up from x dimensions
-            p.MaxDimensions = 17;   //Up to x dimensions
-            p.RandomDraws = 50;    //Amount of draws (x times randomly choose a some preferences)
+            p.MinDimensions = 7;   //Up from x dimensions
+            p.MaxDimensions = 7;   //Up to x dimensions
+            p.RandomDraws = 10;    //Amount of draws (x times randomly choose a some preferences)
 
             //p.TableSize = Performance.Size.Small;
             //p.TableSize = Performance.Size.Medium;
@@ -65,15 +65,9 @@ namespace Utility
             //p.Set = Performance.PreferenceSet.Mya;
             //p.Set = Performance.PreferenceSet.Barra;
             //p.Set = Performance.PreferenceSet.All;
-            //p.Set = Performance.PreferenceSet.Numeric;
+            p.Set = Performance.PreferenceSet.Numeric;
             //p.Set = Performance.PreferenceSet.Categoric;
             //p.Set = Performance.PreferenceSet.MinCardinality;
-            //p.Set = Performance.PreferenceSet.LowCardinality;
-            //p.Set = Performance.PreferenceSet.HighCardinality;
-            p.Set = Performance.PreferenceSet.LowAndHighCardinality;
-            //p.Set = Performance.PreferenceSet.ForRandom10;
-            //p.Set = Performance.PreferenceSet.ForRandom17;
-
             //p.Set = Performance.PreferenceSet.CategoricIncomparable;
             //p.Set = Performance.PreferenceSet.NumericIncomparable;
 
@@ -83,13 +77,13 @@ namespace Utility
             //p.Mode = Performance.PreferenceChooseMode.Correlation;
             //p.Mode = Performance.PreferenceChooseMode.AntiCorrelation;
             //p.Mode = Performance.PreferenceChooseMode.Independent;
-            
+
             p.SkylineUpToLevel = 1;
 
             //p.Strategy = null; //all algorithms should be tested
             //p.Strategy = new SkylineSQL();
             //p.Strategy = new SkylineBNL();
-            p.Strategy = new SkylineBNLSort();
+            //p.Strategy = new SkylineBNLSort();
             //p.Strategy = new SkylineDQ();
             //p.Strategy = new SkylineHexagon();
             p.Strategy = new SkylineDecisionTree();
@@ -149,7 +143,7 @@ namespace Utility
                 //string strPrefSQL = "SELECT t.id, t.title FROM cars t RANKING OF t.price LOW 0.8, t.mileage LOW 0.2";
                 //string strPrefSQL = "SELECT t.id, t.title FROM cars t LEFT OUTER JOIN colors c ON t.color_id = c.id RANKING OF t.price LOW 0.5, c.name ('brown' >> 'green' >> OTHERS EQUAL) 0.5";
 
-                
+
 
 
 
@@ -194,7 +188,7 @@ namespace Utility
 
                 //Query that results in more than 4000 Characters
                 string strPrefSQL = "SELECT  t1.id	, t1.title	, t1.price	, t1.mileage	, colors.name FROM cars_small t1 " +
-                                    "LEFT OUTER JOIN colors ON t1.color_id = colors.ID " + 
+                                    "LEFT OUTER JOIN colors ON t1.color_id = colors.ID " +
                                     "LEFT OUTER JOIN bodies ON t1.body_id = bodies.id " +
                                     "LEFT OUTER JOIN Conditions ON t1.Condition_Id = Conditions.Id " +
                                     "LEFT OUTER JOIN Models ON t1.Model_Id = Models.Id " +
@@ -206,20 +200,20 @@ namespace Utility
                                     "LEFT OUTER JOIN Fuels ON t1.Fuel_Id = Fuels.Id " +
                                     "WHERE t1.price < 10000  " +
                                     "SKYLINE OF  " +
-	                                "t1.price LOW " +
-	                                ", colors.name " +
-		                            "(" + 
-			                        "'anthracite' >> 'beige' >> 'blue' >> 'bordeaux' >> " +
-			                        "    'brown' >> 'yellow' >> 'gold' >> 'gray' >> 'green' >> " +
-			                        "    'orange' >> 'pink' >> 'red' >> 'black' >> 'silver' >> " +
-			                        "    'turquoise' >> 'violet' >> 'white'" +
-		                            ") " +
-                                    
+                                    "t1.price LOW " +
+                                    ", colors.name " +
+                                    "(" +
+                                    "'anthracite' >> 'beige' >> 'blue' >> 'bordeaux' >> " +
+                                    "    'brown' >> 'yellow' >> 'gold' >> 'gray' >> 'green' >> " +
+                                    "    'orange' >> 'pink' >> 'red' >> 'black' >> 'silver' >> " +
+                                    "    'turquoise' >> 'violet' >> 'white'" +
+                                    ") " +
+
                                     ", bodies.name " +
                                     "(" +
                                     "    'bus' >> 'cabriolet' >> 'coupé' >> 'van' >> " +
                                     "    'compact car' >> 'estate car' >> 'minivan' >> " +
-                                    "    'limousine' >> 'pick-up' >> 'scooter' >> 'suv' "  +
+                                    "    'limousine' >> 'pick-up' >> 'scooter' >> 'suv' " +
                                     ")" +
                                     ", fuels.name " +
                                     "(" +
@@ -247,7 +241,7 @@ namespace Utility
                 //Some other available properties
                 //parser.ShowSkylineAttributes = true;
                 parser.SkylineUpToLevel = 1;
-                
+
 
 
                 //First parse only (to get the parsed string for CLR)
@@ -285,7 +279,7 @@ namespace Utility
 
 
 
-        
+
 
     }
 }
