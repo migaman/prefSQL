@@ -48,8 +48,8 @@ namespace Utility
             p.UseCLR = false;
             p.Trials = 1;           //Amount of trials for each single sql preference statement
 
-            p.MinDimensions = 16;   //Up from x dimensions
-            p.MaxDimensions = 16;   //Up to x dimensions
+            p.MinDimensions = 17;   //Up from x dimensions
+            p.MaxDimensions = 17;   //Up to x dimensions
             p.RandomDraws = 50;    //Amount of draws (x times randomly choose a some preferences)
 
             //p.TableSize = Performance.Size.Small;
@@ -68,9 +68,9 @@ namespace Utility
             //p.Set = Performance.PreferenceSet.MinCardinality;
             //p.Set = Performance.PreferenceSet.LowCardinality;
             //p.Set = Performance.PreferenceSet.HighCardinality;
-            //p.Set = Performance.PreferenceSet.LowAndHighCardinality;
+            p.Set = Performance.PreferenceSet.LowAndHighCardinality;
             //p.Set = Performance.PreferenceSet.ForRandom10;
-            p.Set = Performance.PreferenceSet.ForRandom17;
+            //p.Set = Performance.PreferenceSet.ForRandom17;
 
             p.Mode = Performance.PreferenceChooseMode.Combination;
             //p.Mode = Performance.PreferenceChooseMode.Shuffle;
@@ -80,15 +80,15 @@ namespace Utility
 
             //p.Strategy = null; //all algorithms should be tested
             //p.Strategy = new SkylineSQL();
-            p.Strategy = new SkylineBNL();
-            //p.Strategy = new SkylineBNLSort();
+            //p.Strategy = new SkylineBNL();
+            p.Strategy = new SkylineBNLSort();
             //p.Strategy = new SkylineDQ();
             //p.Strategy = new SkylineHexagon();
             //p.Strategy = new SkylineDecisionTree();
 
-            //p.ExcessiveTests = false;
+            p.ExcessiveTests = false;
             p.Sampling = true;
-            p.SamplingSubsetsCount = 10;
+            p.SamplingSubsetsCount = 15;
             p.SamplingSubsetDimension = 3;
             p.SamplingSamplesCount = 20;
 
