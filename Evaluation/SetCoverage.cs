@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
 
     public sealed class SetCoverage
     {
@@ -37,19 +36,59 @@
         {
             var keysOfCoveredObjects = new HashSet<long>();
 
+            Dictionary<long, double[]> normalizedDataToBeCoveredDouble;
+            Dictionary<long, double[]> normalizedDataCoveringDataToBeCoveredDouble;
+            ConvertDatabaseObjectsToDouble(out normalizedDataToBeCoveredDouble, normalizedDataToBeCovered,
+                normalizedDataCoveringDataToBeCovered, useColumns, out normalizedDataCoveringDataToBeCoveredDouble);
+
             // for each object in normalizedDataCoveringDataToBeCovered, find its corresponding, nearest (i.e., covered) object
-            foreach (KeyValuePair<long, object[]> coveringObject in normalizedDataCoveringDataToBeCovered)
+            foreach (KeyValuePair<long, double[]> coveringObject in normalizedDataCoveringDataToBeCoveredDouble)
             {
-                long coveredObjectKey = GetCoveredObject(coveringObject.Value, normalizedDataToBeCovered,
-                    useColumns).Item1;
+                long coveredObjectKey = GetCoveredObject(coveringObject.Value, normalizedDataToBeCoveredDouble).Item1;
                 keysOfCoveredObjects.Add(coveredObjectKey);
             }
 
             return (double) keysOfCoveredObjects.Count / normalizedDataToBeCovered.Count;
         }
 
+        private static void ConvertDatabaseObjectsToDouble(
+            out Dictionary<long, double[]> normalizedDataToBeCoveredDouble,
+            IReadOnlyDictionary<long, object[]> normalizedDataToBeCovered,
+            IReadOnlyDictionary<long, object[]> normalizedDataCoveringDataToBeCovered,
+            int[] useColumns, out Dictionary<long, double[]> normalizedDataCoveringDataToBeCoveredDouble)
+        {
+            normalizedDataToBeCoveredDouble = new Dictionary<long, double[]>();
+
+            foreach (KeyValuePair<long, object[]> objectToBeCovered in normalizedDataToBeCovered)
+            {
+                var rowDouble = new double[useColumns.Length];
+
+                for (var i = 0; i < useColumns.Length; i++)
+                {
+                    int index = useColumns[i];
+                    rowDouble[i] = (double) objectToBeCovered.Value[index];
+                }
+                normalizedDataToBeCoveredDouble.Add(objectToBeCovered.Key, rowDouble);
+            }
+
+            normalizedDataCoveringDataToBeCoveredDouble = new Dictionary<long, double[]>();
+
+            foreach (KeyValuePair<long, object[]> objectCoveringDataToBeCovered in normalizedDataCoveringDataToBeCovered
+                )
+            {
+                var rowDouble = new double[useColumns.Length];
+
+                for (var i = 0; i < useColumns.Length; i++)
+                {
+                    int index = useColumns[i];
+                    rowDouble[i] = (double) objectCoveringDataToBeCovered.Value[index];
+                }
+                normalizedDataCoveringDataToBeCoveredDouble.Add(objectCoveringDataToBeCovered.Key, rowDouble);
+            }
+        }
+
         /// <summary>
-        /// TODO: rephrase since all distances returned
+        ///     TODO: rephrase since all distances returned
         ///     Calculates the representation error of normalizedDataCoveringDataToBeCovered according to Y. Tao, L. Ding, X. Lin,
         ///     and J. Pei (2009).
         /// </summary>
@@ -80,11 +119,16 @@
         {
             var distances = new Dictionary<long, double>();
 
+            Dictionary<long, double[]> normalizedDataToBeCoveredDouble;
+            Dictionary<long, double[]> normalizedDataCoveringDataToBeCoveredDouble;
+            ConvertDatabaseObjectsToDouble(out normalizedDataToBeCoveredDouble, normalizedDataToBeCovered,
+                normalizedDataCoveringDataToBeCovered, useColumns, out normalizedDataCoveringDataToBeCoveredDouble);
+
             // for each object in normalizedDataToBeCovered, find its corresponding, nearest (i.e., covering) object
-            foreach (KeyValuePair<long, object[]> objectToBeCovered in normalizedDataToBeCovered)
+            foreach (KeyValuePair<long, double[]> objectToBeCovered in normalizedDataToBeCoveredDouble)
             {
-                double distance = GetCoveredObject(objectToBeCovered.Value, normalizedDataCoveringDataToBeCovered,
-                    useColumns).Item2;
+                double distance =
+                    GetCoveredObject(objectToBeCovered.Value, normalizedDataCoveringDataToBeCoveredDouble).Item2;
 
                 distances.Add(objectToBeCovered.Key, distance);
             }
@@ -104,23 +148,24 @@
         ///     The set examined for coverage. The coveringObject covers the object in
         ///     normalizedDataToBeCovered when its distance to coveringObject is minimal.
         /// </param>
-        /// <param name="useColumns">Array indices which should be used for the distance calculation.</param>
         /// <returns>A Tuple with the key of the covered object in Item1 and its distance to coveringObject in Item2.</returns>
-        internal static Tuple<long, double> GetCoveredObject(object[] coveringObject,
-            IReadOnlyDictionary<long, object[]> normalizedDataToBeCovered, int[] useColumns)
+        internal static Tuple<long, double> GetCoveredObject(double[] coveringObject,
+            Dictionary<long, double[]> normalizedDataToBeCovered)
         {
             long minimumDistanceObjectKey = -1;
             double minimumDistance = double.MaxValue;
+            double breakOnLimit = double.MaxValue;
 
-            foreach (KeyValuePair<long, object[]> potentiallyCoveredObject in normalizedDataToBeCovered)
+            foreach (KeyValuePair<long, double[]> potentiallyCoveredObject in normalizedDataToBeCovered)
             {
                 double euclideanDistance = CalculateEuclideanDistance(coveringObject, potentiallyCoveredObject.Value,
-                    useColumns);
+                    breakOnLimit);
 
                 if (euclideanDistance < minimumDistance)
                 {
                     minimumDistance = euclideanDistance;
                     minimumDistanceObjectKey = potentiallyCoveredObject.Key;
+                    breakOnLimit = minimumDistance * minimumDistance;
                 }
             }
 
@@ -128,22 +173,40 @@
         }
 
         /// <summary>
-        ///     Calculates the Euclidean Distance between two objects with respect to the dimensions specified in useColumns.
+        ///     Calculates the Euclidean Distance between two objects.
         /// </summary>
         /// <param name="item1">First object used for distance calculation.</param>
         /// <param name="item2">Second object used for distance calculation.</param>
-        /// <param name="useColumns">
-        ///     Array indices which should be used for the distance calculation.
+        /// <returns>The Euclidean distance between item1 and item2.</returns>
+        internal static double CalculateEuclideanDistance(double[] item1, double[] item2)
+        {
+            return CalculateEuclideanDistance(item1, item2, double.MaxValue);
+        }
+
+        /// <summary>
+        ///     Calculates the Euclidean Distance between two objects. Returns double.MaxValue if the distance is greater than the
+        ///     specified breakOnLimit.
+        /// </summary>
+        /// <param name="item1">First object used for distance calculation.</param>
+        /// <param name="item2">Second object used for distance calculation.</param>
+        /// <param name="breakOnLimit">
+        ///     If the distance is greater than this parameter, double.MaxValue is returned => faster
+        ///     performance when searching for a minimum distance between a set of objects.
         /// </param>
-        /// <returns></returns>
-        internal static double CalculateEuclideanDistance(object[] item1, object[] item2, int[] useColumns)
+        /// <returns>The Euclidean distance between item1 and item2, or double.MaxValue.</returns>
+        internal static double CalculateEuclideanDistance(double[] item1, double[] item2, double breakOnLimit)
         {
             double sum = 0;
+            int length = item1.Length;
 
-            foreach (int useColumnIndex in useColumns)
+            for (var i = 0; i < length; i++)
             {
-                double distance = (double) item1[useColumnIndex] - (double) item2[useColumnIndex];
+                double distance = item1[i] - item2[i];
                 sum += distance * distance;
+                if (sum > breakOnLimit)
+                {
+                    return double.MaxValue;
+                }
             }
 
             return Math.Sqrt(sum);

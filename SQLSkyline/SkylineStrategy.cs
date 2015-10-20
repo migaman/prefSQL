@@ -89,6 +89,6 @@ namespace prefSQL.SQLSkyline
         //If the algorithm supports incomparable values
         public abstract bool SupportIncomparable();    
 
-        public abstract void PrepareDatabaseForAlgorithm(ref IEnumerable<object[]> useDatabase, List<int> subspace, int[] preferenceColumnIndex, bool[] isPreferenceIncomparable);
+        public abstract void PrepareDatabaseForAlgorithm(ref IEnumerable<object[]> useDatabase, List<int> subset, int[] preferenceColumnIndex, bool[] isPreferenceIncomparable);
     }
 }

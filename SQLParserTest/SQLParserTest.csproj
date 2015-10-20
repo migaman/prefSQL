@@ -62,7 +62,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="SkylineSamplingHelper.cs" />
-    <Compile Include="FixedSkylineSamplingSubspacesProducer.cs" />
+    <Compile Include="FixedSkylineSamplingSubsetsProducer.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="SQLParserRankingTest.cs" />
     <Compile Include="SQLParserSkylineSamplingIntegrationTests.cs" />
@@ -93,6 +93,7 @@
     </Content>
     <Content Include="SQLParserSkylineSamplingIntegrationTests.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </Content>
     <Content Include="SQLParserSkylineSamplingTests_IncorrectSyntax.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

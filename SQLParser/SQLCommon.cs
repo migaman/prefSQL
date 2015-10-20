@@ -270,8 +270,8 @@ namespace prefSQL.SQLParser
                         {
                             var skylineSample = new SkylineSampling
                             {
-                                SubspacesCount = prefSQL.SkylineSampleCount,
-                                SubspaceDimension = prefSQL.SkylineSampleDimension,
+                                SubsetCount = prefSQL.SkylineSampleCount,
+                                SubsetDimension = prefSQL.SkylineSampleDimension,
                                 SelectedStrategy = _skylineType
                             };
                             strSQLReturn = skylineSample.GetStoredProcedureCommand(strWhere, strOrderBy, strFirstSQL,

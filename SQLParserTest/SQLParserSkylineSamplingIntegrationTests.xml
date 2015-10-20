@@ -1,20 +1,20 @@
-<TestData>
+﻿<TestData>
   <TestDataRow>
     <comment>2 samples, each of dimension 1, colors INCOMPARABLE</comment>
     <skylineSampleSQL>SELECT * FROM cars_small cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID SKYLINE OF cs.price LOW, colors.name ('red' >> OTHERS INCOMPARABLE) SAMPLE BY RANDOM_SUBSETS COUNT 2 DIMENSION 1</skylineSampleSQL>
     <entireSkylineSQL>SELECT * FROM cars_small cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID SKYLINE OF cs.price LOW, colors.name ('red' >> OTHERS INCOMPARABLE)</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>5</expectedNumberOfEntireSkylineObjects>
     <expectedNumberOfSkylineSampleObjects>4</expectedNumberOfSkylineSampleObjects>
-    <useSubspaces>
-      <subspace>
+    <useSubsets>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.price</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>colors.name</dimension>
         <dimension>colors.name</dimension>
-      </subspace>
-    </useSubspaces>
+      </subset>
+    </useSubsets>
   </TestDataRow>
   <TestDataRow>
     <comment>2 samples, each of dimension 1 (e.g., (cs.price), (cs.mileage))</comment>
@@ -22,14 +22,14 @@
     <entireSkylineSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>7</expectedNumberOfEntireSkylineObjects>
     <expectedNumberOfSkylineSampleObjects>2</expectedNumberOfSkylineSampleObjects>
-    <useSubspaces>
-      <subspace>
+    <useSubsets>
+      <subset>
         <dimension>cs.price</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.mileage</dimension>
-      </subspace>
-    </useSubspaces>
+      </subset>
+    </useSubsets>
   </TestDataRow>
   <TestDataRow>
     <comment>3 samples, each of dimension 2 (e.g., (cs.price, cs.mileage), (cs.mileage, cs.horsepower), (cs.price, cs.horsepower))</comment>
@@ -37,20 +37,20 @@
     <entireSkylineSQL>SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>90</expectedNumberOfEntireSkylineObjects>
     <expectedNumberOfSkylineSampleObjects>24</expectedNumberOfSkylineSampleObjects>
-    <useSubspaces>
-      <subspace>
+    <useSubsets>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.mileage</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.horsepower</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.mileage</dimension>
         <dimension>cs.horsepower</dimension>
-      </subspace>
-    </useSubspaces>
+      </subset>
+    </useSubsets>
   </TestDataRow>
   <TestDataRow>
     <comment>3 samples, each of dimension 2 (e.g., (cs.price, cs.mileage), (cs.mileage, cs.horsepower), (cs.price, cs.horsepower))</comment>
@@ -58,20 +58,20 @@
     <entireSkylineSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>207</expectedNumberOfEntireSkylineObjects>
     <expectedNumberOfSkylineSampleObjects>31</expectedNumberOfSkylineSampleObjects>
-    <useSubspaces>
-      <subspace>
+    <useSubsets>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.mileage</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.horsepower</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.mileage</dimension>
         <dimension>cs.horsepower</dimension>
-      </subspace>
-    </useSubspaces>
+      </subset>
+    </useSubsets>
   </TestDataRow>
   <TestDataRow>
     <comment>2 samples, each of dimension 2 (e.g., (cs.price, cs.mileage), (cs.horsepower, cs.enginesize))</comment>
@@ -79,16 +79,16 @@
     <entireSkylineSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>353</expectedNumberOfEntireSkylineObjects>
     <expectedNumberOfSkylineSampleObjects>23</expectedNumberOfSkylineSampleObjects>
-    <useSubspaces>
-      <subspace>
+    <useSubsets>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.mileage</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.horsepower</dimension>
         <dimension>cs.enginesize</dimension>
-      </subspace>
-    </useSubspaces>
+      </subset>
+    </useSubsets>
   </TestDataRow>
   <TestDataRow>
     <comment>7 samples, each of dimension 3 (e.g., (cs.price, cs.mileage, cs.horsepower))</comment>
@@ -96,43 +96,43 @@
     <entireSkylineSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>4464</expectedNumberOfEntireSkylineObjects>
     <expectedNumberOfSkylineSampleObjects>639</expectedNumberOfSkylineSampleObjects>
-    <useSubspaces>
-      <subspace>
+    <useSubsets>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.mileage</dimension>
         <dimension>cs.horsepower</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.mileage</dimension>
         <dimension>cs.enginesize</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.mileage</dimension>
         <dimension>cs.consumption</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.mileage</dimension>
         <dimension>cs.cylinders</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.mileage</dimension>
         <dimension>cs.seats</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.horsepower</dimension>
         <dimension>cs.enginesize</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.horsepower</dimension>
         <dimension>cs.consumption</dimension>
-      </subspace>
-    </useSubspaces>
+      </subset>
+    </useSubsets>
   </TestDataRow>
   <TestDataRow>
     <comment>7 samples, each of dimension 3 (e.g., (cs.price, cs.mileage, cs.horsepower))</comment>
@@ -140,43 +140,43 @@
     <entireSkylineSQL>SELECT * FROM cars cs SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>4464</expectedNumberOfEntireSkylineObjects>
     <expectedNumberOfSkylineSampleObjects>307</expectedNumberOfSkylineSampleObjects>
-    <useSubspaces>
-      <subspace>
+    <useSubsets>
+      <subset>
         <dimension>cs.mileage</dimension>
         <dimension>cs.seats</dimension>
         <dimension>cs.cylinders</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.mileage</dimension>
         <dimension>cs.enginesize</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.seats</dimension>
         <dimension>cs.consumption</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.mileage</dimension>
         <dimension>cs.consumption</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.horsepower</dimension>
         <dimension>cs.mileage</dimension>
         <dimension>cs.enginesize</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.seats</dimension>
         <dimension>cs.horsepower</dimension>
         <dimension>cs.mileage</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.cylinders</dimension>
         <dimension>cs.horsepower</dimension>
         <dimension>cs.consumption</dimension>
-      </subspace>
-    </useSubspaces>
+      </subset>
+    </useSubsets>
   </TestDataRow>
   <TestDataRow>
     <comment>15 samples, each of dimension 3 (e.g., (cs.price, cs.mileage, cs.horsepower))</comment>
@@ -184,83 +184,83 @@
     <entireSkylineSQL>SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> 'blue' >> OTHERS EQUAL), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL)</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>10855</expectedNumberOfEntireSkylineObjects>
     <expectedNumberOfSkylineSampleObjects>661</expectedNumberOfSkylineSampleObjects>
-    <useSubspaces>
-      <subspace>
+    <useSubsets>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.horsepower</dimension>
         <dimension>cs.cylinders</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.mileage</dimension>
         <dimension>cs.gears</dimension>
         <dimension>makes.name</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.horsepower</dimension>
         <dimension>cs.seats</dimension>
         <dimension>cs.mileage</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.horsepower</dimension>
         <dimension>cs.doors</dimension>
         <dimension>conditions.name</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.cylinders</dimension>
         <dimension>bodies.name</dimension>
         <dimension>makes.name</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.seats</dimension>
         <dimension>cs.horsepower</dimension>
         <dimension>cs.price</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.seats</dimension>
         <dimension>cs.consumption</dimension>
         <dimension>cs.gears</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.seats</dimension>
         <dimension>cs.doors</dimension>
         <dimension>conditions.name</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.doors</dimension>
         <dimension>bodies.name</dimension>
         <dimension>cs.horsepower</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>fuels.name</dimension>
         <dimension>cs.consumption</dimension>
         <dimension>cs.gears</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>fuels.name</dimension>
         <dimension>cs.cylinders</dimension>
         <dimension>cs.enginesize</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>fuels.name</dimension>
         <dimension>cs.gears</dimension>
         <dimension>cs.price</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>bodies.name</dimension>
         <dimension>cs.horsepower</dimension>
         <dimension>cs.mileage</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>bodies.name</dimension>
         <dimension>cs.enginesize</dimension>
         <dimension>colors.name</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>conditions.name</dimension>
         <dimension>fuels.name</dimension>
         <dimension>cs.doors</dimension>
-      </subspace>
-    </useSubspaces>
+      </subset>
+    </useSubsets>
   </TestDataRow>
   <TestDataRow>
     <comment>15 samples, each of dimension 3 (e.g., (cs.price, cs.mileage, cs.horsepower)), color INCOMPARABLE</comment>
@@ -268,83 +268,83 @@
     <entireSkylineSQL>SELECT cs.*, colors.name, fuels.name, bodies.name, makes.name, conditions.name FROM cars_small cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID LEFT OUTER JOIN fuels ON cs.fuel_id = fuels.ID LEFT OUTER JOIN bodies ON cs.body_id = bodies.ID LEFT OUTER JOIN makes ON cs.make_id = makes.ID LEFT OUTER JOIN conditions ON cs.condition_id = conditions.ID SKYLINE OF cs.price LOW, cs.mileage LOW, cs.horsepower HIGH, cs.enginesize HIGH, cs.consumption LOW, cs.cylinders HIGH, cs.seats HIGH, cs.doors HIGH, cs.gears HIGH, colors.name ('red' >> OTHERS INCOMPARABLE), fuels.name ('diesel' >> 'petrol' >> OTHERS EQUAL), bodies.name ('limousine' >> 'coupé' >> 'suv' >> 'minivan' >> OTHERS EQUAL), makes.name ('BMW' >> 'MERCEDES-BENZ' >> 'HUMMER' >> OTHERS EQUAL), conditions.name ('new' >> 'occasion' >> OTHERS EQUAL)</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>439</expectedNumberOfEntireSkylineObjects>
     <expectedNumberOfSkylineSampleObjects>115</expectedNumberOfSkylineSampleObjects>
-    <useSubspaces>
-      <subspace>
+    <useSubsets>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.horsepower</dimension>
         <dimension>cs.cylinders</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>colors.name</dimension>
         <dimension>cs.gears</dimension>
         <dimension>makes.name</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.horsepower</dimension>
         <dimension>cs.seats</dimension>
         <dimension>cs.mileage</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>colors.name</dimension>
         <dimension>cs.doors</dimension>
         <dimension>conditions.name</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.cylinders</dimension>
         <dimension>bodies.name</dimension>
         <dimension>makes.name</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.seats</dimension>
         <dimension>cs.horsepower</dimension>
         <dimension>cs.price</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.seats</dimension>
         <dimension>cs.consumption</dimension>
         <dimension>cs.gears</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.seats</dimension>
         <dimension>cs.doors</dimension>
         <dimension>conditions.name</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.doors</dimension>
         <dimension>colors.name</dimension>
         <dimension>cs.horsepower</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>fuels.name</dimension>
         <dimension>cs.consumption</dimension>
         <dimension>cs.gears</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>fuels.name</dimension>
         <dimension>cs.cylinders</dimension>
         <dimension>cs.enginesize</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>fuels.name</dimension>
         <dimension>cs.gears</dimension>
         <dimension>cs.price</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>bodies.name</dimension>
         <dimension>cs.horsepower</dimension>
         <dimension>cs.mileage</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>bodies.name</dimension>
         <dimension>cs.enginesize</dimension>
         <dimension>colors.name</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>conditions.name</dimension>
         <dimension>fuels.name</dimension>
         <dimension>cs.doors</dimension>
-      </subspace>
-    </useSubspaces>
+      </subset>
+    </useSubsets>
   </TestDataRow>
   <TestDataRow>
     <comment>3 samples, each of dimension 2 (e.g., (cs.price, cs.mileage), (cs.price, colors.name), (cs.mileage, colors.name)), color INCOMPARABLE</comment>
@@ -352,19 +352,19 @@
     <entireSkylineSQL>SELECT * FROM cars_small cs LEFT OUTER JOIN colors ON cs.color_id = colors.ID SKYLINE OF cs.price LOW, cs.mileage LOW, colors.name ('red' >> OTHERS INCOMPARABLE)</entireSkylineSQL>
     <expectedNumberOfEntireSkylineObjects>51</expectedNumberOfEntireSkylineObjects>
     <expectedNumberOfSkylineSampleObjects>10</expectedNumberOfSkylineSampleObjects>
-    <useSubspaces>
-      <subspace>
+    <useSubsets>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>cs.mileage</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.price</dimension>
         <dimension>colors.name</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>cs.mileage</dimension>
         <dimension>colors.name</dimension>
-      </subspace>
-    </useSubspaces>
+      </subset>
+    </useSubsets>
   </TestDataRow>
 </TestData>
