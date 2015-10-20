@@ -45,6 +45,32 @@ namespace Utility
         static readonly Random Rnd = new Random();
         static readonly Mathematic MyMathematic = new Mathematic();
 
+        private enum ReportsSampling
+        {
+            TimeMin, TimeMax, TimeVar, TimeStdDev, TimeMed, TimeQ1, TimeQ3, SizeMin, SizeMax, SizeVar, SizeStdDev, SizeMed, SizeQ1, SizeQ3,
+        }
+
+        private enum SkylineTypesSampling
+        {
+            RandomAvg, RandomMin, RandomMax, RandomVar, RandomStdDev, RandomMed, RandomQ1, RandomQ3,
+            SampleAvg, SampleMin, SampleMax, SampleVar, SampleStdDev, SampleMed, SampleQ1, SampleQ3,
+            BestRankAvg, BestRankMin, BestRankMax, BestRankVar, BestRankStdDev, BestRankMed, BestRankQ1, BestRankQ3,
+            SumRankAvg, SumRankMin, SumRankMax, SumRankVar, SumRankStdDev, SumRankMed, SumRankQ1, SumRankQ3
+        }
+
+        private enum SkylineTypesSingleSampling
+        {
+            Random,
+            Sample,
+            BestRank,
+            SumRank
+        }
+
+        private enum ClusterAnalysisSampling
+        {
+            EntireDb, EntireSkyline, SampleSkyline, BestRank, SumRank
+        }
+
         public Performance()
         {
             UseCLR = false;
@@ -295,6 +321,22 @@ namespace Utility
 
             return preferences;
         }
+
+        private ArrayList GetCategoricalIncomparablePreferences()
+        {
+            ArrayList preferences = new ArrayList();
+
+            //Categorical preferences with a cardinality from 2 to 8 (descending)
+            preferences.Add("colors.name ('red' >> OTHERS INCOMPARABLE >> 'blue' >> 'green' >> 'gold' >> 'black' >> 'gray' >> 'bordeaux')");
+            preferences.Add("bodies.name ('bus' >> OTHERS EQUAL >> 'cabriolet' >> 'limousine' >> 'coupé' >> 'van' >> 'estate car')");
+            preferences.Add("fuels.name ('petrol' >> OTHERS EQUAL >> 'diesel' >> 'electro' >> 'gas' >> 'hybrid')");
+            preferences.Add("makes.name ('BENTLEY' >> OTHERS EQUAL >> 'DAIMLER' >> 'FIAT'>> 'FORD')");
+            preferences.Add("conditions.name ('new' >> OTHERS EQUAL >> 'occasion' >> 'oldtimer')");
+            preferences.Add("drives.name ('front wheel' >> OTHERS EQUAL >> 'all wheel')");
+            preferences.Add("transmissions.name ('manual' >> OTHERS EQUAL)");
+
+            return preferences;
+        }   
 
         internal static ArrayList GetLowCardinalityPreferences()
         {
@@ -799,7 +841,7 @@ namespace Utility
                                     string strPreferenceSet = iPreferenceIndex + 1 + " / " + listPreferences.Count;
                                     Console.WriteLine(strPreferenceSet);
 
-                                    string strLine = perfSampling.MeasurePerformance(iTrial, iPreferenceIndex, listPreferences, preferences, parser, sw, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportCorrelation, correlation, reportCardinality, cardinality, strSQL, strPreferenceSet, strTrial);
+                                    string strLine = perfSampling.MeasurePerformance(iTrial, iPreferenceIndex, listPreferences, preferences, parser, sw, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportMinCorrelation, reportMaxCorrelation, minCorrelation, maxCorrelation, reportCardinality, cardinality, strSQL, strPreferenceSet, strTrial, reportNumberOfMoves, numberOfMoves, reportNumberOfComparisons, numberOfComparisons);
 
                                     Debug.WriteLine(strLine);
                                     sb.AppendLine(strLine);
@@ -944,7 +986,7 @@ namespace Utility
                 {
                     if (Sampling)
                     {
-                        perfSampling.AddSummary(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportCorrelation, reportCardinality);
+                        perfSampling.AddSummary(sb, strSeparatorLine, reportDimensions, reportSkylineSize, reportTimeTotal, reportTimeAlgorithm, reportMinCorrelation, reportMaxCorrelation, reportCardinality, reportNumberOfMoves, reportNumberOfComparisons);
                         perfSampling.AddPreferenceSetInformation(sb, listPreferences, strSeparatorLine);
                     }
                     else
@@ -1244,248 +1286,7 @@ namespace Utility
 
 
         #region formatOutput
-
-        private void AddSummarySample(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions,
-            List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, IDictionary<ReportsSampling, List<long>> rsl, IDictionary<ReportsSampling, List<double>> rsd, Dictionary<SkylineTypesSampling, List<double>> setCoverageSampling, Dictionary<SkylineTypesSampling, List<double>> representationErrorSampling, Dictionary<SkylineTypesSampling, List<double>> representationErrorSumSampling, Dictionary<SkylineTypesSampling, List<double>> dominatedObjectsCountSampling, Dictionary<SkylineTypesSampling, List<double>> dominatedObjectsOfBestObjectSampling, List<double> reportMinCorrelation, List<double> reportMaxCorrelation, List<double> reportCardinality)
-        {
-            //Separator Line
-            Debug.WriteLine(strSeparatorLine);
-            sb.AppendLine(strSeparatorLine);
-
-
-             string[] setCoverageSamplingMin = GetSummaryMin(setCoverageSampling);
-             string[] representationErrorSamplingMin = GetSummaryMin(representationErrorSampling);
-             string[] representationErrorSumSamplingMin = GetSummaryMin(representationErrorSumSampling);
-             string[] dominatedObjectsCountSamplingMin = GetSummaryMin(dominatedObjectsCountSampling);
-             string[] dominatedObjectsOfBestObjectSamplingMin = GetSummaryMin(dominatedObjectsOfBestObjectSampling);
-
-              string[] setCoverageSamplingMax = GetSummaryMax(setCoverageSampling);
-             string[] representationErrorSamplingMax = GetSummaryMax(representationErrorSampling);
-             string[] representationErrorSumSamplingMax = GetSummaryMax(representationErrorSumSampling);
-             string[] dominatedObjectsCountSamplingMax = GetSummaryMax(dominatedObjectsCountSampling);
-             string[] dominatedObjectsOfBestObjectSamplingMax = GetSummaryMax(dominatedObjectsOfBestObjectSampling);
-
-             string[] setCoverageSamplingVariance = GetSummaryVariance(setCoverageSampling);
-             string[] representationErrorSamplingVariance = GetSummaryVariance(representationErrorSampling);
-             string[] representationErrorSumSamplingVariance = GetSummaryVariance(representationErrorSumSampling);
-             string[] dominatedObjectsCountSamplingVariance = GetSummaryVariance(dominatedObjectsCountSampling);
-             string[] dominatedObjectsOfBestObjectSamplingVariance = GetSummaryVariance(dominatedObjectsOfBestObjectSampling);
-
-             string[] setCoverageSamplingStdDev = GetSummaryStdDev(setCoverageSampling);
-             string[] representationErrorSamplingStdDev = GetSummaryStdDev(representationErrorSampling);
-             string[] representationErrorSumSamplingStdDev = GetSummaryStdDev(representationErrorSumSampling);
-             string[] dominatedObjectsCountSamplingStdDev = GetSummaryStdDev(dominatedObjectsCountSampling);
-             string[] dominatedObjectsOfBestObjectSamplingStdDev = GetSummaryStdDev(dominatedObjectsOfBestObjectSampling);
-
-             string[] setCoverageSamplingMedian = GetSummaryMedian(setCoverageSampling);
-             string[] representationErrorSamplingMedian = GetSummaryMedian(representationErrorSampling);
-             string[] representationErrorSumSamplingMedian = GetSummaryMedian(representationErrorSumSampling);
-             string[] dominatedObjectsCountSamplingMedian = GetSummaryMedian(dominatedObjectsCountSampling);
-             string[] dominatedObjectsOfBestObjectSamplingMedian = GetSummaryMedian(dominatedObjectsOfBestObjectSampling);
-
-             string[] setCoverageSamplingQ1 = GetSummaryQ1(setCoverageSampling);
-             string[] representationErrorSamplingQ1 = GetSummaryQ1(representationErrorSampling);
-             string[] representationErrorSumSamplingQ1 = GetSummaryQ1(representationErrorSumSampling);
-             string[] dominatedObjectsCountSamplingQ1 = GetSummaryQ1(dominatedObjectsCountSampling);
-             string[] dominatedObjectsOfBestObjectSamplingQ1 = GetSummaryQ1(dominatedObjectsOfBestObjectSampling);
-
-             string[] setCoverageSamplingQ3 = GetSummaryQ3(setCoverageSampling);
-             string[] representationErrorSamplingQ3 = GetSummaryQ3(representationErrorSampling);
-             string[] representationErrorSumSamplingQ3 = GetSummaryQ3(representationErrorSumSampling);
-             string[] dominatedObjectsCountSamplingQ3 = GetSummaryQ3(dominatedObjectsCountSampling);
-             string[] dominatedObjectsOfBestObjectSamplingQ3 = GetSummaryQ3(dominatedObjectsOfBestObjectSampling);
-
-             string strAverage = FormatLineStringSample("average", "", reportDimensions.Average(), reportSkylineSize.Average(), reportTimeTotal.Average(), reportTimeAlgorithm.Average(), rsl[ReportsSampling.TimeMin].Average(), rsl[ReportsSampling.TimeMax].Average(), rsd[ReportsSampling.TimeVar].Average(), rsd[ReportsSampling.TimeStdDev].Average(), rsl[ReportsSampling.TimeMed].Average(), rsl[ReportsSampling.TimeQ1].Average(), rsl[ReportsSampling.TimeQ3].Average(), rsl[ReportsSampling.SizeMin].Average(), rsl[ReportsSampling.SizeMax].Average(), rsd[ReportsSampling.SizeVar].Average(), rsd[ReportsSampling.SizeStdDev].Average(), rsl[ReportsSampling.SizeMed].Average(), rsl[ReportsSampling.SizeQ1].Average(), rsl[ReportsSampling.SizeQ3].Average(), setCoverageSamplingAverage, representationErrorSamplingAverage, representationErrorSumSamplingAverage, dominatedObjectsCountSamplingAverage, dominatedObjectsOfBestObjectSamplingAverage, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, reportMinCorrelation.Average(), reportMaxCorrelation.Average(), reportCardinality.Average());
-             string strMin = FormatLineStringSample("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(), reportTimeTotal.Min(), reportTimeAlgorithm.Min(), rsl[ReportsSampling.TimeMin].Min(), rsl[ReportsSampling.TimeMax].Min(), rsd[ReportsSampling.TimeVar].Min(), rsd[ReportsSampling.TimeStdDev].Min(), rsl[ReportsSampling.TimeMed].Min(), rsl[ReportsSampling.TimeQ1].Min(), rsl[ReportsSampling.TimeQ3].Min(), rsl[ReportsSampling.SizeMin].Min(), rsl[ReportsSampling.SizeMax].Min(), rsd[ReportsSampling.SizeVar].Min(), rsd[ReportsSampling.SizeStdDev].Min(), rsl[ReportsSampling.SizeMed].Min(), rsl[ReportsSampling.SizeQ1].Min(), rsl[ReportsSampling.SizeQ3].Min(), setCoverageSamplingMin, representationErrorSamplingMin, representationErrorSumSamplingMin, dominatedObjectsCountSamplingMin, dominatedObjectsOfBestObjectSamplingMin, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, reportMinCorrelation.Min(), reportMaxCorrelation.Min(), reportCardinality.Min());
-             string strMax = FormatLineStringSample("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(), reportTimeTotal.Max(), reportTimeAlgorithm.Max(), rsl[ReportsSampling.TimeMin].Max(), rsl[ReportsSampling.TimeMax].Max(), rsd[ReportsSampling.TimeVar].Max(), rsd[ReportsSampling.TimeStdDev].Max(), rsl[ReportsSampling.TimeMed].Max(), rsl[ReportsSampling.TimeQ1].Max(), rsl[ReportsSampling.TimeQ3].Max(), rsl[ReportsSampling.SizeMin].Max(), rsl[ReportsSampling.SizeMax].Max(), rsd[ReportsSampling.SizeVar].Max(), rsd[ReportsSampling.SizeStdDev].Max(), rsl[ReportsSampling.SizeMed].Max(), rsl[ReportsSampling.SizeQ1].Max(), rsl[ReportsSampling.SizeQ3].Max(), setCoverageSamplingMax, representationErrorSamplingMax, representationErrorSumSamplingMax, dominatedObjectsCountSamplingMax, dominatedObjectsOfBestObjectSamplingMax, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, reportMinCorrelation.Max(), reportMaxCorrelation.Max(), reportCardinality.Max());
-             string strVar = FormatLineStringSample("variance", "", MyMathematic.GetSampleVariance(reportDimensions), MyMathematic.GetSampleVariance(reportSkylineSize), MyMathematic.GetSampleVariance(reportTimeTotal), MyMathematic.GetSampleVariance(reportTimeAlgorithm), MyMathematic.GetSampleVariance(rsl[ReportsSampling.TimeMin]), MyMathematic.GetSampleVariance(rsl[ReportsSampling.TimeMax]), MyMathematic.GetSampleVariance(rsd[ReportsSampling.TimeVar]), MyMathematic.GetSampleVariance(rsd[ReportsSampling.TimeStdDev]), MyMathematic.GetSampleVariance(rsl[ReportsSampling.TimeMed]), MyMathematic.GetSampleVariance(rsl[ReportsSampling.TimeQ1]), MyMathematic.GetSampleVariance(rsl[ReportsSampling.TimeQ3]), MyMathematic.GetSampleVariance(rsl[ReportsSampling.SizeMin]), MyMathematic.GetSampleVariance(rsl[ReportsSampling.SizeMax]), MyMathematic.GetSampleVariance(rsd[ReportsSampling.SizeVar]), MyMathematic.GetSampleVariance(rsd[ReportsSampling.SizeStdDev]), MyMathematic.GetSampleVariance(rsl[ReportsSampling.SizeMed]), MyMathematic.GetSampleVariance(rsl[ReportsSampling.SizeQ1]), MyMathematic.GetSampleVariance(rsl[ReportsSampling.SizeQ3]), setCoverageSamplingVariance, representationErrorSamplingVariance, representationErrorSumSamplingVariance, dominatedObjectsCountSamplingVariance, dominatedObjectsOfBestObjectSamplingVariance, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, MyMathematic.GetSampleVariance(reportMinCorrelation), MyMathematic.GetSampleVariance(reportMaxCorrelation), MyMathematic.GetSampleVariance(reportCardinality));
-             string strStd = FormatLineStringSample("stddeviation", "", MyMathematic.GetSampleStdDeviation(reportDimensions), MyMathematic.GetSampleStdDeviation(reportSkylineSize), MyMathematic.GetSampleStdDeviation(reportTimeTotal), MyMathematic.GetSampleStdDeviation(reportTimeAlgorithm), MyMathematic.GetSampleStdDeviation(rsl[ReportsSampling.TimeMin]), MyMathematic.GetSampleStdDeviation(rsl[ReportsSampling.TimeMax]), MyMathematic.GetSampleStdDeviation(rsd[ReportsSampling.TimeVar]), MyMathematic.GetSampleStdDeviation(rsd[ReportsSampling.TimeStdDev]), MyMathematic.GetSampleStdDeviation(rsl[ReportsSampling.TimeMed]), MyMathematic.GetSampleStdDeviation(rsl[ReportsSampling.TimeQ1]), MyMathematic.GetSampleStdDeviation(rsl[ReportsSampling.TimeQ3]), MyMathematic.GetSampleStdDeviation(rsl[ReportsSampling.SizeMin]), MyMathematic.GetSampleStdDeviation(rsl[ReportsSampling.SizeMax]), MyMathematic.GetSampleStdDeviation(rsd[ReportsSampling.SizeVar]), MyMathematic.GetSampleStdDeviation(rsd[ReportsSampling.SizeStdDev]), MyMathematic.GetSampleStdDeviation(rsl[ReportsSampling.SizeMed]), MyMathematic.GetSampleStdDeviation(rsl[ReportsSampling.SizeQ1]), MyMathematic.GetSampleStdDeviation(rsl[ReportsSampling.SizeQ3]), setCoverageSamplingStdDev, representationErrorSamplingStdDev, representationErrorSumSamplingStdDev, dominatedObjectsCountSamplingStdDev, dominatedObjectsOfBestObjectSamplingStdDev, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, MyMathematic.GetSampleStdDeviation(reportMinCorrelation), MyMathematic.GetSampleStdDeviation(reportMaxCorrelation), MyMathematic.GetSampleStdDeviation(reportCardinality));
-             string strMed = FormatLineStringSample("median", "", Mathematic.Median(reportDimensions), Mathematic.Median(reportSkylineSize), Mathematic.Median(reportTimeTotal), Mathematic.Median(reportTimeAlgorithm), Mathematic.Median(rsl[ReportsSampling.TimeMin]), Mathematic.Median(rsl[ReportsSampling.TimeMax]), Mathematic.Median(rsd[ReportsSampling.TimeVar]), Mathematic.Median(rsd[ReportsSampling.TimeStdDev]), Mathematic.Median(rsl[ReportsSampling.TimeMed]), Mathematic.Median(rsl[ReportsSampling.TimeQ1]), Mathematic.Median(rsl[ReportsSampling.TimeQ3]), Mathematic.Median(rsl[ReportsSampling.SizeMin]), Mathematic.Median(rsl[ReportsSampling.SizeMax]), Mathematic.Median(rsd[ReportsSampling.SizeVar]), Mathematic.Median(rsd[ReportsSampling.SizeStdDev]), Mathematic.Median(rsl[ReportsSampling.SizeMed]), Mathematic.Median(rsl[ReportsSampling.SizeQ1]), Mathematic.Median(rsl[ReportsSampling.SizeQ3]), setCoverageSamplingMedian, representationErrorSamplingMedian, representationErrorSumSamplingMedian, dominatedObjectsCountSamplingMedian, dominatedObjectsOfBestObjectSamplingMedian, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, Mathematic.Median(reportMinCorrelation), Mathematic.Median(reportMaxCorrelation), Mathematic.Median(reportCardinality));
-             string strQ1 = FormatLineStringSample("quartil 1", "", Mathematic.LowerQuartile(reportDimensions), Mathematic.LowerQuartile(reportSkylineSize), Mathematic.LowerQuartile(reportTimeTotal), Mathematic.LowerQuartile(reportTimeAlgorithm), Mathematic.LowerQuartile(rsl[ReportsSampling.TimeMin]), Mathematic.LowerQuartile(rsl[ReportsSampling.TimeMax]), Mathematic.LowerQuartile(rsd[ReportsSampling.TimeVar]), Mathematic.LowerQuartile(rsd[ReportsSampling.TimeStdDev]), Mathematic.LowerQuartile(rsl[ReportsSampling.TimeMed]), Mathematic.LowerQuartile(rsl[ReportsSampling.TimeQ1]), Mathematic.LowerQuartile(rsl[ReportsSampling.TimeQ3]), Mathematic.LowerQuartile(rsl[ReportsSampling.SizeMin]), Mathematic.LowerQuartile(rsl[ReportsSampling.SizeMax]), Mathematic.LowerQuartile(rsd[ReportsSampling.SizeVar]), Mathematic.LowerQuartile(rsd[ReportsSampling.SizeStdDev]), Mathematic.LowerQuartile(rsl[ReportsSampling.SizeMed]), Mathematic.LowerQuartile(rsl[ReportsSampling.SizeQ1]), Mathematic.LowerQuartile(rsl[ReportsSampling.SizeQ3]), setCoverageSamplingQ1, representationErrorSamplingQ1, representationErrorSumSamplingQ1, dominatedObjectsCountSamplingQ1, dominatedObjectsOfBestObjectSamplingQ1, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, Mathematic.LowerQuartile(reportMinCorrelation), Mathematic.LowerQuartile(reportMaxCorrelation), Mathematic.LowerQuartile(reportCardinality));
-             string strQ3 = FormatLineStringSample("quartil 3", "", Mathematic.UpperQuartile(reportDimensions), Mathematic.UpperQuartile(reportSkylineSize), Mathematic.UpperQuartile(reportTimeTotal), Mathematic.UpperQuartile(reportTimeAlgorithm), Mathematic.UpperQuartile(rsl[ReportsSampling.TimeMin]), Mathematic.UpperQuartile(rsl[ReportsSampling.TimeMax]), Mathematic.UpperQuartile(rsd[ReportsSampling.TimeVar]), Mathematic.UpperQuartile(rsd[ReportsSampling.TimeStdDev]), Mathematic.UpperQuartile(rsl[ReportsSampling.TimeMed]), Mathematic.UpperQuartile(rsl[ReportsSampling.TimeQ1]), Mathematic.UpperQuartile(rsl[ReportsSampling.TimeQ3]), Mathematic.UpperQuartile(rsl[ReportsSampling.SizeMin]), Mathematic.UpperQuartile(rsl[ReportsSampling.SizeMax]), Mathematic.UpperQuartile(rsd[ReportsSampling.SizeVar]), Mathematic.UpperQuartile(rsd[ReportsSampling.SizeStdDev]), Mathematic.UpperQuartile(rsl[ReportsSampling.SizeMed]), Mathematic.UpperQuartile(rsl[ReportsSampling.SizeQ1]), Mathematic.UpperQuartile(rsl[ReportsSampling.SizeQ3]), setCoverageSamplingQ3, representationErrorSamplingQ3, representationErrorSumSamplingQ3, dominatedObjectsCountSamplingQ3, dominatedObjectsOfBestObjectSamplingQ3, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, new[] { "", "", "", "", "" }, Mathematic.UpperQuartile(reportMinCorrelation), Mathematic.UpperQuartile(reportMaxCorrelation), Mathematic.UpperQuartile(reportCardinality));
-
-            sb.AppendLine(strAverage);
-            sb.AppendLine(strMin);
-            sb.AppendLine(strMax);
-            sb.AppendLine(strVar);
-            sb.AppendLine(strStd);
-            sb.AppendLine(strMed);
-            sb.AppendLine(strQ1);
-            sb.AppendLine(strQ3);
-            Debug.WriteLine(strAverage);
-            Debug.WriteLine(strMin);
-            Debug.WriteLine(strMax);
-            Debug.WriteLine(strVar);
-            Debug.WriteLine(strStd);
-            Debug.WriteLine(strMed);
-            Debug.WriteLine(strQ1);
-            Debug.WriteLine(strQ3);
-
-            //Separator Line
-            sb.AppendLine(strSeparatorLine);
-            Debug.WriteLine(strSeparatorLine);
-        }
-
-        private static string[] GetSummaryAverage(Dictionary<SkylineTypesSampling, List<double>> list)
-        {
-            var array = new string[Enum.GetValues(typeof (SkylineTypesSampling)).Length];
-
-            var count = 0;
-            foreach (
-                SkylineTypesSampling skylineTypesSamplingType in
-                    Enum.GetValues(typeof (SkylineTypesSampling)).Cast<SkylineTypesSampling>())
-            {
-                {
-                    array[count] =
-                        Math.Round(list[skylineTypesSamplingType].Average(), 2)
-                            .ToString(CultureInfo.InvariantCulture);
-                    count++;
-                }
-            }
-
-            return array;
-        }
-
-        private static string[] GetSummaryMin(Dictionary<SkylineTypesSampling, List<double>> list)
-        {
-            var array = new string[Enum.GetValues(typeof(SkylineTypesSampling)).Length];
-
-            var count = 0;
-            foreach (
-                SkylineTypesSampling skylineTypesSamplingType in
-                    Enum.GetValues(typeof(SkylineTypesSampling)).Cast<SkylineTypesSampling>())
-            {
-                {
-                    array[count] =
-                        Math.Round(list[skylineTypesSamplingType].Min(), 2)
-                            .ToString(CultureInfo.InvariantCulture);
-                    count++;
-                }
-            }
-
-            return array;
-        }
-
-        private static string[] GetSummaryMax(Dictionary<SkylineTypesSampling, List<double>> list)
-        {
-            var array = new string[Enum.GetValues(typeof(SkylineTypesSampling)).Length];
-
-            var count = 0;
-            foreach (
-                SkylineTypesSampling skylineTypesSamplingType in
-                    Enum.GetValues(typeof(SkylineTypesSampling)).Cast<SkylineTypesSampling>())
-            {
-                {
-                    array[count] =
-                        Math.Round(list[skylineTypesSamplingType].Max(), 2)
-                            .ToString(CultureInfo.InvariantCulture);
-                    count++;
-                }
-            }
-
-            return array;
-        }
-
-        private static string[] GetSummaryVariance(Dictionary<SkylineTypesSampling, List<double>> list)
-        {
-            var array = new string[Enum.GetValues(typeof(SkylineTypesSampling)).Length];
-
-            var count = 0;
-            foreach (
-                SkylineTypesSampling skylineTypesSamplingType in
-                    Enum.GetValues(typeof(SkylineTypesSampling)).Cast<SkylineTypesSampling>())
-            {
-                {
-                    array[count] =
-                        Math.Round(MyMathematic.GetSampleVariance(list[skylineTypesSamplingType]), 2)
-                            .ToString(CultureInfo.InvariantCulture);
-                    count++;
-                }
-            }
-
-            return array;            
-        }
-
-        private static string[] GetSummaryStdDev(Dictionary<SkylineTypesSampling, List<double>> list)
-        {
-               var array = new string[Enum.GetValues(typeof(SkylineTypesSampling)).Length];
-
-            var count = 0;
-            foreach (
-                SkylineTypesSampling skylineTypesSamplingType in
-                    Enum.GetValues(typeof(SkylineTypesSampling)).Cast<SkylineTypesSampling>())
-            {
-                {
-                    array[count] =
-                        Math.Round(MyMathematic.GetSampleStdDeviation(list[skylineTypesSamplingType]), 2)
-                            .ToString(CultureInfo.InvariantCulture);
-                    count++;
-                }
-            }
-
-            return array;            
-        }
-
-                private static string[] GetSummaryMedian(Dictionary<SkylineTypesSampling, List<double>> list)
-        {
-               var array = new string[Enum.GetValues(typeof(SkylineTypesSampling)).Length];
-
-            var count = 0;
-            foreach (
-                SkylineTypesSampling skylineTypesSamplingType in
-                    Enum.GetValues(typeof(SkylineTypesSampling)).Cast<SkylineTypesSampling>())
-            {
-                {
-                    array[count] =
-                        Math.Round(Mathematic.Median(list[skylineTypesSamplingType]), 2)
-                            .ToString(CultureInfo.InvariantCulture);
-                    count++;
-                }
-            }
-
-            return array;            
-        }
-
-                private static string[] GetSummaryQ1(Dictionary<SkylineTypesSampling, List<double>> list)
-        {
-               var array = new string[Enum.GetValues(typeof(SkylineTypesSampling)).Length];
-
-            var count = 0;
-            foreach (
-                SkylineTypesSampling skylineTypesSamplingType in
-                    Enum.GetValues(typeof(SkylineTypesSampling)).Cast<SkylineTypesSampling>())
-            {
-                {
-                    array[count] =
-                        Math.Round(Mathematic.LowerQuartile(list[skylineTypesSamplingType]), 2)
-                            .ToString(CultureInfo.InvariantCulture);
-                    count++;
-                }
-            }
-
-            return array;            
-        }
-
-                private static string[] GetSummaryQ3(Dictionary<SkylineTypesSampling, List<double>> list)
-        {
-               var array = new string[Enum.GetValues(typeof(SkylineTypesSampling)).Length];
-
-            var count = 0;
-            foreach (
-                SkylineTypesSampling skylineTypesSamplingType in
-                    Enum.GetValues(typeof(SkylineTypesSampling)).Cast<SkylineTypesSampling>())
-            {
-                {
-                    array[count] =
-                        Math.Round(Mathematic.UpperQuartile(list[skylineTypesSamplingType]), 2)
-                            .ToString(CultureInfo.InvariantCulture);
-                    count++;
-                }
-            }
-
-            return array;            
-        }
-    
+         
         private void AddSummary(StringBuilder sb, String strSeparatorLine, List<long> reportDimensions, List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm, List<double> reportMinCorrelation, List<double> reportMaxCorrelation, List<double> reportCardinality, List<long> reportNumberOfMoves, List<long> reportNumberOfOperations)
         {
             //Separator Line

@@ -129,9 +129,9 @@
             ArrayList preferences,
             SQLCommon parser, Stopwatch sw, List<long> reportDimensions, List<long> reportSkylineSize,
             List<long> reportTimeTotal,
-            List<long> reportTimeAlgorithm, List<double> reportCorrelation, double correlation,
+            List<long> reportTimeAlgorithm, List<double> reportMinCorrelation, List<double> reportMaxCorrelation, double minCorrelation, double maxCorrelation,
             List<double> reportCardinality, double cardinality,
-            string strSQL, string strPreferenceSet, string strTrial)
+            string strSQL, string strPreferenceSet, string strTrial, List<long> reportNumberOfMoves, long numberOfMoves, List<long> reportNumberOfComparisons, long numberOfComparisons)
         {
             Dictionary<ClusterAnalysis, List<List<double>>> clusterAnalysis;
             Dictionary<ClusterAnalysis, List<List<double>>> clusterAnalysisMedian;
@@ -759,7 +759,8 @@
             reportSkylineSize.Add(objects);
             reportTimeTotal.Add(elapsed);
             reportTimeAlgorithm.Add(time);
-            reportCorrelation.Add(correlation);
+            reportMinCorrelation.Add(minCorrelation);
+            reportMaxCorrelation.Add(maxCorrelation);
             reportCardinality.Add(cardinality);
 
             var setCoverageSingle =
@@ -862,8 +863,8 @@
                 dominatedObjectsOfBestObjectSingle,
                 clusterAnalysisStrings, clusterAnalysisMedianStrings,
                 clusterAnalysisTopBucketsStrings, clusterAnalysisMedianTopBucketsStrings,
-                correlation,
-                cardinality);
+                minCorrelation, maxCorrelation,
+                cardinality, numberOfMoves, numberOfComparisons);
             return strLine;
         }
 
@@ -874,7 +875,7 @@
                 new Dictionary<SkylineTypesSingle, List<double>>(), new Dictionary<SkylineTypesSingle, List<double>>(),
                 new Dictionary<SkylineTypesSingle, List<double>>(), new Dictionary<ClusterAnalysis, string>(),
                 new Dictionary<ClusterAnalysis, string>(), new Dictionary<ClusterAnalysis, string>(),
-                new Dictionary<ClusterAnalysis, string>(), "", "",excessiveTests);
+                new Dictionary<ClusterAnalysis, string>(), "", "", "", "", "", excessiveTests);
         }
 
         private static string FormatLineString(char paddingChar, string strTitle, string strTrial,
@@ -887,8 +888,8 @@
             string[] dominatedObjectsCountSampling,
             string[] dominatedObjectsOfBestObjectSampling, string[] clusterAnalysisStrings,
             string[] clusterAnalysisMedianStrings, string[] clusterAnalysisTopBucketsStrings,
-            string[] clusterAnalysisMedianTopBucketsStrings, string strCorrelation,
-            string strCardinality)
+            string[] clusterAnalysisMedianTopBucketsStrings, string strMinCorrelation, string strMaxCorrelation,
+            string strCardinality, string strNumberOfMoves, string strNumberOfComparisons)
         {
             var sb = new StringBuilder();
 
@@ -977,9 +978,15 @@
                 sb.Append(s.PadLeft(250, paddingChar));
                 sb.Append("|");
             }
-            sb.Append(strCorrelation.PadLeft(20, paddingChar));
+            sb.Append(strMinCorrelation.PadLeft(20, paddingChar));
             sb.Append("|");
+            sb.Append(strMaxCorrelation.PadLeft(20, paddingChar));
+            sb.Append("|");                  
             sb.Append(strCardinality.PadLeft(25, paddingChar));
+            sb.Append("|");
+              sb.Append(strNumberOfMoves.PadLeft(20, paddingChar));
+            sb.Append("|");
+            sb.Append(strNumberOfComparisons.PadLeft(20, paddingChar));
             sb.Append("|");
 
             return sb.ToString();
@@ -997,8 +1004,8 @@
             Dictionary<ClusterAnalysis, string> clusterAnalysisStrings,
             Dictionary<ClusterAnalysis, string> clusterAnalysisMedianStrings,
             Dictionary<ClusterAnalysis, string> clusterAnalysisTopBucketsStrings,
-            Dictionary<ClusterAnalysis, string> clusterAnalysisMedianTopBucketsStrings, string strCorrelation,
-            string strCardinality, bool excessiveTests)
+            Dictionary<ClusterAnalysis, string> clusterAnalysisMedianTopBucketsStrings, string strMinCorrelation, string strMaxCorrelation,
+            string strCardinality, string strNumberOfMoves, string strNumberOfComparisons, bool excessiveTests)
         {
             var sb = new StringBuilder();
 
@@ -1062,10 +1069,17 @@
                AppendClusterAnalysisValues(sb, paddingChar, 130, clusterAnalysisMedianStrings);
                 AppendClusterAnalysisValues(sb, paddingChar, 250, clusterAnalysisTopBucketsStrings);
                 AppendClusterAnalysisValues(sb, paddingChar, 250, clusterAnalysisMedianTopBucketsStrings);
-            sb.Append(strCorrelation.PadLeft(20, paddingChar));
+            sb.Append(strMinCorrelation.PadLeft(20, paddingChar));
+            sb.Append("|");
+            sb.Append(strMaxCorrelation.PadLeft(20, paddingChar));
             sb.Append("|");
             sb.Append(strCardinality.PadLeft(25, paddingChar));
             sb.Append("|");
+            sb.Append(strNumberOfMoves.PadLeft(20, paddingChar));
+            sb.Append("|");
+            sb.Append(strNumberOfComparisons.PadLeft(20, paddingChar));
+            sb.Append("|");
+
 
             return sb.ToString();
         }
@@ -1172,8 +1186,8 @@
             Dictionary<ClusterAnalysis, string> clusterAnalysisStrings,
             Dictionary<ClusterAnalysis, string> clusterAnalysisMedianStrings,
             Dictionary<ClusterAnalysis, string> clusterAnalysisTopBucketsStrings,
-            Dictionary<ClusterAnalysis, string> clusterAnalysisMedianTopBucketsStrings, double correlation,
-            double cardinality)
+            Dictionary<ClusterAnalysis, string> clusterAnalysisMedianTopBucketsStrings, double minCorrelation, double maxCorrelation,
+            double cardinality, long numberOfMoves, long numberOfComparisons)
         {
             return FormatLineString(' ', strTitle, strTrial,
                 Math.Round(dimension, 2).ToString(CultureInfo.InvariantCulture),
@@ -1197,8 +1211,12 @@
                 representationErrorSampling, representationErrorSumSampling, dominatedObjectsCountSampling,
                 dominatedObjectsOfBestObjectSampling, clusterAnalysisStrings, clusterAnalysisMedianStrings,
                 clusterAnalysisTopBucketsStrings, clusterAnalysisMedianTopBucketsStrings,
-                Math.Round(correlation, 2).ToString(CultureInfo.InvariantCulture),
-                Performance.ToLongString(Math.Round(cardinality, 2)), ExcessiveTests);
+                Math.Round(minCorrelation, 2).ToString(CultureInfo.InvariantCulture),
+                Math.Round(maxCorrelation, 2).ToString(CultureInfo.InvariantCulture),
+                Performance.ToLongString(Math.Round(cardinality, 2)),
+                Performance.ToLongString(numberOfMoves),
+                Performance.ToLongString(numberOfComparisons),
+                ExcessiveTests);
         }
 
         private string FormatLineString(string strTitle, string strTrial, double dimension, double skyline,
@@ -1209,7 +1227,7 @@
             string[] dominatedObjectsCountSampling, string[] dominatedObjectsOfBestObjectSampling,
             string[] clusterAnalysisStrings, string[] clusterAnalysisMedianStrings,
             string[] clusterAnalysisTopBucketsStrings, string[] clusterAnalysisMedianTopBucketsStrings,
-            double correlation, double cardinality)
+            double minCorrelation, double maxCorrelation, double cardinality, long numberOfMoves, long numberOfComparisons)
         {
             return FormatLineString(' ', strTitle, strTrial,
                 Math.Round(dimension, 2).ToString(CultureInfo.InvariantCulture),
@@ -1233,8 +1251,11 @@
                 representationErrorSampling, representationErrorSumSampling, dominatedObjectsCountSampling,
                 dominatedObjectsOfBestObjectSampling, clusterAnalysisStrings, clusterAnalysisMedianStrings,
                 clusterAnalysisTopBucketsStrings, clusterAnalysisMedianTopBucketsStrings,
-                Math.Round(correlation, 2).ToString(CultureInfo.InvariantCulture),
-                Performance.ToLongString(Math.Round(cardinality, 2)));
+                Math.Round(minCorrelation, 2).ToString(CultureInfo.InvariantCulture),
+                Math.Round(maxCorrelation, 2).ToString(CultureInfo.InvariantCulture),
+                Performance.ToLongString(Math.Round(cardinality, 2)),
+                Performance.ToLongString(numberOfMoves),
+                Performance.ToLongString(numberOfComparisons));
         }
 
         private static void AddToSetCoverage(IReadOnlyDictionary<SkylineTypes, List<double>> setCoverageSampling,
@@ -1492,7 +1513,7 @@
                 {
                     "caMedTopB entire db", "caMedTopB entire skyline", "caMedTopB sample skyline", "caMedTopB random skyline", "caMedTopB best rank",
                     "caMedTopB sum rank"
-                }, "sum correlation*", "product cardinality");
+                }, "min correlation", "max correlation", "product cardinality", "number of moves", "number of comparisons");
         }
 
         private List<IEnumerable<CLRSafeHashSet<int>>> ProduceSubsets(ArrayList preferences)
@@ -1562,7 +1583,7 @@
 
         internal void AddSummary(StringBuilder sb, string strSeparatorLine, List<long> reportDimensions,
             List<long> reportSkylineSize, List<long> reportTimeTotal, List<long> reportTimeAlgorithm,
-            List<double> reportCorrelation, List<double> reportCardinality)
+            List<double> reportMinCorrelation, List<double> reportMaxCorrelation, List<double> reportCardinality, List<long> reportNumberOfMoves, List<long> reportNumberOfOperations)
         {
             //Separator Line
             Debug.WriteLine(strSeparatorLine);
@@ -1627,8 +1648,8 @@
                 _reportsLong[Reports.SizeQ3].Average(), setCoverageSamplingAverage, representationErrorSamplingAverage,
                 representationErrorSumSamplingAverage, dominatedObjectsCountSamplingAverage,
                 dominatedObjectsOfBestObjectSamplingAverage, new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""},
-                new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""}, reportCorrelation.Average(),
-                reportCardinality.Average());
+                new[] { "", "", "", "", "", "" }, new[] { "", "", "", "", "", "" }, reportMinCorrelation.Average(), reportMaxCorrelation.Average(),
+                reportCardinality.Average(), Convert.ToInt64(reportNumberOfMoves.Average()), Convert.ToInt64(reportNumberOfOperations.Average()));
             string strMin = FormatLineString("minimum", "", reportDimensions.Min(), reportSkylineSize.Min(),
                 reportTimeTotal.Min(), reportTimeAlgorithm.Min(), _reportsLong[Reports.TimeMin].Min(),
                 _reportsLong[Reports.TimeMax].Min(), _reportsDouble[Reports.TimeVar].Min(),
@@ -1640,7 +1661,7 @@
                 _reportsLong[Reports.SizeQ3].Min(), setCoverageSamplingMin, representationErrorSamplingMin,
                 representationErrorSumSamplingMin, dominatedObjectsCountSamplingMin,
                 dominatedObjectsOfBestObjectSamplingMin, new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""},
-                new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""}, reportCorrelation.Min(), reportCardinality.Min());
+                new[] { "", "", "", "", "", "" }, new[] { "", "", "", "", "", "" }, reportMinCorrelation.Min(), reportMaxCorrelation.Min(), reportCardinality.Min(),reportNumberOfMoves.Min(), reportNumberOfOperations.Min());
             string strMax = FormatLineString("maximum", "", reportDimensions.Max(), reportSkylineSize.Max(),
                 reportTimeTotal.Max(), reportTimeAlgorithm.Max(), _reportsLong[Reports.TimeMin].Max(),
                 _reportsLong[Reports.TimeMax].Max(), _reportsDouble[Reports.TimeVar].Max(),
@@ -1652,7 +1673,7 @@
                 _reportsLong[Reports.SizeQ3].Max(), setCoverageSamplingMax, representationErrorSamplingMax,
                 representationErrorSumSamplingMax, dominatedObjectsCountSamplingMax,
                 dominatedObjectsOfBestObjectSamplingMax, new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""},
-                new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""}, reportCorrelation.Max(), reportCardinality.Max());
+                new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""}, reportMinCorrelation.Min(), reportMaxCorrelation.Max(), reportCardinality.Max(),reportNumberOfMoves.Max(), reportNumberOfOperations.Max());
             string strVar = FormatLineString("variance", "", MyMathematic.GetSampleVariance(reportDimensions),
                 MyMathematic.GetSampleVariance(reportSkylineSize), MyMathematic.GetSampleVariance(reportTimeTotal),
                 MyMathematic.GetSampleVariance(reportTimeAlgorithm),
@@ -1673,8 +1694,8 @@
                 representationErrorSamplingVariance, representationErrorSumSamplingVariance,
                 dominatedObjectsCountSamplingVariance, dominatedObjectsOfBestObjectSamplingVariance,
                 new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""},
-                new[] {"", "", "", "", "", ""}, MyMathematic.GetSampleVariance(reportCorrelation),
-                MyMathematic.GetSampleVariance(reportCardinality));
+                new[] {"", "", "", "", "", ""}, MyMathematic.GetSampleVariance(reportMinCorrelation), MyMathematic.GetSampleVariance(reportMaxCorrelation),
+                MyMathematic.GetSampleVariance(reportCardinality), Convert.ToInt64(MyMathematic.GetSampleVariance(reportNumberOfMoves)), Convert.ToInt64(MyMathematic.GetSampleVariance(reportNumberOfOperations)));
             string strStd = FormatLineString("stddeviation", "", MyMathematic.GetSampleStdDeviation(reportDimensions),
                 MyMathematic.GetSampleStdDeviation(reportSkylineSize),
                 MyMathematic.GetSampleStdDeviation(reportTimeTotal),
@@ -1696,8 +1717,8 @@
                 representationErrorSamplingStdDev, representationErrorSumSamplingStdDev,
                 dominatedObjectsCountSamplingStdDev, dominatedObjectsOfBestObjectSamplingStdDev,
                 new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""},
-                new[] {"", "", "", "", "", ""}, MyMathematic.GetSampleStdDeviation(reportCorrelation),
-                MyMathematic.GetSampleStdDeviation(reportCardinality));
+                new[] {"", "", "", "", "", ""}, MyMathematic.GetSampleStdDeviation(reportMinCorrelation), MyMathematic.GetSampleStdDeviation(reportMaxCorrelation),
+                MyMathematic.GetSampleStdDeviation(reportCardinality), Convert.ToInt64(MyMathematic.GetSampleStdDeviation(reportNumberOfMoves)), Convert.ToInt64(MyMathematic.GetSampleStdDeviation(reportNumberOfOperations)));
             string strMed = FormatLineString("median", "", Mathematic.Median(reportDimensions),
                 Mathematic.Median(reportSkylineSize), Mathematic.Median(reportTimeTotal),
                 Mathematic.Median(reportTimeAlgorithm), Mathematic.Median(_reportsLong[Reports.TimeMin]),
@@ -1711,7 +1732,7 @@
                 setCoverageSamplingMedian, representationErrorSamplingMedian, representationErrorSumSamplingMedian,
                 dominatedObjectsCountSamplingMedian, dominatedObjectsOfBestObjectSamplingMedian,
                 new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""},
-                new[] {"", "", "", "", "", ""}, Mathematic.Median(reportCorrelation), Mathematic.Median(reportCardinality));
+                new[] {"", "", "", "", "", ""}, Mathematic.Median(reportMinCorrelation), Mathematic.Median(reportMaxCorrelation), Mathematic.Median(reportCardinality), Mathematic.Median(reportNumberOfMoves), Mathematic.Median(reportNumberOfOperations));
             string strQ1 = FormatLineString("quartile 1", "", Mathematic.LowerQuartile(reportDimensions),
                 Mathematic.LowerQuartile(reportSkylineSize), Mathematic.LowerQuartile(reportTimeTotal),
                 Mathematic.LowerQuartile(reportTimeAlgorithm), Mathematic.LowerQuartile(_reportsLong[Reports.TimeMin]),
@@ -1730,8 +1751,8 @@
                 Mathematic.LowerQuartile(_reportsLong[Reports.SizeQ3]), setCoverageSamplingQ1,
                 representationErrorSamplingQ1, representationErrorSumSamplingQ1, dominatedObjectsCountSamplingQ1,
                 dominatedObjectsOfBestObjectSamplingQ1, new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""},
-                new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""}, Mathematic.LowerQuartile(reportCorrelation),
-                Mathematic.LowerQuartile(reportCardinality));
+                new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""}, Mathematic.LowerQuartile(reportMinCorrelation), Mathematic.LowerQuartile(reportMaxCorrelation),
+                Mathematic.LowerQuartile(reportCardinality), Convert.ToInt64(Mathematic.LowerQuartile(reportNumberOfMoves)), Convert.ToInt64(Mathematic.LowerQuartile(reportNumberOfOperations)));
             string strQ3 = FormatLineString("quartile 3", "", Mathematic.UpperQuartile(reportDimensions),
                 Mathematic.UpperQuartile(reportSkylineSize), Mathematic.UpperQuartile(reportTimeTotal),
                 Mathematic.UpperQuartile(reportTimeAlgorithm), Mathematic.UpperQuartile(_reportsLong[Reports.TimeMin]),
@@ -1750,8 +1771,8 @@
                 Mathematic.UpperQuartile(_reportsLong[Reports.SizeQ3]), setCoverageSamplingQ3,
                 representationErrorSamplingQ3, representationErrorSumSamplingQ3, dominatedObjectsCountSamplingQ3,
                 dominatedObjectsOfBestObjectSamplingQ3, new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""},
-                new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""}, Mathematic.UpperQuartile(reportCorrelation),
-                Mathematic.UpperQuartile(reportCardinality));
+                new[] {"", "", "", "", "", ""}, new[] {"", "", "", "", "", ""}, Mathematic.UpperQuartile(reportMinCorrelation), Mathematic.UpperQuartile(reportMaxCorrelation),
+                Mathematic.UpperQuartile(reportCardinality), Convert.ToInt64(Mathematic.UpperQuartile(reportNumberOfMoves)), Convert.ToInt64(Mathematic.UpperQuartile(reportNumberOfOperations)));
 
             sb.AppendLine(strAverage);
             sb.AppendLine(strMin);
