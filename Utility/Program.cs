@@ -16,7 +16,8 @@ namespace Utility
         {
             Program prg = new Program();
             //prg.MeasurePerformance();
-            prg.Run();
+            prg.testPaper();
+            //prg.Run();
 
             /*
             DominanceGraph graph = new DominanceGraph();
@@ -25,6 +26,35 @@ namespace Utility
             
             //Application.Run(new FrmSQLParser());
             
+        }
+
+        private void testPaper()
+        {
+            Performance p = new Performance();
+            p.GenerateScript = false;
+            p.UseNormalizedValues = false;
+
+            p.WindowSort = SQLCommon.Ordering.EntropyFunction;
+            p.WindowHandling = 2; //Move To End             start with last tuple in window.   
+
+            p.UseCLR = false;
+            p.Trials = 1;           //Amount of trials for each single sql preference statement
+
+            p.MinDimensions = 3;   //Up from x dimensions
+            p.MaxDimensions = 7;   //Up to x dimensions
+            p.RandomDraws = 5;    //Amount of draws (x times randomly choose a some preferences)
+
+            p.TableSize = Performance.Size.Superlarge;
+            p.Set = Performance.PreferenceSet.All;
+            p.Mode = Performance.PreferenceChooseMode.Shuffle;
+            
+            p.SkylineUpToLevel = 1;
+
+            p.Strategy = new SkylineBNLSort(); // null; //all algorithms should be tested
+
+            p.WriteRCommand = true;
+
+            p.GeneratePerformanceQueries();
         }
 
         
@@ -83,10 +113,10 @@ namespace Utility
             //p.Strategy = null; //all algorithms should be tested
             //p.Strategy = new SkylineSQL();
             //p.Strategy = new SkylineBNL();
-            //p.Strategy = new SkylineBNLSort();
+            p.Strategy = new SkylineBNLSort();
             //p.Strategy = new SkylineDQ();
             //p.Strategy = new SkylineHexagon();
-            p.Strategy = new SkylineDecisionTree();
+            //p.Strategy = new SkylineDecisionTree();
 
             //p.Sampling = true;
             //p.SamplingSubspacesCount = 10;

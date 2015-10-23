@@ -76,6 +76,8 @@ namespace Utility
             UseNormalizedValues = false;
         }
 
+        public bool WriteRCommand { get; set; }
+
         public int MinDimensions { get; set; }  //Up from this amount of dimension should be tested
         public int MaxDimensions { get; set; }  //Up to this amount of dimension should be tested
 
@@ -583,6 +585,85 @@ namespace Utility
             {
                 listStrategy.Add(Strategy);
             }
+
+
+            //Generates the R-Commands for the rpref package (for testig exactly the same statements in rpref)
+            if (WriteRCommand)
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("---------------------------------------------");
+                sb.AppendLine("-----------------R-Commands------------------");
+                sb.AppendLine("---------------------------------------------");
+
+
+                sb.AppendLine("skylinesize <- array(" + listPreferences.Count + ":1)");
+
+                for (int iPreferenceIndex = 0; iPreferenceIndex < listPreferences.Count; iPreferenceIndex++)
+                {
+                    ArrayList preferences = (ArrayList)listPreferences[iPreferenceIndex];
+                    ArrayList subPreferences = preferences; //.GetRange(0, i);
+
+                    sb.Append("system.time(sky1 <- psel(mydata, ");
+                    
+                    foreach(String pref in preferences) {
+                        String rCommand = "";
+                        
+                        if(pref.IndexOf("cars.") == -1) {
+                            //Categorical preferences
+                            //String tableName = pref.Substring(0, pref.IndexOf("."));
+                            rCommand = "low(" + pref.Substring(0, pref.IndexOf(" (")).Replace(".name", "") + ")";
+                            /*preferences.Add("colors.name ('red' >> 'blue' >> 'green' >> 'gold' >> 'black' >> 'gray' >> 'bordeaux' >> OTHERS EQUAL)");
+                            preferences.Add("bodies.name ('bus' >> 'cabriolet' >> 'limousine' >> 'coupé' >> 'van' >> 'estate car' >> OTHERS EQUAL)");
+                            preferences.Add("fuels.name ('petrol' >> 'diesel' >> 'bioethanol' >> 'electro' >> 'gas' >> 'hybrid' >> OTHERS EQUAL)");
+                            preferences.Add("makes.name ('BENTLEY' >> 'DAIMLER' >> 'FIAT'>> 'FORD'  >> OTHERS EQUAL)");
+                            preferences.Add("conditions.name ('new' >> 'occasion' >> 'demonstration car' >> 'oldtimer' >> OTHERS EQUAL)");
+                            preferences.Add("drives.name ('front wheel' >> 'all wheel' >> 'rear wheel' >> OTHERS EQUAL)");
+                            preferences.Add("transmissions.name ('manual' >> 'automatic' >> OTHERS EQUAL)");*/
+                        }
+                        else
+                        {
+                            //Numeric preference
+                            if (pref.IndexOf("LOW") > 0)
+                            {
+                                //LOW preference
+                                rCommand = "low(" + pref.Substring(0, pref.IndexOf(" ")).Replace("cars.", "") +")";
+                            }
+                            else
+                            {
+                                //HIGH preferences
+                                rCommand = "high(" + pref.Substring(0, pref.IndexOf(" ")).Replace("cars.", "") + ")";
+                            }
+                        }
+                        
+                        
+                        sb.Append(rCommand);
+                        //Don't add * on last record
+                        if (pref != (string)preferences[preferences.Count-1])
+                        {
+                            sb.Append(" * ");
+                        }
+                        
+                    }
+                    sb.AppendLine("))");
+                    sb.AppendLine("skylinesize[" + (iPreferenceIndex + 1) + "] = nrow(sky1)");
+                    sb.AppendLine("skylinesize[" + (iPreferenceIndex + 1) + "]");
+                    
+                    //string strSkylineOf = "SKYLINE OF " + string.Join(",", (string[])subPreferences.ToArray(Type.GetType("System.String")));
+                    //sb.AppendLine(strSkylineOf);
+                }
+
+                sb.AppendLine("mean(skylinesize)");
+
+
+                sb.AppendLine("---------------------------------------------");
+                sb.AppendLine("---------------------------------------------");
+                sb.AppendLine("---------------------------------------------");
+                sb.AppendLine("");
+                sb.AppendLine("");
+
+                Debug.Write(sb.ToString());
+            }
+
             foreach(SkylineStrategy currentStrategy in listStrategy)
             {
                 //Take all strategies
