@@ -577,6 +577,7 @@ namespace Utility
                 //If no strategy is defined --> Take all possible algorithms
                 //listStrategy.Add(new SkylineSQL());
                 listStrategy.Add(new SkylineBNLSort());
+                listStrategy.Add(new SkylineBNLSort());
                 listStrategy.Add(new SkylineDQ());
                 listStrategy.Add(new SkylineHexagon());
                 listStrategy.Add(new SkylineDecisionTree());
@@ -595,15 +596,21 @@ namespace Utility
                 sb.AppendLine("-----------------R-Commands------------------");
                 sb.AppendLine("---------------------------------------------");
 
+                sb.AppendLine("library(rPref)");
+                sb.AppendLine("setwd(\"E:\\\\Projekte\\\\prefSQL_Paper\\\\Test Scalagon\")");
+                sb.AppendLine("mydata = read.csv(\"cars_all.csv\", sep=\";\")");
+
 
                 sb.AppendLine("skylinesize <- array(" + listPreferences.Count + ":1)");
+                sb.AppendLine("timeins <- array(" + listPreferences.Count + ":1)");
 
                 for (int iPreferenceIndex = 0; iPreferenceIndex < listPreferences.Count; iPreferenceIndex++)
                 {
                     ArrayList preferences = (ArrayList)listPreferences[iPreferenceIndex];
                     ArrayList subPreferences = preferences; //.GetRange(0, i);
 
-                    sb.Append("system.time(sky1 <- psel(mydata, ");
+                    
+                    sb.Append("time = system.time(sky1 <- psel(mydata, ");
                     
                     foreach(String pref in preferences) {
                         String rCommand = "";
@@ -645,14 +652,26 @@ namespace Utility
                         
                     }
                     sb.AppendLine("))");
+                    sb.AppendLine("timeins[" + (iPreferenceIndex + 1) + "] = time[3]");
                     sb.AppendLine("skylinesize[" + (iPreferenceIndex + 1) + "] = nrow(sky1)");
                     sb.AppendLine("skylinesize[" + (iPreferenceIndex + 1) + "]");
+                    sb.AppendLine("timeins[" + (iPreferenceIndex + 1) + "]");
                     
                     //string strSkylineOf = "SKYLINE OF " + string.Join(",", (string[])subPreferences.ToArray(Type.GetType("System.String")));
                     //sb.AppendLine(strSkylineOf);
                 }
 
                 sb.AppendLine("mean(skylinesize)");
+                sb.AppendLine("min(skylinesize)");
+                sb.AppendLine("max(skylinesize)");
+                sb.AppendLine("var(skylinesize)");
+                sb.AppendLine("sd(skylinesize)");
+
+                sb.AppendLine("mean(timeins)");
+                sb.AppendLine("min(timeins)");
+                sb.AppendLine("max(timeins)");
+                sb.AppendLine("var(timeins)");
+                sb.AppendLine("sd(timeins)");
 
 
                 sb.AppendLine("---------------------------------------------");
@@ -662,12 +681,27 @@ namespace Utility
                 sb.AppendLine("");
 
                 Debug.Write(sb.ToString());
+
+                //create filename
+                string strFileName = Path + "AllShuffle_RCommands" + DateTime.Now.Ticks + ".txt";
+
+                StreamWriter outfile = new StreamWriter(strFileName);
+                outfile.Write(sb.ToString());
+                outfile.Close();
             }
 
+            int iStrategy = 0;
             foreach(SkylineStrategy currentStrategy in listStrategy)
             {
                 //Take all strategies
-
+                
+                //BNL with attributeposition sorting and bnl with entropy function sorting
+                //For testing the BNL automatically (shuffle mode), once with attributeposition and once with entropy function
+                if (iStrategy == 1)
+                {
+                    WindowSort = SQLCommon.Ordering.AttributePosition;
+                }
+                iStrategy++;
 
 
                 StringBuilder sb = new StringBuilder();
@@ -1613,7 +1647,7 @@ namespace Utility
                     strFiletype = ".sql";
                 }
                 //create filename
-                string strFileName = Path + Set.ToString() + "_" + Mode.ToString() + "_" + MinDimensions + "_" + MaxDimensions + "_" + currentStrategy + strFiletype;
+                string strFileName = Path + Set.ToString() + "_" + Mode.ToString() + "_" + MinDimensions + "_" + MaxDimensions + "_" + currentStrategy + DateTime.Now.Ticks + strFiletype;
 
                 StreamWriter outfile = new StreamWriter(strFileName);
                 outfile.Write(sb.ToString());
