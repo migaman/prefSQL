@@ -16,7 +16,8 @@ namespace Utility
         {
             Program prg = new Program();
             //prg.MeasurePerformance();
-            prg.Run();
+            prg.testPaper();
+            //prg.Run();
 
             /*
             DominanceGraph graph = new DominanceGraph();
@@ -25,6 +26,35 @@ namespace Utility
             
             //Application.Run(new FrmSQLParser());
             
+        }
+
+        private void testPaper()
+        {
+            Performance p = new Performance();
+            p.GenerateScript = false;
+            p.UseNormalizedValues = false;
+
+            p.WindowSort = SQLCommon.Ordering.EntropyFunction;
+            p.WindowHandling = 2; //Move To End             start with last tuple in window.   
+
+            p.UseCLR = false;
+            p.Trials = 1;           //Amount of trials for each single sql preference statement
+
+            p.MinDimensions = 3;   //Up from x dimensions
+            p.MaxDimensions = 7;   //Up to x dimensions
+            p.RandomDraws = 100;    //Amount of draws (x times randomly choose a some preferences)
+
+            p.TableSize = Performance.Size.Superlarge;
+            p.Set = Performance.PreferenceSet.All;
+            p.Mode = Performance.PreferenceChooseMode.Shuffle;
+            
+            p.SkylineUpToLevel = 1;
+
+            p.Strategy = null; // new SkylineBNLSort(); // null; //all algorithms should be tested
+
+            p.WriteRCommand = true;
+
+            p.GeneratePerformanceQueries();
         }
 
         
@@ -83,10 +113,10 @@ namespace Utility
             //p.Strategy = null; //all algorithms should be tested
             //p.Strategy = new SkylineSQL();
             //p.Strategy = new SkylineBNL();
-            //p.Strategy = new SkylineBNLSort();
+            p.Strategy = new SkylineBNLSort();
             //p.Strategy = new SkylineDQ();
             //p.Strategy = new SkylineHexagon();
-            p.Strategy = new SkylineDecisionTree();
+            //p.Strategy = new SkylineDecisionTree();
 
             //p.Sampling = true;
             //p.SamplingSubspacesCount = 10;
@@ -168,7 +198,7 @@ namespace Utility
                 //string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 10000 SKYLINE OF t1.price LOW, colors.name ('red' >> 'blue' >> OTHERS INCOMPARABLE)";
                 //string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 10000 SKYLINE OF t1.price LOW, colors.name (OTHERS INCOMPARABLE >> 'blue' >> 'red')";
                 //string strPrefSQL = "SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT 2 DIMENSION 1";
-                //string strPrefSQL = "SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW";
+                string strPrefSQL = "SELECT t1.id, t1.price, t1.mileage FROM cars_small t1 SKYLINE OF t1.price LOW, t1.mileage LOW";
                 //string strPrefSQL = "SELECT t1.id, t1.price, t1.mileage FROM cars_small t1 SKYLINE OF t1.price LOW, t1.mileage LOW ORDER BY SUM_RANK()";
                 //string strPrefSQL = "SELECT t1.id                          FROM cars t1  SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW";
 
@@ -187,7 +217,7 @@ namespace Utility
                 //string strPrefSQL = "SELECT t.id, t.title  FROM cars t    RANKING OF t.price LOW 0.8, t.mileage LOW 0.2";
 
                 //Query that results in more than 4000 Characters
-                string strPrefSQL = "SELECT  t1.id	, t1.title	, t1.price	, t1.mileage	, colors.name FROM cars_small t1 " +
+                /*string strPrefSQL = "SELECT  t1.id	, t1.title	, t1.price	, t1.mileage	, colors.name FROM cars_small t1 " +
                                     "LEFT OUTER JOIN colors ON t1.color_id = colors.ID " + 
                                     "LEFT OUTER JOIN bodies ON t1.body_id = bodies.id " +
                                     "LEFT OUTER JOIN Conditions ON t1.Condition_Id = Conditions.Id " +
@@ -219,10 +249,10 @@ namespace Utility
                                     "(" +
                                     "    'hybrid' >> 'bioethanol' >> 'diesel' >> 'gas' >> " +
                                     "    'electro' >> 'petrol' " +
-                                    ")";
+                                    ")";*/
 
-
-
+                //Query with 2 id spalten
+                //string strPrefSQL = "SELECT t.id, colors.id as colorid, t.title, t.price, colors.name AS colour FROM cars t LEFT OUTER JOIN colors ON t.color_id = colors.id SKYLINE OF t.price LOW, t.mileage LOW, colors.name ('red' >> 'blue' >> OTHERS EQUAL)";
 
                 Debug.WriteLine(strPrefSQL);
                 SQLCommon parser = new SQLCommon();
