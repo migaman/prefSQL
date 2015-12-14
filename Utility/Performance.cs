@@ -77,6 +77,8 @@ namespace Utility
             UseNormalizedValues = false;
         }
 
+        public bool WriteRCommand { get; set; }
+
         public int MinDimensions { get; set; }  //Up from this amount of dimension should be tested
         public int MaxDimensions { get; set; }  //Up to this amount of dimension should be tested
 
@@ -685,6 +687,7 @@ namespace Utility
                 //If no strategy is defined --> Take all possible algorithms
                 //listStrategy.Add(new SkylineSQL());
                 listStrategy.Add(new SkylineBNLSort());
+                listStrategy.Add(new SkylineBNLSort());
                 listStrategy.Add(new SkylineDQ());
                 listStrategy.Add(new SkylineHexagon());
                 listStrategy.Add(new SkylineDecisionTree());
@@ -693,10 +696,122 @@ namespace Utility
             {
                 listStrategy.Add(Strategy);
             }
-            foreach (SkylineStrategy currentStrategy in listStrategy)
+
+
+            //Generates the R-Commands for the rpref package (for testig exactly the same statements in rpref)
+            if (WriteRCommand)
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("---------------------------------------------");
+                sb.AppendLine("-----------------R-Commands------------------");
+                sb.AppendLine("---------------------------------------------");
+
+                sb.AppendLine("library(rPref)");
+                sb.AppendLine("setwd(\"E:\\\\Projekte\\\\prefSQL_Paper\\\\Test Scalagon\")");
+                sb.AppendLine("mydata = read.csv(\"cars_all.csv\", sep=\";\")");
+
+
+                sb.AppendLine("skylinesize <- array(" + listPreferences.Count + ":1)");
+                sb.AppendLine("timeins <- array(" + listPreferences.Count + ":1)");
+
+                for (int iPreferenceIndex = 0; iPreferenceIndex < listPreferences.Count; iPreferenceIndex++)
+                {
+                    ArrayList preferences = (ArrayList)listPreferences[iPreferenceIndex];
+                    ArrayList subPreferences = preferences; //.GetRange(0, i);
+
+                    
+                    sb.Append("time = system.time(sky1 <- psel(mydata, ");
+                    
+                    foreach(String pref in preferences) {
+                        String rCommand = "";
+                        
+                        if(pref.IndexOf("cars.") == -1) {
+                            //Categorical preferences
+                            //String tableName = pref.Substring(0, pref.IndexOf("."));
+                            rCommand = "low(" + pref.Substring(0, pref.IndexOf(" (")).Replace(".name", "") + ")";
+                            /*preferences.Add("colors.name ('red' >> 'blue' >> 'green' >> 'gold' >> 'black' >> 'gray' >> 'bordeaux' >> OTHERS EQUAL)");
+                            preferences.Add("bodies.name ('bus' >> 'cabriolet' >> 'limousine' >> 'coupé' >> 'van' >> 'estate car' >> OTHERS EQUAL)");
+                            preferences.Add("fuels.name ('petrol' >> 'diesel' >> 'bioethanol' >> 'electro' >> 'gas' >> 'hybrid' >> OTHERS EQUAL)");
+                            preferences.Add("makes.name ('BENTLEY' >> 'DAIMLER' >> 'FIAT'>> 'FORD'  >> OTHERS EQUAL)");
+                            preferences.Add("conditions.name ('new' >> 'occasion' >> 'demonstration car' >> 'oldtimer' >> OTHERS EQUAL)");
+                            preferences.Add("drives.name ('front wheel' >> 'all wheel' >> 'rear wheel' >> OTHERS EQUAL)");
+                            preferences.Add("transmissions.name ('manual' >> 'automatic' >> OTHERS EQUAL)");*/
+                        }
+                        else
+                        {
+                            //Numeric preference
+                            if (pref.IndexOf("LOW") > 0)
+                            {
+                                //LOW preference
+                                rCommand = "low(" + pref.Substring(0, pref.IndexOf(" ")).Replace("cars.", "") +")";
+                            }
+                            else
+                            {
+                                //HIGH preferences
+                                rCommand = "high(" + pref.Substring(0, pref.IndexOf(" ")).Replace("cars.", "") + ")";
+                            }
+                        }
+                        
+                        
+                        sb.Append(rCommand);
+                        //Don't add * on last record
+                        if (pref != (string)preferences[preferences.Count-1])
+                        {
+                            sb.Append(" * ");
+                        }
+                        
+                    }
+                    sb.AppendLine("))");
+                    sb.AppendLine("timeins[" + (iPreferenceIndex + 1) + "] = time[3]");
+                    sb.AppendLine("skylinesize[" + (iPreferenceIndex + 1) + "] = nrow(sky1)");
+                    sb.AppendLine("skylinesize[" + (iPreferenceIndex + 1) + "]");
+                    sb.AppendLine("timeins[" + (iPreferenceIndex + 1) + "]");
+                    
+                    //string strSkylineOf = "SKYLINE OF " + string.Join(",", (string[])subPreferences.ToArray(Type.GetType("System.String")));
+                    //sb.AppendLine(strSkylineOf);
+                }
+
+                sb.AppendLine("mean(skylinesize)");
+                sb.AppendLine("min(skylinesize)");
+                sb.AppendLine("max(skylinesize)");
+                sb.AppendLine("var(skylinesize)");
+                sb.AppendLine("sd(skylinesize)");
+
+                sb.AppendLine("mean(timeins)");
+                sb.AppendLine("min(timeins)");
+                sb.AppendLine("max(timeins)");
+                sb.AppendLine("var(timeins)");
+                sb.AppendLine("sd(timeins)");
+
+
+                sb.AppendLine("---------------------------------------------");
+                sb.AppendLine("---------------------------------------------");
+                sb.AppendLine("---------------------------------------------");
+                sb.AppendLine("");
+                sb.AppendLine("");
+
+                Debug.Write(sb.ToString());
+
+                //create filename
+                string strFileName = Path + "AllShuffle_RCommands" + DateTime.Now.Ticks + ".txt";
+
+                StreamWriter outfile = new StreamWriter(strFileName);
+                outfile.Write(sb.ToString());
+                outfile.Close();
+            }
+
+            int iStrategy = 0;
+            foreach(SkylineStrategy currentStrategy in listStrategy)
             {
                 //Take all strategies
-
+                
+                //BNL with attributeposition sorting and bnl with entropy function sorting
+                //For testing the BNL automatically (shuffle mode), once with attributeposition and once with entropy function
+                if (iStrategy == 1)
+                {
+                    WindowSort = SQLCommon.Ordering.AttributePosition;
+                }
+                iStrategy++;
 
 
                 StringBuilder sb = new StringBuilder();
@@ -1013,7 +1128,7 @@ namespace Utility
                     strFiletype = ".sql";
                 }
                 //create filename
-                string strFileName = Path + Set.ToString() + "_" + Mode.ToString() + "_" + MinDimensions + "_" + MaxDimensions + "_" + currentStrategy + strFiletype;
+                string strFileName = Path + Set.ToString() + "_" + Mode.ToString() + "_" + MinDimensions + "_" + MaxDimensions + "_" + currentStrategy + DateTime.Now.Ticks + strFiletype;
 
                 StreamWriter outfile = new StreamWriter(strFileName);
                 outfile.Write(sb.ToString());
