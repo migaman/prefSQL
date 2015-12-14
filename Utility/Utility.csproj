@@ -63,6 +63,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PerformanceSampling.cs" />
     <Compile Include="DominanceGraph.cs" />
     <Compile Include="FrmSQLParser.cs">
       <SubType>Form</SubType>

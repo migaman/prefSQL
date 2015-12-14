@@ -6,14 +6,14 @@
 
     public sealed class DominatedObjects
     {
-        private readonly IReadOnlyDictionary<long, object[]> _entireDatabase;
-        private readonly IReadOnlyDictionary<long, object[]> _skylineDatabase;
+        private readonly IDictionary<long, long[]> _entireDatabase;
+        private readonly IDictionary<long, long[]> _skylineDatabase;
         private readonly int[] _useColumns;
         private int _numberOfDistinctDominatedObjects;
         private int _numberOfDominatedObjectsIncludingDuplicates;
         private IDictionary<long, long> _numberOfObjectsDominatedByEachObjectOrderedByDescCount;
         private int _numberOfObjectsDominatingOtherObjects;
-        private IReadOnlyDictionary<long, List<IReadOnlyDictionary<long, object[]>>> _result;
+        private IDictionary<long, ISet<long>> _result;
 
         public int NumberOfObjectsDominatingOtherObjects
         {
@@ -46,11 +46,13 @@
             {
                 if (_numberOfDistinctDominatedObjects == -1)
                 {
-                    _numberOfDistinctDominatedObjects =
-                        Result.Values.SelectMany(
-                            objectsDominatedByOneObject =>
-                                objectsDominatedByOneObject.SelectMany(
-                                    objectDominatedByOneObject => objectDominatedByOneObject.Keys)).Distinct().Count();
+                    var s = new HashSet<long>();
+                    foreach (long j in Result.SelectMany(i => i.Value))
+                    {
+                        s.Add(j);
+                    }
+
+                    _numberOfDistinctDominatedObjects = s.Count;                 
                 }
                 return _numberOfDistinctDominatedObjects;
             }
@@ -66,7 +68,7 @@
             }
         }
 
-        internal IReadOnlyDictionary<long, List<IReadOnlyDictionary<long, object[]>>> Result
+        internal IDictionary<long, ISet<long>> Result
         {
             get { return _result ?? (_result = GetDominatedObjects()); }
         }
@@ -84,8 +86,8 @@
         public DominatedObjects(IReadOnlyDictionary<long, object[]> entireDatabase,
             IReadOnlyDictionary<long, object[]> skylineDatabase, int[] useColumns)
         {
-            _entireDatabase = entireDatabase;
-            _skylineDatabase = skylineDatabase;
+            _entireDatabase = ConvertToLongObjects(entireDatabase,useColumns);
+            _skylineDatabase = ConvertToLongObjects(skylineDatabase, useColumns);
             _useColumns = useColumns;
             _numberOfDistinctDominatedObjects = -1;
             _numberOfDominatedObjectsIncludingDuplicates = -1;
@@ -93,64 +95,65 @@
             _numberOfObjectsDominatingOtherObjects = -1;
         }
 
+        private IDictionary<long, long[]> ConvertToLongObjects(IReadOnlyDictionary<long, object[]> database,
+            int[] useColumns)
+        {
+            var ret = new Dictionary<long, long[]>();
+
+            foreach (KeyValuePair<long, object[]> databaseObject in database)
+            {
+                var rowLong = new long[useColumns.Length];
+
+                for (var i = 0; i < useColumns.Length; i++)
+                {
+                    int index = useColumns[i];
+                    rowLong[i] = (long) databaseObject.Value[index];
+                }
+
+                ret.Add(databaseObject.Key, rowLong);
+            }
+
+            return ret;
+        }
+
         private Dictionary<long, long> GetDominatedObjectsByEachObjectOrderedByDescCount()
         {
             var dominatedObjectsByEachObject = new Dictionary<long, long>();
 
             foreach (
-                KeyValuePair<long, List<IReadOnlyDictionary<long, object[]>>> dominatingObject in
+                KeyValuePair<long, ISet<long>> dominatingObject in
                     Result.OrderByDescending(
-                        key => key.Value.Aggregate(0, (accu, item) => accu + item.Count)))
+                        key => key.Value.Count))
             {
-                long numberOfDominatedObjects = dominatingObject.Value.Aggregate(0, (accu, item) => accu + item.Count);
+                long numberOfDominatedObjects = dominatingObject.Value.Count;
                 dominatedObjectsByEachObject.Add(dominatingObject.Key, numberOfDominatedObjects);
             }
 
             return dominatedObjectsByEachObject;
         }
 
-        private IReadOnlyDictionary<long, List<IReadOnlyDictionary<long, object[]>>> GetDominatedObjects()
+        private IDictionary<long, ISet<long>> GetDominatedObjects()
         {
-            var dominatedObjects = new Dictionary<long, List<IReadOnlyDictionary<long, object[]>>>();
+            var dominatedObjects = new Dictionary<long, ISet<long>>();
 
-            foreach (KeyValuePair<long, object[]> entireRow in _entireDatabase)
+            foreach (KeyValuePair<long, long[]> entireRow in _entireDatabase)
             {
-                var potentiallyDominatedTuple = new long[_useColumns.Length];
-
-                for (var column = 0; column < _useColumns.Length; column++)
+                foreach (KeyValuePair<long, long[]> skylineRow in _skylineDatabase)
                 {
-                    int index = _useColumns[column];
-                    potentiallyDominatedTuple[column] = (long) entireRow.Value[index];
-                }
-
-                foreach (KeyValuePair<long, object[]> skylineRow in _skylineDatabase)
-                {
-                    var potentiallyDominatingTuple = new long[_useColumns.Length];
-
-                    for (var column = 0; column < _useColumns.Length; column++)
-                    {
-                        int index = _useColumns[column];
-                        potentiallyDominatingTuple[column] = (long) skylineRow.Value[index];
-                    }
-
-                    if (SQLSkyline.Helper.DoesTupleDominate(potentiallyDominatedTuple, potentiallyDominatingTuple,
+                    if (SQLSkyline.Helper.DoesTupleDominate(entireRow.Value, skylineRow.Value,
                         _useColumns))
                     {
                         if (!dominatedObjects.ContainsKey(skylineRow.Key))
                         {
-                            dominatedObjects.Add(skylineRow.Key, new List<IReadOnlyDictionary<long, object[]>>());
+                            dominatedObjects.Add(skylineRow.Key, new HashSet<long>());
                         }
 
-                        dominatedObjects[skylineRow.Key].Add(
-                            new ReadOnlyDictionary<long, object[]>(new Dictionary<long, object[]>
-                            {
-                                {entireRow.Key, entireRow.Value}
-                            }));
+                        dominatedObjects[skylineRow.Key].Add(entireRow.Key);
                     }
                 }
             }
 
-            return new ReadOnlyDictionary<long, List<IReadOnlyDictionary<long, object[]>>>(dominatedObjects);
+            return dominatedObjects;
         }
     }
 }

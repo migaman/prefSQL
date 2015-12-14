@@ -2,35 +2,35 @@
   <TestDataRow>
     <comment>2 samples, each of dimension 1 (e.g., (cs.price), (cs.mileage))</comment>
     <attributesCount>2</attributesCount>
-    <subspacesCount>2</subspacesCount>
-    <subspaceDimension>1</subspaceDimension>
-    <useSubspaces>
-      <subspace>
+    <subsetsCount>2</subsetsCount>
+    <subsetDimension>1</subsetDimension>
+    <useSubsets>
+      <subset>
         <dimension>0</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>1</dimension>
-      </subspace>
-    </useSubspaces>
+      </subset>
+    </useSubsets>
   </TestDataRow>
   <TestDataRow>
     <comment>3 samples, each of dimension 2 (e.g., (cs.price, cs.mileage), (cs.mileage, cs.horsepower), (cs.price, cs.horsepower))</comment>
     <attributesCount>3</attributesCount>
-    <subspacesCount>3</subspacesCount>
-    <subspaceDimension>2</subspaceDimension>
-    <useSubspaces>
-      <subspace>
+    <subsetsCount>3</subsetsCount>
+    <subsetDimension>2</subsetDimension>
+    <useSubsets>
+      <subset>
         <dimension>0</dimension>
         <dimension>1</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>0</dimension>
         <dimension>2</dimension>
-      </subspace>
-      <subspace>
+      </subset>
+      <subset>
         <dimension>1</dimension>
         <dimension>2</dimension>
-      </subspace>
-    </useSubspaces>
+      </subset>
+    </useSubsets>
   </TestDataRow>
 </TestData>

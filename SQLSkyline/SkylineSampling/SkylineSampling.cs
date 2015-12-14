@@ -15,7 +15,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
     /// </summary>
     /// <remarks>
     ///     This implementation re-uses the already implemented algorithms of the prefSQL framework to calculate the necessary
-    ///     subspace skylines.
+    ///     subset skylines.
     ///     Publication:
     ///     W.-T. Balke, J. X. Zheng, and U. Güntzer, “Approaching the Efficient Frontier: Cooperative Database Retrieval Using
     ///     High-Dimensional Skylines,” in Lecture Notes in Computer Science, Database Systems for Advanced Applications, D.
@@ -31,11 +31,6 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         private const string InternalArtificialUniqueRowIdentifierColumnName = "_internalArtificialUniqueRowIdentifier";
 
         /// <summary>
-        ///     Name of additional column which holds
-        /// </summary>
-        private const string InternalEqualValuesBucketColumnName = "_internalEqualValuesBucket";
-
-        /// <summary>
         ///     Declared as backing variable in order to provide "readonly" semantics.
         /// </summary>
         private readonly SkylineSamplingUtility _utility;
@@ -45,7 +40,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         /// </summary>
         /// <remarks>
         ///     Includes the calculation of the various subpace skylines via the already existing skyline algorithms. Excludes the
-        ///     time spent to query SQL server and retrieve database.
+        ///     time spent to query SQL server and initially retrieve database.
         /// </remarks>
         public long TimeMilliseconds { get; set; }
 
@@ -59,32 +54,32 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
         /// <summary>
         ///     The sum of all NumberOfOperations of the skyline algorithm (specified by SelectedStrategy) executed for each
-        ///     subspace skyline.
+        ///     subset skyline.
         /// </summary>
         public long NumberOfOperations { get; set; }
 
         /// <summary>
-        ///     The strategs selected, i.e., the base skyline algorithm that should be executed when calculating the various
-        ///     subspace skylines.
+        ///     The strategy selected, i.e., the base skyline algorithm that should be executed when calculating the various
+        ///     subset skylines.
         /// </summary>
         public SkylineStrategy SelectedStrategy { get; set; }
 
         /// <summary>
-        ///     How many subspace skylines should be calculated in order to retrieve a skyline sample.
+        ///     How many subset skylines should be calculated in order to retrieve a skyline sample.
         /// </summary>
         /// <remarks>
         ///     Usually specified by an SQL COUNT-clause ("... SKYLINE OF ... SAMPLE BY RANDOM_SUBSETS COUNT ... DIMENSION ...").
         /// </remarks>
-        public int SubspacesCount { get; set; }
+        public int SubsetCount { get; set; }
 
         /// <summary>
-        ///     The number of preferences for each calculated subspace skyline.
+        ///     The number of preferences for each calculated subset skyline.
         /// </summary>
         /// <remarks>
         ///     Usually specified by an SQL DIMENSION-clause ("...
         ///     SKYLINE OF ... SAMPLE BY RANDOM_SUBSETS COUNT ... DIMENSION ...").
         /// </remarks>
-        public int SubspaceDimension { get; set; }
+        public int SubsetDimension { get; set; }
 
         /// <summary>
         ///     A template used to report rows for the skyline algorithm.
@@ -113,24 +108,25 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         }
 
         /// <summary>
-        /// Determines the full call to the stored procedure if executing the algorithm via CLR.
+        ///     Determines the complete call to the stored procedure if executing the algorithm via CLR.
         /// </summary>
-        /// <param name="strWhere"></param>
-        /// <param name="strOrderBy"></param>
-        /// <param name="strFirstSQL"></param>
-        /// <param name="strOperators"></param>
-        /// <param name="strOrderByAttributes"></param>
-        /// <returns></returns>
+        /// <param name="strWhere">passed to the SelectedStrategy's parameter.</param>
+        /// <param name="strOrderBy">passed to the SelectedStrategy's parameter.</param>
+        /// <param name="strFirstSQL">passed to the SelectedStrategy's parameter.</param>
+        /// <param name="strOperators">passed to the SelectedStrategy's parameter.</param>
+        /// <param name="strOrderByAttributes">passed to the SelectedStrategy's parameter.</param>
+        /// <returns>A string to be used to execute the stored procedure.</returns>
         public string GetStoredProcedureCommand(string strWhere, string strOrderBy, string strFirstSQL,
             string strOperators, string strOrderByAttributes)
         {
             string storedProcedureCommand = SelectedStrategy.GetStoredProcedureCommand(strWhere, strOrderBy, strFirstSQL,
                 strOperators, strOrderByAttributes);
+
             storedProcedureCommand = Regex.Replace(storedProcedureCommand, @"dbo\.SP_[^ ]* ", "dbo.SP_SkylineSampling ");
 
             if (SelectedStrategy.GetType() != typeof (SkylineSQL))
             {
-                storedProcedureCommand += ", " + SubspacesCount + ", " + SubspaceDimension + ", " +
+                storedProcedureCommand += ", " + SubsetCount + ", " + SubsetDimension + ", " +
                                           SelectedStrategy.GetType().Name + ", " +
                                           (SelectedStrategy.HasIncomparablePreferences ? "1" : "0");
             }
@@ -139,7 +135,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         }
 
         /// <summary>
-        ///     Entry point for calculating a skyline sample via the skyline sampling^algorithm.
+        ///     Entry point for calculating a skyline sample via the skyline sampling algorithm.
         /// </summary>
         /// <param name="query">
         ///     An ANSI SQL statement to query the SQL server in order to fetch the whole database including its SkylineAttribute
@@ -155,6 +151,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         {
             Utility.CalculatePropertiesWithRespectToIncomparableOperators(operators);
 
+            // get complete database just once, not for every subset skyline => performance, network traffic
             DataTable fullDataTable = Helper.GetDataTableFromSQL(query, SelectedStrategy.ConnectionString,
                 SelectedStrategy.Provider);
 
@@ -162,9 +159,9 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             DataRecordTemplateForStoredProcedure = Helper.BuildDataRecord(fullDataTable, Utility.Operators.ToArray(),
                 dataTableTemplate);
 
-            AddGeneratedInternalColumns(fullDataTable);
+            AddGeneratedInternalColumn(fullDataTable);
 
-            FillUtilityProperties(fullDataTable, operators);
+            FillUtilityProperties(fullDataTable);
 
             IReadOnlyDictionary<long, object[]> database = Helper.GetDatabaseAccessibleByUniqueId(fullDataTable,
                 Utility.ArtificialUniqueRowIdentifierColumnIndex, true);
@@ -177,48 +174,32 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         }
 
         /// <summary>
-        ///     Add InternalArtificialUniqueRowIdentifierColumnName and InternalEqualValuesBucketColumnName, respectively. First,
-        ///     InternalArtificialUniqueRowIdentifierColumnName is added, then InternalEqualValuesBucketColumnName; i.e.,
-        ///     InternalEqualValuesBucketColumnName is the new last column of the DataTable.
+        ///     Add InternalArtificialUniqueRowIdentifierColumnName.
         /// </summary>
-        /// <param name="dataTable">The DataTable on which to add the two columns.</param>
-        private static void AddGeneratedInternalColumns(DataTable dataTable)
+        /// <param name="dataTable">The DataTable on which to add the column.</param>
+        private static void AddGeneratedInternalColumn(DataTable dataTable)
         {
             var internalArtificialUniqueRowIdentifierColumn = new DataColumn()
             {
                 ColumnName = InternalArtificialUniqueRowIdentifierColumnName,
                 DataType = typeof (long),
                 DefaultValue = 0
-            };
-            var internalEqualValuesBucketColumn = new DataColumn()
-            {
-                ColumnName = InternalEqualValuesBucketColumnName,
-                DataType = typeof (long),
-                DefaultValue = 0
-            };
+            };          
             dataTable.Columns.Add(internalArtificialUniqueRowIdentifierColumn);
-            dataTable.Columns.Add(internalEqualValuesBucketColumn);
         }
 
         /// <summary>
         ///     Sets necessary properties of Utility.
         /// </summary>
         /// <param name="dataTable">
-        ///     A DataTable to which the columns InternalArtificialUniqueRowIdentifierColumnName and
-        ///     InternalEqualValuesBucketColumnName have already been added.
+        ///     A DataTable to which the column InternalArtificialUniqueRowIdentifierColumnName has already been added.
         /// </param>
-        /// <param name="operators">
-        ///     The operators with which the preferences are handled; can be either "LOW" or "INCOMPARABLE",
-        ///     specified in the format "LOW;LOW;INCOMPARABLE;LOW;LOW;...", i.e., separated via ";". The position of the keyword
-        ///     has to correspond to the position of its preference.
-        /// </param>
-        private void FillUtilityProperties(DataTable dataTable, string operators)
+        private void FillUtilityProperties(DataTable dataTable)
         {
-            Utility.SubspacesCount = SubspacesCount;
-            Utility.SubspaceDimension = SubspaceDimension;
+            Utility.SubsetCount = SubsetCount;
+            Utility.SubsetDimension = SubsetDimension;
             Utility.AllPreferencesCount = Utility.Operators.Count(op => op != "INCOMPARABLE");
-            Utility.ArtificialUniqueRowIdentifierColumnIndex = dataTable.Columns.Count - 2;
-            Utility.EqualValuesBucketColumnIndex = dataTable.Columns.Count - 1;
+            Utility.ArtificialUniqueRowIdentifierColumnIndex = dataTable.Columns.Count - 1;
         }
 
         /// <summary>
@@ -230,8 +211,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         ///     rows including the preceding SkylineAttribute columns.
         /// </param>
         /// <param name="dataTableTemplate">
-        ///     An empty DataTable with all columns to return to which the columns InternalArtificialUniqueRowIdentifierColumnName
-        ///     and InternalEqualValuesBucketColumnName have already been added.
+        ///     An empty DataTable with all columns to return to which the column InternalArtificialUniqueRowIdentifierColumnName
+        ///     has already been added.
         /// </param>
         /// <returns>The skyline sample.</returns>
         internal DataTable GetSkyline(IReadOnlyDictionary<long, object[]> database, DataTable dataTableTemplate)
@@ -239,18 +220,19 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             var sw = new Stopwatch();
             sw.Start();
 
-            // preserve current skyline algorithm's settings
+            // preserve current skyline algorithm's settings in order to restore them before returning
             int recordAmountLimit = SelectedStrategy.RecordAmountLimit;
             int sortType = SelectedStrategy.SortType;
             bool hasIncomparablePreferences = SelectedStrategy.HasIncomparablePreferences;
 
-            // the calculated subspace skylines need all rows, sorting is unnecessary
+            // the calculated subset skylines need all rows, sorting is unnecessary
             SelectedStrategy.RecordAmountLimit = 0;
             SelectedStrategy.SortType = 0;
 
             TimeMilliseconds = 0;
             NumberOfOperations = 0;
 
+            // clone since 
             DataTable skylineSampleReturn = dataTableTemplate.Clone();
             var skylineValues = new List<long[]>();
 
@@ -259,17 +241,17 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                     dataTableTemplate, sw);
             CalculateSkylineSample(skylineSampleFinalDatabase, skylineSampleReturn, skylineValues);
 
-            RemoveGeneratedInternalColumns(skylineSampleReturn);
-
-            SortDataTable(skylineSampleReturn, skylineValues);
-
-            //Remove certain amount of rows if query contains TOP Keyword
-            Helper.GetAmountOfTuples(skylineSampleReturn, recordAmountLimit);
+            RemoveGeneratedInternalColumn(skylineSampleReturn);
 
             // restore current skyline algorithm's settings
             SelectedStrategy.RecordAmountLimit = recordAmountLimit;
             SelectedStrategy.SortType = sortType;
             SelectedStrategy.HasIncomparablePreferences = hasIncomparablePreferences;
+
+            SortDataTable(skylineSampleReturn, skylineValues);
+
+            //Remove certain amount of rows if query contains TOP Keyword
+            Helper.GetAmountOfTuples(skylineSampleReturn, recordAmountLimit);
 
             sw.Stop();
             TimeMilliseconds += sw.ElapsedMilliseconds;
@@ -278,14 +260,14 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         }
 
         /// <summary>
-        ///     Calculate the necessary subspace skylines and merge them into the skyline sample which will finally be reported by
+        ///     Calculate the necessary subset skylines and merge them into the skyline sample which will finally be reported by
         ///     the skyline sampling algorithm.
         /// </summary>
         /// <remarks>
-        ///     Calculate subspaces. For each subspace, calculate a skyline via the selected skyline algorithm. Determine the
-        ///     objects for which the calculation of a subspace skyline with respect to the subspace's complement is necessary; if
-        ///     so, calculate this subspace complement skyline via the selected skyline algorithm and remove dominated objects from
-        ///     the subspace skyline. Finally, merge the subspace skyline into the skyline sample which will be reported by the
+        ///     Calculate subsets of preferences. For each subset, calculate a skyline via the selected skyline algorithm. Determine the
+        ///     objects for which the calculation of a subset skyline with respect to the subset's complement is necessary; if
+        ///     so, calculate this subset complement skyline via the selected skyline algorithm and remove dominated objects from
+        ///     the subset skyline. Finally, merge the subset skyline into the skyline sample which will be reported by the
         ///     skyline sampling algorithm.
         /// </remarks>
         /// <param name="database">
@@ -293,8 +275,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         ///     rows including the preceding SkylineAttribute columns.
         /// </param>
         /// <param name="dataTableTemplate">
-        ///     An empty DataTable with all columns to return to which the columns
-        ///     InternalArtificialUniqueRowIdentifierColumnName and InternalEqualValuesBucketColumnName have already been added.
+        ///     An empty DataTable with all columns to return to which the column
+        ///     InternalArtificialUniqueRowIdentifierColumnName has already been added.
         /// </param>
         /// <param name="sw">
         ///     To measture the time spent to perform this whole algorithm. Has to be started before calling this
@@ -305,67 +287,66 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         {
             var skylineSampleFinalDatabase = new Dictionary<long, object[]>();
 
-            foreach (CLRSafeHashSet<int> subspace in Utility.Subspaces)
+            foreach (CLRSafeHashSet<int> subset in Utility.Subsets)
             {
                 IEnumerable<object[]> useDatabase = database.Values;
 
-                string subpaceOperators = GetOperatorsWithIgnoredEntriesString(subspace);
+                string subpaceOperators = GetOperatorsWithIgnoredEntriesString(subset);
 
                 SelectedStrategy.HasIncomparablePreferences = subpaceOperators.Contains("INCOMPARABLE");
 
-                SelectedStrategy.PrepareDatabaseForAlgorithm(ref useDatabase, subspace.ToList(),
+                SelectedStrategy.PrepareDatabaseForAlgorithm(ref useDatabase, subset.ToList(),
                     Utility.PreferenceColumnIndex, Utility.IsPreferenceIncomparable);
 
                 sw.Stop();
                 TimeMilliseconds += sw.ElapsedMilliseconds;
-                DataTable subspaceDataTable = SelectedStrategy.GetSkylineTable(useDatabase,
+                DataTable subsetDataTable = SelectedStrategy.GetSkylineTable(useDatabase,
                     dataTableTemplate.Clone(), DataRecordTemplate, subpaceOperators);
                 TimeMilliseconds += SelectedStrategy.TimeMilliseconds;
                 NumberOfOperations += SelectedStrategy.NumberOfComparisons;
                 sw.Restart();
 
-                IDictionary<long, object[]> subspaceDatabase = GetDatabaseFromDataTable(database, subspaceDataTable);
+                IDictionary<long, object[]> subsetDatabase = GetDatabaseFromDataTable(database, subsetDataTable);
 
                 IEnumerable<Tuple<long[], string[]>> databaseForPairwiseComparison =
-                    GetDatabaseForPairwiseComparison(subspaceDatabase.Values, subspace.ToList());
-                // TODO: comment: needs guaranteed stable order
+                    GetDatabaseForPairwiseComparison(subsetDatabase.Values, subset.ToList());
 
-                IEnumerable<CLRSafeHashSet<long>> rowsWithEqualValuesWithRespectToSubspaceColumns =
-                    CompareEachRowWithRespectToSubspaceColumnsPairwise(databaseForPairwiseComparison);
+                IEnumerable<CLRSafeHashSet<long>> rowsWithEqualValuesWithRespectToSubsetColumns =
+                    CompareEachRowWithRespectToSubsetColumnsPairwise(databaseForPairwiseComparison);
 
-                CLRSafeHashSet<int> subspaceComplement = Utility.GetSubspaceComplement(subspace);
-                string subpaceComplementOperators =
-                    GetOperatorsWithIgnoredEntriesString(Utility.GetSubspaceComplement(subspace));
+                CLRSafeHashSet<int> subsetComplement = Utility.GetSubsetComplement(subset);
+                string subsetComplementOperators =
+                    GetOperatorsWithIgnoredEntriesString(Utility.GetSubsetComplement(subset));
 
-                SelectedStrategy.HasIncomparablePreferences = subpaceComplementOperators.Contains("INCOMPARABLE");
-                List<int> subspaceComplementList = subspaceComplement.ToList();
+                SelectedStrategy.HasIncomparablePreferences = subsetComplementOperators.Contains("INCOMPARABLE");
+                List<int> subsetComplementList = subsetComplement.ToList();
 
-                foreach (CLRSafeHashSet<long> rowsWithEqualValues in rowsWithEqualValuesWithRespectToSubspaceColumns)
+                foreach (CLRSafeHashSet<long> rowsWithEqualValues in rowsWithEqualValuesWithRespectToSubsetColumns)
                 {
                     IReadOnlyDictionary<long, object[]> rowsWithEqualValuesDatabase = GetSubsetOfDatabase(database,
                         rowsWithEqualValues);
 
                     useDatabase = rowsWithEqualValuesDatabase.Values;
-                    SelectedStrategy.PrepareDatabaseForAlgorithm(ref useDatabase, subspaceComplementList,
+                    SelectedStrategy.PrepareDatabaseForAlgorithm(ref useDatabase, subsetComplementList,
                         Utility.PreferenceColumnIndex, Utility.IsPreferenceIncomparable);
 
                     sw.Stop();
                     TimeMilliseconds += sw.ElapsedMilliseconds;
-                    DataTable subspaceComplementDataTable =
+                    DataTable subsetComplementDataTable =
                         SelectedStrategy.GetSkylineTable(useDatabase,
-                            dataTableTemplate.Clone(), DataRecordTemplate, subpaceComplementOperators);
+                            dataTableTemplate.Clone(), DataRecordTemplate, subsetComplementOperators);
                     TimeMilliseconds += SelectedStrategy.TimeMilliseconds;
                     NumberOfOperations += SelectedStrategy.NumberOfComparisons;
                     sw.Restart();
 
-                    IReadOnlyDictionary<long, object[]> subspaceComplementDatabase =
+                    IReadOnlyDictionary<long, object[]> subsetComplementDatabase =
                         new ReadOnlyDictionary<long, object[]>(GetDatabaseFromDataTable(database,
-                            subspaceComplementDataTable));
+                            subsetComplementDataTable));
 
-                    RemoveDominatedObjects(rowsWithEqualValues, subspaceComplementDatabase, subspaceDatabase);
+                    RemoveDominatedObjects(rowsWithEqualValues, subsetComplementDatabase, subsetDatabase);
                 }
 
-                MergeSubspaceSkylineIntoFinalSkylineSample(new ReadOnlyDictionary<long, object[]>(subspaceDatabase),
+                MergeSubsetSkylineIntoFinalSkylineSample(new ReadOnlyDictionary<long, object[]>(subsetDatabase),
                     skylineSampleFinalDatabase);
             }
 
@@ -375,15 +356,15 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         /// <summary>
         ///     TODO: comment
         /// </summary>
-        /// <param name="subspace"></param>
+        /// <param name="subset"></param>
         /// <returns></returns>
-        private string GetOperatorsWithIgnoredEntriesString(ICollection<int> subspace)
+        private string GetOperatorsWithIgnoredEntriesString(ICollection<int> subset)
         {
             var operatorsReturn = "";
 
             for (var i = 0; i < Utility.OperatorStrings.Length; i++)
             {
-                if (!subspace.Contains(i))
+                if (!subset.Contains(i))
                 {
                     if (Utility.IsPreferenceIncomparable[i])
                     {
@@ -427,19 +408,25 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                     row => database[(long) row[rowIdentifierColumnIndex]]);
         }
 
+        /// <summary>
+        ///     Get attribute's values (and strings if INCOMPARABLE) of the database.
+        /// </summary>
+        /// <param name="database">Database from which to extract attributes.</param>
+        /// <param name="subset">Subset used for the subset skyline. Needs guaranteed stable order.</param>
+        /// <returns>IEnumerable of the attribute's values together with string values if attribute is INCOMPARABLE.</returns>
         private IEnumerable<Tuple<long[], string[]>> GetDatabaseForPairwiseComparison(
-            IEnumerable<object[]> subspaceDatabase,
-            IReadOnlyCollection<int> subspace)
+            IEnumerable<object[]> database,
+            IList<int> subset)
         {
-            var subspaceForPairwiseComparison = new List<Tuple<long[], string[]>>();
+            var subsetForPairwiseComparison = new List<Tuple<long[], string[]>>();
 
-            foreach (object[] row in subspaceDatabase)
+            foreach (object[] row in database)
             {
-                var rowForPairwiseComparison = new long[subspace.Count + 2];
-                var rowForPairwiseComparisonIncomparable = new string[subspace.Count];
+                var rowForPairwiseComparison = new long[subset.Count + 1];
+                var rowForPairwiseComparisonIncomparable = new string[subset.Count];
 
                 var count = 0;
-                foreach (int sub in subspace)
+                foreach (int sub in subset)
                 {
                     int rowIndex = Utility.PreferenceColumnIndex[sub];
                     rowForPairwiseComparison[count] = (long) row[rowIndex];
@@ -453,13 +440,12 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                 }
 
                 rowForPairwiseComparison[count] = (long) row[Utility.ArtificialUniqueRowIdentifierColumnIndex];
-                rowForPairwiseComparison[count + 1] = 0;
 
-                subspaceForPairwiseComparison.Add(new Tuple<long[], string[]>(rowForPairwiseComparison,
+                subsetForPairwiseComparison.Add(new Tuple<long[], string[]>(rowForPairwiseComparison,
                     rowForPairwiseComparisonIncomparable));
             }
 
-            return subspaceForPairwiseComparison;
+            return subsetForPairwiseComparison;
         }
 
         /// <summary>
@@ -468,12 +454,12 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         /// <remarks>
         ///     TODO: remarks about performance (this is the most time consuming method besides the actual skyline algorithm)
         /// </remarks>
-        /// <param name="subspaceDatabase"></param>
+        /// <param name="subsetDatabase"></param>
         /// <returns></returns>
-        private IEnumerable<CLRSafeHashSet<long>> CompareEachRowWithRespectToSubspaceColumnsPairwise(
-            IEnumerable<Tuple<long[], string[]>> subspaceDatabase)
+        private IEnumerable<CLRSafeHashSet<long>> CompareEachRowWithRespectToSubsetColumnsPairwise(
+            IEnumerable<Tuple<long[], string[]>> subsetDatabase)
         {
-            List<Tuple<long[], string[]>> database = subspaceDatabase.ToList();
+            List<Tuple<long[], string[]>> database = subsetDatabase.ToList();
             var usedBuckets = new Dictionary<string, long> {{"", 0}};
 
             if (database.Count == 0)
@@ -481,11 +467,10 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                 return new List<CLRSafeHashSet<long>>();
             }
 
-            int columnsInSubspaceCount = database[0].Item1.Length - 2;
-            int rowIdentifierColumnIndex = database[0].Item1.Length - 2;
-            int equalValuesBucketColumnIndex = database[0].Item1.Length - 1;
+            int columnsInSubsetCount = database[0].Item1.Length-1;
+            int rowIdentifierColumnIndex = database[0].Item1.Length-1;
 
-            // sort on first subspace attribute in order to skip some comparisons later
+            // sort on first subset attribute in order to skip some comparisons later
             database.Sort((row1, row2) => (row1.Item1[0]).CompareTo(row2.Item1[0]));
 
             // compare pairwise, initially skip first element to prevent comparison of elements with themselves
@@ -493,10 +478,12 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
             // store the actual values which are equal to another database row in order to create separate lists
             // for each combination of equal values
-            var equalValues = new string[columnsInSubspaceCount];
+            var equalValues = new string[columnsInSubsetCount];
 
             // performance; access counter only once
             int databaseCount = database.Count;
+
+            var equalRowsWithRespectToSubsetColumns = new Dictionary<long, CLRSafeHashSet<long>>();
 
             for (var databaseIndex = 0; databaseIndex < databaseCount; databaseIndex++)
             {
@@ -547,12 +534,12 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                     // it cannot be less, because the column at index 0 is sorted; hence, insert the value directly
                     equalValues[0] = sortedColumnDatabaseRowValue.ToString();
 
-                    bool isDatabaseRowEqualToDatabaseForComparisonRow = DetermineEqualValues(columnsInSubspaceCount,
+                    bool isDatabaseRowEqualToDatabaseForComparisonRow = DetermineEqualValues(columnsInSubsetCount,
                         databaseRowValueFull, databaseForComparisonRowValueFull, equalValues);
 
                     if (!isDatabaseRowEqualToDatabaseForComparisonRow)
                     {
-                        // at least one value of the subspace differs, so the current row of databaseForComparison
+                        // at least one value of the subset differs, so the current row of databaseForComparison
                         // will have to be compared in forthcoming iteartions with another row of database;
                         // hence, add this row to databaseForComparisonForNextIteration, which will be the
                         // list being iterated over in the next iteration
@@ -573,9 +560,14 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
                     // these rows have equal values, mark the rows with the corresponding hash which can be
                     // viewed as a bucket for all rows with the same hash, i.e. for all rows with the same
-                    // values in their subspace
-                    databaseRowValue[equalValuesBucketColumnIndex] = equalValuesBucket;
-                    databaseForComparisonRowValue[equalValuesBucketColumnIndex] = equalValuesBucket;
+                    // values in their subset                  
+                    if (!equalRowsWithRespectToSubsetColumns.ContainsKey(equalValuesBucket))
+                    {
+                        equalRowsWithRespectToSubsetColumns.Add(equalValuesBucket, new CLRSafeHashSet<long>());
+                    }
+
+                    equalRowsWithRespectToSubsetColumns[equalValuesBucket].Add(databaseRowValue[rowIdentifierColumnIndex]);
+                    equalRowsWithRespectToSubsetColumns[equalValuesBucket].Add(databaseForComparisonRowValue[rowIdentifierColumnIndex]);
                 }
 
                 databaseForComparison = databaseForComparisonForNextIteration;
@@ -587,26 +579,24 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                 }
             }
 
-            // return list of row identifiers for each row in each bucket
-            return GetEqualRowsWithRespectToSubspaceColumns(database.Select(item => item.Item1),
-                rowIdentifierColumnIndex,
-                equalValuesBucketColumnIndex);
+            // return list of row identifiers for each row in each bucket          
+            return equalRowsWithRespectToSubsetColumns.Values;
         }
 
-        private bool DetermineEqualValues(int columnsInSubspaceCount, Tuple<long[], string[]> databaseRowValue,
+        private bool DetermineEqualValues(int columnsInSubsetCount, Tuple<long[], string[]> databaseRowValue,
             Tuple<long[], string[]> databaseForComparisonRowValue, string[] equalValues)
         {
             var isDatabaseRowEqualToDatabaseForComparisonRow = true;
 
             // start from index 1, since the sorted column 0 is already set in equalValues[0]
-            for (var subspaceColumnIndex = 1;
-                subspaceColumnIndex < columnsInSubspaceCount;
-                subspaceColumnIndex++)
+            for (var subsetColumnIndex = 1;
+                subsetColumnIndex < columnsInSubsetCount;
+                subsetColumnIndex++)
             {
                 // performance; dereference only once
-                long databaseRowColumnValue = databaseRowValue.Item1[subspaceColumnIndex];
+                long databaseRowColumnValue = databaseRowValue.Item1[subsetColumnIndex];
                 // performance; dereference only once
-                long databaseForComparisonRowColumnValue = databaseForComparisonRowValue.Item1[subspaceColumnIndex];
+                long databaseForComparisonRowColumnValue = databaseForComparisonRowValue.Item1[subsetColumnIndex];
 
                 if (databaseRowColumnValue != databaseForComparisonRowColumnValue)
                 {
@@ -617,13 +607,13 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
                 string eqValue = databaseRowColumnValue.ToString();
 
-                if (Utility.IsPreferenceIncomparable[subspaceColumnIndex])
+                if (Utility.IsPreferenceIncomparable[subsetColumnIndex])
                 {
                     // performance; dereference only once
-                    string databaseRowColumnValueIncomparable = databaseRowValue.Item2[subspaceColumnIndex];
+                    string databaseRowColumnValueIncomparable = databaseRowValue.Item2[subsetColumnIndex];
                     // performance; dereference only once
                     string databaseForComparisonRowColumnValueIncomparable =
-                        databaseForComparisonRowValue.Item2[subspaceColumnIndex];
+                        databaseForComparisonRowValue.Item2[subsetColumnIndex];
 
                     if (databaseRowColumnValueIncomparable != databaseForComparisonRowColumnValueIncomparable)
                     {
@@ -635,30 +625,11 @@ namespace prefSQL.SQLSkyline.SkylineSampling
                     eqValue += "-" + databaseRowColumnValueIncomparable;
                 }
 
-                equalValues[subspaceColumnIndex] = eqValue;
+                equalValues[subsetColumnIndex] = eqValue;
             }
 
             return isDatabaseRowEqualToDatabaseForComparisonRow;
-        }
-
-        private static IEnumerable<CLRSafeHashSet<long>> GetEqualRowsWithRespectToSubspaceColumns(
-            IEnumerable<long[]> database,
-            int rowIdentifierColumnIndex, int equalValuesBucketColumnIndex)
-        {
-            var equalRowsWithRespectToSubspaceColumns = new Dictionary<long, CLRSafeHashSet<long>>();
-
-            foreach (long[] i in database.Where(i => i[equalValuesBucketColumnIndex] != 0))
-            {
-                long equalValuesBucket = i[equalValuesBucketColumnIndex];
-                if (!equalRowsWithRespectToSubspaceColumns.ContainsKey(equalValuesBucket))
-                {
-                    equalRowsWithRespectToSubspaceColumns.Add(equalValuesBucket, new CLRSafeHashSet<long>());
-                }
-                equalRowsWithRespectToSubspaceColumns[equalValuesBucket].Add(i[rowIdentifierColumnIndex]);
-            }
-
-            return equalRowsWithRespectToSubspaceColumns.Values;
-        }
+        }  
 
         private static IReadOnlyDictionary<long, object[]> GetSubsetOfDatabase(
             IReadOnlyDictionary<long, object[]> database,
@@ -669,11 +640,12 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         }
 
         /// <summary>
-        ///     TODO: comment
+        ///     Remove objects from destinationDatabase that are contained in potentiallyDominatedObjects but not in
+        ///     dominatingObjectsDatabase.
         /// </summary>
-        /// <param name="potentiallyDominatedObjects"></param>
-        /// <param name="dominatingObjectsDatabase"></param>
-        /// <param name="destinationDatabase"></param>
+        /// <param name="potentiallyDominatedObjects">Objects with equal values with respect to a subset of preferences that might be dominated with respect to all preferences.</param>
+        /// <param name="dominatingObjectsDatabase">Objects in potentiallyDominatedObjects that are not dominated with respect to all preferences.</param>
+        /// <param name="destinationDatabase">Database from which to remove objects dominated with respect to all preferences.</param>
         private static void RemoveDominatedObjects(
             IEnumerable<long> potentiallyDominatedObjects,
             IReadOnlyDictionary<long, object[]> dominatingObjectsDatabase,
@@ -693,15 +665,15 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         /// </summary>
         /// <param name="sourceDatabase"></param>
         /// <param name="destinationDatabase"></param>
-        private static void MergeSubspaceSkylineIntoFinalSkylineSample(
+        private static void MergeSubsetSkylineIntoFinalSkylineSample(
             IReadOnlyDictionary<long, object[]> sourceDatabase,
             IDictionary<long, object[]> destinationDatabase)
         {
-            foreach (KeyValuePair<long, object[]> subspaceDataTableOrigObject in sourceDatabase)
+            foreach (KeyValuePair<long, object[]> subsetDataTableOrigObject in sourceDatabase)
             {
-                if (!destinationDatabase.ContainsKey(subspaceDataTableOrigObject.Key))
+                if (!destinationDatabase.ContainsKey(subsetDataTableOrigObject.Key))
                 {
-                    destinationDatabase.Add(subspaceDataTableOrigObject.Key, subspaceDataTableOrigObject.Value);
+                    destinationDatabase.Add(subsetDataTableOrigObject.Key, subsetDataTableOrigObject.Value);
                 }
             }
         }
@@ -737,9 +709,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             }
         }
 
-        private static void RemoveGeneratedInternalColumns(DataTable dataTable)
+        private static void RemoveGeneratedInternalColumn(DataTable dataTable)
         {
-            dataTable.Columns.RemoveAt(dataTable.Columns.Count - 1); // InternalEqualValuesBucketColumnName
             dataTable.Columns.RemoveAt(dataTable.Columns.Count - 1); // InternalArtificialUniqueRowIdentifierColumnName
         }
 

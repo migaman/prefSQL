@@ -18,77 +18,77 @@
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SkylineSamplingUtilityTests.xml", "TestDataRow",
             DataAccessMethod.Sequential),
          DeploymentItem("SkylineSamplingUtilityTests.xml")]
-        public void TestProducedSubspaces()
+        public void TestProducedSubsets()
         {
             string testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
 
             int attributesCount = int.Parse(TestContext.DataRow["attributesCount"].ToString());
-            int subspacesCount = int.Parse(TestContext.DataRow["subspacesCount"].ToString());
-            int subspaceDimension = int.Parse(TestContext.DataRow["subspaceDimension"].ToString());
+            int subsetsCount = int.Parse(TestContext.DataRow["subsetsCount"].ToString());
+            int subsetDimension = int.Parse(TestContext.DataRow["subsetDimension"].ToString());
 
             var subjectUnderTest = new SkylineSamplingUtility
             {
                 AllPreferencesCount = attributesCount,
-                SubspacesCount = subspacesCount,
-                SubspaceDimension = subspaceDimension
+                SubsetCount = subsetsCount,
+                SubsetDimension = subsetDimension
             };
 
-            var preferencesInProducedSubspaces=new HashSet<HashSet<int>>();
+            var preferencesInProducedSubsets=new HashSet<HashSet<int>>();
 
-            foreach (CLRSafeHashSet<int> subspace in subjectUnderTest.Subspaces)
+            foreach (CLRSafeHashSet<int> subset in subjectUnderTest.Subsets)
             {
-                preferencesInProducedSubspaces.Add(subspace.ToUnsafeForCLRHashSet());
+                preferencesInProducedSubsets.Add(subset.ToUnsafeForCLRHashSet());
             }
 
-            HashSet<HashSet<int>> preferencesInExpectedSubspaces = ExpectedSubspaces();
+            HashSet<HashSet<int>> preferencesInExpectedSubsets = ExpectedSubsets();
 
-            Assert.AreEqual(preferencesInExpectedSubspaces.Count, preferencesInProducedSubspaces.Count,
-                "Number of expected subspaces is not equal to number of actual subspaces produced.");
+            Assert.AreEqual(preferencesInExpectedSubsets.Count, preferencesInProducedSubsets.Count,
+                "Number of expected subsets is not equal to number of actual subsets produced.");
 
-            foreach (HashSet<int> preferencesInSingleExpectedSubspace in preferencesInExpectedSubspaces)
+            foreach (HashSet<int> preferencesInSingleExpectedSubset in preferencesInExpectedSubsets)
             {
-                var expectedSubsetIsContainedInProducedSubpaces = false;
-                foreach (HashSet<int> preferencesInSingleProducedSubspace in preferencesInProducedSubspaces)
+                var expectedSubsetIsContainedInProducedSubsets = false;
+                foreach (HashSet<int> preferencesInSingleProducedSubset in preferencesInProducedSubsets)
                 {
-                    if (preferencesInSingleProducedSubspace.SetEquals(preferencesInSingleExpectedSubspace))
+                    if (preferencesInSingleProducedSubset.SetEquals(preferencesInSingleExpectedSubset))
                     {
-                        expectedSubsetIsContainedInProducedSubpaces = true;
+                        expectedSubsetIsContainedInProducedSubsets = true;
                     }
                 }
 
-                Assert.IsTrue(expectedSubsetIsContainedInProducedSubpaces,
-                    string.Format("Expected subspace not produced: {0}.",
-                        string.Join(", ", preferencesInSingleExpectedSubspace)));
+                Assert.IsTrue(expectedSubsetIsContainedInProducedSubsets,
+                    string.Format("Expected subset not produced: {0}.",
+                        string.Join(", ", preferencesInSingleExpectedSubset)));
             }
         }
 
-        private HashSet<HashSet<int>> ExpectedSubspaces()
+        private HashSet<HashSet<int>> ExpectedSubsets()
         {
-            var preferencesInSubspacesExpected = new HashSet<HashSet<int>>();
+            var preferencesInSubsetsExpected = new HashSet<HashSet<int>>();
 
-            DataRow[] subspacesExpected =
-                TestContext.DataRow.GetChildRows("TestDataRow_useSubspaces")[0].GetChildRows("useSubspaces_subspace");
+            DataRow[] subsetsExpected =
+                TestContext.DataRow.GetChildRows("TestDataRow_useSubsets")[0].GetChildRows("useSubsets_subset");
 
-            foreach (DataRow subspaceExpected in subspacesExpected)
+            foreach (DataRow subsetExpected in subsetsExpected)
             {
-                DataRow[] subspaceExpectedDimensions = subspaceExpected.GetChildRows("subspace_dimension");
-                var preferencesInSingleSubspaceExpected = new HashSet<int>();
-                foreach (DataRow singleSubspaceExpectedDimension in subspaceExpectedDimensions)
+                DataRow[] subsetExpectedDimensions = subsetExpected.GetChildRows("subset_dimension");
+                var preferencesInSingleSubsetExpected = new HashSet<int>();
+                foreach (DataRow singleSubsetExpectedDimension in subsetExpectedDimensions)
                 {
-                    preferencesInSingleSubspaceExpected.Add(int.Parse(singleSubspaceExpectedDimension[0].ToString()));
+                    preferencesInSingleSubsetExpected.Add(int.Parse(singleSubsetExpectedDimension[0].ToString()));
                 }
-                preferencesInSubspacesExpected.Add(preferencesInSingleSubspaceExpected);
+                preferencesInSubsetsExpected.Add(preferencesInSingleSubsetExpected);
             }
 
-            return preferencesInSubspacesExpected;
+            return preferencesInSubsetsExpected;
         }
 
         [TestMethod]
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SkylineSamplingUtilityTests_Incorrect.xml",
             "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SkylineSamplingUtilityTests_Incorrect.xml")]
-        public void TestIncorrectSubspaceQueries()
+        public void TestIncorrectSubsetQueries()
         {
             var hasExceptionBeenRaised = false;
 
@@ -96,23 +96,23 @@
             Debug.WriteLine(testComment);
 
             int attributesCount = int.Parse(TestContext.DataRow["attributesCount"].ToString());
-            int subspacesCount = int.Parse(TestContext.DataRow["subspacesCount"].ToString());
-            int subspaceDimension = int.Parse(TestContext.DataRow["subspaceDimension"].ToString());
+            int subsetsCount = int.Parse(TestContext.DataRow["subsetsCount"].ToString());
+            int subsetDimension = int.Parse(TestContext.DataRow["subsetDimension"].ToString());
 
             var subjectUnderTest = new SkylineSamplingUtility
             {
                 AllPreferencesCount = attributesCount,
-                SubspacesCount = subspacesCount,
-                SubspaceDimension = subspaceDimension
+                SubsetCount = subsetsCount,
+                SubsetDimension = subsetDimension
             };
 
             try
             {
-                var subspaces = new HashSet<HashSet<int>>();
+                var subsets = new HashSet<HashSet<int>>();
 
-                foreach (CLRSafeHashSet<int> subspace in subjectUnderTest.Subspaces)
+                foreach (CLRSafeHashSet<int> subset in subjectUnderTest.Subsets)
                 {
-                    subspaces.Add(subspace.ToUnsafeForCLRHashSet());
+                    subsets.Add(subset.ToUnsafeForCLRHashSet());
                 }               
             }
             catch (Exception exception)

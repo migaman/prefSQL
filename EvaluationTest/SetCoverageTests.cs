@@ -19,30 +19,21 @@
          DeploymentItem("SetCoverageTests_EuclideanDistance.xml")]
         public void TestCalculateEuclideanDistance()
         {
-            object[] item1 =
+            double[] item1 =
                 TestContext.DataRow["item1"].ToString()
                     .Split(',')
-                    .Select(item => Convert.ToDouble(item, CultureInfo.InvariantCulture))
-                    .Select(item => (object) item)
+                    .Select(item => Convert.ToDouble(item, CultureInfo.InvariantCulture))                  
                     .ToArray();
-            object[] item2 =
+            double[] item2 =
                 TestContext.DataRow["item2"].ToString()
                     .Split(',')
-                    .Select(item => Convert.ToDouble(item, CultureInfo.InvariantCulture))
-                    .Select(item => (object) item)
+                    .Select(item => Convert.ToDouble(item, CultureInfo.InvariantCulture))                
                     .ToArray();
 
             double expectedDistance = Convert.ToDouble(TestContext.DataRow["expectedDistance"].ToString(),
                 CultureInfo.InvariantCulture);
 
-            var useColumns = new int[item1.Length];
-
-            for (var i = 0; i < useColumns.Length; i++)
-            {
-                useColumns[i] = i;
-            }
-
-            double actualDistance = SetCoverage.CalculateEuclideanDistance(item1, item2, useColumns);
+            double actualDistance = SetCoverage.CalculateEuclideanDistance(item1, item2);
 
             Assert.AreEqual(expectedDistance, actualDistance, 0.000000000001);
         }

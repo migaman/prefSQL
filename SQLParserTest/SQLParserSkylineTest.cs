@@ -269,7 +269,7 @@ namespace prefSQL.SQLParserTest
                 common.SkylineUpToLevel = 3;
                 string sqlTree = common.ParsePreferenceSQL(strSQL + strPreferences);
                 ArrayList levelRecordsTree = new ArrayList();
-
+                common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strSQL + strPreferences);
 
                 DbCommand command = cnnSQL.CreateCommand();
                 command.CommandTimeout = 0; //infinite timeout

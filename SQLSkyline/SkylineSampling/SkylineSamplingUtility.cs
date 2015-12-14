@@ -6,11 +6,11 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
     internal sealed class SkylineSamplingUtility
     {
-        private readonly ISkylineSamplingSubspacesProducer _subspacesProducer;
+        private readonly ISkylineSamplingSubsetsProducer _subsetsProducer;
         private int _allPreferencesCount;
-        private int _subspaceDimension;
-        private IEnumerable<CLRSafeHashSet<int>> _subspaces;
-        private int _subspacesCount;
+        private int _subsetCount;
+        private int _subsetDimension;
+        private IEnumerable<CLRSafeHashSet<int>> _subsets;
 
         /// <summary>
         ///     All Operators over the preferences (e.g., "LOW", "INCOMPARABLE").
@@ -23,8 +23,8 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         /// <remarks>
         ///     Since INCOMPARABLE preferences are represented by two columns resp. operators, OperatorStrings is used to represent
         ///     this situation. There are two possibilities: Either an element of OperatorStrings contains "LOW", or it contains
-        ///     "LOW;INCOMPARABLE". This is also used for convenience when executing the skyline algorithm over a subspace of all
-        ///     preferences - the operators for this subspace can be simply concatenated from the OperatorStrings property.
+        ///     "LOW;INCOMPARABLE". This is also used for convenience when executing the skyline algorithm over a subset of all
+        ///     preferences - the operators for this subset can be simply concatenated from the OperatorStrings property.
         /// </remarks>
         internal string[] OperatorStrings { get; set; }
 
@@ -37,23 +37,23 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         /// </remarks>
         internal int[] PreferenceColumnIndex { get; set; }
 
-        internal int SubspacesCount
+        internal int SubsetCount
         {
-            get { return _subspacesCount; }
+            get { return _subsetCount; }
             set
             {
-                _subspacesCount = value;
-                SubspacesProducer.SubspacesCount = value;
+                _subsetCount = value;
+                SubsetsProducer.SubsetsCount = value;
             }
         }
 
-        internal int SubspaceDimension
+        internal int SubsetDimension
         {
-            get { return _subspaceDimension; }
+            get { return _subsetDimension; }
             set
             {
-                _subspaceDimension = value;
-                SubspacesProducer.SubspaceDimension = value;
+                _subsetDimension = value;
+                SubsetsProducer.SubsetDimension = value;
             }
         }
 
@@ -63,118 +63,117 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             set
             {
                 _allPreferencesCount = value;
-                SubspacesProducer.AllPreferencesCount = value;
+                SubsetsProducer.AllPreferencesCount = value;
             }
         }
 
         internal int ArtificialUniqueRowIdentifierColumnIndex { get; set; }
-        internal int EqualValuesBucketColumnIndex { get; set; }
 
-        internal ISkylineSamplingSubspacesProducer SubspacesProducer
+        internal ISkylineSamplingSubsetsProducer SubsetsProducer
         {
-            get { return _subspacesProducer; }
+            get { return _subsetsProducer; }
         }
 
-        internal IEnumerable<CLRSafeHashSet<int>> Subspaces
+        internal IEnumerable<CLRSafeHashSet<int>> Subsets
         {
-            get { return _subspaces ?? (_subspaces = DetermineSubspaces()); }
+            get { return _subsets ?? (_subsets = DetermineSubsets()); }
         }
 
         public bool[] IsPreferenceIncomparable { get; set; }
 
         public SkylineSamplingUtility()
-            : this(new RandomSkylineSamplingSubspacesProducer())
+            : this(new RandomSkylineSamplingSubsetsProducer())
         {
         }
 
-        public SkylineSamplingUtility(ISkylineSamplingSubspacesProducer subspacesProducer)
+        public SkylineSamplingUtility(ISkylineSamplingSubsetsProducer subsetsProducer)
         {
-            _subspacesProducer = subspacesProducer;
+            _subsetsProducer = subsetsProducer;
         }
 
-        private IEnumerable<CLRSafeHashSet<int>> DetermineSubspaces()
+        private IEnumerable<CLRSafeHashSet<int>> DetermineSubsets()
         {
-            CheckValidityOfCountAndDimension(SubspacesCount, SubspaceDimension, AllPreferencesCount);
+            CheckValidityOfCountAndDimension(SubsetCount, SubsetDimension, AllPreferencesCount);
 
-            IList<CLRSafeHashSet<int>> subspacesReturn = SubspacesProducer.GetSubspaces().ToList();
+            IList<CLRSafeHashSet<int>> subsetsReturn = SubsetsProducer.GetSubsets().ToList();
 
-            if (subspacesReturn.Count != SubspacesCount)
+            if (subsetsReturn.Count != SubsetCount)
             {
-                throw new Exception("Not produced the correct number of subspaces.");
+                throw new Exception("Not produced the correct number of subsets.");
             }
 
-            if (subspacesReturn.Any(subspace => subspace.Count != SubspaceDimension))
+            if (subsetsReturn.Any(subset => subset.Count != SubsetDimension))
             {
-                throw new Exception("Produced subspace of incorrect dimension.");
+                throw new Exception("Produced subset of incorrect dimension.");
             }
 
-            if (!AreAllPreferencesAtLeastOnceContainedInSubspaces(subspacesReturn))
+            if (!AreAllPreferencesAtLeastOnceContainedInSubset(subsetsReturn))
             {
-                throw new Exception("Not all preferences at least once contained in produced subspaces.");
+                throw new Exception("Not all preferences at least once contained in produced subsets.");
             }
 
-            foreach (CLRSafeHashSet<int> subspaceReturn in subspacesReturn)
+            foreach (CLRSafeHashSet<int> subsetReturn in subsetsReturn)
             {
-                CLRSafeHashSet<int> subspaceReturnLocal = subspaceReturn;
+                CLRSafeHashSet<int> subsetReturnLocal = subsetReturn;
 
                 if (
-                    subspacesReturn.Where(element => element != subspaceReturnLocal)
-                        .Any(element => element.SetEquals(subspaceReturnLocal)))
+                    subsetsReturn.Where(element => element != subsetReturnLocal)
+                        .Any(element => element.SetEquals(subsetReturnLocal)))
                 {
-                    throw new Exception("Same subspace contained multiple times.");
+                    throw new Exception("Same subset contained multiple times.");
                 }
             }
 
-            return subspacesReturn;
+            return subsetsReturn;
         }
 
         /// <summary>
-        ///     Checks whether the provided parameters are valid for the production of the requested subspaces.
+        ///     Checks whether the provided parameters are valid for the production of the requested subsets of preferences.
         /// </summary>
         /// <remarks>
         ///     The provided parameters are valid if all preferences requested in the original skyline can be included in
-        ///     at least one subspace (i.e., subspacesCount * subspaceDimension is larger than or equal to allPreferencesCount) and
-        ///     if there are not more distinct subspaces requested than can possibly be produced (i.e., subspacesCount is lower
-        ///     than or equal to the binomial coefficient ("n choose k", i.e. "allPreferencesCount choose subspaceDimension")).
+        ///     at least one subset (i.e., subsetCount * subsetDimension is larger than or equal to allPreferencesCount) and
+        ///     if there are not more distinct subsets requested than can possibly be produced (i.e., subsetsCount is lower
+        ///     than or equal to the binomial coefficient ("n choose k", i.e. "allPreferencesCount choose subsetDimension")).
         /// </remarks>
-        /// <param name="subspacesCount">Number of desired subspaces.</param>
-        /// <param name="subspaceDimension">Dimensionality of each subspace.</param>
+        /// <param name="subsetsCount">Number of desired subsets.</param>
+        /// <param name="subsetDimension">Dimensionality of each subset.</param>
         /// <param name="allPreferencesCount">Number of all preferences requested in original skyline query.</param>
         /// <exception cref="Exception">
         ///     Thrown when the provided parameters are not valid according to the conditions specified in the remarks.
         /// </exception>
-        internal static void CheckValidityOfCountAndDimension(int subspacesCount, int subspaceDimension,
+        internal static void CheckValidityOfCountAndDimension(int subsetsCount, int subsetDimension,
             int allPreferencesCount)
         {
-            if (subspacesCount * subspaceDimension < allPreferencesCount)
+            if (subsetsCount * subsetDimension < allPreferencesCount)
             {
                 throw new Exception(
                     string.Format(
-                        "Every preference has to be included in at least one subspace. This is not possible, since there are {0} preferences and at most COUNT (= {1}) * DIMENSION (= {2}) = {3} of them are included",
-                        allPreferencesCount, subspacesCount, subspaceDimension, subspacesCount * subspaceDimension));
+                        "Every preference has to be included in at least one subset. This is not possible, since there are {0} preferences and at most COUNT (= {1}) * DIMENSION (= {2}) = {3} of them are included",
+                        allPreferencesCount, subsetsCount, subsetDimension, subsetsCount * subsetDimension));
             }
 
-            int binomialCoefficient = BinomialCoefficient(allPreferencesCount, subspaceDimension);
+            int binomialCoefficient = BinomialCoefficient(allPreferencesCount, subsetDimension);
 
-            if (subspacesCount > binomialCoefficient)
+            if (subsetsCount > binomialCoefficient)
             {
                 throw new Exception(
                     string.Format(
-                        "Cannot choose {0} from {1} in order to gain {2} subspaces, at most {3} subspaces possible.",
-                        subspaceDimension, allPreferencesCount, subspacesCount, binomialCoefficient));
+                        "Cannot choose {0} from {1} in order to gain {2} subsets, at most {3} subsets possible.",
+                        subsetDimension, allPreferencesCount, subsetsCount, binomialCoefficient));
             }
         }
 
-        private bool AreAllPreferencesAtLeastOnceContainedInSubspaces(
-            IEnumerable<CLRSafeHashSet<int>> subspaceQueries)
+        private bool AreAllPreferencesAtLeastOnceContainedInSubset(
+            IEnumerable<CLRSafeHashSet<int>> subsetQueries)
         {
             var containedPreferences = new CLRSafeHashSet<int>();
 
-            foreach (CLRSafeHashSet<int> subspaceQueryPreferences in subspaceQueries)
+            foreach (CLRSafeHashSet<int> subsetQueryPreferences in subsetQueries)
             {
-                foreach (int subspaceQueryPreference in subspaceQueryPreferences)
+                foreach (int subsetQueryPreference in subsetQueryPreferences)
                 {
-                    containedPreferences.Add(subspaceQueryPreference);
+                    containedPreferences.Add(subsetQueryPreference);
                 }
                 if (containedPreferences.Count == AllPreferencesCount)
                 {
@@ -220,19 +219,19 @@ namespace prefSQL.SQLSkyline.SkylineSampling
         /// <summary>
         ///     TODO: comment
         /// </summary>
-        /// <param name="subspace"></param>
+        /// <param name="subset"></param>
         /// <returns></returns>
-        public CLRSafeHashSet<int> GetSubspaceComplement(CLRSafeHashSet<int> subspace)
+        public CLRSafeHashSet<int> GetSubsetComplement(CLRSafeHashSet<int> subset)
         {
-            var subspaceComplement = new CLRSafeHashSet<int>();
+            var subsetComplement = new CLRSafeHashSet<int>();
             for (var i = 0; i < AllPreferencesCount; i++)
             {
-                if (!subspace.Contains(i))
+                if (!subset.Contains(i))
                 {
-                    subspaceComplement.Add(i);
+                    subsetComplement.Add(i);
                 }
             }
-            return subspaceComplement;
+            return subsetComplement;
         }
 
         /// <summary>

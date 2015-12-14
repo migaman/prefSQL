@@ -4,7 +4,7 @@
 ** Desc:	Install the prefSQL assembly and its functions
 **			Change the path of the assembly (Variable ASSEMBLY_PATH) before running
 ** Auth:	Michael
-** Date:	16/10/2015
+** Date:	20/10/2015
 **************************
 ** Change History
 **************************
@@ -12,6 +12,7 @@
 ** --   --------		-------		------------------------------------
 ** 1    05/01/2015      Michael		First version
 ** 2    16/10/2015      Michael		Remove the 4000 character limit for queries
+** 3    20/10/2015      Stefan      Add Skyline Sampling procedure
 *******************************/
 
 
@@ -53,6 +54,9 @@ IF EXISTS (SELECT * FROM sys.objects WHERE type = 'PC' AND name = 'SP_MultipleSk
 
 IF EXISTS (SELECT * FROM sys.objects WHERE type = 'PC' AND name = 'SP_MultipleSkylineBNLLevel')
 	DROP PROCEDURE SP_MultipleSkylineBNLLevel
+
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'PC' AND name = 'SP_SkylineSampling')
+    DROP PROCEDURE SP_SkylineSampling
 
 
 
@@ -105,4 +109,7 @@ GO
 CREATE PROCEDURE SP_MultipleSkylineBNLLevel (@Name nvarchar(MAX), @Operators nvarchar(200), @NumberOfRecords int,  @SortType int, @UpToLevel int)
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SPMultipleSkylineBNLLevel].GetSkyline;
 GO
-
+--Create SP for SkylineSampling
+CREATE PROCEDURE SP_SkylineSampling (@Name nvarchar(MAX), @Operators nvarchar(200), @NumberOfRecords int, @SortType int, @Count int, @Dimension int, @Algorithm nvarchar(200), @HasIncomparable bit)
+AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SkylineSampling.SPSkylineSampling].GetSkyline;
+GO

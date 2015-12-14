@@ -67,6 +67,10 @@ namespace prefSQL.SQLParserTest
             for (var i = 0; i < rangeValuesZeroBased.Length; i++)
             {
                 rangeValuesZeroBased[i] = highestValue[i] - lowestValue[i];
+                if (rangeValuesZeroBased[i] == 0)
+                {
+                    rangeValuesZeroBased[i] = 1;
+                }
             }
         }
 
