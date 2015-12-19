@@ -6,6 +6,7 @@ using Antlr4.Runtime.Tree;
 using prefSQL.SQLParser.Models;
 using prefSQL.SQLSkyline;
 using prefSQL.SQLSkyline.SkylineSampling;
+using System.Globalization;
 
 namespace prefSQL.SQLParser
 {
@@ -289,6 +290,10 @@ namespace prefSQL.SQLParser
                         //Add all Syntax before the RANKING OF-Clause
                         strSQLReturn = strInput.Substring(0, strInput.IndexOf("RANKING OF", StringComparison.Ordinal) - 1);
 
+                        // Set the decimal seperator, because prefSQL double values are always with decimal separator "."
+                        NumberFormatInfo format = new NumberFormatInfo();
+                        format.NumberDecimalSeparator = ".";
+
 
                         //Create  ORDER BY clause with help of the ranking model
                         string strOrderBy = "ORDER BY ";
@@ -307,8 +312,8 @@ namespace prefSQL.SQLParser
                                 double max = (int)dt.Rows[0][1];
                                 
                                 //Write at least one decimal (in order SQL detects the number as double. Otherwise the result will be int values!!)
-                                strMin = string.Format("{0:0.0###########}", min);
-                                strDividor = string.Format("{0:0.0###########}", max - min);
+                                strMin = string.Format(format, "{0:0.0###########}", min);
+                                strDividor = string.Format(format, "{0:0.0###########}", max - min);
                             }
                             else
                             {
@@ -319,7 +324,7 @@ namespace prefSQL.SQLParser
                             //Create Normalization Formula, No Delta is needed
                             //(Weight * (((attributevalue - minvalue) / (maxvalue-minvalue))))
                             //For example: 0.2 * ((t1.price - 900.0) / 288100.0) + 0.01 AS Norm1
-                            string strNormalization = "(" + model.Weight + " * (((" + model.Expression + " - " + strMin + ") / " + strDividor + ") ))";
+                            string strNormalization = "(" + model.Weight.ToString(format) + " * (((" + model.Expression + " - " + strMin + ") / " + strDividor + ") ))";
                             
 
                             //Mathematical addition except for the first element

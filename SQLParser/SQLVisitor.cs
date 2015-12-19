@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Antlr4.Runtime.Tree;
 using prefSQL.SQLParser.Models;
+using System.Globalization;
 
 namespace prefSQL.SQLParser
 {
@@ -136,7 +137,11 @@ namespace prefSQL.SQLParser
                 //Multiply with -1 (result: every value can be minimized!)
                 strExpression += " * -1";
             }
-            double weight = double.Parse(context.GetChild(2).GetText());
+            // Set the decimal seperator, because prefSQL double values are always with decimal separator "."
+            NumberFormatInfo format = new NumberFormatInfo();
+            format.NumberDecimalSeparator = ".";
+            double weight = double.Parse(context.GetChild(2).GetText(), format);
+
 
             //Add the preference to the list               
             return AddWeightedSum(strColumnName, strTable, strExpression, weight);
