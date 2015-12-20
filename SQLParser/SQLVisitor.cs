@@ -179,7 +179,10 @@ namespace prefSQL.SQLParser
                     strExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
                     break;
             }
-            double weight = double.Parse(context.GetChild(3).GetText());
+            // Set the decimal seperator, because prefSQL double values are always with decimal separator "."
+            NumberFormatInfo format = new NumberFormatInfo();
+            format.NumberDecimalSeparator = ".";
+            double weight = double.Parse(context.GetChild(3).GetText(), format);
 
             //Add the preference to the list               
             return AddWeightedSum(strColumnName, strTable, strExpression, weight);
@@ -256,7 +259,10 @@ namespace prefSQL.SQLParser
 
             }
 
-            double weight = double.Parse(context.GetChild(context.ChildCount-1).GetText());
+            // Set the decimal seperator, because prefSQL double values are always with decimal separator "."
+            NumberFormatInfo format = new NumberFormatInfo();
+            format.NumberDecimalSeparator = ".";
+            double weight = double.Parse(context.GetChild(context.ChildCount-1).GetText(), format);
 
             if(strCaseElse.Equals(""))
             {
