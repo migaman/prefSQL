@@ -380,13 +380,13 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSkylineShowSkylineAttributes()
+        public void TestSkylineShowInternalAttributes()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH";
 
             string expected = "SELECT * , CAST(cars.price AS bigint) AS SkylineAttributecars_price, CAST(cars.mileage AS bigint) AS SkylineAttributecars_mileage, CAST(cars.horsepower * -1 AS bigint) AS SkylineAttributecars_horsepower FROM cars WHERE NOT EXISTS(SELECT * , CAST(cars_INNER.price AS bigint) AS SkylineAttributecars_price, CAST(cars_INNER.mileage AS bigint) AS SkylineAttributecars_mileage, CAST(cars_INNER.horsepower * -1 AS bigint) AS SkylineAttributecars_horsepower FROM cars cars_INNER WHERE cars_INNER.price <= cars.price AND cars_INNER.mileage <= cars.mileage AND cars_INNER.horsepower * -1 <= cars.horsepower * -1 AND ( cars_INNER.price < cars.price OR cars_INNER.mileage < cars.mileage OR cars_INNER.horsepower * -1 < cars.horsepower * -1) ) ";
             SQLCommon common = new SQLCommon();
-            common.ShowSkylineAttributes = true;
+            common.ShowInternalAttributes = true;
             string actual = common.ParsePreferenceSQL(strPrefSQL);
 
             Assert.AreEqual(expected.Trim(), actual.Trim(), true, "SQL not built correctly");
