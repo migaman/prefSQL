@@ -16,8 +16,8 @@ namespace Utility
         {
             Program prg = new Program();
             //prg.MeasurePerformance();
-            prg.testPaper();
-            //prg.Run();
+            //prg.testPaper();
+            prg.Run();
 
             /*
             DominanceGraph graph = new DominanceGraph();
@@ -166,12 +166,12 @@ namespace Utility
                 //string strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars t LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 10000 SKYLINE OF t1.price LOW, colors.name ('silver' >> 'yellow' >> OTHERS INCOMPARABLE)";
                 //string strPrefSQL = "SELECT t.id, t.title, t.price         FROM cars t LEFT OUTER JOIN colors ON t.color_id = colors.id SKYLINE OF t.price LOW, t.mileage LOW, colors.name ('red' >> {'blue', 'yellow'} >> OTHERS INCOMPARABLE)";
 
-                //string strPrefSQL = "SELECT cars.id                        FROM cars t LEFT OUTER JOIN bodies ON cars.body_id = bodies.ID LEFT OUTER JOIN colors ON colors.id = cars.color_id SKYLINE OF cars.price AROUND 10000, colors.name ('red' >> OTHERS EQUAL), bodies.name ('van' >> 'compact car' >> OTHERS EQUAL) ORDER BY BEST_RANK()";
+                //string strPrefSQL = "SELECT t.id                        FROM cars t LEFT OUTER JOIN bodies ON t.body_id = bodies.ID LEFT OUTER JOIN colors ON colors.id = t.color_id SKYLINE OF t.price AROUND 10000, colors.name ('red' >> OTHERS EQUAL), bodies.name ('van' >> 'compact car' >> OTHERS EQUAL) ORDER BY BEST_RANK()";
 
 
 
                 //RANKING Queries
-                //string strPrefSQL = "SELECT t.id, t.title FROM cars t RANKING OF t.price LOW 0.8, t.mileage LOW 0.2";
+                string strPrefSQL = "SELECT t.id, t.title FROM cars t RANKING OF t.price LOW 0.8, t.mileage LOW 0.2";
                 //string strPrefSQL = "SELECT t.id, t.title FROM cars t LEFT OUTER JOIN colors c ON t.color_id = c.id RANKING OF t.price LOW 0.5, c.name ('brown' >> 'green' >> OTHERS EQUAL) 0.5";
 
 
@@ -199,7 +199,7 @@ namespace Utility
                 //string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 10000 SKYLINE OF t1.price LOW, colors.name ('red' >> 'blue' >> OTHERS INCOMPARABLE)";
                 //string strPrefSQL = "SELECT t1.id, t1.title, t1.price, t1.mileage, colors.name FROM cars_small t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 10000 SKYLINE OF t1.price LOW, colors.name (OTHERS INCOMPARABLE >> 'blue' >> 'red')";
                 //string strPrefSQL = "SELECT * FROM cars_small cs SKYLINE OF cs.price LOW, cs.mileage LOW SAMPLE BY RANDOM_SUBSETS COUNT 2 DIMENSION 1";
-                string strPrefSQL = "SELECT t1.id, t1.price, t1.mileage FROM cars_small t1 SKYLINE OF t1.price LOW, t1.mileage LOW";
+                //string strPrefSQL = "SELECT t1.id, t1.price, t1.mileage FROM cars_small t1 SKYLINE OF t1.price LOW, t1.mileage LOW";
                 //string strPrefSQL = "SELECT t1.id, t1.price, t1.mileage FROM cars_small t1 SKYLINE OF t1.price LOW, t1.mileage LOW ORDER BY SUM_RANK()";
                 //string strPrefSQL = "SELECT t1.id                          FROM cars t1  SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW";
 
@@ -270,13 +270,13 @@ namespace Utility
 
 
                 //Some other available properties
-                //parser.ShowSkylineAttributes = true;
+                parser.ShowInternalAttributes = true;
                 parser.SkylineUpToLevel = 1;
 
 
 
                 //First parse only (to get the parsed string for CLR)
-                Debug.WriteLine(parser.ParsePreferenceSQL(strPrefSQL));
+                //Debug.WriteLine(parser.ParsePreferenceSQL(strPrefSQL));
 
 
 
@@ -292,6 +292,7 @@ namespace Utility
                 sb.AppendLine("STATISTIC");
                 sb.AppendLine("------------------------------------------");
                 sb.AppendLine("         skyline size:" + dt.Rows.Count.ToString().PadLeft(6));
+                sb.AppendLine("               fields:" + dt.Columns.Count.ToString().PadLeft(6));
                 sb.AppendLine("algo  time elapsed ms:" + parser.TimeInMilliseconds.ToString().PadLeft(6));
                 sb.AppendLine("total time elapsed ms:" + sw.ElapsedMilliseconds.ToString().PadLeft(6));
                 Debug.Write(sb);

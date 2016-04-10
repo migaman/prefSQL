@@ -140,7 +140,7 @@
             {
                 SkylineType =
                     new SkylineBNL() {Provider = Helper.ProviderName, ConnectionString = Helper.ConnectionString},
-                ShowSkylineAttributes = true
+                ShowInternalAttributes = true
             };
 
             DataTable entireSkylineDataTable =
@@ -277,7 +277,7 @@
             {
                 SkylineType =
                     new SkylineBNL() {Provider = Helper.ProviderName, ConnectionString = Helper.ConnectionString},
-                ShowSkylineAttributes = true
+                ShowInternalAttributes = true
             };
 
             DbProviderFactory factory = DbProviderFactories.GetFactory(Helper.ProviderName);
@@ -390,7 +390,7 @@
             {
                 SkylineType =
                     new SkylineBNL() {Provider = Helper.ProviderName, ConnectionString = Helper.ConnectionString},
-                ShowSkylineAttributes = true
+                ShowInternalAttributes = true
             };
 
             DataTable entireSkylineDataTable = common.ParseAndExecutePrefSQL(Helper.ConnectionString,

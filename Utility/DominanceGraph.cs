@@ -21,7 +21,7 @@ namespace Utility
             bool isSkylineEmpty = false; 
             SQLCommon common = new SQLCommon();
             common.SkylineType = new SkylineSQL();
-            common.ShowSkylineAttributes = true;
+            common.ShowInternalAttributes = true;
             SqlConnection cnnSQL = new SqlConnection(Helper.ConnectionString);
 
             try

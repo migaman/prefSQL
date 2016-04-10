@@ -926,7 +926,7 @@ namespace Utility
                     //Convert to real SQL
                     parser = new SQLCommon();
                     parser.SkylineType = currentStrategy;
-                    parser.ShowSkylineAttributes = true;
+                    parser.ShowInternalAttributes = true;
                     parser.WindowHandling = WindowHandling;
                     parser.WindowSort = WindowSort;
 

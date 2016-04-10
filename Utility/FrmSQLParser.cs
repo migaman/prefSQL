@@ -52,11 +52,11 @@ namespace Utility
 
             if (chkShowSkyline.Checked)
             {
-                parser.ShowSkylineAttributes = true;
+                parser.ShowInternalAttributes = true;
             }
             else
             {
-                parser.ShowSkylineAttributes = false;
+                parser.ShowInternalAttributes = false;
             }
 
             DataTable dt = parser.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, txtPrefSQL.Text);           
