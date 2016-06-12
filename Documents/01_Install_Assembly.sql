@@ -4,7 +4,7 @@
 ** Desc:	Install the prefSQL assembly and its functions
 **			Change the path of the assembly (Variable ASSEMBLY_PATH) before running
 ** Auth:	Michael
-** Date:	20/10/2015
+** Date:	12/06/2016
 **************************
 ** Change History
 **************************
@@ -13,6 +13,7 @@
 ** 1    05/01/2015      Michael		First version
 ** 2    16/10/2015      Michael		Remove the 4000 character limit for queries
 ** 3    20/10/2015      Stefan      Add Skyline Sampling procedure
+** 4    12/06/2016		Michael		Add Procedure for Ranking
 *******************************/
 
 
@@ -58,6 +59,8 @@ IF EXISTS (SELECT * FROM sys.objects WHERE type = 'PC' AND name = 'SP_MultipleSk
 IF EXISTS (SELECT * FROM sys.objects WHERE type = 'PC' AND name = 'SP_SkylineSampling')
     DROP PROCEDURE SP_SkylineSampling
 
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'PC' AND name = 'prefSQL_Ranking')
+    DROP PROCEDURE prefSQL_Ranking
 
 
 --Drop Assembly
@@ -113,3 +116,10 @@ GO
 CREATE PROCEDURE SP_SkylineSampling (@Name nvarchar(MAX), @Operators nvarchar(200), @NumberOfRecords int, @SortType int, @Count int, @Dimension int, @Algorithm nvarchar(200), @HasIncomparable bit)
 AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SkylineSampling.SPSkylineSampling].GetSkyline;
 GO
+
+--Create SP for Ranking
+CREATE PROCEDURE prefSQL_Ranking (@Name nvarchar(MAX), @SelectExtremas nvarchar(MAX),  @NumberOfRecords int, @RankingWeights nvarchar(MAX), @RankingExpressions nvarchar(MAX), @ShowInternalAttributes bit, @ColumnNames nvarchar(MAX))
+AS EXTERNAL NAME SQLSkyline.[prefSQL.SQLSkyline.SPRanking].GetRanking;
+GO
+
+

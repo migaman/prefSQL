@@ -31,6 +31,46 @@ namespace prefSQL.SQLSkyline
         public const string CnnStringSqlclr = "context connection=true";
         public const string ProviderClr = "System.Data.SqlClient";
 
+        public static DataTable executeSQL(string strQuery, string strConnection, string strProvider) {
+
+            DataTable dt = new DataTable();
+            DbProviderFactory factory = DbProviderFactories.GetFactory(strProvider);
+
+            // use the factory object to create Data access objects.
+            DbConnection connection = factory.CreateConnection(); // will return the connection object (i.e. SqlConnection ...)
+            if (connection != null)
+            {
+                connection.ConnectionString = strConnection;
+
+                try
+                {
+                    connection.Open();
+
+                    DbDataAdapter dap = factory.CreateDataAdapter();
+                    DbCommand selectCommand = connection.CreateCommand();
+                    selectCommand.CommandTimeout = 0; //infinite timeout
+                    selectCommand.CommandText = strQuery;
+
+                    if (dap != null)
+                    {
+                        dap.SelectCommand = selectCommand;
+                        dap.Fill(dt);
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new Exception(e.Message);
+                }
+                finally
+                {
+                    connection.Close();
+                }
+
+
+            }
+            return dt;
+        }
+
         public static List<object[]> GetObjectArrayFromSQL(string strQuery, string strConnection, string strProvider, DataTable dt, string[] operators, out SqlDataRecord record)
         {
             record = null;
@@ -735,6 +775,48 @@ namespace prefSQL.SQLSkyline
             dt.Columns.Remove("SortOrder");
 
             return dt;
+        }
+
+        public static void SendDataTableOverPipe(DataTable tbl)
+        {
+            // Build our record schema 
+            List<SqlMetaData> OutputColumns = new List<SqlMetaData>(tbl.Columns.Count);
+            foreach (DataColumn col in tbl.Columns)
+            {
+
+                SqlMetaData outputColumn;
+                if (col.DataType == typeof(Int32) || col.DataType == typeof(Int64) || col.DataType == typeof(DateTime))
+                {
+                    outputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType));
+                }
+                else if (col.DataType == typeof(Decimal))
+                {
+                    outputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType), 12, 10);
+                }
+                else
+                {
+                    outputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
+                }
+
+                OutputColumns.Add(outputColumn);
+            }
+
+            // Build our SqlDataRecord and start the results 
+            SqlDataRecord record = new SqlDataRecord(OutputColumns.ToArray());
+            SqlContext.Pipe.SendResultsStart(record);
+
+            // Now send all the rows 
+            foreach (DataRow row in tbl.Rows)
+            {
+                for (int col = 0; col < tbl.Columns.Count; col++)
+                {
+                    record.SetValue(col, row.ItemArray[col]);
+                }
+                SqlContext.Pipe.SendResultsRow(record);
+            }
+
+            // And complete the results 
+            SqlContext.Pipe.SendResultsEnd();
         }
     }
 }
