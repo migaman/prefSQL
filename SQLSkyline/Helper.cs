@@ -77,7 +77,17 @@ namespace prefSQL.SQLSkyline
                                     outputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
                                 }
                                 outputColumns.Add(outputColumn);
-                                dt.Columns.Add(col);
+                                
+                                //Check if column name already exists
+                                if (!dt.Columns.Contains(col.ColumnName))
+                                {
+                                    dt.Columns.Add(col);
+                                }
+                                else
+                                {
+                                    throw new Exception("Column name '" + col.ColumnName + "' already exists. Use an alias instead.");
+                                }
+                                
                             }
                         }
                         listObjects.Add(recordObjectStart);
