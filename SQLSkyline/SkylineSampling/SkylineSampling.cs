@@ -122,7 +122,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             string storedProcedureCommand = SelectedStrategy.GetStoredProcedureCommand(strWhere, strOrderBy, strFirstSQL,
                 strOperators, strOrderByAttributes);
 
-            storedProcedureCommand = Regex.Replace(storedProcedureCommand, @"dbo\.SP_[^ ]* ", "dbo.SP_SkylineSampling ");
+            storedProcedureCommand = Regex.Replace(storedProcedureCommand, @"dbo\.prefSQL_[^ ]* ", "dbo.prefSQL_SkylineSampling ");
 
             if (SelectedStrategy.GetType() != typeof (SkylineSQL))
             {

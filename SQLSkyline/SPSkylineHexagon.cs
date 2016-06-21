@@ -12,7 +12,7 @@ namespace prefSQL.SQLSkyline
 
     public class SPSkylineHexagon : TemplateHexagon
     {
-        [SqlProcedure(Name = "SP_SkylineHexagon")]
+        [SqlProcedure(Name = "prefSQL_SkylineHexagon")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType, SqlString strSelectIncomparable, int weightHexagonIncomparable)
         {
             SPSkylineHexagon skyline = new SPSkylineHexagon();

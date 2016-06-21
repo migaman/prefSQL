@@ -7,7 +7,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
 
     public sealed class SPSkylineSampling
     {
-        [SqlProcedure(Name = "SP_SkylineSampling")]
+        [SqlProcedure(Name = "prefSQL_SkylineSampling")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords,
             SqlInt32 sortType, SqlInt32 count, SqlInt32 dimension, SqlString algorithm, SqlBoolean hasIncomparable)
         {
@@ -58,7 +58,7 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             catch (Exception ex)
             {
                 //Pack Errormessage in a SQL and return the result
-                var strError = "Error in SP_SkylineSampling: ";
+                var strError = "Error in prefSQL_SkylineSampling: ";
                 strError += ex.Message;
 
                 if (SqlContext.Pipe != null)

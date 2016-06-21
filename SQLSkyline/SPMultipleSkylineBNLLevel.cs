@@ -24,7 +24,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="numberOfRecords"></param>
         /// <param name="sortType"></param>
         /// <param name="upToLevel"></param>
-        [SqlProcedure(Name = "SP_MultipleSkylineBNLLevel")]
+        [SqlProcedure(Name = "prefSQL_MultipleSkylineBNLLevel")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType, SqlInt32 upToLevel)
         {
             SPMultipleSkylineBNLLevel skyline = new SPMultipleSkylineBNLLevel();

@@ -9,7 +9,7 @@ namespace prefSQL.SQLSkyline
 
     public class SPSkylineDQ : TemplateDQ
     {
-        [SqlProcedure(Name = "SP_SkylineDQ")]
+        [SqlProcedure(Name = "prefSQL_SkylineDQ")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType)
         {
             SPSkylineDQ skyline = new SPSkylineDQ();

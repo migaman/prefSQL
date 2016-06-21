@@ -9,7 +9,7 @@ namespace prefSQL.SQLSkyline
 
     public class SPSkylineHexagonLevel : TemplateHexagon
     {
-        [SqlProcedure(Name = "SP_SkylineHexagonLevel")]
+        [SqlProcedure(Name = "prefSQL_SkylineHexagonLevel")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType)
         {
             SPSkylineHexagonLevel skyline = new SPSkylineHexagonLevel();
