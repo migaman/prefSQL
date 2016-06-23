@@ -15,9 +15,9 @@ namespace Utility
         static void Main(string[] args)
         {
             Program prg = new Program();
-            //prg.MeasurePerformance();
+            prg.MeasurePerformance();
             //prg.testPaper();
-            prg.Run();
+            //prg.Run();
 
             /*
             DominanceGraph graph = new DominanceGraph();
@@ -206,8 +206,6 @@ namespace Utility
                 //string strPrefSQL = "SELECT c.id, c.price                  FROM cars_medium c   LEFT OUTER JOIN colors cc ON c.color_id = cc.id LEFT OUTER JOIN fuels f ON f.id = c.fuel_id SKYLINE OF c.price LOW 1000 INCOMPARABLE, cc.name ('red' == 'blue' >> OTHERS INCOMPARABLE >> 'gray'), f.name ('petrol' >> OTHERS INCOMPARABLE >> 'diesel')";
                 //string strPrefSQL = "SELECT c.title AS Name, c.Price, c.Mileage, co.Name AS Color, b.Name AS Body FROM Cars AS c LEFT OUTER JOIN colors co ON c.color_id = co.ID LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.Price LOW, c.Mileage LOW";
 
-                //string strPrefSQL = "EXEC dbo.SP_SkylineBNLSortLevel 'SELECT  CAST(c.Price AS bigint) AS SkylineAttribute0, CAST(c.Mileage AS bigint) AS SkylineAttribute1 , c.title AS Name, c.Price, c.Mileage, co.Name AS Color, b.Name AS Body FROM Cars AS c LEFT OUTER JOIN colors co ON c.color_id = co.ID LEFT OUTER JOIN bodies b ON c.body_id = b.ID ORDER BY c.Price, c.Mileage', 'LOW;LOW', 0, 0";
-
                 //string strPrefSQL = "SELECT t.id FROM cars t SKYLINE OF t.price LOW, t.mileage LOW";
                 //string strPrefSQL = "SELECT t1.id, t1.title, t1.price, colors.name FROM cars t1 LEFT OUTER JOIN colors ON t1.color_id = colors.ID WHERE t1.price < 10000 SKYLINE OF t1.price LOW, colors.name ('silver' >> 'yellow' >> OTHERS INCOMPARABLE)";
                 //string strPrefSQL = "SELECT cars.id, cars.title FROM  cars SKYLINE OF cars.price LOW,cars.mileage LOW,cars.horsepower HIGH,cars.enginesize HIGH,cars.consumption LOW,cars.doors HIGH,cars.seats HIGH";
@@ -276,7 +274,7 @@ namespace Utility
 
 
                 //First parse only (to get the parsed string for CLR)
-                //Debug.WriteLine(parser.ParsePreferenceSQL(strPrefSQL));
+                Debug.WriteLine(parser.ParsePreferenceSQL(strPrefSQL));
 
 
 

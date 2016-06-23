@@ -44,14 +44,14 @@ namespace prefSQL.SQLParserTest
             sw.Start();
             var entireSkyline = subjectUnderTest.GetResults(
                 common.GetAnsiSqlFromPrefSqlModel(prefSqlModelEntireSkyline), common.SkylineType,
-                prefSqlModelEntireSkyline);
+                prefSqlModelEntireSkyline, false);
             sw.Stop();
             Debug.WriteLine("ORIG ElapsedMilliseconds={0}", sw.ElapsedMilliseconds);
             Debug.WriteLine("ORIG Algorithm ElapsedMilliseconds={0}", subjectUnderTest.TimeInMilliseconds);
             sw.Restart();
             var sampleSkyline = subjectUnderTest.GetResults(
                 common.GetAnsiSqlFromPrefSqlModel(prefSqlModelSkylineSample), common.SkylineType,
-                prefSqlModelSkylineSample);
+                prefSqlModelSkylineSample, false);
             sw.Stop();
             Debug.WriteLine("SMPL ElapsedMilliseconds={0}", sw.ElapsedMilliseconds);
             Debug.WriteLine("SMPL Algorithm ElapsedMilliseconds={0}", subjectUnderTest.TimeInMilliseconds);
@@ -96,7 +96,7 @@ namespace prefSQL.SQLParserTest
 
             var entireSkyline = subjectUnderTest.GetResults(
                 common.GetAnsiSqlFromPrefSqlModel(prefSqlModelEntireSkyline), common.SkylineType,
-                prefSqlModelEntireSkyline);
+                prefSqlModelEntireSkyline, false);
 
             var expected = TestContext.DataRow["entireCount"].ToString();
             var actual = entireSkyline.Rows.Count.ToString(CultureInfo.InvariantCulture);

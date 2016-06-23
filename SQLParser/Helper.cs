@@ -70,7 +70,7 @@ namespace prefSQL.SQLParser
         /// <param name="model"></param>
         /// <returns></returns>
  
-        public DataTable GetResults(String strPrefSQL, SkylineStrategy strategy, PrefSQLModel model)
+        public DataTable GetResults(String strPrefSQL, SkylineStrategy strategy, PrefSQLModel model, bool ShowInternalAttributes)
         {     
             DataTable dt = new DataTable();
             //Default Parameter
@@ -95,12 +95,36 @@ namespace prefSQL.SQLParser
             }
             else
             {
+                //Determine parameter only with skyline of clause and not with ranking of clause
                 DetermineParameters(strPrefSQL, out parameter, out strQuery, out strOperators, out numberOfRecords);
+                
             }
 
             try
             {
-                if (strategy.IsNative())
+                if (model.Ranking.Count > 0)
+                {
+                    SPRanking ranking = new SPRanking();
+                    ranking.Provider = DriverString;
+                    ranking.ConnectionString = ConnectionString;
+                    string strSelectExtremas = "";
+                    string strRankingWeights = "";
+                    string strRankingExpressions = "";
+                    string strColumnNames = "";
+                    foreach (RankingModel rankingModel in model.Ranking)
+                    {
+                        strSelectExtremas += rankingModel.SelectExtrema + ";";
+                        strRankingWeights += rankingModel.Weight + ";";
+                        strRankingExpressions += rankingModel.Expression + ";";
+                        strColumnNames += rankingModel.ColumnName + ";";
+                    }
+                    strSelectExtremas = strSelectExtremas.TrimEnd(';');
+                    strRankingWeights = strRankingWeights.TrimEnd(';');
+                    strRankingExpressions = strRankingExpressions.TrimEnd(';');
+
+                    dt = ranking.GetRankingTable(strQuery, strSelectExtremas, strRankingWeights, strRankingExpressions, ShowInternalAttributes, strColumnNames);
+                }
+                else if (strategy.IsNative())
                 {
                     if (!model.HasSkylineSample)
                     {

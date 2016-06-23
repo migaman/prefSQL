@@ -97,7 +97,7 @@ namespace prefSQL.SQLParser
             string sqlCommand = ParsePreferenceSQL(strPrefSql, model);
 
 
-            DataTable dt = Helper.GetResults(sqlCommand, SkylineType, model);
+            DataTable dt = Helper.GetResults(sqlCommand, SkylineType, model, ShowInternalAttributes);
             TimeInMilliseconds = Helper.TimeInMilliseconds;
             NumberOfComparisons = Helper.NumberOfComparisons;
             NumberOfMoves = Helper.NumberOfMoves;
@@ -112,7 +112,7 @@ namespace prefSQL.SQLParser
             Helper.DriverString = driverString;
             Helper.Cardinality = Cardinality;
             Helper.WindowHandling = WindowHandling;
-            DataTable dt = Helper.GetResults(ParsePreferenceSQL(prefSqlModel), SkylineType, prefSqlModel);
+            DataTable dt = Helper.GetResults(ParsePreferenceSQL(prefSqlModel), SkylineType, prefSqlModel, ShowInternalAttributes);
             TimeInMilliseconds = Helper.TimeInMilliseconds;
             NumberOfComparisons = Helper.NumberOfComparisons;
             NumberOfMoves = Helper.NumberOfMoves;
@@ -286,82 +286,27 @@ namespace prefSQL.SQLParser
                             throw new Exception("WeightedSum cannot handle implicit INCOMPARABLE values. Please add the explicit OTHERS EQUAL to the preference");
                         }
 
+                        string strSelectExtremas = "";
+                        string strRankingWeights = "";
+                        string strRankingExpressions = "";
+                        string strColumnNames = "";
 
-                        //Add all Syntax before the RANKING OF-Clause
-                        strSQLReturn = strInput.Substring(0, strInput.IndexOf("RANKING OF", StringComparison.Ordinal) - 1);
-
-                        
-
-
-                        // Set the decimal seperator, because prefSQL double values are always with decimal separator "."
-                        NumberFormatInfo format = new NumberFormatInfo();
-                        format.NumberDecimalSeparator = ".";
-
-                        string strInternalSelectList = "";
-
-                        //Create  ORDER BY clause with help of the ranking model
-                        string strOrderBy = "ORDER BY ";
-                        bool bFirst = true;
-                        foreach (RankingModel model in prefSQL.Ranking)
+                        foreach (RankingModel rankingModel in prefSQL.Ranking)
                         {
-                            //Read min and max value of the preference
-                            DataTable dt = _helper.ExecuteStatement(model.SelectExtrema);
-                            string strMin;
-                            string strDividor;
-
-                            //Do correct unboxing from datatable
-                            if(dt.Columns[0].DataType == typeof(Int32))
-                            {
-                                double min = (int)dt.Rows[0][0];
-                                double max = (int)dt.Rows[0][1];
-                                
-                                //Write at least one decimal (in order SQL detects the number as double. Otherwise the result will be int values!!)
-                                strMin = string.Format(format, "{0:0.0###########}", min);
-                                strDividor = string.Format(format, "{0:0.0###########}", max - min);
-                            }
-                            else
-                            {
-                                throw new Exception("New Datatype detected. Please develop unboxing for this first!!");
-                            }
-
-                            
-                            //Create Normalization Formula, No Delta is needed
-                            //(Weight * (((attributevalue - minvalue) / (maxvalue-minvalue))))
-                            //For example: 0.2 * ((t1.price - 900.0) / 288100.0) + 0.01 AS Norm1
-                            string strNormalization = "(" + model.Weight.ToString(format) + " * (((" + model.Expression + " - " + strMin + ") / " + strDividor + ") ))";
-
-
-                            strInternalSelectList = strInternalSelectList + ", (((" + model.Expression + " - " + strMin + ") / " + strDividor + ") )";
-
-                            //Mathematical addition except for the first element
-                            if (bFirst)
-                            {
-                                bFirst = false;
-                                strOrderBy += strNormalization;
-                            }
-                            else
-                            {
-                                strOrderBy += " + " + strNormalization;
-                            }
+                            strSelectExtremas += rankingModel.SelectExtrema + ";";
+                            strRankingWeights += rankingModel.Weight + ";";
+                            strRankingExpressions += rankingModel.Expression + ";";
+                            strColumnNames += rankingModel.ColumnName + ";";
                         }
+                        strSelectExtremas = strSelectExtremas.TrimEnd(';');
+                        strRankingWeights = strRankingWeights.TrimEnd(';');
+                        strRankingExpressions = strRankingExpressions.TrimEnd(';');
+                        strColumnNames = strColumnNames.TrimEnd(';');
 
-
-                        //Add Skyline Attributes to select list. This option is i.e. useful to create a dominance graph.
-                        //With help of the skyline values it is easier to create this graph
-                        if (ShowInternalAttributes)
-                        {
-                            //Add the attributes to the existing SELECT clause
-                            string strSQLSelectClause = strInternalSelectList;
-                            string strSQLBeforeFrom = strSQLReturn.Substring(0, strSQLReturn.IndexOf("FROM", StringComparison.Ordinal));
-                            string strSQLAfterFromShow = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM", StringComparison.Ordinal));
-                            strSQLReturn = strSQLBeforeFrom + strSQLSelectClause + " " + strSQLAfterFromShow;
-
-                        }
-
-
-                        //Add the OrderBy caluse to the new SQL Query
-                        strSQLReturn += " " + strOrderBy;
-
+                        SPRanking spRanking = new SPRanking();
+                        spRanking.ShowInternalAttributes = ShowInternalAttributes;
+                        string strExecSQL = strInput.Replace("'", "''");
+                        strSQLReturn = spRanking.GetStoredProcedureCommand(strExecSQL, strSelectExtremas, strRankingWeights, strRankingExpressions, strColumnNames);
                     }
                 }
                 else

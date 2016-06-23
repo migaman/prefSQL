@@ -100,7 +100,7 @@ namespace prefSQL.SQLSkyline
             catch (Exception ex)
             {
                 //Pack Errormessage in a SQL and return the result
-                string strError = "Fehler in SP_SkylineBNL: ";
+                string strError = "Fehler in prefSQL_SkylineBNL: ";
                 strError += ex.Message;
 
                 if (isIndependent)

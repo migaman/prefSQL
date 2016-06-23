@@ -21,7 +21,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="numberOfRecords"></param>
         /// <param name="sortType"></param>
         /// <param name="upToLevel"></param>
-        [SqlProcedure(Name = "SP_MultipleSkylineBNL")]
+        [SqlProcedure(Name = "prefSQL_MultipleSkylineBNL")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType, SqlInt32 upToLevel)
         {
             SPMultipleSkylineBNL skyline = new SPMultipleSkylineBNL();
@@ -161,7 +161,7 @@ namespace prefSQL.SQLSkyline
                 catch (Exception ex)
                 {
                     //Pack Errormessage in a SQL and return the result
-                    string strError = "Fehler in SP_MultipleSkylineBNL: ";
+                    string strError = "Fehler in prefSQL_MultipleSkylineBNL: ";
                     strError += ex.Message;
 
                     if (isIndependent)

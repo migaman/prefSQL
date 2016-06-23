@@ -17,7 +17,7 @@ namespace prefSQL.SQLSkyline
         /// <param name="strOperators"></param>
         /// <param name="numberOfRecords"></param>
         /// <param name="sortType"></param>
-        [SqlProcedure(Name = "SP_SkylineBNLSortLevel")]
+        [SqlProcedure(Name = "prefSQL_SkylineBNLSortLevel")]
         public static void GetSkyline(SqlString strQuery, SqlString strOperators, SqlInt32 numberOfRecords, SqlInt32 sortType)
         {
             SPSkylineBNLSortLevel skyline = new SPSkylineBNLSortLevel();

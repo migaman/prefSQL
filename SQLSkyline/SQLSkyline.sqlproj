@@ -103,5 +103,6 @@
     <Compile Include="SPSkylineHexagonLevel.cs" />
     <Compile Include="SkylineSampling\SPSkylineSampling.cs" />
     <Compile Include="CLRSafeHashSet.cs" />
+    <Compile Include="SPRanking.cs" />
   </ItemGroup>
 </Project>

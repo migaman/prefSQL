@@ -48,11 +48,11 @@ namespace prefSQL.SQLSkyline
             string strSQLReturn;
             if (HasIncomparablePreferences)
             {
-                strSQLReturn = "EXEC dbo.SP_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
+                strSQLReturn = "EXEC dbo.prefSQL_SkylineBNLSort '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
             }
             else
             {
-                strSQLReturn = "EXEC dbo.SP_SkylineBNLSortLevel '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
+                strSQLReturn = "EXEC dbo.prefSQL_SkylineBNLSortLevel '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
             }
             return strSQLReturn;
             
@@ -60,7 +60,7 @@ namespace prefSQL.SQLSkyline
 
         public override DataTable GetSkylineTable(String querySQL, String preferenceOperators)
         {
-            Strategy = getSP_Skyline();
+            Strategy = getSPSkyline();
             Strategy.WindowHandling = WindowHandling;
             DataTable dt = Strategy.GetSkylineTable(querySQL, preferenceOperators, RecordAmountLimit, true, ConnectionString, Provider, AdditionParameters, SortType);
             TimeMilliseconds = Strategy.TimeInMs;
@@ -71,7 +71,7 @@ namespace prefSQL.SQLSkyline
 
         internal override DataTable GetSkylineTable(IEnumerable<object[]> database, DataTable dataTableTemplate, SqlDataRecord dataRecordTemplate, string preferenceOperators)
         {
-            Strategy = getSP_Skyline();
+            Strategy = getSPSkyline();
             Strategy.WindowHandling = WindowHandling;
             DataTable dt = Strategy.GetSkylineTable(database, dataTableTemplate, dataRecordTemplate, preferenceOperators, RecordAmountLimit, true, SortType, AdditionParameters);
             TimeMilliseconds = Strategy.TimeInMs;
@@ -80,7 +80,7 @@ namespace prefSQL.SQLSkyline
             return dt;            
         }
 
-        private TemplateStrategy getSP_Skyline()
+        private TemplateStrategy getSPSkyline()
         {
             if (HasIncomparablePreferences)
             {
