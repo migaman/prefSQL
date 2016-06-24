@@ -719,10 +719,10 @@ namespace prefSQL.SQLSkyline.SkylineSampling
             switch (SelectedStrategy.SortType)
             {
                 case 1:
-                    Helper.SortByRank(dataTable, skylineValues);
+                    Helper.SortBySum(dataTable, skylineValues);
                     break;
                 case 2:
-                    Helper.SortBySum(dataTable, skylineValues);
+                    Helper.SortByRank(dataTable, skylineValues);
                     break;
                 default:
                     break;
