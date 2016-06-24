@@ -66,11 +66,11 @@ namespace prefSQL.SQLSkyline
                 //Sort ByRank
                 if (sortType == 1)
                 {
-                    dataTableReturn = Helper.SortByRank(dataTableReturn, SkylineValues);
+                    dataTableReturn = Helper.SortBySum(dataTableReturn, SkylineValues);    
                 } 
                 else if(sortType == 2)
                 {
-                    dataTableReturn = Helper.SortBySum(dataTableReturn, SkylineValues);    
+                    dataTableReturn = Helper.SortByRank(dataTableReturn, SkylineValues);
                 }
 
                 //Remove certain amount of rows if query contains TOP Keyword

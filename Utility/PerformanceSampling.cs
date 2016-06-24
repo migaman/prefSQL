@@ -2307,11 +2307,11 @@
 
             if (sortType == 1)
             {
-                sortedDataTable = prefSQL.SQLSkyline.Helper.SortByRank(entireSkyline, skylineValues);
+                sortedDataTable = prefSQL.SQLSkyline.Helper.SortBySum(entireSkyline, skylineValues);
             }
             else if (sortType == 2)
             {
-                sortedDataTable = prefSQL.SQLSkyline.Helper.SortBySum(entireSkyline, skylineValues);
+                sortedDataTable = prefSQL.SQLSkyline.Helper.SortByRank(entireSkyline, skylineValues);
             }
 
             prefSQL.SQLSkyline.Helper.GetAmountOfTuples(sortedDataTable, numberOfRecords);
