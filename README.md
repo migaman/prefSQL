@@ -11,3 +11,6 @@ However, it can also be used standalone, for example to query against another re
 The Documents folder contains information on how to install and use the framework.
 
 
+Continuous Integration/Deployment
+=======
+[![Build Status](https://travis-ci.org/migaman/prefSQL.svg?branch=master)](https://travis-ci.org/migaman/prefSQL)
