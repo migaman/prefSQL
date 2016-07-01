@@ -15,4 +15,3 @@ Continuous Integration/Deployment
 =======
 ###### - AppVeyor [![Build status](https://ci.appveyor.com/api/projects/status/458h4u5v0qbh2tr7?svg=true)](https://ci.appveyor.com/project/migaman/prefsql)
 
-###### - Travis CI 	[![Build Status](https://travis-ci.org/migaman/prefSQL.svg?branch=master)](https://travis-ci.org/migaman/prefSQL)
