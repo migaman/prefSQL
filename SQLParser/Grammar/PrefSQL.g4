@@ -32,7 +32,7 @@
 
 //This input grammar file contains a substantial portion of the SQLite parser mentioned above.
 //It was reduced to the SELECT operation and preference based logic was added
-grammar SQL;
+grammar PrefSQL;
 
 options
 {

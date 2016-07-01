@@ -7,6 +7,7 @@ using prefSQL.SQLParser.Models;
 using prefSQL.SQLSkyline;
 using prefSQL.SQLSkyline.SkylineSampling;
 using System.Globalization;
+using prefSQL.Grammar;
 
 namespace prefSQL.SQLParser
 {
@@ -472,7 +473,7 @@ namespace prefSQL.SQLParser
 
         internal PrefSQLModel GetPrefSqlModelFromPreferenceSql(string preferenceSql)
         {
-            SQLParser parser = new SQLParser(new CommonTokenStream(new SQLLexer(new AntlrInputStream(preferenceSql))));
+            PrefSQLParser parser = new PrefSQLParser(new CommonTokenStream(new PrefSQLLexer(new AntlrInputStream(preferenceSql))));
 
             // An error listener helps to return detailed parser syntax errors
             ErrorListener listener = new ErrorListener();

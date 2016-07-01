@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Antlr4.Runtime.Tree;
 using prefSQL.SQLParser.Models;
+using prefSQL.Grammar;
 using System.Globalization;
 
 namespace prefSQL.SQLParser
 {
     //internal class
-    class SQLVisitor : SQLBaseVisitor<PrefSQLModel>
+    class SQLVisitor : PrefSQLBaseVisitor<PrefSQLModel>
     {
         private Dictionary<string, string> _tables = new Dictionary<string, string>();   //contains all tables from the query
         private int _numberOfRecords;                        //Specifies the number of records to return (TOP Clause), 0 = all records
@@ -29,7 +30,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override PrefSQLModel VisitTop_keyword(SQLParser.Top_keywordContext context)
+        public override PrefSQLModel VisitTop_keyword(PrefSQLParser.Top_keywordContext context)
         {
             _numberOfRecords = int.Parse(context.GetChild(1).GetText());
             return base.VisitTop_keyword(context);
@@ -41,7 +42,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override PrefSQLModel VisitTable_List_Item(SQLParser.Table_List_ItemContext context)
+        public override PrefSQLModel VisitTable_List_Item(PrefSQLParser.Table_List_ItemContext context)
         {
             string strTable = context.GetChild(0).GetText();
             string strTableAlias = "";
@@ -66,7 +67,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override PrefSQLModel VisitWeightedsumAnd(SQLParser.WeightedsumAndContext context)
+        public override PrefSQLModel VisitWeightedsumAnd(PrefSQLParser.WeightedsumAndContext context)
         {
             //And was used --> visit left and right node
             PrefSQLModel left = Visit(context.exprRanking(0));
@@ -124,7 +125,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override PrefSQLModel VisitWeightedsumLowHigh(SQLParser.WeightedsumLowHighContext context)
+        public override PrefSQLModel VisitWeightedsumLowHigh(PrefSQLParser.WeightedsumLowHighContext context)
         {
             //Keyword LOW or HIGH
 
@@ -132,7 +133,7 @@ namespace prefSQL.SQLParser
             string strColumnName = GetColumnName(context.GetChild(0));
             string strTable = GetTableName(context.GetChild(0));
             string strExpression = strTable + "." + strColumnName;
-            if (context.op.Type == SQLParser.K_HIGH)
+            if (context.op.Type == PrefSQLParser.K_HIGH)
             {
                 //Multiply with -1 (result: every value can be minimized!)
                 strExpression += " * -1";
@@ -152,7 +153,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override PrefSQLModel VisitWeightedsumAround(SQLParser.WeightedsumAroundContext context)
+        public override PrefSQLModel VisitWeightedsumAround(PrefSQLParser.WeightedsumAroundContext context)
         {
             //Keyword AROUND, FAVOUR, DISFAVOUR
             string strExpression = "";
@@ -163,18 +164,18 @@ namespace prefSQL.SQLParser
             
             switch (context.op.Type)
             {
-                case SQLParser.K_AROUND:
+                case PrefSQLParser.K_AROUND:
 
                     //Value should be as close as possible to a given numeric value
                     //Check if its a geocoordinate
                     strExpression = "ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ")";
                     break;
-                case SQLParser.K_FAVOUR:
+                case PrefSQLParser.K_FAVOUR:
                     //Value should be as close as possible to a given string value
                     strExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
                     break;
 
-                case SQLParser.K_DISFAVOUR:
+                case PrefSQLParser.K_DISFAVOUR:
                     //Value should be as far away as possible to a given string value
                     strExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
                     break;
@@ -195,7 +196,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override PrefSQLModel VisitWeightedsumCategory(SQLParser.WeightedsumCategoryContext context)
+        public override PrefSQLModel VisitWeightedsumCategory(PrefSQLParser.WeightedsumCategoryContext context)
         {
             //It is a text --> Text text must be converted in a given sortorder
 
@@ -284,7 +285,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override PrefSQLModel VisitSkylineAnd(SQLParser.SkylineAndContext context)
+        public override PrefSQLModel VisitSkylineAnd(PrefSQLParser.SkylineAndContext context)
         {
             //And was used --> visit left and right node
             PrefSQLModel left = Visit(context.exprSkyline(0));
@@ -326,7 +327,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override PrefSQLModel VisitSkylinePreferenceLowHigh(SQLParser.SkylinePreferenceLowHighContext context)
+        public override PrefSQLModel VisitSkylinePreferenceLowHigh(PrefSQLParser.SkylinePreferenceLowHighContext context)
         {
             bool isLevelStepEqual = true;
             string strColumnExpression = "";
@@ -363,10 +364,10 @@ namespace prefSQL.SQLParser
                 
             }
             //Keyword LOW or HIGH, build ORDER BY
-            if (context.op.Type == SQLParser.K_LOW || context.op.Type == SQLParser.K_HIGH)
+            if (context.op.Type == PrefSQLParser.K_LOW || context.op.Type == PrefSQLParser.K_HIGH)
             {
                 string strLevelAdditionaly = strLevelAdd;
-                if (context.op.Type == SQLParser.K_HIGH)
+                if (context.op.Type == PrefSQLParser.K_HIGH)
                 {
                     strLevelAdditionaly = strLevelMinus;
                     //Multiply with -1 (result: every value can be minimized!)
@@ -401,7 +402,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override PrefSQLModel VisitSkylinePreferenceCategory(SQLParser.SkylinePreferenceCategoryContext context)
+        public override PrefSQLModel VisitSkylinePreferenceCategory(PrefSQLParser.SkylinePreferenceCategoryContext context)
         {
             //It is a text --> Text text must be converted in a given sortordez
             string strHexagonIncomparable = "";
@@ -525,7 +526,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override PrefSQLModel VisitSkylinePreferenceAround(SQLParser.SkylinePreferenceAroundContext context)
+        public override PrefSQLModel VisitSkylinePreferenceAround(PrefSQLParser.SkylinePreferenceAroundContext context)
         {
             string strColumnExpression = "";
             string strInnerColumnExpression = "";
@@ -538,7 +539,7 @@ namespace prefSQL.SQLParser
 
             switch (context.op.Type)
             {
-                case SQLParser.K_AROUND:
+                case PrefSQLParser.K_AROUND:
                     
                     //Value should be as close as possible to a given numeric value
                     strColumnExpression = "CAST(ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ") AS bigint)";
@@ -546,14 +547,14 @@ namespace prefSQL.SQLParser
                     strExpression = "ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ")";
                     break;
 
-                case SQLParser.K_FAVOUR:
+                case PrefSQLParser.K_FAVOUR:
                     //Value should be as close as possible to a given string value
                     strColumnExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
                     strInnerColumnExpression = "CASE WHEN " + GetTableName(context.GetChild(0)) + InnerTableSuffix + "." + GetColumnName(context.GetChild(0)) + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
                     strExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
                     break;
 
-                case SQLParser.K_DISFAVOUR:
+                case PrefSQLParser.K_DISFAVOUR:
                     //Value should be as far away as possible to a given string value
                     strColumnExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
                     strInnerColumnExpression = "CASE WHEN " + GetTableName(context.GetChild(0)) + InnerTableSuffix + "." + GetColumnName(context.GetChild(0)) + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END * -1";
@@ -575,7 +576,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override PrefSQLModel VisitSkylineMoreImportant(SQLParser.SkylineMoreImportantContext context)
+        public override PrefSQLModel VisitSkylineMoreImportant(PrefSQLParser.SkylineMoreImportantContext context)
         {
             //Preference with Priorization --> visit left and right node
             PrefSQLModel left = Visit(context.GetChild(0));
@@ -599,7 +600,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override PrefSQLModel VisitOrderByDefault(SQLParser.OrderByDefaultContext context)
+        public override PrefSQLModel VisitOrderByDefault(PrefSQLParser.OrderByDefaultContext context)
         {
             Model.Ordering = SQLCommon.Ordering.AsIs;
             return base.VisitOrderByDefault(context);
@@ -610,14 +611,14 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override PrefSQLModel VisitOrderBySpecial(SQLParser.OrderBySpecialContext context)
+        public override PrefSQLModel VisitOrderBySpecial(PrefSQLParser.OrderBySpecialContext context)
         {
             SQLCommon.Ordering ordering = SQLCommon.Ordering.AsIs;
-            if (context.op.Type == SQLParser.K_SUMRANK)
+            if (context.op.Type == PrefSQLParser.K_SUMRANK)
             {
                 ordering = SQLCommon.Ordering.RankingSummarize;
             }
-            else if (context.op.Type == SQLParser.K_BESTRANK)
+            else if (context.op.Type == PrefSQLParser.K_BESTRANK)
             {
                 ordering = SQLCommon.Ordering.RankingBestOf;
             }
@@ -634,7 +635,7 @@ namespace prefSQL.SQLParser
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override PrefSQLModel VisitOrderbyCategory(SQLParser.OrderbyCategoryContext context)
+        public override PrefSQLModel VisitOrderbyCategory(PrefSQLParser.OrderbyCategoryContext context)
         {
             string strSQL = "";
 
@@ -734,7 +735,7 @@ namespace prefSQL.SQLParser
             }
         }
 
-        public override PrefSQLModel VisitExprSampleSkyline(SQLParser.ExprSampleSkylineContext context)
+        public override PrefSQLModel VisitExprSampleSkyline(PrefSQLParser.ExprSampleSkylineContext context)
         {
             Model.SkylineSampleCount = int.Parse(context.GetChild(4).GetText());
             Model.SkylineSampleDimension = int.Parse(context.GetChild(6).GetText());

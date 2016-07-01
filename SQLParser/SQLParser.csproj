@@ -102,9 +102,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Antlr4 Include="Grammar\SQL.g4">
+    <Antlr4 Include="Grammar\PrefSQL.g4">
       <Generator>MSBuild:Compile</Generator>
-      <CustomToolNamespace>prefSQL.SQLParser</CustomToolNamespace>
+      <CustomToolNamespace>prefSQL.Grammar</CustomToolNamespace>
     </Antlr4>
   </ItemGroup>
   <ItemGroup>
