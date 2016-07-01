@@ -1,0 +1,32 @@
+# configuration for "master" branch
+# build in Debug mode and Test
+
+-
+  branches:
+    only:
+    - master
+
+  environment:
+    release_version: '0.9.1'
+
+  version: $(release_version).{build}
+
+  configuration: Debug
+
+  build:
+    project: prefSQL.sln
+    publish_nuget: true
+    include_nuget_references: true
+
+  before_build:
+  - nuget restore
+
+  assembly_info:
+    patch: true
+    file: '**\AssemblyInfo.*'
+    assembly_version: '{version}-dev'
+    assembly_file_version: '{version}'
+    assembly_informational_version: '{version}'
+
+  nuget:
+    project_feed: true
