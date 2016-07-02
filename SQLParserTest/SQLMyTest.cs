@@ -31,7 +31,7 @@ namespace prefSQL.SQLParserTest
         {
             //Create Database
 
-            string scriptDirectory = "E:\\Projekte\\prefSQL\\SQLParserTest\\";
+            string scriptDirectory = System.IO.Directory.GetCurrentDirectory();
             string sqlConnectionString = Helper.TestConnectionString;
             DirectoryInfo di = new DirectoryInfo(scriptDirectory);
             FileInfo[] rgFiles = di.GetFiles("*.sql");

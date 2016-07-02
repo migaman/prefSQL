@@ -105,7 +105,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="DBInit.sql" />
+    <Content Include="DBInit.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="HelperIntegrationTests.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
