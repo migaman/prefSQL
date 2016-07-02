@@ -13,6 +13,9 @@
 
   configuration: Debug
 
+  services:
+  - mssql2012sp1
+  
   build:
     project: prefSQL.sln
     publish_nuget: true
