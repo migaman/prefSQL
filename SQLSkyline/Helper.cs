@@ -95,41 +95,45 @@ namespace prefSQL.SQLSkyline
                     if (dap != null)
                     {
                         DbDataReader reader = selectCommand.ExecuteReader();
-
-                        reader.Read();
                         List<SqlMetaData> outputColumns = new List<SqlMetaData>();
                         object[] recordObjectStart = new object[reader.FieldCount];
-                        for (int iCol = 0; iCol < reader.FieldCount; iCol++)
+
+                        //only if data is available
+                        if (reader.Read())
                         {
-                            recordObjectStart[iCol] = (object)reader[iCol];
-
-                            if (iCol >= operators.Length)
+                            for (int iCol = 0; iCol < reader.FieldCount; iCol++)
                             {
-                                DataColumn col = new DataColumn(reader.GetName(iCol), reader.GetFieldType(iCol));
+                                recordObjectStart[iCol] = (object)reader[iCol];
 
-                                SqlMetaData outputColumn;
-                                if (col.DataType == typeof(Int32) || col.DataType == typeof(Int64) || col.DataType == typeof(DateTime))
+                                if (iCol >= operators.Length)
                                 {
-                                    outputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType));
-                                }
-                                else
-                                {
-                                    outputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
-                                }
-                                outputColumns.Add(outputColumn);
+                                    DataColumn col = new DataColumn(reader.GetName(iCol), reader.GetFieldType(iCol));
+
+                                    SqlMetaData outputColumn;
+                                    if (col.DataType == typeof(Int32) || col.DataType == typeof(Int64) || col.DataType == typeof(DateTime))
+                                    {
+                                        outputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType));
+                                    }
+                                    else
+                                    {
+                                        outputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
+                                    }
+                                    outputColumns.Add(outputColumn);
                                 
-                                //Check if column name already exists
-                                if (!dt.Columns.Contains(col.ColumnName))
-                                {
-                                    dt.Columns.Add(col);
-                                }
-                                else
-                                {
-                                    throw new Exception("Column name '" + col.ColumnName + "' already exists. Use an alias instead.");
-                                }
+                                    //Check if column name already exists
+                                    if (!dt.Columns.Contains(col.ColumnName))
+                                    {
+                                        dt.Columns.Add(col);
+                                    }
+                                    else
+                                    {
+                                        throw new Exception("Column name '" + col.ColumnName + "' already exists. Use an alias instead.");
+                                    }
                                 
+                                }
                             }
                         }
+                        
                         listObjects.Add(recordObjectStart);
 
                         record = new SqlDataRecord(outputColumns.ToArray());
@@ -151,7 +155,7 @@ namespace prefSQL.SQLSkyline
                 }
                 catch (Exception e)
                 {
-                    throw new Exception(e.Message);
+                    throw;
                 }
                 finally
                 {

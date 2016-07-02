@@ -178,6 +178,7 @@ namespace prefSQL.SQLParser
                     strategy.SortType = (int)model.Ordering; 
                     if (!model.HasSkylineSample)
                     {
+                        
                         dt = strategy.GetSkylineTable(strQuery, strOperators);
                         TimeInMilliseconds = strategy.TimeMilliseconds;
                         NumberOfComparisons = strategy.NumberOfComparisons;
@@ -201,6 +202,7 @@ namespace prefSQL.SQLParser
             catch (Exception e)
             {
                 Debug.WriteLine(e.Message);
+                throw;
             }
 
             return dt;            

@@ -85,24 +85,32 @@ namespace prefSQL.SQLParser
         /// <returns>Returns a DataTable with the requested values</returns>
         public DataTable ParseAndExecutePrefSQL(string connectionString, string driverString, String strPrefSql)
         {
-            //return ParseAndExecutePrefSQL(connectionString, driverString, GetPrefSqlModelFromPreferenceSql(strPrefSql));
+            DataTable dt = new DataTable();
+            try
+            {
+            
+                //return ParseAndExecutePrefSQL(connectionString, driverString, GetPrefSqlModelFromPreferenceSql(strPrefSql));
 
 
-            //Do not build 2 times the model!
-            Helper.ConnectionString = connectionString;
-            Helper.DriverString = driverString;
-            Helper.Cardinality = Cardinality;
-            Helper.WindowHandling = WindowHandling;
+                //Do not build 2 times the model!
+                Helper.ConnectionString = connectionString;
+                Helper.DriverString = driverString;
+                Helper.Cardinality = Cardinality;
+                Helper.WindowHandling = WindowHandling;
 
-            PrefSQLModel model = GetPrefSqlModelFromPreferenceSql(strPrefSql);
-            string sqlCommand = ParsePreferenceSQL(strPrefSql, model);
+                PrefSQLModel model = GetPrefSqlModelFromPreferenceSql(strPrefSql);
+                string sqlCommand = ParsePreferenceSQL(strPrefSql, model);
 
 
-            DataTable dt = Helper.GetResults(sqlCommand, SkylineType, model, ShowInternalAttributes);
-            TimeInMilliseconds = Helper.TimeInMilliseconds;
-            NumberOfComparisons = Helper.NumberOfComparisons;
-            NumberOfMoves = Helper.NumberOfMoves;
-
+                dt = Helper.GetResults(sqlCommand, SkylineType, model, ShowInternalAttributes);
+                TimeInMilliseconds = Helper.TimeInMilliseconds;
+                NumberOfComparisons = Helper.NumberOfComparisons;
+                NumberOfMoves = Helper.NumberOfMoves;
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
             return dt;
 
         }
