@@ -46,6 +46,6 @@
     $doc.Save($config)
  
     # attach mdf to local instance
-    $mdfFile = join-path $startPath "data\ecommercetest.mdf"
-    $ldfFile = join-path $startPath "data\ecommercetest_log.ldf"
+    $mdfFile = join-path $startPath "ecommercetest.mdf"
+    $ldfFile = join-path $startPath "ecommercetest_log.ldf"
     sqlcmd -S "$sqlInstance" -Q "Use [master]; CREATE DATABASE [$dbName] ON (FILENAME = '$mdfFile'),(FILENAME = '$ldfFile') for ATTACH"
