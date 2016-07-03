@@ -33,3 +33,19 @@
 
   nuget:
     project_feed: true
+
+- ps: 	
+    $startPath = "$($env:appveyor_build_folder)\bin\Debug
+    $sqlInstance = "(local)\SQL2012SP1"
+    $dbName = "ecommercetest"
+
+    # replace the db connection with the local instance
+    $config = join-path $startPath "App.config"
+    $doc = (gc $config) -as [xml]
+    $doc.SelectSingleNode('//connectionStrings/add[@name="unittest"]').connectionString = "Server=$sqlInstance; Database=$dbName; Trusted_connection=true"
+    $doc.Save($config)
+ 
+    # attach mdf to local instance
+    $mdfFile = join-path $startPath "data\ecommercetest.mdf"
+    $ldfFile = join-path $startPath "data\ecommercetest_log.ldf"
+    sqlcmd -S "$sqlInstance" -Q "Use [master]; CREATE DATABASE [$dbName] ON (FILENAME = '$mdfFile'),(FILENAME = '$ldfFile') for ATTACH"
