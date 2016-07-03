@@ -35,7 +35,7 @@
     project_feed: true
 
 - ps: 	
-    $startPath = "$($env:appveyor_build_folder)\bin\Debug
+    $startPath = "$($env:appveyor_build_folder)\bin\Debug"
     $sqlInstance = "(local)\SQL2012SP1"
     $dbName = "ecommercetest"
 
