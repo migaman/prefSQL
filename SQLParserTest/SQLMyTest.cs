@@ -26,7 +26,7 @@ namespace prefSQL.SQLParserTest
         private static String DBPrefix = "UnitTestDB";
         private static String PlaceholderDBPrefix = "[UnitTestDB]";
 
-        [ClassInitialize]
+        /*[ClassInitialize]
         public static void TestInitDb(TestContext testContext)
         {
             //Create Database
@@ -47,7 +47,7 @@ namespace prefSQL.SQLParserTest
                 connection.Close();
             }
 
-        }
+        }*/
 
 
         [TestMethod]
@@ -66,7 +66,7 @@ namespace prefSQL.SQLParserTest
         }
 
       
-
+        /*
         [ClassCleanup]
         public static void CleanupDatabase()
         {
@@ -82,6 +82,6 @@ namespace prefSQL.SQLParserTest
             connection.Open();
             cmd.ExecuteNonQuery();
             connection.Close();
-        }
+        }*/
     }
 }
