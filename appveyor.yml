@@ -34,7 +34,7 @@
   nuget:
     project_feed: true
 
-- ps: 	
+- ps: |	
     $startPath = "$($env:appveyor_build_folder)\bin\Debug"
     $sqlInstance = "(local)\SQL2012SP1"
     $dbName = "ecommercetest"
