@@ -25,7 +25,7 @@ namespace prefSQL.SQLParserTest
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineTest.xml", "TestDataRow",
             DataAccessMethod.Sequential),
          DeploymentItem("SQLParserSkylineTest.xml")]
-        public void TestSKYLINEAmountOfTupels_MSSQLCLR()
+        public void TestSkylineAmountOfTupelsMSSQLCLR()
         {
             string skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
 
@@ -161,7 +161,7 @@ namespace prefSQL.SQLParserTest
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineTest.xml", "TestDataRow",
             DataAccessMethod.Sequential),
          DeploymentItem("SQLParserSkylineTest.xml")]
-        public void TestSkylineParseResults()
+        public void TestParserSkylineQueries()
         {
             string skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
 
@@ -197,7 +197,7 @@ namespace prefSQL.SQLParserTest
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineTest.xml", "TestDataRow",
             DataAccessMethod.Sequential),
          DeploymentItem("SQLParserSkylineTest.xml")]
-        public void TestSKYLINEAmountOfTupels_DataTable()
+        public void TestSkylineAmountOfTupelsDataTable()
         {
             string skylineSampleSql = TestContext.DataRow["skylineSQL"].ToString();
 
@@ -251,7 +251,8 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSkylineMultipleLevels()
+        public void TestSkylineAmountOfTupelsMultipleLevelsMSSQLCLR()
+
         {
             string strSQL = "SELECT t1.id, t1.price, t1.mileage FROM cars_small t1 ";
             string strPreferences = " SKYLINE OF t1.price LOW, t1.mileage LOW";
@@ -269,8 +270,7 @@ namespace prefSQL.SQLParserTest
                 common.SkylineUpToLevel = 3;
                 string sqlTree = common.ParsePreferenceSQL(strSQL + strPreferences);
                 ArrayList levelRecordsTree = new ArrayList();
-                common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, strSQL + strPreferences);
-
+                
                 DbCommand command = cnnSQL.CreateCommand();
                 command.CommandTimeout = 0; //infinite timeout
                 command.CommandText = sqlTree;
@@ -293,7 +293,7 @@ namespace prefSQL.SQLParserTest
                     }
                 }
                 dataReader.Close();
-
+                
 
                 //BNL Algorithm (multiple times)
                 //As long as Query returns skyline tuples
@@ -380,7 +380,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSkylineShowInternalAttributes()
+        public void TestParserSkylineShowInternalAttributes()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH";
 
@@ -395,7 +395,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSKYLINE_LOW_With_Level()
+        public void TestParserSkylineLowWithLevel()
         {
             string strPrefSQL = "SELECT cars.id, cars.title, cars.Price FROM cars SKYLINE OF cars.price LOW 1000 EQUAL, cars.mileage LOW";
 
@@ -410,7 +410,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSkylineFavourRot()
+        public void TestParserSkylineFavourRot()
         {
             string strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF cars.price LOW, colors.name FAVOUR 'red'";
 
@@ -426,7 +426,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSkylineWithUnconventialJoin()
+        public void TestParserSkylineWithUnconventialJoin()
         {
             string strPrefSQL = "SELECT cars.id, cars.title, cars.price, colors.name FROM cars, colors WHERE cars.Color_Id = colors.Id SKYLINE OF cars.price LOW, colors.name ('gray' >> 'red')";
 
@@ -441,7 +441,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSkylineWithWhereClause()
+        public void TestParserSkylineWithWhereClause()
         {
             string strPrefSQL = "SELECT cars.id, cars.title, cars.price, cars.mileage FROM cars WHERE cars.price > 10000 SKYLINE OF cars.price LOW, cars.mileage low";
 
@@ -458,7 +458,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSkylinetopKeyword()
+        public void TestParserSkylinetopKeyword()
         {
             string strPrefSQL = "SELECT TOP 5 cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF cars.price LOW, colors.name ('pink' >> {'red', 'black'} >> 'beige' == 'yellow')";
 
@@ -472,7 +472,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSkyline2DimensionsJoinMultipleAccumulation()
+        public void TestParserSkyline2DimensionsJoinMultipleAccumulation()
         {
             string strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF cars.price LOW, colors.name ('pink' >> {'red', 'black'} >> 'beige' == 'yellow') ORDER BY cars.price ASC, colors.name('pink'>>{'red','black'}>>'beige'=='yellow')";
 
@@ -492,7 +492,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSkyline2DimensionsJoinOthersAccumulation()
+        public void TestParserSkyline2DimensionsJoinOthersAccumulation()
         {
             string strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF cars.price LOW, colors.name ('türkis' >> 'yellow' >> OTHERS INCOMPARABLE)";
 
@@ -507,7 +507,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSkyline2DimensionsJoinNoOthers()
+        public void TestParserSkyline2DimensionsJoinNoOthers()
         {
             string strPrefSQL = "SELECT cars.id, cars.title, cars.Price, colors.Name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF cars.price LOW, colors.name ('pink' >> 'red' == 'black' >> 'beige' == 'yellow')";
 
@@ -523,7 +523,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSkyline2DimensionsNoJoin()
+        public void TestParserSkyline2DimensionsNoJoin()
         {
             string strPrefSQL = "SELECT cars.id, cars.price, cars.title FROM cars SKYLINE OF cars.title ('MERCEDES-BENZ SL 600' >> OTHERS EQUAL), cars.price LOW";
 
@@ -539,7 +539,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSkyline2DimensionsWithJoin()
+        public void TestParserSkyline2DimensionsWithJoin()
         {
             string strPrefSQL = "SELECT cars.id, cars.price, cars.title, colors.name FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF colors.name ('red' >> OTHERS EQUAL), cars.price LOW";
 
@@ -555,7 +555,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSkyline2Dimensions()
+        public void TestParserSkyline2Dimensions()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW ORDER BY price ASC, mileage ASC";
 
@@ -573,7 +573,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSkyline2DimensionswithAlias()
+        public void TestParserSkyline2DimensionswithAlias()
         {
             string strPrefSQL = "SELECT * FROM cars t1 SKYLINE OF t1.price LOW, t1.mileage LOW";
 
@@ -591,7 +591,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSkyline3Dimensions()
+        public void TestParserSkyline3Dimensions()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH ORDER BY price ASC, mileage ASC, horsepower DESC";
 
@@ -611,7 +611,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestSkylinearound()
+        public void TestParserSkylinearound()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price AROUND 15000, cars.mileage LOW";
 

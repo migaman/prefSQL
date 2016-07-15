@@ -18,7 +18,7 @@
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
             "SQLParserSkylineSamplingIntegrationTests.xml", "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SQLParserSkylineSamplingIntegrationTests.xml")]
-        public void TestNumberOfObjectsWithinEntireSkyline()
+        public void TestSamplingNumberOfObjectsWithinEntireSkyline()
         {
             string entireSkylineSQL = TestContext.DataRow["entireSkylineSQL"].ToString();
             string testComment = TestContext.DataRow["comment"].ToString();
@@ -40,7 +40,7 @@
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
             "SQLParserSkylineSamplingIntegrationTests.xml", "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SQLParserSkylineSamplingIntegrationTests.xml")]
-        public void TestNumberOfObjectsWithinSampleSkylineWithCountOneEqualsEntireSkyline()
+        public void TestSamplingNumberOfObjectsWithinSampleSkylineWithCountOneEqualsEntireSkyline()
         {
             string entireSkylineSQL = TestContext.DataRow["entireSkylineSQL"].ToString();
             string testComment = TestContext.DataRow["comment"].ToString();         
@@ -64,7 +64,7 @@
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
             "SQLParserSkylineSamplingIntegrationTests.xml", "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SQLParserSkylineSamplingIntegrationTests.xml")]
-        public void TestNumberOfObjectsWithinSampleSkyline()
+        public void TestSamplingNumberOfObjectsWithinSampleSkyline()
         {
             string skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             string testComment = TestContext.DataRow["comment"].ToString();
@@ -138,7 +138,7 @@
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
             "SQLParserSkylineSamplingIntegrationTests.xml", "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SQLParserSkylineSamplingIntegrationTests.xml")]
-        public void TestOnlyNonDominatedObjectsWithinSampleSkyline()
+        public void TestSamplingOnlyNonDominatedObjectsWithinSampleSkyline()
         {
             string skylineSampleSql = TestContext.DataRow["skylineSampleSQL"].ToString();
             string entireSkylineSql = TestContext.DataRow["entireSkylineSQL"].ToString();

@@ -18,7 +18,7 @@
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SkylineSamplingUtilityTests.xml", "TestDataRow",
             DataAccessMethod.Sequential),
          DeploymentItem("SkylineSamplingUtilityTests.xml")]
-        public void TestProducedSubsets()
+        public void TestSamplingProducedSubsets()
         {
             string testComment = TestContext.DataRow["comment"].ToString();
             Debug.WriteLine(testComment);
@@ -88,7 +88,7 @@
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SkylineSamplingUtilityTests_Incorrect.xml",
             "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SkylineSamplingUtilityTests_Incorrect.xml")]
-        public void TestIncorrectSubsetQueries()
+        public void TestSamplingIncorrectSubsetQueries()
         {
             var hasExceptionBeenRaised = false;
 
@@ -131,7 +131,7 @@
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
             "SkylineSamplingUtilityTests_BinomialCoefficient.xml", "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SkylineSamplingUtilityTests_BinomialCoefficient.xml")]
-        public void TestBinomialCoefficient()
+        public void TestSamplingBinomialCoefficient()
         {
             int n = int.Parse(TestContext.DataRow["n"].ToString());
             int[] coefficients = TestContext.DataRow["coefficients"].ToString().Split(',').Select(int.Parse).ToArray();
@@ -148,7 +148,7 @@
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
             "SkylineSamplingUtilityTests_BinomialCoefficient.xml", "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SkylineSamplingUtilityTests_BinomialCoefficient.xml")]
-        public void TestOutsideOfValidIntervalParametersForBinomialCoefficient()
+        public void TestSamplingOutsideOfValidIntervalParametersForBinomialCoefficient()
         {
             int n = int.Parse(TestContext.DataRow["n"].ToString());
             int[] coefficients = TestContext.DataRow["coefficients"].ToString().Split(',').Select(int.Parse).ToArray();

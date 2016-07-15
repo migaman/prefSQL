@@ -15,7 +15,7 @@ namespace prefSQL.SQLParserTest
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineSamplingTests_CorrectSyntax.xml",
             "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SQLParserSkylineSamplingTests_CorrectSyntax.xml")]
-        public void TestSyntaxValidityOfSyntacticallyCorrectSqlStatements()
+        public void TestSamplingSyntaxValidityOfSyntacticallyCorrectSqlStatements()
         {
             var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
@@ -39,7 +39,7 @@ namespace prefSQL.SQLParserTest
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineSamplingTests_CorrectSyntax.xml",
             "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SQLParserSkylineSamplingTests_CorrectSyntax.xml")]
-        public void TestParsedSkylineSqlCorrectness()
+        public void TestSamplingParsedSkylineSqlCorrectness()
         {
             var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
@@ -58,7 +58,7 @@ namespace prefSQL.SQLParserTest
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineSamplingTests_CorrectSyntax.xml",
             "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SQLParserSkylineSamplingTests_CorrectSyntax.xml")]
-        public void TestParsedSkylineBnlCorrectness()
+        public void TestSamplingParsedSkylineBnlCorrectness()
         {
             var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
@@ -77,7 +77,7 @@ namespace prefSQL.SQLParserTest
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineSamplingTests_CorrectSyntax.xml",
             "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SQLParserSkylineSamplingTests_CorrectSyntax.xml")]
-        public void TestParsedSkylineBnlSortCorrectness()
+        public void TestSamplingParsedSkylineBnlSortCorrectness()
         {
             var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
@@ -96,7 +96,7 @@ namespace prefSQL.SQLParserTest
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineSamplingTests_CorrectSyntax.xml",
             "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SQLParserSkylineSamplingTests_CorrectSyntax.xml")]
-        public void TestParsedSkylineDqCorrectness()
+        public void TestSamplingParsedSkylineDqCorrectness()
         {
             var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
@@ -115,7 +115,7 @@ namespace prefSQL.SQLParserTest
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineSamplingTests_CorrectSyntax.xml",
             "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SQLParserSkylineSamplingTests_CorrectSyntax.xml")]
-        public void TestParsedMultipleSkylineBnlCorrectness()
+        public void TestSamplingParsedMultipleSkylineBnlCorrectness()
         {
             var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
@@ -134,7 +134,7 @@ namespace prefSQL.SQLParserTest
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SQLParserSkylineSamplingTests_CorrectSyntax.xml",
             "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SQLParserSkylineSamplingTests_CorrectSyntax.xml")]
-        public void TestParsedSkylineHexagonCorrectness()
+        public void TestSamplingParsedSkylineHexagonCorrectness()
         {
             var skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
@@ -153,7 +153,7 @@ namespace prefSQL.SQLParserTest
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML",
             "SQLParserSkylineSamplingTests_IncorrectSyntax.xml", "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SQLParserSkylineSamplingTests_IncorrectSyntax.xml")]
-        public void TestSyntaxValidityOfSyntacticallyIncorrectSqlStatements()
+        public void TestSamplingSyntaxValidityOfSyntacticallyIncorrectSqlStatements()
         {
             var hasExceptionBeenRaised = false;
 

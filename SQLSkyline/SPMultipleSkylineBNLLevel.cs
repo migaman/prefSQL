@@ -30,7 +30,7 @@ namespace prefSQL.SQLSkyline
             SPMultipleSkylineBNLLevel skyline = new SPMultipleSkylineBNLLevel();
             string[] additionalParameters = new string[5];
             additionalParameters[4] = upToLevel.ToString();
-            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, additionalParameters, sortType.Value);
+            skyline.GetSkylineTable(strQuery.ToString(), strOperators.ToString(), numberOfRecords.Value, false, Helper.CnnStringSqlclr, Helper.ProviderClr, additionalParameters, sortType.Value, true);
         }
 
 

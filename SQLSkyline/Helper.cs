@@ -71,7 +71,17 @@ namespace prefSQL.SQLSkyline
             return dt;
         }
 
+        public static List<object[]> GetObjectArrayFromSQLWithLevel(string strQuery, string strConnection, string strProvider, DataTable dt, string[] operators, out SqlDataRecord record)
+        {
+            return GetObjectArrayFromSQL(strQuery, strConnection, strProvider, dt, operators, out record, true);
+        }
+
         public static List<object[]> GetObjectArrayFromSQL(string strQuery, string strConnection, string strProvider, DataTable dt, string[] operators, out SqlDataRecord record)
+        {
+            return GetObjectArrayFromSQL(strQuery, strConnection, strProvider, dt, operators, out record, false);
+        }
+
+        private static List<object[]> GetObjectArrayFromSQL(string strQuery, string strConnection, string strProvider, DataTable dt, string[] operators, out SqlDataRecord record, bool addLevel)
         {
             record = null;
             List<object[]> listObjects = new List<object[]>();
@@ -119,7 +129,7 @@ namespace prefSQL.SQLSkyline
                                         outputColumn = new SqlMetaData(col.ColumnName, TypeConverter.ToSqlDbType(col.DataType), col.MaxLength);
                                     }
                                     outputColumns.Add(outputColumn);
-                                
+
                                     //Check if column name already exists
                                     if (!dt.Columns.Contains(col.ColumnName))
                                     {
@@ -136,8 +146,15 @@ namespace prefSQL.SQLSkyline
                         
                         listObjects.Add(recordObjectStart);
 
-                        record = new SqlDataRecord(outputColumns.ToArray());
+                        //add level column for multiple skyline algorithms
+                        if (addLevel)
+                        {
+                            SqlMetaData outputColumnLevel = new SqlMetaData("level", TypeConverter.ToSqlDbType(typeof(Int32)));
+                            outputColumns.Add(outputColumnLevel);
+                        }
+                        
 
+                        record = new SqlDataRecord(outputColumns.ToArray());
                         //Now save all records to array (Profiling: faster than working with the reader in the algorithms)
                         while (reader.Read())
                         {

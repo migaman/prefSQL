@@ -80,7 +80,6 @@
     <Compile Include="SkylineSamplingHelper.cs" />
     <Compile Include="FixedSkylineSamplingSubsetsProducer.cs" />
     <Compile Include="Helper.cs" />
-    <Compile Include="SQLMyTest.cs" />
     <Compile Include="SQLParserRankingTest.cs" />
     <Compile Include="SQLParserSkylineSamplingIntegrationTests.cs" />
     <Compile Include="SQLParserSkylineSamplingTests.cs" />
@@ -107,9 +106,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="DBInit.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="eCommerceTest.mdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -119,6 +115,7 @@
     </Content>
     <Content Include="HelperIntegrationTests.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </Content>
     <Content Include="SQLParserSkylineSamplingIntegrationTests.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -132,6 +129,7 @@
     </Content>
     <Content Include="SQLParserSkylineTest.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </Content>
   </ItemGroup>
   <Choose>

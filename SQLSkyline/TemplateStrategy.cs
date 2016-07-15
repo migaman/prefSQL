@@ -14,6 +14,15 @@ namespace prefSQL.SQLSkyline
         public long NumberOfMoves { get; set; }
         internal List<long[]> SkylineValues { get; set; } //ordering is done in this class. Ordering needs the skyline values
         
+        public DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, string[] additionalParameters, int sortType, bool addLevel)
+        {
+            string[] operators = strOperators.Split(';');
+            DataTable dtResult = new DataTable();
+            SqlDataRecord record = null;
+            List<object[]> listObjects = Helper.GetObjectArrayFromSQLWithLevel(strQuery, strConnection, strProvider, dtResult, operators, out record);
+            return GetSkylineTable(listObjects, dtResult, record, strOperators, numberOfRecords, isIndependent, sortType, additionalParameters);
+        }
+
         public DataTable GetSkylineTable(String strQuery, String strOperators, int numberOfRecords, bool isIndependent, string strConnection, string strProvider, string[] additionalParameters, int sortType)
         {
             string[] operators = strOperators.Split(';');

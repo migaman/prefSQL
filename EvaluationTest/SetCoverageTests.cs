@@ -17,7 +17,7 @@
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SetCoverageTests_EuclideanDistance.xml",
             "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SetCoverageTests_EuclideanDistance.xml")]
-        public void TestCalculateEuclideanDistance()
+        public void TestSamplingCalculateEuclideanDistance()
         {
             double[] item1 =
                 TestContext.DataRow["item1"].ToString()
@@ -42,7 +42,7 @@
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SetCoverageTests_SetCoverage.xml",
             "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SetCoverageTests_SetCoverage.xml")]
-        public void TestGetCoverage()
+        public void TestSamplingGetCoverage()
         {
             DataRow[] itemsToBeCovered =
                TestContext.DataRow.GetChildRows("TestDataRow_itemsToBeCovered")[0].GetChildRows("itemsToBeCovered_item");
@@ -89,7 +89,7 @@
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "SetCoverageTests_SetCoverage.xml",
             "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("SetCoverageTests_SetCoverage.xml")]
-        public void TestGetMaxDistanceOfCoveredObjectsToTheirCoveringObjects()
+        public void TestSamplingGetMaxDistanceOfCoveredObjectsToTheirCoveringObjects()
         {
             DataRow[] itemsToBeCovered =
                TestContext.DataRow.GetChildRows("TestDataRow_itemsToBeCovered")[0].GetChildRows("itemsToBeCovered_item");

@@ -7,7 +7,7 @@ namespace prefSQL.SQLParserTest
     public class SQLParserSortTests
     {
         [TestMethod]
-        public void TestOrderingAsIs()
+        public void TestParserOrderingAsIs()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW ORDER BY cars.title";
 
@@ -22,7 +22,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestOrderingAsIsWithCategory()
+        public void TestParserOrderingAsIsWithCategory()
         {
             string strPrefSQL = "SELECT t1.id, t1.title, t2.name, bodies.name FROM cars_small t1 " +
                 "LEFT OUTER JOIN colors t2 ON t1.color_id = t2.ID " +
@@ -43,7 +43,7 @@ namespace prefSQL.SQLParserTest
         
 
         [TestMethod]
-        public void TestOrderingRankingBestOf()
+        public void TestParserOrderingRankingBestOf()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH ORDER BY BEST_RANK()";
 
@@ -61,7 +61,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestOrderingRankingSum()
+        public void TestParserOrderingRankingSum()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW, cars.horsepower HIGH ORDER BY SUM_RANK()";
 

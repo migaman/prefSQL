@@ -9,7 +9,7 @@ namespace prefSQL.SQLParserTest
     {
 
         [TestMethod]
-        public void TestSyntaxError()
+        public void TestParserSyntaxError()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW";
 
@@ -28,7 +28,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestWithoutPreference()
+        public void TestParserWithoutPreference()
         {
             string strPrefSQL = "SELECT cars.id, cars.title, cars.Price FROM cars";
 
@@ -41,7 +41,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestLowLevel()
+        public void TestParserLowLevel()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price LOW 10000 EQUAL";
 
@@ -53,7 +53,7 @@ namespace prefSQL.SQLParserTest
         }
 
         [TestMethod]
-        public void TestLow()
+        public void TestParserLow()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.mileage LOW";
 
@@ -66,7 +66,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestHigh()
+        public void TestParserHigh()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.horsepower HIGH";
 
@@ -78,7 +78,7 @@ namespace prefSQL.SQLParserTest
         }
 
         [TestMethod]
-        public void TestHighCustom()
+        public void TestParserHighCustom()
         {
             string strPrefSQL = "SELECT * FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF colors.name ('red' >> 'blue' >> OTHERS EQUAL >> 'gray') ";
 
@@ -91,7 +91,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestAround()
+        public void TestParserAround()
         {
             string strPrefSQL = "SELECT * FROM cars SKYLINE OF cars.price AROUND 15000";
 
@@ -106,7 +106,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestFavour()
+        public void TestParserFavour()
         {
             string strPrefSQL = "SELECT * FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF colors.name FAVOUR 'red'";
 
@@ -121,7 +121,7 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
-        public void TestDisfavour()
+        public void TestParserDisfavour()
         {
             string strPrefSQL = "SELECT * FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF colors.name DISFAVOUR 'red'";
 

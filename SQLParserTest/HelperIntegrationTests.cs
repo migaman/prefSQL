@@ -17,7 +17,7 @@ namespace prefSQL.SQLParserTest
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "HelperIntegrationTests.xml",
             "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("HelperIntegrationTests.xml")]
-        public void TestOnlyNonDominatedObjectsWithinSampleSkylineViaGetSkyline()
+        public void TestSamplingOnlyNonDominatedObjectsWithinSampleSkylineViaGetSkyline()
         {
             string skylineSampleSQL = TestContext.DataRow["skylineSampleSQL"].ToString();
             string entireSkylineSQL = TestContext.DataRow["entireSkylineSQL"].ToString();
@@ -79,7 +79,7 @@ namespace prefSQL.SQLParserTest
         [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "HelperIntegrationTests.xml",
             "TestDataRow", DataAccessMethod.Sequential),
          DeploymentItem("HelperIntegrationTests.xml")]
-        public void TestObjectsWithinEntireSkylineCount()
+        public void TestSamplingObjectsWithinEntireSkylineCount()
         {
             var entireSkylineSQL = TestContext.DataRow["entireSkylineSQL"].ToString();
             var testComment = TestContext.DataRow["comment"].ToString();
