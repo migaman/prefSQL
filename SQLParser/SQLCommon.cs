@@ -109,7 +109,7 @@ namespace prefSQL.SQLParser
             }
             catch (Exception e)
             {
-                throw;
+                throw e;
             }
             return dt;
 

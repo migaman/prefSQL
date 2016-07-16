@@ -172,7 +172,7 @@ namespace prefSQL.SQLSkyline
                 }
                 catch (Exception e)
                 {
-                    throw;
+                    throw e;
                 }
                 finally
                 {
