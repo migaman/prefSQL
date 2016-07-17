@@ -85,7 +85,7 @@
         # replace the db connection with the local instance
         $config = join-path $startPath "SQLParserTest\bin\$($env:CONFIGURATION)\SQLParserTest.dll.config"
         $doc = (gc $config) -as [xml]
-        $doc.SelectSingleNode('//connectionStrings/add[@name="unittest"]').connectionString = "Server=$sqlInstance;Database=$dbName;User ID=sa;Password=Password12!"		   		
+        $doc.SelectSingleNode('//connectionStrings/add[@name="localhost"]').connectionString = "Server=$sqlInstance;Database=$dbName;User ID=sa;Password=Password12!"		   		
         $doc.Save($config)
 
         # attach mdf to local instance
