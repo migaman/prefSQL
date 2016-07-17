@@ -92,3 +92,6 @@
         $mdfFile = join-path $startPath "SQLParserTest\ecommercetest.mdf"
         $ldfFile = join-path $startPath "SQLParserTest\ecommercetest_log.ldf"
         sqlcmd -S "$sqlInstance" -Q "Use [master]; CREATE DATABASE [$dbName] ON (FILENAME = '$mdfFile'),(FILENAME = '$ldfFile') for ATTACH"
+        #enable clr mode
+        sqlcmd -S "$server" -Q "Use [$dbName]; EXEC sys.sp_configure @configname = N'clr enabled', @configvalue = 1;"
+        sqlcmd -S "$server" -Q "Use [$dbName]; RECONFIGURE;"
