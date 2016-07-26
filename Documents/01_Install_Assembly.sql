@@ -26,7 +26,7 @@
 
 
 DECLARE @ASSEMBLY_PATH varchar(400);
-SET @ASSEMBLY_PATH = '$(assemblyPath)'
+SET @ASSEMBLY_PATH = '$(assemblyFile)'
 
 
 ------------------------------------------------------------------
