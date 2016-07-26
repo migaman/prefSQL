@@ -78,12 +78,12 @@
   # to run your custom scripts instead of automatic tests
   before_test:
     # to run script as a PowerShell command prepend it with ps:
+    # assemblypath needs apostrophe at the beginn because it is used as parameter for the sql script 
     - ps: |
         $startPath = "$($env:appveyor_build_folder)\"
         $sqlInstance = "(local)\SQL2012SP1"
         $dbName = "ecommercetest"
-        $assemblyPath = "$($env:appveyor_build_folder)\SQLSkyline\bin\$($env:CONFIGURATION)\SQLSkyline.dll"
-        echo $assemblyPath
+        $assemblyPath = "`"$($env:appveyor_build_folder)\SQLSkyline\bin\$($env:CONFIGURATION)\SQLSkyline.dll`""
 
         # replace the db connection with the local instance
         $config = join-path $startPath "SQLParserTest\bin\$($env:CONFIGURATION)\SQLParserTest.dll.config"
@@ -110,6 +110,6 @@
         sqlcmd -S "$sqlInstance" -Q "Use [$dbName]; EXEC sys.sp_configure @configname = N'clr enabled', @configvalue = 1;"
         sqlcmd -S "$sqlInstance" -Q "Use [$dbName]; RECONFIGURE;"
         
-        $myPath = "`"C:\Path`"" 
+        
         #install clr assembly and stored procs that are based on assembly
-        sqlcmd -S "$sqlInstance" -d "$dbName" -v assemblyFile = $myPath -i ".\Documents\01_Install_Assembly.sql"
+        sqlcmd -S "$sqlInstance" -d "$dbName" -v assemblyFile = $assemblyPath -i ".\Documents\01_Install_Assembly.sql"
