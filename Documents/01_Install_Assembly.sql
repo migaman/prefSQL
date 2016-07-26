@@ -24,6 +24,7 @@
 --DECLARE @ASSEMBLY_PATH varchar(400);
 --SET @ASSEMBLY_PATH = 'E:\Projekte\prefSQL\SQLSkyline\bin\Release\SQLSkyline.dll';
 
+
 DECLARE @ASSEMBLY_PATH varchar(400);
 SET @ASSEMBLY_PATH = '$(assemblyPath)'
 
