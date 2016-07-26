@@ -92,7 +92,20 @@
         # attach mdf to local instance
         $mdfFile = join-path $startPath "SQLParserTest\ecommercetest.mdf"
         $ldfFile = join-path $startPath "SQLParserTest\ecommercetest_log.ldf"
+        
+        # sqlcmd Utility parameters
+        # -d db_name
+        # -i input_file
+        # -P password
+        # -Q "cmdline query" (and exit)
+        # -S [protocol:]server[\instance_name][,port]
+        # -U login_id
+        
+        #create test database
         sqlcmd -S "$sqlInstance" -Q "Use [master]; CREATE DATABASE [$dbName] ON (FILENAME = '$mdfFile'),(FILENAME = '$ldfFile') for ATTACH"
         #enable clr mode
         sqlcmd -S "$sqlInstance" -Q "Use [$dbName]; EXEC sys.sp_configure @configname = N'clr enabled', @configvalue = 1;"
         sqlcmd -S "$sqlInstance" -Q "Use [$dbName]; RECONFIGURE;"
+        
+        #install clr assembly and stored procs that are based on assembly
+        sqlcmd -S "$sqlInstance" -d "$dbName" -i ".\Documents\01_Install_Assembly.sql"
