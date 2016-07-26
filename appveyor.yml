@@ -110,5 +110,6 @@
         sqlcmd -S "$sqlInstance" -Q "Use [$dbName]; EXEC sys.sp_configure @configname = N'clr enabled', @configvalue = 1;"
         sqlcmd -S "$sqlInstance" -Q "Use [$dbName]; RECONFIGURE;"
         
+        $myPath = "`"C:\Path`"" 
         #install clr assembly and stored procs that are based on assembly
-        sqlcmd -S "$sqlInstance" -d "$dbName" -v assemblyFile = "C:\projects\prefsql\SQLSkyline\bin\Release\SQLSkyline.dll" -i ".\Documents\01_Install_Assembly.sql"
+        sqlcmd -S "$sqlInstance" -d "$dbName" -v assemblyFile = $myPath -i ".\Documents\01_Install_Assembly.sql"
