@@ -20,6 +20,7 @@
     # whitelist
     only:
     - master
+    - v2-parser
 
 #---------------------------------#
 #    environment configuration    #

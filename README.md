@@ -13,5 +13,5 @@ The Documents folder contains information on how to install and use the framewor
 
 Continuous Integration/Deployment
 =======
-###### - AppVeyor [![Build status](https://ci.appveyor.com/api/projects/status/458h4u5v0qbh2tr7?svg=true)](https://ci.appveyor.com/project/migaman/prefsql)
+###### - AppVeyor [![Build status](https://ci.appveyor.com/api/projects/status/458h4u5v0qbh2tr7/branch/master)](https://ci.appveyor.com/project/migaman/prefsql)
 
