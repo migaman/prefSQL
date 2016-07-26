@@ -83,7 +83,7 @@
         $sqlInstance = "(local)\SQL2012SP1"
         $dbName = "ecommercetest"
         $assemblyPath = "$($env:appveyor_build_folder)\SQLSkyline\bin\$($env:CONFIGURATION)\SQLSkyline.dll"
-		
+        
         # replace the db connection with the local instance
         $config = join-path $startPath "SQLParserTest\bin\$($env:CONFIGURATION)\SQLParserTest.dll.config"
         $doc = (gc $config) -as [xml]
