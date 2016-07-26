@@ -110,4 +110,4 @@
         sqlcmd -S "$sqlInstance" -Q "Use [$dbName]; RECONFIGURE;"
         
         #install clr assembly and stored procs that are based on assembly
-        sqlcmd -S "$sqlInstance" -d "$dbName" -v assemblyFile ="test" -i ".\Documents\01_Install_Assembly.sql"
+        sqlcmd -S "$sqlInstance" -d "$dbName" -v assemblyFile ="$assemblyPath" -i ".\Documents\01_Install_Assembly.sql"
