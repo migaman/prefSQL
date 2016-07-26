@@ -25,7 +25,7 @@
 --SET @ASSEMBLY_PATH = 'E:\Projekte\prefSQL\SQLSkyline\bin\Release\SQLSkyline.dll';
 
 DECLARE @ASSEMBLY_PATH varchar(400);
-SET @ASSEMBLY_PATH = '$($env:appveyor_build_folder)\' + 'SQLSkyline\bin\$($env:CONFIGURATION)\SQLSkyline.dll';
+SET @ASSEMBLY_PATH = '$(assemblyPath)'
 
 
 ------------------------------------------------------------------

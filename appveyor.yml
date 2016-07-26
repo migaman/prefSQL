@@ -82,7 +82,8 @@
         $startPath = "$($env:appveyor_build_folder)\"
         $sqlInstance = "(local)\SQL2012SP1"
         $dbName = "ecommercetest"
-
+        $assemblyPath = "$($env:appveyor_build_folder)\SQLSkyline\bin\$($env:CONFIGURATION)\SQLSkyline.dll"
+		
         # replace the db connection with the local instance
         $config = join-path $startPath "SQLParserTest\bin\$($env:CONFIGURATION)\SQLParserTest.dll.config"
         $doc = (gc $config) -as [xml]
@@ -100,6 +101,7 @@
         # -Q "cmdline query" (and exit)
         # -S [protocol:]server[\instance_name][,port]
         # -U login_id
+        # -v var = "value"
         
         #create test database
         sqlcmd -S "$sqlInstance" -Q "Use [master]; CREATE DATABASE [$dbName] ON (FILENAME = '$mdfFile'),(FILENAME = '$ldfFile') for ATTACH"
@@ -108,4 +110,4 @@
         sqlcmd -S "$sqlInstance" -Q "Use [$dbName]; RECONFIGURE;"
         
         #install clr assembly and stored procs that are based on assembly
-        sqlcmd -S "$sqlInstance" -d "$dbName" -i ".\Documents\01_Install_Assembly.sql"
+        sqlcmd -S "$sqlInstance" -d "$dbName" -v assemblyPath="$assemblyPath" -i ".\Documents\01_Install_Assembly.sql"
