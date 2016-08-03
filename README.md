@@ -21,14 +21,14 @@ The Documents folder, included in this repo in the root directory, contains info
 
 ## Performance
 
-Overview of the Skyline algorithms using real data:
+Overview of the Skyline algorithms using real data.
 
 | Algorithm     | Dimensions    | Records  | Skyline size   | Avg. time   | Min.Time   | Max. Time   |
-| ------------- |:-------------:| --------:|:--------------:|------------:|-----------:|
-| BNL           | 7             | 55208    |
-| D&Q           | 7             | 55208    |
-| Hexagon       | 7             | 55208    |
-| Native SQL    | 7             | 55208    |
+| ------------- |:-------------:| --------:|:--------------:|------------:|-----------:|------------:|
+| BNL           | 7             | 55208    | 0 | 0 | 0 | 0 |
+| D&Q           | 7             | 55208    | 0 | 0 | 0 | 0 |
+| Hexagon       | 7             | 55208    | 0 | 0 | 0 | 0 |
+| Native SQL    | 7             | 55208    | 0 | 0 | 0 | 0 |
 
 
 Colons can be used to align columns.
