@@ -19,6 +19,22 @@ However, it can also be used standalone, for example to query against another re
 The Documents folder, included in this repo in the root directory, contains information on how to install and use the framework.
 
 
+## Performance
+
+Overview of the Skyline algorithms using real data:
+
+| Algorithm     | Dimensions    | Records  | Skyline size   | Avg. time   | Min.Time   | Max. Time   |
+| ------------- |:-------------:| --------:|:--------------:|------------:|-----------:|
+| BNL           | 7             | 55208    |
+| D&Q           | 7             | 55208    |
+| Hexagon       | 7             | 55208    |
+| Native SQL    | 7             | 55208    |
 
 
+## Data
 
+You can find CSV data files in the Data folder.
+You can find MS SQL database in the SQLParserTest folder.
+
+## License
+Code released under [the BSD license](https://github.com/migaman/prefSQL/blob/master/LICENSE.txt).
