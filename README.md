@@ -16,7 +16,6 @@ However, it can also be used standalone, for example to query against another re
 
 ## Documentation
 
-PrefSQL's documentation
 The Documents folder, included in this repo in the root directory, contains information on how to install and use the framework.
 
 
