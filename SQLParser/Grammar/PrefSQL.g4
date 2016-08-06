@@ -89,6 +89,7 @@ select_or_values
    ( K_FROM ( table_List_Item ( ',' table_List_Item )* | join_clause ) )?
    ( K_WHERE expr )?
    ( K_SKYLINE K_OF exprSkyline ( exprSkylineSample )? )?
+   ( K_GROUP K_BY expr)?
  ;
 
 type_name : name+ ( '(' signed_number ')' | '(' signed_number ',' signed_number ')' )?
@@ -314,6 +315,7 @@ keyword
  | K_COUNT
  | K_DIMENSION
  | K_WEIGHTEDSUM
+ | K_GROUP
  ;
 
 
@@ -434,7 +436,7 @@ K_RANDOMSUBSETS: R A N D O M '_' S U B S E T S;
 K_COUNT: C O U N T;
 K_DIMENSION: D I M E N S I O N;
 K_WEIGHTEDSUM : W E I G H T E D S U M;
-
+K_GROUP : G R O U P;
 
  /*
  * Lexer Rules

@@ -15,9 +15,9 @@ namespace Utility
         static void Main(string[] args)
         {
             Program prg = new Program();
-            //prg.MeasurePerformance();
+            prg.MeasurePerformance();
             //prg.testPaper();
-            prg.Run();
+            //prg.Run();
 
             /*
             DominanceGraph graph = new DominanceGraph();

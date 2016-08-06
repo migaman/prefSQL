@@ -56,6 +56,32 @@ namespace prefSQL.SQLParserTest
 
 
         [TestMethod]
+        public void TestSQLWithGroupBy()
+        {
+            string sql = "SELECT cars.color_id FROM cars GROUP BY cars.color_id";
+
+            SQLCommon common = new SQLCommon();
+            DataTable dt = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, sql);
+
+            Assert.IsTrue(dt.Rows.Count > 0, "Select result in no data");
+
+        }
+
+
+        [TestMethod]
+        public void TestSQLSelectSubqueryWithGroupBy()
+        {
+            string sql = "SELECT t.color_id, Amount FROM (SELECT cars.color_id, COUNT(*) AS Amount FROM cars GROUP BY cars.color_id) t";
+
+            SQLCommon common = new SQLCommon();
+            DataTable dt = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, sql);
+
+            Assert.IsTrue(dt.Rows.Count > 0, "Select result in no data");
+
+        }
+
+
+        [TestMethod]
         public void TestSQLSelectWithCoalesce()
         {
             string sql = "select COALESCE(cars.id, 0) FROM cars SKYLINE OF cars.price LOW, cars.mileage LOW";

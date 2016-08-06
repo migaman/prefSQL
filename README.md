@@ -23,12 +23,12 @@ The Documents folder, included in this repo in the root directory, contains info
 
 Overview of the Skyline algorithms using real data.
 
-| Algorithm     | Dimensions    | Records  | Skyline size   | Avg. time   | Min.Time   | Max. Time   |
-|---------------|--------------:| --------:|---------------:|------------:|-----------:|------------:|
-| BNL           | 7             | 55208    | 0 				| 0 		  | 0 	  	   | 0  		 |
-| D&Q           | 7             | 55208    | 0 				| 0 		  | 0 		   | 0 			 |
-| Hexagon       | 7             | 55208    | 0 				| 0 		  | 0 		   | 0 			 |
-| Native SQL    | 7             | 55208    | 0 				| 0 		  | 0 		   | 0 			 |
+| Algorithm     | Dimensions    | Records  | Skyline size   | Avg. time [ms]| Min.Time [ms]| Max. Time [ms]|
+|---------------|--------------:| --------:|---------------:|--------------:|-------------:|--------------:|
+| BNL           | 7             | 55208    | 0 				| 0 		    | 0 	  	   | 0    		   |
+| D&Q           | 7             | 55208    | 0 				| 0 		    | 0 		   | 0 			   |
+| Hexagon       | 7             | 55208    | 0 				| 0 		    | 0 		   | 0 			   |
+| Native SQL    | 7             | 55208    | 0 				| 0 		    | 0 		   | 0 			   |
 
 
 ## Data
