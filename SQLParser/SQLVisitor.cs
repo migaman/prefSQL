@@ -549,14 +549,15 @@ namespace prefSQL.SQLParser
 
                 case PrefSQLParser.K_FAVOUR:
                     //Value should be as close as possible to a given string value
-                    strColumnExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
+                    //Cast Column Expression, because coparison is built on long values
+                    strColumnExpression = "CAST(CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END AS BIGINT)";
                     strInnerColumnExpression = "CASE WHEN " + GetTableName(context.GetChild(0)) + InnerTableSuffix + "." + GetColumnName(context.GetChild(0)) + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
                     strExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
                     break;
-
                 case PrefSQLParser.K_DISFAVOUR:
                     //Value should be as far away as possible to a given string value
-                    strColumnExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END";
+                    //Add missing negative multiplication and Cast Column Expression, because coparison is built on long values. 
+                    strColumnExpression = "CAST(CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END * -1 AS BIGINT)";
                     strInnerColumnExpression = "CASE WHEN " + GetTableName(context.GetChild(0)) + InnerTableSuffix + "." + GetColumnName(context.GetChild(0)) + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END * -1";
                     strExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END * -1";
                     break;

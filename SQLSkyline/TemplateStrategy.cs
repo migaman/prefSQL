@@ -111,6 +111,7 @@ namespace prefSQL.SQLSkyline
                 //Pack Errormessage in a SQL and return the result
                 string strError = "Fehler in prefSQL_SkylineBNL: ";
                 strError += ex.Message;
+                strError += "\n StackTrace: " + ex.StackTrace;
 
                 if (isIndependent)
                 {
