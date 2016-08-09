@@ -92,8 +92,8 @@ namespace prefSQL.SQLSkyline
         {
             string strSQLReturn = ""; //The SQL-Query that is built on the basis of the prefSQL 
 
-            //Add all Syntax before the RANKING OF-Clause
-            strSQLReturn = strInput.Substring(0, strInput.IndexOf("RANKING OF", StringComparison.Ordinal) - 1);
+            //Add all Syntax before the ORDER BY WEIGHTEDSUM-Clause
+            strSQLReturn = strInput.Substring(0, strInput.IndexOf("ORDER BY WEIGHTEDSUM", StringComparison.Ordinal) - 1);
 
             // Set the decimal seperator, because prefSQL double values are always with decimal separator "."
             NumberFormatInfo format = new NumberFormatInfo();
@@ -116,6 +116,15 @@ namespace prefSQL.SQLSkyline
                 {
                     double min = (int)dt.Rows[0][0];
                     double max = (int)dt.Rows[0][1];
+
+                    //Write at least one decimal (in order SQL detects the number as double. Otherwise the result will be int values!!)
+                    strMin = string.Format(format, "{0:0.0###########}", min);
+                    strDividor = string.Format(format, "{0:0.0###########}", max - min);
+                }
+                else if (dt.Columns[0].DataType == typeof(Int64))
+                {
+                    double min = (long)dt.Rows[0][0];
+                    double max = (long)dt.Rows[0][1];
 
                     //Write at least one decimal (in order SQL detects the number as double. Otherwise the result will be int values!!)
                     strMin = string.Format(format, "{0:0.0###########}", min);

@@ -81,9 +81,9 @@ namespace prefSQL.SQLParser
 
 
             //Native SQL algorithm is already a valid SQL statement
-            if (strPrefSQL.StartsWith("SELECT"))
+            if (strPrefSQL.StartsWith("SELECT", true, null))
             {
-                if (!model.HasSkylineSample)
+                if (model == null || !model.HasSkylineSample)
                 {
                     //If query doesn't need skyline calculation (i.e. query without preference clause) --> set algorithm to nativeSQL
                     strategy = new SkylineSQL();
@@ -95,14 +95,14 @@ namespace prefSQL.SQLParser
             }
             else
             {
-                //Determine parameter only with skyline of clause and not with ranking of clause
+                //Determine parameter only with skyline of clause and not with weihtedsum clause
                 DetermineParameters(strPrefSQL, out parameter, out strQuery, out strOperators, out numberOfRecords);
                 
             }
 
             try
             {
-                if (model.Ranking.Count > 0)
+                if (model != null && model.Ranking.Count > 0)
                 {
                     SPRanking ranking = new SPRanking();
                     ranking.Provider = DriverString;
@@ -126,7 +126,7 @@ namespace prefSQL.SQLParser
                 }
                 else if (strategy.IsNative())
                 {
-                    if (!model.HasSkylineSample)
+                    if (model == null || !model.HasSkylineSample)
                     {
                         //Native SQL
 
@@ -156,6 +156,7 @@ namespace prefSQL.SQLParser
                         throw new Exception("native SQL not yet supported."); // TODO: consider native SQL support
                     }
                 }
+                
                 else
                 {
                     if (strategy.SupportImplicitPreference() == false && model.ContainsOpenPreference)

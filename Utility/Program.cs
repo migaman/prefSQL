@@ -138,6 +138,7 @@ namespace Utility
                 //SKYLINE Queries
 
                 //string strPrefSQL = "SELECT t.id                           FROM cars t SKYLINE OF t.price LOW, t.mileage LOW";
+                //string strPrefSQL = "select cars.id from cars";
                 //string strPrefSQL = "SELECT *                           FROM cars t WHERE t.doors = 5 SKYLINE OF t.price LOW, t.mileage LOW, t.horsepower HIGH, t.consumption LOW, t.registrationnumeric HIGH";
                 //string strPrefSQL = "SELECT t.title AS Modellname, t.price AS Preis, t.consumption AS Verbrauch FROM cars t LEFT OUTER JOIN Makes m ON t.make_id = m.id LEFT OUTER JOIN Bodies b ON t.body_id = b.id WHERE m.name = 'VW' AND b.name = 'Bus' SKYLINE OF t.price LOW 1000 EQUAL, t.consumption LOW";
                 //string strPrefSQL = "SELECT t.id, t.title, t.price, c.name, t.enginesize FROM cars t LEFT OUTER JOIN colors c ON t.color_id = c.id SKYLINE OF t.price LOW, c.name ('pink' >> 'black' >> OTHERS INCOMPARABLE), t.enginesize HIGH ORDER BY BEST_RANK()";
@@ -171,8 +172,8 @@ namespace Utility
 
 
                 //RANKING Queries
-                string strPrefSQL = "SELECT t.id, t.title FROM cars t RANKING OF t.price LOW 0.8, t.mileage LOW 0.2";
-                //string strPrefSQL = "SELECT t.id, t.title FROM cars t LEFT OUTER JOIN colors c ON t.color_id = c.id RANKING OF t.price LOW 0.5, c.name ('brown' >> 'green' >> OTHERS EQUAL) 0.5";
+                string strPrefSQL = "SELECT t.id, t.title FROM cars t ORDER BY WEIGHTEDSUM (t.price LOW 0.8, t.mileage LOW 0.2)";
+                //string strPrefSQL = "SELECT t.id, t.title FROM cars t LEFT OUTER JOIN colors c ON t.color_id = c.id ORDER BY WEIGTHEDSUM (t.price LOW 0.5, c.name ('brown' >> 'green' >> OTHERS EQUAL) 0.5)";
 
 
 
@@ -180,10 +181,10 @@ namespace Utility
 
                 //Playground --> Test here your queries
                 //string strPrefSQL = "SELECT c.id, c.price, b.name          FROM cars_small c   LEFT OUTER JOIN bodies b ON c.body_id = b.ID SKYLINE OF c.price LOW, b.name ('Bus' >> 'Kleinwagen')";
-                //string strPrefSQL = "SELECT c.id, c.price                  FROM cars_small c   LEFT OUTER JOIN colors cc ON c.color_id = cc.id RANKING OF c.price LOW 0.5, cc.name ('brown' >> 'green') 0.5";
+                //string strPrefSQL = "SELECT c.id, c.price                  FROM cars_small c   LEFT OUTER JOIN colors cc ON c.color_id = cc.id ORDER BY WEIGHTEDSUM (c.price LOW 0.5, cc.name ('brown' >> 'green') 0.5)";
                 //string strPrefSQL = "SELECT c.id, c.price                  FROM cars_small c   LEFT OUTER JOIN colors cc ON c.color_id = cc.id SKYLINE OF c.horsepower HIGH, cc.name ('red' >> 'blue' >> 'yellow')";
                 //string strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars_small t1  LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, colors.name ('red' >> 'blue' >> OTHERS INCOMPARABLE)";
-                //string strPrefSQL = "SELECT t1.id                          FROM cars t1        RANKING OF t1.price HIGH 0.5, t1.mileage HIGH 0.5, t1.horsepower LOW 0.5, t1.enginesize LOW 0.5, t1.consumption HIGH 0.5, t1.doors LOW 0.5, t1.cylinders LOW 0.5";
+                //string strPrefSQL = "SELECT t1.id                          FROM cars t1        ORDER BY WEIGHTEDSUM (t1.price HIGH 0.5, t1.mileage HIGH 0.5, t1.horsepower LOW 0.5, t1.enginesize LOW 0.5, t1.consumption HIGH 0.5, t1.doors LOW 0.5, t1.cylinders LOW 0.5)";
                 //string strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars t1        LEFT OUTER JOIN colors ON t1.color_id = colors.ID SKYLINE OF t1.price LOW, t1.mileage LOW, t1.horsepower HIGH, t1.enginesize HIGH, t1.doors HIGH, t1.consumption LOW, t1.cylinders HIGH, colors.name ('red' >> 'blue' >> 'yellow' >> OTHERS INCOMPARABLE)";
                 //string strPrefSQL = "SELECT t1.id, t1.title, t1.price      FROM cars t1        SKYLINE OF t1.price LOW, t1.mileage LOW ORDER BY BEST_RANK()";
                 //string strPrefSQL = "SELECT t1.id                          FROM cars t1        SKYLINE OF t1.price LOW, t1.mileage LOW";
@@ -211,9 +212,9 @@ namespace Utility
                 //string strPrefSQL = "SELECT cars.id, cars.title FROM  cars SKYLINE OF cars.price LOW,cars.mileage LOW,cars.horsepower HIGH,cars.enginesize HIGH,cars.consumption LOW,cars.doors HIGH,cars.seats HIGH";
 
                 //string strPrefSQL = "SELECT t.id, t.title, t.price, colors.name AS colour FROM cars t LEFT OUTER JOIN colors ON t.color_id = colors.id SKYLINE OF t.price LOW, t.mileage LOW, colors.name ('red' >> {'blue', 'yellow'} >> OTHERS INCOMPARABLE)";
-                //string strPrefSQL = "SELECT t.id, t.title FROM cars t RANKING OF t.price LOW 0.8, t.mileage LOW 0.2";
+                //string strPrefSQL = "SELECT t.id, t.title FROM cars t ORDER BY WEIGHTEDSUM (t.price LOW 0.8, t.mileage LOW 0.2)";
 
-                //string strPrefSQL = "SELECT t.id, t.title  FROM cars t    RANKING OF t.price LOW 0.8, t.mileage LOW 0.2";
+                //string strPrefSQL = "SELECT t.id, t.title  FROM cars t    ORDER BY WEIGHTEDSUM( t.price LOW 0.8, t.mileage LOW 0.2)";
 
                 //Query that results in more than 4000 Characters
                 /*string strPrefSQL = "SELECT  t1.id	, t1.title	, t1.price	, t1.mileage	, colors.name FROM cars_small t1 " +
@@ -258,14 +259,14 @@ namespace Utility
 
 
                 //Choose here your algorithm
-                //parser.SkylineType = new SkylineSQL();
+                parser.SkylineType = new SkylineSQL();
                 //parser.SkylineType = new SkylineBNL();
-                parser.SkylineType = new SkylineBNLSort();
+                //parser.SkylineType = new SkylineBNLSort();
                 //parser.SkylineType = new SkylineHexagon();
                 //parser.SkylineType = new SkylineDQ();
                 //parser.SkylineType = new MultipleSkylineBNL();
                 //parser.SkylineType = new SkylineDecisionTree();
-
+                
 
                 //Some other available properties
                 parser.ShowInternalAttributes = true;

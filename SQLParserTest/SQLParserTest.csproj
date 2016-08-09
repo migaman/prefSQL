@@ -80,6 +80,7 @@
     <Compile Include="SkylineSamplingHelper.cs" />
     <Compile Include="FixedSkylineSamplingSubsetsProducer.cs" />
     <Compile Include="Helper.cs" />
+    <Compile Include="SQLParserExecuteTests.cs" />
     <Compile Include="SQLParserRankingTest.cs" />
     <Compile Include="SQLParserSkylineSamplingIntegrationTests.cs" />
     <Compile Include="SQLParserSkylineSamplingTests.cs" />
