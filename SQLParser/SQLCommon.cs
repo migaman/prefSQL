@@ -300,10 +300,14 @@ namespace prefSQL.SQLParser
                         string strRankingExpressions = "";
                         string strColumnNames = "";
 
+                        // Set the decimal seperator, because prefSQL double values are always with decimal separator "."
+                        NumberFormatInfo format = new NumberFormatInfo();
+                        format.NumberDecimalSeparator = ".";
+
                         foreach (RankingModel rankingModel in prefSQL.Ranking)
                         {
                             strSelectExtremas += rankingModel.SelectExtrema + ";";
-                            strRankingWeights += rankingModel.Weight + ";";
+                            strRankingWeights += rankingModel.Weight.ToString(format) + ";";
                             strRankingExpressions += rankingModel.Expression + ";";
                             strColumnNames += rankingModel.ColumnName + ";";
                         }

@@ -9,6 +9,7 @@ using prefSQL.SQLSkyline;
 namespace prefSQL.SQLParser
 {
     using SQLSkyline.SkylineSampling;
+    using System.Globalization;
 
     internal class Helper
     {
@@ -111,10 +112,14 @@ namespace prefSQL.SQLParser
                     string strRankingWeights = "";
                     string strRankingExpressions = "";
                     string strColumnNames = "";
+                    // Set the decimal seperator, because prefSQL double values are always with decimal separator "."
+                    NumberFormatInfo format = new NumberFormatInfo();
+                    format.NumberDecimalSeparator = ".";
+
                     foreach (RankingModel rankingModel in model.Ranking)
                     {
                         strSelectExtremas += rankingModel.SelectExtrema + ";";
-                        strRankingWeights += rankingModel.Weight + ";";
+                        strRankingWeights += rankingModel.Weight.ToString(format) + ";";
                         strRankingExpressions += rankingModel.Expression + ";";
                         strColumnNames += rankingModel.ColumnName + ";";
                     }
