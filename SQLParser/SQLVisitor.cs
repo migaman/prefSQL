@@ -582,6 +582,16 @@ namespace prefSQL.SQLParser
             //Preference with Priorization --> visit left and right node
             PrefSQLModel left = Visit(context.GetChild(0));
             PrefSQLModel right = Visit(context.GetChild(5));
+
+            //Combine left and right model (left is more important than right)
+            string strSortOrder = left.Skyline[0].Expression + "," + right.Skyline[0].Expression;
+            string strSkyline = "DENSE_RANK()" + " OVER (ORDER BY " + strSortOrder + ")";
+            //Combine to new column name
+            string strColumnALIAS = left.Skyline[0].FullColumnName.Replace(".", "") + right.Skyline[0].FullColumnName.Replace(".", "");
+            
+            left.Skyline[0].Expression = strSkyline;
+            left.Skyline[0].RankExpression = strSkyline;
+            left.Skyline[0].FullColumnName = strColumnALIAS;
             left.Skyline[0].Comparable = left.Skyline[0].Comparable && right.Skyline[0].Comparable;
 
             //Add the columns to the preference model
