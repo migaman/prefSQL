@@ -136,7 +136,7 @@ namespace prefSQL.SQLParser
             }
 
 
-            strSQL += "NOT EXISTS(" + strPreSQL + " " + strWhereEqual + strWhereBetter + ") ";
+            strSQL += "NOT EXISTS(" + strPreSQL + " " + strWhereEqual + strWhereBetter + ")";
             return strSQL;
         }
 

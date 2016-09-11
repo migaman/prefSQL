@@ -121,7 +121,7 @@ namespace prefSQL.SQLParser
                         strSelectExtremas += rankingModel.SelectExtrema + ";";
                         strRankingWeights += rankingModel.Weight.ToString(format) + ";";
                         strRankingExpressions += rankingModel.Expression + ";";
-                        strColumnNames += rankingModel.ColumnName + ";";
+                        strColumnNames += rankingModel.FullColumnName.Replace(".", "_") + ";";
                     }
                     strSelectExtremas = strSelectExtremas.TrimEnd(';');
                     strRankingWeights = strRankingWeights.TrimEnd(';');

@@ -110,7 +110,7 @@ namespace prefSQL.SQLParserTest
         {
             string strPrefSQL = "SELECT * FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID SKYLINE OF colors.name FAVOUR 'red'";
 
-            string expected = "SELECT * FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT * FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE CASE WHEN colors_INNER.name = 'red' THEN 1 ELSE 2 END <= CASE WHEN colors.name = 'red' THEN 1 ELSE 2 END AND ( CASE WHEN colors_INNER.name = 'red' THEN 1 ELSE 2 END < CASE WHEN colors.name = 'red' THEN 1 ELSE 2 END) ) ";
+            string expected = "SELECT * FROM cars LEFT OUTER JOIN colors ON cars.color_id = colors.ID WHERE NOT EXISTS(SELECT * FROM cars cars_INNER LEFT OUTER JOIN colors colors_INNER ON cars_INNER.color_id = colors_INNER.ID WHERE CASE WHEN colors_INNER.name = 'red' THEN 1 ELSE 2 END <= CASE WHEN colors.name = 'red' THEN 1 ELSE 2 END AND ( CASE WHEN colors_INNER.name = 'red' THEN 1 ELSE 2 END < CASE WHEN colors.name = 'red' THEN 1 ELSE 2 END) )";
             SQLCommon common = new SQLCommon();
             string actual = common.ParsePreferenceSQL(strPrefSQL);
 

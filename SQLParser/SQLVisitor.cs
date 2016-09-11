@@ -587,7 +587,7 @@ namespace prefSQL.SQLParser
             string strSortOrder = left.Skyline[0].Expression + "," + right.Skyline[0].Expression;
             string strSkyline = "DENSE_RANK()" + " OVER (ORDER BY " + strSortOrder + ")";
             //Combine to new column name
-            string strColumnALIAS = left.Skyline[0].FullColumnName.Replace(".", "") + right.Skyline[0].FullColumnName.Replace(".", "");
+            string strColumnALIAS = left.Skyline[0].FullColumnName.Replace(".", "_") + right.Skyline[0].FullColumnName.Replace(".", "_");
             
             left.Skyline[0].Expression = strSkyline;
             left.Skyline[0].RankExpression = strSkyline;
