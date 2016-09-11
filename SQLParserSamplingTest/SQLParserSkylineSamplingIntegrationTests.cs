@@ -1,4 +1,4 @@
-﻿namespace prefSQL.SQLParserTest
+﻿namespace prefSQL.SQLParserSamplingTest
 {
     using System.Collections.Generic;
     using System.Data;

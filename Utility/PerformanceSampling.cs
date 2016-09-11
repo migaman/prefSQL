@@ -14,7 +14,7 @@
     using prefSQL.Evaluation;
     using prefSQL.SQLParser;
     using prefSQL.SQLParser.Models;
-    using prefSQL.SQLParserTest;
+    using prefSQL.SQLParserSamplingTest;
     using prefSQL.SQLSkyline;
     using prefSQL.SQLSkyline.SkylineSampling;
 

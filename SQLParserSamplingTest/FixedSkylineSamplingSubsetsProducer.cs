@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace prefSQL.SQLParserTest
+namespace prefSQL.SQLParserSamplingTest
 {
     using SQLSkyline;
     using SQLSkyline.SkylineSampling;

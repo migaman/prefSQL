@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvaluationTest", "Evaluatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IssueTest", "IssueTest\IssueTest.csproj", "{07FDCD12-C48C-4349-A182-04ACCEDE5DB7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLParserSamplingTest", "SQLParserSamplingTest\SQLParserSamplingTest.csproj", "{ED9298AF-AE85-4211-A42C-87170A024FEF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +70,10 @@ Global
 		{07FDCD12-C48C-4349-A182-04ACCEDE5DB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07FDCD12-C48C-4349-A182-04ACCEDE5DB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07FDCD12-C48C-4349-A182-04ACCEDE5DB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED9298AF-AE85-4211-A42C-87170A024FEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED9298AF-AE85-4211-A42C-87170A024FEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED9298AF-AE85-4211-A42C-87170A024FEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED9298AF-AE85-4211-A42C-87170A024FEF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

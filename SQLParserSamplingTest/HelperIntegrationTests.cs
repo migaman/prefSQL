@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using prefSQL.SQLParser;
 using prefSQL.SQLSkyline;
 
-namespace prefSQL.SQLParserTest
+namespace prefSQL.SQLParserSamplingTest
 {
     [TestClass]
     public class HelperIntegrationTests

@@ -24,6 +24,6 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
 [assembly: InternalsVisibleTo("SQLSkylineTest")]
-[assembly: InternalsVisibleTo("SQLParserTest")]
+[assembly: InternalsVisibleTo("SQLParserSamplingTest")]
 [assembly: InternalsVisibleTo("Utility")]
 [assembly: InternalsVisibleTo("Evaluation")]

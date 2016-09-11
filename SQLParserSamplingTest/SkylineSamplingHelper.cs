@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 
-namespace prefSQL.SQLParserTest
+namespace prefSQL.SQLParserSamplingTest
 {
     internal sealed class SkylineSamplingHelper
     {
