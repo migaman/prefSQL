@@ -142,7 +142,7 @@ namespace prefSQL.SQLSkyline
                 string strNormalization = "(" + rankingWeights[i].ToString(format) + " * (((" + rankingExpressions[i] + " - " + strMin + ") / " + strDividor + ") ))";
 
 
-                strInternalSelectList = strInternalSelectList + ", (((" + rankingExpressions[i] + " - " + strMin + ") / " + strDividor + ") ) AS Ranking_" + columnNames[i];
+                strInternalSelectList = strInternalSelectList + ", (((" + rankingExpressions[i] + " - " + strMin + ") / " + strDividor + ") ) AS RankingAttribute" + columnNames[i];
 
                 //Mathematical addition except for the first element
                 if (bFirst)

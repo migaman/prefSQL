@@ -204,6 +204,12 @@ namespace prefSQL.SQLParser
                             {
                                 strOrderBy = sqlSort.GetSortClause(prefSQL, prefSQL.Ordering); // sqlSort.getSortClause(prefSQL, _OrderType);
                             }
+                            //Add space charachter in front of ORDER BY if not already present
+                            if (!strOrderBy.Substring(0, 1).Equals(" "))
+                            {
+                                strOrderBy = " " + strOrderBy;
+                            }
+                            
                         }
 
 
@@ -309,7 +315,7 @@ namespace prefSQL.SQLParser
                             strSelectExtremas += rankingModel.SelectExtrema + ";";
                             strRankingWeights += rankingModel.Weight.ToString(format) + ";";
                             strRankingExpressions += rankingModel.Expression + ";";
-                            strColumnNames += rankingModel.ColumnName + ";";
+                            strColumnNames += rankingModel.FullColumnName.Replace(".", "_") + ";";
                         }
                         strSelectExtremas = strSelectExtremas.TrimEnd(';');
                         strRankingWeights = strRankingWeights.TrimEnd(';');
@@ -318,8 +324,9 @@ namespace prefSQL.SQLParser
 
                         SPRanking spRanking = new SPRanking();
                         spRanking.ShowInternalAttributes = ShowInternalAttributes;
-                        string strExecSQL = strInput.Replace("'", "''");
-                        strSQLReturn = spRanking.GetStoredProcedureCommand(strExecSQL, strSelectExtremas, strRankingWeights, strRankingExpressions, strColumnNames);
+                        //Quoting is done in GetStoredProc Command
+                        //string strExecSQL = strInput.Replace("'", "''");
+                        strSQLReturn = spRanking.GetStoredProcedureCommand(strInput, strSelectExtremas, strRankingWeights, strRankingExpressions, strColumnNames);
                     }
                 }
                 else
