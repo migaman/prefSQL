@@ -1,6 +1,6 @@
 ﻿using System.Configuration;
 
-namespace prefSQL.SQLParserTest
+namespace prefSQL.SQLParserSamplingTest
 {
     class Helper
     {

@@ -21,7 +21,6 @@ namespace Utility
     using System.Numerics;
     using System.Windows.Forms;
     using prefSQL.Evaluation;
-    using prefSQL.SQLParserTest;
     using prefSQL.SQLSkyline.SkylineSampling;
 
     /// <summary>
