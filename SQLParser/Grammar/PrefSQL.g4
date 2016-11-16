@@ -126,7 +126,8 @@ expr
  | '{' exprOwnPreference '}'																			#exprexprOwnPreferenceOp																	
  | expr K_AND expr																						#exprexprand
  | expr K_OR expr																						#exprexpror
- | function_name '(' ( K_DISTINCT? expr ( ',' expr )* | '*' )? ')'										#exprfunction
+ | column_term ('(' exprCategory ')')																	#orderbyCategory
+ | (schema_name '.')? function_name '(' ( K_DISTINCT? expr ( ',' expr )* | '*' )? ')'							#exprfunction
  | '(' expr ')'																							#exprexprInBracket
  | K_CAST '(' expr K_AS type_name ')'																	#exprcast
  | expr K_NOT? ( K_LIKE | K_MATCH ) expr ( K_ESCAPE expr )?		#not
@@ -140,7 +141,7 @@ expr
                     | ( database_name '.' )? table_name )												#exprnotIn
  | ( ( K_NOT )? K_EXISTS )? '(' select_stmt ')'															#exprnotExists
  | K_CASE expr? ( K_WHEN expr K_THEN expr )+ ( K_ELSE expr )? K_END										#exprcase
- | column_term ('(' exprCategory ')')																	#orderbyCategory
+ 
  ;
 
  
@@ -326,6 +327,7 @@ function_name : any_name;
 database_name : any_name;
 
 table_name : any_name;
+schema_name : any_name;
 
 new_table_name : any_name;
 
