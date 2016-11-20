@@ -36,7 +36,11 @@ namespace prefSQL.SQLSkyline
         {
             List<object[]> useTempDatabase = useDatabase.ToList();
             List<int> databaseIndices = subset.Select(subsetColumnIndex => preferenceColumnIndex[subsetColumnIndex]).ToList();
-            useTempDatabase.Sort((item1, item2) => CompareTwoDatabaseObjects(item1, item2, databaseIndices, isPreferenceIncomparable));
+            // 16.11.2016 pfaeffli, This is necessary to run successfully. Wrong Incomparable informations were used.
+            // The i-th entry of databaseIndices must fit the i-th entry of isIncomparable
+            bool[] isIncomparable = subset.Select(subsetColumnIndex => isPreferenceIncomparable[subsetColumnIndex]).ToArray();
+            useTempDatabase.Sort(
+                (item1, item2) => CompareTwoDatabaseObjects(item1, item2, databaseIndices, isIncomparable));// isPreferenceIncomparable));
             useDatabase = useTempDatabase;
         }
       
@@ -115,7 +119,8 @@ namespace prefSQL.SQLSkyline
                 {
                     continue;
                 }
-
+                // 09.11.2016, pfaeffli, ECOM-196: This comparence does not make sense to me. string.Compare returns the index where the first occurence starts or -1.
+                // In the lucky case that this position is the second index, 1 is returned.
                 switch (
                     string.Compare(((string) item1[databaseIndex + 1]), (string) item2[databaseIndex + 1],
                         StringComparison.InvariantCulture))
