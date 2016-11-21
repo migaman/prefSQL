@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using prefSQL.SQLParser;
 using prefSQL.SQLSkyline;
+using System.Data;
 
 namespace IssueTest
 {
@@ -70,6 +71,39 @@ namespace IssueTest
             Assert.AreEqual(parsedSQL, expectedBNLSort, "Query does not match parsed Query");
 
         }
+
+
+        //Concatenation of constant and attribute values result in error
+        //https://github.com/migaman/prefSQL/issues/54
+        [TestMethod]
+        [TestCategory("UnitTest")]
+        public void TestIssue54()
+        {
+            string prefSQL = "SELECT c.Title AS Name, c.Price, c.Consumption, m.Name AS Manufacturer, b.Name AS Body "
+                              + "FROM Cars c "
+                              + "LEFT OUTER JOIN Makes m ON c.Make_Id = m.Id "
+                              + "LEFT OUTER JOIN Bodies b ON c.Body_Id = b.Id "
+                              + "WHERE m.Name = 'VW' AND b.Name = 'Bus' "
+                              + "SKYLINE OF c.Price LOW 1000 EQUAL, c.Consumption LOW";
+
+            SQLCommon common = new SQLCommon();
+            common.ShowInternalAttributes = true;
+
+
+            try
+            {
+                //If there is no exception in the execution of this query the test is successful
+                DataTable dt = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, prefSQL);
+                Assert.IsTrue(true);
+            }
+            catch
+            {
+                Assert.IsFalse(true);
+            }
+        }
+
+
+        
 
 
     }
