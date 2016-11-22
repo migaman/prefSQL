@@ -117,7 +117,7 @@ namespace prefSQL.SQLParser
                 else
                 {
                     //Replace tablename (for fields)
-                    strPreSQL = strPreSQL.Replace(table.Value + ".", table.Value + "_INNER.");
+                    strPreSQL = Regex.Replace(strPreSQL, @"\b" + table.Value + @"\.", table.Value + "_INNER.", RegexOptions.IgnoreCase);
                     //Replace ALIAS
                     string pattern = @"\b" + table.Value + @"\b";
                     string replace = table.Value + "_INNER";
