@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using prefSQL.SQLParser;
+using prefSQL.SQLSkyline;
 
 namespace prefSQL.SQLParserTest
 {
@@ -8,42 +9,48 @@ namespace prefSQL.SQLParserTest
     {
         [TestMethod]
         [TestCategory("UnitTest")]
-        public void TestUdfAsField()
+        public void TestUdfExpressionsNative()
         {
             // prefSQL with UDF
-            const string prefQuery = "SELECT c.id, dbo.udf1(param1), mySchema.udf2(param1) AS MyField " + 
+            const string prefQuery = "SELECT c.id, dbo.someUDF(c.price, 1.5) AS SomeUDF1, someSchema.someUDF(c.price, 2.5) AS SomeUDF2 " + 
                                      "FROM cars AS c " +
-                                     "SKYLINE OF c.price LOW " +
-                                     "ORDER BY c.price ASC";
-            const string expectedQuery = "SELECT c.id, dbo.udf1(param1), mySchema.udf2(param1) AS MyField FROM cars AS c WHERE NOT EXISTS(SELECT c_INNER.id, dbo.udf1(param1), mySchema.udf2(param1) AS MyField FROM cars AS c_INNER WHERE c_INNER.price <= c.price AND ( c_INNER.price < c.price) ) ORDER BY c.price ASC";
+                                     "SKYLINE OF co.Name ('pink' >> 'black' >> OTHERS INCOMPARABLE), c.price LOW " +
+                                     "ORDER BY c.price ASC, someSchema.someUDF(c.price, 10) DESC";
+            const string expectedQuery = "SELECT c.id, dbo.someUDF(c.price, 1.5) AS SomeUDF1, someSchema.someUDF(c.price, 2.5) AS SomeUDF2 FROM cars AS c " +
+                                         "WHERE NOT EXISTS(SELECT c_INNER.id, dbo.someUDF(c_INNER.price, 1.5) AS SomeUDF1, someSchema.someUDF(c_INNER.price, 2.5) AS SomeUDF2 FROM cars AS c_INNER WHERE (CASE WHEN co_INNER.Name = 'pink' THEN 0 WHEN co_INNER.Name = 'black' THEN 100 ELSE 201 END <= CASE WHEN co.Name = 'pink' THEN 0 WHEN co.Name = 'black' THEN 100 ELSE 200 END OR co_INNER.Name = co.Name) AND c_INNER.price <= c.price AND ( CASE WHEN co_INNER.Name = 'pink' THEN 0 WHEN co_INNER.Name = 'black' THEN 100 ELSE 201 END < CASE WHEN co.Name = 'pink' THEN 0 WHEN co.Name = 'black' THEN 100 ELSE 200 END OR c_INNER.price < c.price) ) " +
+                                         "ORDER BY c.price ASC, someSchema.someUDF(c.price, 10) DESC";
 
             // build query
-            var engine = new SQLCommon();
+            var engine = new SQLCommon {SkylineType = new SkylineSQL()};
             var actualQuery = engine.ParsePreferenceSQL(prefQuery);
 
             // verify outcome
             Assert.AreEqual(expectedQuery, actualQuery);
         }
- 
+
         [TestMethod]
         [TestCategory("UnitTest")]
-        public void TestUdfInOrderClause()
+        public void TestUdfExpressionsClr()
         {
             // prefSQL with UDF
-            const string prefQuery = "SELECT c.id " +
+            const string prefQuery = "SELECT c.id, dbo.someUDF(c.price, 1.5) AS SomeUDF1, someSchema.someUDF(c.price, 2.5) AS SomeUDF2 " +
                                      "FROM cars AS c " +
-                                     "SKYLINE OF c.price LOW " +
-                                     "ORDER BY c.price ASC, mySchema.myUdf(param1) DESC";
-            const string expectedQuery = "SELECT c.id FROM cars AS c WHERE NOT EXISTS(SELECT c_INNER.id FROM cars AS c_INNER WHERE c_INNER.price <= c.price AND ( c_INNER.price < c.price) ) ORDER BY c.price ASC, mySchema.myUdf(param1) DESC";
+                                     "SKYLINE OF co.Name ('pink' >> 'black' >> OTHERS INCOMPARABLE), c.price LOW " +
+                                     "ORDER BY c.price ASC, someSchema.someUDF(c.price, 10) DESC";
+            const string expectedQuery = "EXEC dbo.prefSQL_SkylineBNL " +
+                                         "'SELECT  CAST(CASE WHEN co.Name = ''pink'' THEN 0 WHEN co.Name = ''black'' THEN 100 ELSE 200 END AS bigint) AS SkylineAttribute0, CASE WHEN co.Name = ''pink'' THEN '''' WHEN co.Name = ''black'' THEN '''' ELSE co.Name END, CAST(c.price AS bigint) AS SkylineAttribute1 , c.id, dbo.someUDF(c.price, 1.5) AS SomeUDF1, someSchema.someUDF(c.price, 2.5) AS SomeUDF2 " + 
+                                         "FROM cars AS c " +
+                                         "ORDER BY c.price ASC, someSchema.someUDF(c.price, 10) DESC', " + 
+                                         "'LOW;INCOMPARABLE;LOW', 0, 4";
 
             // build query
-            var engine = new SQLCommon();
+            var engine = new SQLCommon { SkylineType = new SkylineBNL() };
             var actualQuery = engine.ParsePreferenceSQL(prefQuery);
 
             // verify outcome
             Assert.AreEqual(expectedQuery, actualQuery);
         }
-
+        
         [TestMethod]
         [TestCategory("UnitTest")]
         public void TestSortingWithUdfPrecededByCategorial()
@@ -82,6 +89,35 @@ namespace prefSQL.SQLParserTest
 
             // verify outcome
             Assert.AreEqual(expectedQuery, actualQuery);
+        }
+
+        [TestMethod]
+        [TestCategory("UnitTest")]
+        [Description("https://github.com/migaman/prefSQL/issues/52")]
+        public void TestDistinctionTableAliasAndSchema()
+        {
+            // prefSQL: no overlap in schema name and table alias
+            const string prefQuery1 = "SELECT o.id, someSchema.someUDF(o.id) AS Udf1 " +
+                                     "FROM cars AS o " +
+                                     "SKYLINE OF o.price LOW ";
+            const string expectedQuery1 = "SELECT o.id, someSchema.someUDF(o.id) AS Udf1 FROM cars AS o " +
+                                         "WHERE NOT EXISTS(SELECT o_INNER.id, someSchema.someUDF(o_INNER.id) AS Udf1 FROM cars AS o_INNER WHERE o_INNER.price <= o.price AND ( o_INNER.price < o.price) )";
+
+            // prefSQL: table alias is part of schema name
+            const string prefQuery2 = "SELECT o.id, dbo.someUDF(o.id) AS Udf1 " +
+                                     "FROM cars AS o " +
+                                     "SKYLINE OF o.price LOW ";
+            const string expectedQuery2 = "SELECT o.id, dbo.someUDF(o.id) AS Udf1 FROM cars AS o " +
+                                         "WHERE NOT EXISTS(SELECT o_INNER.id, dbo.someUDF(o_INNER.id) AS Udf1 FROM cars AS o_INNER WHERE o_INNER.price <= o.price AND ( o_INNER.price < o.price) )";
+
+            // build query
+            var engine = new SQLCommon();
+            var actualQuery1 = engine.ParsePreferenceSQL(prefQuery1);
+            var actualQuery2 = engine.ParsePreferenceSQL(prefQuery2);
+
+            // verify outcome
+            Assert.AreEqual(expectedQuery1, actualQuery1);
+            Assert.AreEqual(expectedQuery2, actualQuery2);
         }
 
     }
