@@ -229,7 +229,8 @@ namespace prefSQL.SQLParser
             strQuery = parameter[0].Trim();
             strOperators = parameter[1].Trim();
             numberOfRecords = int.Parse(parameter[2].Trim());
-            strQuery = strQuery.Replace("''", "'").Trim('\'');
+            strQuery = strQuery.Replace("''", "'").TrimStart('\'');
+            strQuery = strQuery.EndsWith("'") ? strQuery.Remove(strQuery.Length - 1) : strQuery;
             strOperators = strOperators.Replace("''", "'").Trim('\'');
         }
     }

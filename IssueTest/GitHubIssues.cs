@@ -86,8 +86,11 @@ namespace IssueTest
                               + "WHERE m.Name = 'VW' AND b.Name = 'Bus' "
                               + "SKYLINE OF c.Price LOW 1000 EQUAL, c.Consumption LOW";
 
-            SQLCommon common = new SQLCommon();
-            common.ShowInternalAttributes = true;
+            var common = new SQLCommon
+            {
+                SkylineType = new SkylineBNL(),
+                ShowInternalAttributes = true
+            };
 
 
             try
