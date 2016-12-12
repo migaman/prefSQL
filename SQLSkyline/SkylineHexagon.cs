@@ -51,11 +51,11 @@ namespace prefSQL.SQLSkyline
             string strSQLReturn;
             if (HasIncomparablePreferences)
             {
-                strSQLReturn = "EXEC dbo.prefSQL_SkylineHexagon '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType + ", '" + strSelectDistinctIncomparable + "', '" + weightHexagonIncomparable + "'";
+                strSQLReturn = "EXEC dbo.prefSQL_SkylineHexagon '" + strFirstSQL + " ', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType + ", '" + strSelectDistinctIncomparable + "', '" + weightHexagonIncomparable + "'";
             }
             else
             {
-                strSQLReturn = "EXEC dbo.prefSQL_SkylineHexagonLevel '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
+                strSQLReturn = "EXEC dbo.prefSQL_SkylineHexagonLevel '" + strFirstSQL + " ', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
             }
             return strSQLReturn;
         }

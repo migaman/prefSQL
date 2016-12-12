@@ -42,11 +42,11 @@ namespace prefSQL.SQLSkyline
             string strSQLReturn;
             if (HasIncomparablePreferences)
             {
-                strSQLReturn = "EXEC dbo.prefSQL_SkylineBNL '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
+                strSQLReturn = "EXEC dbo.prefSQL_SkylineBNL '" + strFirstSQL + " ', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
             }
             else
             {
-                strSQLReturn = "EXEC dbo.prefSQL_SkylineBNLLevel '" + strFirstSQL + "', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
+                strSQLReturn = "EXEC dbo.prefSQL_SkylineBNLLevel '" + strFirstSQL + " ', '" + strOperators + "', " + RecordAmountLimit + ", " + SortType;
             }
             return strSQLReturn;
         }
