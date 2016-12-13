@@ -75,7 +75,8 @@ namespace prefSQL.SQLParser.Udf
         {
             model.SchemaName = GetSchemaName(context.GetChild(0));
             model.FunctionName = GetFunctionName(context.GetChild(0));
-            model.FullFunctionName = $"{model.SchemaName}.{model.FunctionName}";
+            //model.FullFunctionName = $"{model.SchemaName}.{model.FunctionName}";
+            model.FullFunctionName = model.SchemaName + "." + model.FunctionName;
         }
         private void ExtractParameterList(PrefSQLParser.ExprUdfParamContext[] context, UdfModel model)
         {

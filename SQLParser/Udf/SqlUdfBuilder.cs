@@ -38,7 +38,7 @@ namespace prefSQL.SQLParser.Udf
                     ret.Add(p.Literal);
                 } else {
                     //ret.Add($"{p.Table}{tableSuffix}.{p.Column}");
-                    ret.Add(p.Table + tableSuffix + "." + "p.Column");
+                    ret.Add(p.Table + tableSuffix + "." + p.Column);
                 }
             }
             return string.Join(", ", ret);
