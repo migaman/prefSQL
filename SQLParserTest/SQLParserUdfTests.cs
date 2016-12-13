@@ -53,6 +53,30 @@ namespace prefSQL.SQLParserTest
         
         [TestMethod]
         [TestCategory("UnitTest")]
+        public void TestUdfPreferenceMixedParam()
+        {
+            // prefSQL with UDF
+            const string prefQuery = "SELECT c.id " +
+                                     "FROM cars AS c " +
+                                     "SKYLINE OF mySchema.myUdf(c.price, 0.77, 'fixedValue') LOW " +
+                                     //"SKYLINE OF c.price LOW " +
+                                     "ORDER BY c.price ASC";
+            const string expectedNativeQuery = "SELECT c.id FROM cars AS c WHERE NOT EXISTS(SELECT c_INNER.id FROM cars AS c_INNER WHERE mySchema.myUdf(c_INNER.price, 0.77, 'fixedValue') <= mySchema.myUdf(c.price, 0.77, 'fixedValue') AND ( mySchema.myUdf(c_INNER.price, 0.77, 'fixedValue') < mySchema.myUdf(c.price, 0.77, 'fixedValue')) ) ORDER BY c.price ASC";
+            const string expectedClrQuery = "EXEC dbo.prefSQL_SkylineBNLLevel 'SELECT  CAST(mySchema.myUdf(c.price, 0.77, ''fixedValue'') AS bigint) AS SkylineAttribute0 , c.id FROM cars AS c ORDER BY c.price ASC', 'LOW', 0, 4";
+
+            // build query
+            var engine = new SQLCommon();
+            var actualNativeQuery = engine.ParsePreferenceSQL(prefQuery);
+            engine.SkylineType = new SkylineBNL();
+            var actualClrQuery = engine.ParsePreferenceSQL(prefQuery);
+
+            // verify outcome
+            Assert.AreEqual(expectedNativeQuery, actualNativeQuery);
+            Assert.AreEqual(expectedClrQuery, actualClrQuery);
+        }
+        
+        [TestMethod]
+        [TestCategory("UnitTest")]
         public void TestSortingWithUdfPrecededByCategorial()
         {
             // prefSQL with UDF
@@ -60,7 +84,7 @@ namespace prefSQL.SQLParserTest
                                      "FROM cars AS c " +
                                      "LEFT OUTER JOIN colors AS cl ON c.color_id = cl.ID " +
                                      "SKYLINE OF c.price LOW " +
-                                     "ORDER BY cl.name('pink' >> {'red','black'} >> 'beige'=='yellow'), mySchema.myUdf(param1) DESC";
+                                     "ORDER BY cl.name ('pink' >> {'red','black'} >> 'beige'=='yellow'), mySchema.myUdf(param1) DESC";
             const string expectedQuery = "SELECT c.id FROM cars AS c LEFT OUTER JOIN colors AS cl ON c.color_id = cl.ID WHERE NOT EXISTS(SELECT c_INNER.id FROM cars AS c_INNER LEFT OUTER JOIN colors AS cl_INNER ON c_INNER.color_id = cl_INNER.ID WHERE c_INNER.price <= c.price AND ( c_INNER.price < c.price) ) ORDER BY CASE WHEN cl.name = 'pink' THEN 0 WHEN cl.name IN ('red','black') THEN 100 WHEN cl.name = 'beige' THEN 200 WHEN cl.name = 'yellow' THEN 200 END ASC, mySchema.myUdf(param1) DESC";
 
             // build query
@@ -80,7 +104,7 @@ namespace prefSQL.SQLParserTest
                                      "FROM cars AS c " +
                                      "LEFT OUTER JOIN colors AS cl ON c.color_id = cl.ID " +
                                      "SKYLINE OF c.price LOW " +
-                                     "ORDER BY mySchema.myUdf(param1) DESC, cl.name('pink' >> {'red','black'} >> 'beige'=='yellow')";
+                                     "ORDER BY mySchema.myUdf(param1) DESC, cl.name ('pink' >> {'red','black'} >> 'beige'=='yellow')";
             const string expectedQuery = "SELECT c.id FROM cars AS c LEFT OUTER JOIN colors AS cl ON c.color_id = cl.ID WHERE NOT EXISTS(SELECT c_INNER.id FROM cars AS c_INNER LEFT OUTER JOIN colors AS cl_INNER ON c_INNER.color_id = cl_INNER.ID WHERE c_INNER.price <= c.price AND ( c_INNER.price < c.price) ) ORDER BY mySchema.myUdf(param1) DESC, CASE WHEN cl.name = 'pink' THEN 0 WHEN cl.name IN ('red','black') THEN 100 WHEN cl.name = 'beige' THEN 200 WHEN cl.name = 'yellow' THEN 200 END ASC";
 
             // build query
@@ -93,8 +117,7 @@ namespace prefSQL.SQLParserTest
 
         [TestMethod]
         [TestCategory("UnitTest")]
-        [Description("https://github.com/migaman/prefSQL/issues/52")]
-        public void TestDistinctionTableAliasAndSchema()
+        public void TestTableAliasBug()
         {
             // prefSQL: no overlap in schema name and table alias
             const string prefQuery1 = "SELECT o.id, someSchema.someUDF(o.id) AS Udf1 " +
@@ -118,6 +141,44 @@ namespace prefSQL.SQLParserTest
             // verify outcome
             Assert.AreEqual(expectedQuery1, actualQuery1);
             Assert.AreEqual(expectedQuery2, actualQuery2);
+        }
+
+        [TestMethod]
+        [TestCategory("UnitTest")]
+        public void TestUdfWithStringParam()
+        {
+            // prefSQL with UDF
+            const string prefQuery = "SELECT c.id, dbo.myUdf('actParam') AS udf1 " +
+                                     "FROM cars AS c " +
+                                     "LEFT OUTER JOIN colors AS cl ON c.color_id = cl.ID " +
+                                     "SKYLINE OF c.price LOW";
+            const string expectedQuery = "SELECT c.id, dbo.myUdf('actParam') AS udf1 FROM cars AS c LEFT OUTER JOIN colors AS cl ON c.color_id = cl.ID WHERE NOT EXISTS(SELECT c_INNER.id, dbo.myUdf('actParam') AS udf1 FROM cars AS c_INNER LEFT OUTER JOIN colors AS cl_INNER ON c_INNER.color_id = cl_INNER.ID WHERE c_INNER.price <= c.price AND ( c_INNER.price < c.price) )";
+
+            // build query
+            var engine = new SQLCommon();
+            var actualQuery = engine.ParsePreferenceSQL(prefQuery);
+
+            // verify outcome
+            Assert.AreEqual(expectedQuery, actualQuery);
+        }
+
+        [TestMethod]
+        [TestCategory("UnitTest")]
+        public void TestUdfWithNumericParam()
+        {
+            // prefSQL with UDF
+            const string prefQuery = "SELECT c.id, dbo.myUdf(1.77, 2.88) AS udf1 " +
+                                     "FROM cars AS c " +
+                                     "LEFT OUTER JOIN colors AS cl ON c.color_id = cl.ID " +
+                                     "SKYLINE OF c.price LOW";
+            const string expectedQuery = "SELECT c.id, dbo.myUdf(1.77, 2.88) AS udf1 FROM cars AS c LEFT OUTER JOIN colors AS cl ON c.color_id = cl.ID WHERE NOT EXISTS(SELECT c_INNER.id, dbo.myUdf(1.77, 2.88) AS udf1 FROM cars AS c_INNER LEFT OUTER JOIN colors AS cl_INNER ON c_INNER.color_id = cl_INNER.ID WHERE c_INNER.price <= c.price AND ( c_INNER.price < c.price) )";
+
+            // build query
+            var engine = new SQLCommon();
+            var actualQuery = engine.ParsePreferenceSQL(prefQuery);
+
+            // verify outcome
+            Assert.AreEqual(expectedQuery, actualQuery);
         }
 
     }
