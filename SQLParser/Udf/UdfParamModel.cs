@@ -5,6 +5,6 @@
         public bool IsLiteral { get; set; }
         public string Literal { get; set; }
         public string Table { get; set; }
-        public string Field { get; set; }
-    }    
+        public string Column { get; set; }
+    }
 }

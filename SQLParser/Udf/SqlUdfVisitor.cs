@@ -1,14 +1,10 @@
-﻿using System.Collections.Generic;
-using Antlr4.Runtime.Tree;
+﻿using Antlr4.Runtime.Tree;
 using prefSQL.Grammar;
 
 namespace prefSQL.SQLParser.Udf
 {
     internal class SqlUdfVisitor : PrefSQLBaseVisitor<UdfModel>
     {
-
-        
-
         public override UdfModel VisitSkylinePreferenceUdf(PrefSQLParser.SkylinePreferenceUdfContext context)
         {
             // extract schema and function
@@ -96,66 +92,11 @@ namespace prefSQL.SQLParser.Udf
             return tree.ChildCount == 1 ? tree.GetText() : tree.GetChild(2).GetText();
         }
 
-        /// <summary>
-        /// Returns the table name from the parse tree object
-        /// </summary>
-        /// <param name="tree"></param>
-        /// <returns></returns>
         private string GetSchemaName(IParseTree tree)
         {
             // function name w/ or w/o schema
             return tree.ChildCount == 1 ? "" : tree.GetChild(0).GetText();
         }
-
-        
-
-        
-
-        /// <summary>
-        /// Returns the column name from the parse tree object
-        /// </summary>
-        /// <param name="tree"></param>
-        /// <returns></returns>
-        public string GetUdf(IParseTree tree)
-        {
-            return tree.GetChild(0).GetText() + tree.GetChild(1).GetText() + tree.GetChild(2).GetText();
-        }
-
-        public string GetUdfCall(IParseTree tree)
-        {
-            var parts = new string[tree.ChildCount - 1];
-            for (var i = 0; i < tree.ChildCount - 1; i++) {
-                parts[i] = tree.GetChild(i).GetText();
-            }
-            return string.Join("", parts);
-        }
-
-        public string[] GetUdfParams(IParseTree tree)
-        {
-            if (tree.ChildCount <= 5) {
-                return new string[0];
-            }
-
-            var ret = new List<string>();
-            for (var i = 2; i < tree.ChildCount - 2; i = i + 2) {
-                ret.Add(tree.GetChild(i).GetText());
-            }
-            return ret.ToArray();
-        }
-
-        public string[] CreateInnerParams(string[] parameterList)
-        {
-            var ret = new List<string>();
-            foreach (var p in parameterList) {
-                if (p.StartsWith("'")) {
-                    ret.Add(p);
-                } else {
-
-                }
-            }
-            return ret.ToArray();
-        }
-
 
     }
 }

@@ -28,14 +28,14 @@ namespace prefSQL.SQLParser.Udf
             return $"{_model.FullFunctionName}({paramList}){_model.LevelStep}{_model.OppositeOperator}";
         }
 
-       private string CreateParamList(string tableSuffix = "")
+        private string CreateParamList(string tableSuffix = "")
         {
             var ret = new List<string>();
             foreach (var p in _model.Parameter) {
                 if (p.IsLiteral) {
                     ret.Add(p.Literal);
                 } else {
-                    ret.Add($"{p.Table}{tableSuffix}.{p.Field}");
+                    ret.Add($"{p.Table}{tableSuffix}.{p.Column}");
                 }
             }
             return string.Join(", ", ret);
