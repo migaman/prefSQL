@@ -147,7 +147,7 @@ exprSkyline
  : exprSkyline ',' exprSkyline																			#skylineAnd
  | column_term op=(K_LOW | K_HIGH)	(signed_number (K_EQUAL | K_INCOMPARABLE))?							#skylinePreferenceLowHigh
  | column_term ('(' exprCategory ')')																	#skylinePreferenceCategory
- | udf_term '(' ( exprUdfParam ( ',' exprUdfParam )* | '*' )? ')' op=(K_LOW|K_HIGH)						#skylinePreferenceUdf
+ | udf_term '(' ( exprUdfParam ( ',' exprUdfParam )* | '*' )? ')' op=(K_LOW|K_HIGH)	(signed_number (K_EQUAL | K_INCOMPARABLE))?	#skylinePreferenceUdf
  | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|column_term)						#skylinePreferenceAround
  | exprSkyline K_IS K_MORE K_IMPORTANT K_THAN exprSkyline												#skylineMoreImportant
  ;
@@ -161,7 +161,6 @@ exprRanking
  : exprRanking ',' exprRanking																			#weightedsumAnd   
  | column_term op=(K_LOW | K_HIGH) (signed_number (K_EQUAL))?	signed_number							#weightedsumLowHigh
  | column_term ('(' exprCategoryNoIncomparable ')')	 signed_number										#weightedsumCategory
- | udf_term '(' ( K_DISTINCT? expr ( ',' expr )* | '*' )? ')' op=(K_LOW|K_HIGH) signed_number			#weightedsumUdf
  | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|column_term) signed_number			#weightedsumAround
  ;
 
