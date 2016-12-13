@@ -18,14 +18,16 @@ namespace prefSQL.SQLParser.Udf
         {
             if (!_model.HasHighLowOperator) { return string.Empty; }
             var paramList = CreateParamList();
-            return $"CAST({_model.FullFunctionName}({paramList}){_model.LevelStep}{_model.OppositeOperator} AS bigint)";
+            //return $"CAST({_model.FullFunctionName}({paramList}){_model.LevelStep}{_model.OppositeOperator} AS bigint)";
+            return "CAST(" + _model.FullFunctionName + "(" + paramList + ")" + _model.LevelStep + _model.OppositeOperator + " AS bigint)";
         }
 
         public string CreateExpression()
         {
             if (!_model.HasHighLowOperator) { return string.Empty; }
             var paramList = CreateParamList();
-            return $"{_model.FullFunctionName}({paramList}){_model.LevelStep}{_model.OppositeOperator}";
+            //return $"{_model.FullFunctionName}({paramList}){_model.LevelStep}{_model.OppositeOperator}";
+            return _model.FullFunctionName + "(" + paramList + ")" + _model.LevelStep + _model.OppositeOperator;
         }
 
         private string CreateParamList(string tableSuffix = "")
@@ -35,7 +37,8 @@ namespace prefSQL.SQLParser.Udf
                 if (p.IsLiteral) {
                     ret.Add(p.Literal);
                 } else {
-                    ret.Add($"{p.Table}{tableSuffix}.{p.Column}");
+                    //ret.Add($"{p.Table}{tableSuffix}.{p.Column}");
+                    ret.Add(p.Table + tableSuffix + "." + "p.Column");
                 }
             }
             return string.Join(", ", ret);
@@ -47,11 +50,12 @@ namespace prefSQL.SQLParser.Udf
 
             var paramList = CreateParamList(_innerTableSuffix);
             if (_model.IsLevelStepEqual) {
-                return $"{_model.FullFunctionName}({paramList}){_model.LevelStep}{_model.OppositeOperator}";
+                //return $"{_model.FullFunctionName}({paramList}){_model.LevelStep}{_model.OppositeOperator}";
+                return _model.FullFunctionName + "(" + paramList + ")" + _model.LevelStep + _model.OppositeOperator;
             }
             //Values from the same step are Incomparable
-            return
-                $"({_model.FullFunctionName}({paramList})){_model.LevelAdditionaly}){_model.LevelStep}{_model.OppositeOperator}";
+            // return $"({_model.FullFunctionName}({paramList})){_model.LevelAdditionaly}){_model.LevelStep}{_model.OppositeOperator}";
+            return "(" + _model.FullFunctionName + "(" + paramList + "))" + _model.LevelAdditionaly+ ")" + _model.LevelStep + _model.OppositeOperator;
 
         }
 
