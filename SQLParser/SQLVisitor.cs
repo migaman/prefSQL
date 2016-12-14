@@ -6,6 +6,7 @@ using Antlr4.Runtime.Tree;
 using prefSQL.SQLParser.Models;
 using prefSQL.Grammar;
 using System.Globalization;
+using prefSQL.SQLParser.Udf;
 
 namespace prefSQL.SQLParser
 {
@@ -97,7 +98,7 @@ namespace prefSQL.SQLParser
             string strTableAlias = "";
 
             //Separate Column and Table
-            string strFullColumnName = strTable + "." + strColumnName;           
+            string strFullColumnName = strTable + "." + strColumnName;
 
             //Search if table name is just an alias
             string myValue = _tables.FirstOrDefault(x => x.Value == strTable).Key;
@@ -110,7 +111,7 @@ namespace prefSQL.SQLParser
 
             //Select Statement to read the extrem values of the preference
             string strSelectExtrema = "SELECT MIN(" + strExpression + "), MAX(" + strExpression + ") FROM " + strTable + " " + strTableAlias;
-            
+
 
             //Add the preference to the list               
             pref.Ranking.Add(new RankingModel(strFullColumnName, strColumnName, strExpression, weight, strSelectExtrema));
@@ -161,7 +162,7 @@ namespace prefSQL.SQLParser
             //Separate Column and Table
             string strColumnName = GetColumnName(context.GetChild(0));
             string strTable = GetTableName(context.GetChild(0));
-            
+
             switch (context.op.Type)
             {
                 case PrefSQLParser.K_AROUND:
@@ -270,7 +271,7 @@ namespace prefSQL.SQLParser
                 _containsOpenPreference = true;
             }
             string strExpression = "CASE" + strCaseWhen + strCaseElse + " END";
-            
+
 
             //Add the ranking to the list               
             return AddWeightedSum(strColumnName, strTable, strExpression, weight);
@@ -339,12 +340,12 @@ namespace prefSQL.SQLParser
             bool bComparable = true;
             string strIncomporableAttribute = "";
             string strOpposite = "";
-            
+
             //Separate Column and Table
             string strColumnName = GetColumnName(context.GetChild(0));
             string strTable = GetTableName(context.GetChild(0));
             string strFullColumnName = strTable + "." + strColumnName;
-            
+
             if (context.ChildCount == 4)
             {
                 //If a third parameter is given, it is the Level Step  (i.e. LOW price 1000 means prices divided through 1000)
@@ -361,7 +362,7 @@ namespace prefSQL.SQLParser
                     //Some algorithms cannot handle this incomparable preference --> It is like a categorical preference without explicit OTHERS
                     _containsOpenPreference = true;
                 }
-                
+
             }
             //Keyword LOW or HIGH, build ORDER BY
             if (context.op.Type == PrefSQLParser.K_LOW || context.op.Type == PrefSQLParser.K_HIGH)
@@ -386,15 +387,29 @@ namespace prefSQL.SQLParser
                     strInnerColumnExpression = "(" + strTable + InnerTableSuffix + "." + strColumnName + strLevelAdditionaly + ")" + strLevelStep + strOpposite;
                     strIncomporableAttribute = "'INCOMPARABLE'";
                 }
-                
+
             }
-            
+
 
 
             //Add the preference to the list      
             return AddSkyline(new AttributeModel(strColumnExpression, strInnerColumnExpression, strFullColumnName, "", bComparable, strIncomporableAttribute, false, "", 0, 0, strExpression));
         }
 
+        public override PrefSQLModel VisitSkylinePreferenceUdf(PrefSQLParser.SkylinePreferenceUdfContext context)
+        {
+            // extract data
+            var udfModel = new SqlUdfVisitor().VisitSkylinePreferenceUdf(context);
+
+            // set global flags
+            _hasIncomparableTuples = _hasIncomparableTuples || udfModel.HasIncomparableTuples;
+            _containsOpenPreference = _containsOpenPreference || udfModel.ContainsOpenPreference;
+
+            // create preference and add to list      
+            var sub = new SqlUdfBuilder(udfModel, InnerTableSuffix);
+            return AddSkyline(new AttributeModel(sub.CreateRankingExpr(), sub.CreateInnerExpr(), udfModel.FullFunctionName, "", udfModel.IsComparable, sub.CreateIncomporableAttribute(), false, "", 0, 0, sub.CreateExpression()));
+
+        }
 
 
         /// <summary>
@@ -540,10 +555,10 @@ namespace prefSQL.SQLParser
             switch (context.op.Type)
             {
                 case PrefSQLParser.K_AROUND:
-                    
+
                     //Value should be as close as possible to a given numeric value
                     strColumnExpression = "CAST(ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ") AS bigint)";
-                    strInnerColumnExpression = "ABS(" + GetTableName(context.GetChild(0)) + InnerTableSuffix + "." + GetColumnName(context.GetChild(0))  + " - " + context.GetChild(2).GetText() + ")";
+                    strInnerColumnExpression = "ABS(" + GetTableName(context.GetChild(0)) + InnerTableSuffix + "." + GetColumnName(context.GetChild(0)) + " - " + context.GetChild(2).GetText() + ")";
                     strExpression = "ABS(" + context.GetChild(0).GetText() + " - " + context.GetChild(2).GetText() + ")";
                     break;
 
@@ -562,7 +577,7 @@ namespace prefSQL.SQLParser
                     strExpression = "CASE WHEN " + context.GetChild(0).GetText() + " = " + context.GetChild(2).GetText() + " THEN 1 ELSE 2 END * -1";
                     break;
             }
-            
+
 
             //Add the preference to the list     
             return AddSkyline(new AttributeModel(strColumnExpression, strInnerColumnExpression, strFullColumnName, "", true, "", false, "", 0, 0, strExpression));
@@ -588,7 +603,7 @@ namespace prefSQL.SQLParser
             string strSkyline = "DENSE_RANK()" + " OVER (ORDER BY " + strSortOrder + ")";
             //Combine to new column name
             string strColumnALIAS = left.Skyline[0].FullColumnName.Replace(".", "_") + right.Skyline[0].FullColumnName.Replace(".", "_");
-            
+
             left.Skyline[0].Expression = strSkyline;
             left.Skyline[0].RankExpression = strSkyline;
             left.Skyline[0].FullColumnName = strColumnALIAS;

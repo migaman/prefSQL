@@ -111,8 +111,6 @@ type_name : name+ ( '(' signed_number ')' | '(' signed_number ',' signed_number 
 */
 
 
-
-
 expr
  : literal_value																						#expropLiteral
  | column_term																							#expropDatabaseName
@@ -120,14 +118,14 @@ expr
  | expr '||' expr																						#expropOr
  | expr ( '*' | '/' | '%' ) expr																		#expropPoint
  | expr ( '+' | '-' ) expr																				#expropLine
- | expr ( '<<' | '>>' | '&' | '|' ) expr																#expropDoubleOrder
+ | expr ( '<<' | '>>' | '&' | '|' ) expr												                #expropDoubleOrder
  | expr ( '<' | '<=' | '>' | '>=' ) expr																#expropOrder
  | expr ( '=' | '==' | '!=' | '<>' | K_IS | K_IS K_NOT | K_IN | K_LIKE | K_MATCH ) expr					#expropequal
  | '{' exprOwnPreference '}'																			#exprexprOwnPreferenceOp																	
  | expr K_AND expr																						#exprexprand
  | expr K_OR expr																						#exprexpror
  | column_term ('(' exprCategory ')')																	#orderbyCategory
- | (schema_name '.')? function_name '(' ( K_DISTINCT? expr ( ',' expr )* | '*' )? ')'							#exprfunction
+ | udf_term '(' ( K_DISTINCT? expr ( ',' expr )* | '*' )? ')'											#exprUdf
  | '(' expr ')'																							#exprexprInBracket
  | K_CAST '(' expr K_AS type_name ')'																	#exprcast
  | expr K_NOT? ( K_LIKE | K_MATCH ) expr ( K_ESCAPE expr )?		#not
@@ -149,10 +147,15 @@ exprSkyline
  : exprSkyline ',' exprSkyline																			#skylineAnd
  | column_term op=(K_LOW | K_HIGH)	(signed_number (K_EQUAL | K_INCOMPARABLE))?							#skylinePreferenceLowHigh
  | column_term ('(' exprCategory ')')																	#skylinePreferenceCategory
+ | udf_term '(' ( exprUdfParam ( ',' exprUdfParam )* | '*' )? ')' op=(K_LOW|K_HIGH)	(signed_number (K_EQUAL | K_INCOMPARABLE))?	#skylinePreferenceUdf
  | column_term op=(K_AROUND | K_FAVOUR | K_DISFAVOUR) (signed_number|column_term)						#skylinePreferenceAround
  | exprSkyline K_IS K_MORE K_IMPORTANT K_THAN exprSkyline												#skylineMoreImportant
  ;
 
+ exprUdfParam
+ : literal_value																						#UdfLiteralParam
+ | column_term																							#UdfColParam
+ ;
 
 exprRanking
  : exprRanking ',' exprRanking																			#weightedsumAnd   
@@ -166,27 +169,29 @@ exprSkylineSample
  ;
 
  exprCategory
-	: STRING_LITERAL																						#opLiteral
-	| '{' exprOwnPreference '}'																			#exprOwnPreferenceOp																	
-	| exprCategory ( '>>'  | '==') exprCategory															#opDoubleOrder
+	: exprCategoryItem ( '>>'  | '==') (exprCategoryItem | exprCategory)								#opDoubleOrder
 	//OTHERS keywords are only possible with greater than
 		//With the EQUAL keyword it would be too much coding		(i.e. blue >> red == OTHERS EQUAL --> blue == OTHERS EQUAL)
 		//With the INCOMPARABLE keyword it would be a contradiction (i.e. red == OTHERS INCOMPARABLE)
-	| exprCategory ( '>>') exprOthers																	#opExprOthersAfter
-	| exprOthers ( '>>') exprCategory																	#opExprOthersBefore
+	| exprCategoryItem ( '>>') exprOthers																#opExprOthersAfter
+	| exprOthers ( '>>') (exprCategoryItem | exprCategory)												#opExprOthersBefore
 	;
 
+exprCategoryItem
+  : STRING_LITERAL																						#opLiteral
+  | '{' exprOwnPreference '}'																			#exprOwnPreferenceOp																	
+  ;
 
-//only allow others equal --> i.e. for the weighted sum function
- exprCategoryNoIncomparable
-	: STRING_LITERAL																						#opLiteralNoIncomparable																
-	| exprCategoryNoIncomparable ( '>>'  | '==') exprCategoryNoIncomparable															#opDoubleOrderNoIncomparable
+
+  exprCategoryNoIncomparable
+	: STRING_LITERAL																					#opLiteralNoIncomparable																
+	| exprCategoryNoIncomparable ( '>>'  | '==') exprCategoryNoIncomparable								#opDoubleOrderNoIncomparable
 	//OTHERS keywords are only possible with greater than
-		//With the EQUAL keyword it would be too much coding		(i.e. blue >> red == OTHERS EQUAL --> blue == OTHERS EQUAL)
-	| exprCategoryNoIncomparable ( '>>') exprOthersEqual																	#opExprOthersAfterNoIncomparable
-	| exprOthersEqual ( '>>') exprCategoryNoIncomparable																	#opExprOthersBeforeNoIncomparable
+	//With the EQUAL keyword it would be too much coding	
+	//	(i.e. blue >> red == OTHERS EQUAL --> blue == OTHERS EQUAL)
+	| exprCategoryNoIncomparable ( '>>') exprOthersEqual												#opExprOthersAfterNoIncomparable
+	| exprOthersEqual ( '>>') exprCategoryNoIncomparable					    						#opExprOthersBeforeNoIncomparable
 	;
-
 
 exprOthersEqual
 	: K_OTHERS (K_EQUAL);
@@ -195,7 +200,6 @@ exprOthers
 	: K_OTHERS (K_EQUAL)
 	| K_OTHERS (K_INCOMPARABLE);
 
-
 //For own preferences 
 exprOwnPreference
 	: column_term
@@ -203,6 +207,7 @@ exprOwnPreference
 ;
 
 column_term : ( ( database_name '.' )? table_name '.' )? column_name;
+udf_term : (schema_name '.')? function_name;
 ordering_term : expr ( K_ASC | K_DESC )? ;
 
 select_List_Item  : '*' | table_name '.' '*'  | expr ( K_AS? column_alias )?;
