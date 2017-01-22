@@ -176,15 +176,15 @@ namespace prefSQL.SQLParser
                         {
                             //Add the attributes to the existing SELECT clause
                             string strSQLSelectClause = GetSelectClauseForSkylineAttributes(prefSQL);
-                            string strSQLBeforeFrom = strSQLReturn.Substring(0, strSQLReturn.IndexOf("FROM", StringComparison.OrdinalIgnoreCase));
-                            string strSQLAfterFromShow = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM", StringComparison.OrdinalIgnoreCase));
+                            string strSQLBeforeFrom = strSQLReturn.Substring(0, strSQLReturn.IndexOf(" FROM ", StringComparison.OrdinalIgnoreCase)+1);
+                            string strSQLAfterFromShow = strSQLReturn.Substring(strSQLReturn.IndexOf(" FROM ", StringComparison.OrdinalIgnoreCase)+1);
                             strSQLReturn = strSQLBeforeFrom + strSQLSelectClause + " " + strSQLAfterFromShow;
 
                         }
 
                         //Add ORDER BY Clause
                         string strOrderBy = "";
-                        if (strInput.IndexOf("ORDER BY", StringComparison.OrdinalIgnoreCase) > 0)
+                        if (strInput.IndexOf(" ORDER BY ", StringComparison.OrdinalIgnoreCase) > 0)
                         {
                             if (prefSQL.Ordering == Ordering.AsIs)
                             {
@@ -198,7 +198,7 @@ namespace prefSQL.SQLParser
                                     strTmpInput = strTmpInput.Substring(0, model.Start) + model.Text + strTmpInput.Substring(model.Stop);
                                 }
 
-                                strOrderBy = strTmpInput.Substring(strInput.IndexOf("ORDER BY", StringComparison.OrdinalIgnoreCase));
+                                strOrderBy = strTmpInput.Substring(strInput.IndexOf(" ORDER BY ", StringComparison.OrdinalIgnoreCase)+1);
                             }
                             else
                             {
@@ -227,15 +227,15 @@ namespace prefSQL.SQLParser
                         if (prefSQL.NumberOfRecords != 0 && SkylineType.IsNative() == false)
                         {
                             //Remove Top Keyword in inner clause
-                            int iPosTop = strSQLReturn.IndexOf("TOP", StringComparison.OrdinalIgnoreCase);
+                            int iPosTop = strSQLReturn.IndexOf(" TOP ", StringComparison.OrdinalIgnoreCase)+1;
                             int iPosTopEnd = strSQLReturn.Substring(iPosTop + 3).TrimStart().IndexOf(" ", StringComparison.Ordinal);
                             string strSQLAfterTop = strSQLReturn.Substring(iPosTop + 3).TrimStart();
                             strSQLReturn = strSQLReturn.Substring(0, iPosTop) + strSQLAfterTop.Substring(iPosTopEnd + 1);
                         }
 
 
-                        string strAttributesOutput = ", " + strSQLReturn.Substring(7, strSQLReturn.IndexOf("FROM", StringComparison.OrdinalIgnoreCase) - 7);
-                        string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM", StringComparison.OrdinalIgnoreCase));
+                        string strAttributesOutput = ", " + strSQLReturn.Substring(7, strSQLReturn.IndexOf(" FROM ", StringComparison.OrdinalIgnoreCase) - 6);
+                        string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf(" FROM ", StringComparison.OrdinalIgnoreCase)+1);
 
                         string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
                         if (SkylineType.IsNative())

@@ -44,7 +44,7 @@ namespace prefSQL.SQLSkyline
                 if (!strSelectIncomparable.Equals(""))
                 {
                     //Check amount of incomparables
-                    int posOfFrom = strSQL.IndexOf("FROM", StringComparison.OrdinalIgnoreCase);
+                    int posOfFrom = strSQL.IndexOf(" FROM ", StringComparison.OrdinalIgnoreCase)+1;
                     string strSQLIncomparable = "SELECT DISTINCT " + strSelectIncomparable + " " + strSQL.Substring(posOfFrom);
 
                     DataTable dt = Helper.GetDataTableFromSQL(strSQLIncomparable, connectionString, factory);

@@ -23,7 +23,7 @@ namespace prefSQL.SQLParser
             if (strSQL.Length > 0)
             {
                 //Only add WHERE if there is not already a where clause
-                bool isWherePresent = strPreSQL.IndexOf("WHERE", StringComparison.OrdinalIgnoreCase) > 0;
+                bool isWherePresent = strPreSQL.IndexOf(" WHERE ", StringComparison.OrdinalIgnoreCase) > 0;
                 if (isWherePresent)
                 {
                     strSQL = " AND " + strSQL;
@@ -52,7 +52,7 @@ namespace prefSQL.SQLParser
             string strSQL = "";
 
             //Only add WHERE if there is not already a where clause
-            bool isWherePresent = strPreSQL.IndexOf("WHERE", StringComparison.OrdinalIgnoreCase) > 0;
+            bool isWherePresent = strPreSQL.IndexOf(" WHERE ", StringComparison.OrdinalIgnoreCase) > 0;
             if (isWherePresent)
             {
                 strWhereEqual = " AND ";
@@ -129,7 +129,7 @@ namespace prefSQL.SQLParser
             if (model.NumberOfRecords != 0)
             {
                 //Remove Top Keyword in inner clause
-                int iPosTop = strPreSQL.IndexOf("TOP", StringComparison.OrdinalIgnoreCase);
+                int iPosTop = strPreSQL.IndexOf(" TOP ", StringComparison.OrdinalIgnoreCase)+1;
                 int iPosTopEnd = strPreSQL.Substring(iPosTop + 3).TrimStart().IndexOf(" ", StringComparison.Ordinal);
                 string strSQLAfterTop = strPreSQL.Substring(iPosTop + 3).TrimStart();
                 strPreSQL = strPreSQL.Substring(0, iPosTop) + strSQLAfterTop.Substring(iPosTopEnd + 1);

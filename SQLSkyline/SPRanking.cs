@@ -163,8 +163,8 @@ namespace prefSQL.SQLSkyline
             {
                 //Add the attributes to the existing SELECT clause
                 string strSQLSelectClause = strInternalSelectList;
-                string strSQLBeforeFrom = strSQLReturn.Substring(0, strSQLReturn.IndexOf("FROM", StringComparison.OrdinalIgnoreCase));
-                string strSQLAfterFromShow = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM", StringComparison.OrdinalIgnoreCase));
+                string strSQLBeforeFrom = strSQLReturn.Substring(0, strSQLReturn.IndexOf(" FROM ", StringComparison.OrdinalIgnoreCase)+1);
+                string strSQLAfterFromShow = strSQLReturn.Substring(strSQLReturn.IndexOf(" FROM ", StringComparison.OrdinalIgnoreCase)+1);
                 strSQLReturn = strSQLBeforeFrom + strSQLSelectClause + " " + strSQLAfterFromShow;
 
             }
