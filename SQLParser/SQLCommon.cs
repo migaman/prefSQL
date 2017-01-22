@@ -176,8 +176,8 @@ namespace prefSQL.SQLParser
                         {
                             //Add the attributes to the existing SELECT clause
                             string strSQLSelectClause = GetSelectClauseForSkylineAttributes(prefSQL);
-                            string strSQLBeforeFrom = strSQLReturn.Substring(0, strSQLReturn.IndexOf("FROM", StringComparison.Ordinal));
-                            string strSQLAfterFromShow = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM", StringComparison.Ordinal));
+                            string strSQLBeforeFrom = strSQLReturn.Substring(0, strSQLReturn.IndexOf("FROM", StringComparison.OrdinalIgnoreCase));
+                            string strSQLAfterFromShow = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM", StringComparison.OrdinalIgnoreCase));
                             strSQLReturn = strSQLBeforeFrom + strSQLSelectClause + " " + strSQLAfterFromShow;
 
                         }
@@ -234,8 +234,8 @@ namespace prefSQL.SQLParser
                         }
 
 
-                        string strAttributesOutput = ", " + strSQLReturn.Substring(7, strSQLReturn.IndexOf("FROM", StringComparison.Ordinal) - 7);
-                        string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM", StringComparison.Ordinal));
+                        string strAttributesOutput = ", " + strSQLReturn.Substring(7, strSQLReturn.IndexOf("FROM", StringComparison.OrdinalIgnoreCase) - 7);
+                        string strSQLAfterFrom = strSQLReturn.Substring(strSQLReturn.IndexOf("FROM", StringComparison.OrdinalIgnoreCase));
 
                         string strFirstSQL = "SELECT " + strAttributesSkyline + " " + strAttributesOutput + strSQLAfterFrom;
                         if (SkylineType.IsNative())
