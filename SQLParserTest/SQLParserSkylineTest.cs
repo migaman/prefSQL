@@ -623,7 +623,23 @@ namespace prefSQL.SQLParserTest
 
         }
 
+        [TestMethod]
+        [TestCategory("UnitTest")]
+        public void TestParserCaseSensitivity()
+        {
+            var prefSqlQuery = "SELECT * FROM cars SKYLINE OF cars.price AROUND 15000, cars.mileage LOW";
+            var expected = "SELECT * FROM cars WHERE NOT EXISTS(SELECT * FROM cars cars_INNER WHERE ABS(cars_INNER.price - 15000) <= ABS(cars.price - 15000) AND cars_INNER.mileage <= cars.mileage AND ( ABS(cars_INNER.price - 15000) < ABS(cars.price - 15000) OR cars_INNER.mileage < cars.mileage) )";
+            var common = new SQLCommon();
+            var actualNoCaseChange = common.ParsePreferenceSQL(prefSqlQuery);
+            var actualUpperCase = common.ParsePreferenceSQL(prefSqlQuery.ToUpper());
+            var actualLowerCase = common.ParsePreferenceSQL(prefSqlQuery.ToLower());
 
+            Assert.AreEqual(expected.Trim(), actualNoCaseChange.Trim(), true);
+            Assert.AreEqual(expected.Trim(), actualUpperCase.Trim(), true);
+            Assert.AreEqual(expected.Trim(), actualLowerCase.Trim(), true);
+
+        }
+        
         void cnnSQL_InfoMessage(object sender, SqlInfoMessageEventArgs e)
         {
             Assert.Fail(e.Message);
