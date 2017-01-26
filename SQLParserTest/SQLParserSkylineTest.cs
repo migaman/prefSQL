@@ -639,7 +639,25 @@ namespace prefSQL.SQLParserTest
             Assert.AreEqual(expected.Trim(), actualLowerCase.Trim(), true);
 
         }
-        
+
+        [TestMethod]
+        [TestCategory("UnitTest")]
+        public void TestParserKeywordsInIdentifier()
+        {
+            var prefSqlQuery = "SELECT TOP 5 Id, FieldA AS IDFROM, FieldB AS IDWHERE, FieldC AS IDTOP " +
+                               "FROM table " +
+                               "SKYLINE OF id LOW";
+            var expected = "SELECT TOP 5 Id, FieldA AS IDFROM, FieldB AS IDWHERE, FieldC AS IDTOP " +
+                           "FROM table " +
+                           "WHERE NOT EXISTS(SELECT Id, FieldA AS IDFROM, FieldB AS IDWHERE, FieldC AS IDTOP FROM table table_INNER WHERE _INNER.id <= .id AND ( _INNER.id < .id) )";
+            var common = new SQLCommon();
+            var actual = common.ParsePreferenceSQL(prefSqlQuery);
+
+            Assert.AreEqual(expected.Trim(), actual.Trim(), true);
+        }
+
+
+
         void cnnSQL_InfoMessage(object sender, SqlInfoMessageEventArgs e)
         {
             Assert.Fail(e.Message);
