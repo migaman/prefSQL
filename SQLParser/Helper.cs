@@ -82,7 +82,8 @@ namespace prefSQL.SQLParser
 
 
             //Native SQL algorithm is already a valid SQL statement
-            if (strPrefSQL.StartsWith("SELECT", true, null))
+            //Trim prefSQL because of queries starting wit empty characters " SELECT ...."
+            if (strPrefSQL.Trim().StartsWith("SELECT", true, null))
             {
                 if (model == null || !model.HasSkylineSample)
                 {
