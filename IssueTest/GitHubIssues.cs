@@ -106,6 +106,35 @@ namespace IssueTest
         }
 
 
+
+        //Parses fails if identifier contain keywords
+        //https://github.com/migaman/prefSQL/issues/63
+        [TestMethod]
+        [TestCategory("UnitTest")]
+        public void TestIssue63()
+        {
+            string prefSQL = "SELECT TOP 5 c.Id, c.title AS IDFROM, c.title AS IDWHERE, c.title AS IDTOP "
+                            + "FROM Cars c "
+                            + "SKYLINE OF c.id LOW ";
+
+            var common = new SQLCommon
+            {
+                SkylineType = new SkylineBNL(),
+                ShowInternalAttributes = true
+            };
+
+
+            try
+            {
+                //If there is no exception in the execution of this query the test is successful
+                DataTable dt = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, prefSQL);
+                Assert.IsTrue(true);
+            }
+            catch
+            {
+                Assert.IsFalse(true);
+            }
+        }
         
 
 
