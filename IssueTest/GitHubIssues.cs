@@ -178,12 +178,10 @@ namespace IssueTest
                             + "LEFT OUTER JOIN Colors co ON c.Color_Id = co.Id "
                             + "SKYLINE OF c.Price HIGH, co.Name ('pink' >> 'black' >> OTHERS EQUAL)  "
                             + "ORDER BY BEST_RANK()";
-            
-            
+
+
             SQLCommon common = new SQLCommon();
-            common.SkylineType = new SkylineDQ();
-            common.ShowInternalAttributes = true;
-            
+            common.SkylineType = new SkylineDQ(); 
 
             try
             {
@@ -197,8 +195,7 @@ namespace IssueTest
                 DataTable dtCLR = new DataTable();
                 dap.Fill(dtCLR);
 
-
-                Assert.Equals(dtStandalone.Rows.Count, dtCLR.Rows.Count);
+                Assert.AreEqual(dtStandalone.Rows.Count, dtCLR.Rows.Count);
             }
             catch
             {
