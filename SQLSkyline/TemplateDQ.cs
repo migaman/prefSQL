@@ -32,6 +32,10 @@ namespace prefSQL.SQLSkyline
             //Work with object[]-array (more than 10 times faster than datatable)
             List<object[]> listResult = ComputeSkyline(database.ToList(), operatorsArray, operatorsArray.GetUpperBound(0));
 
+            //Stores all the skyline values from the relevant rows
+            //Used for the special sorting function like BEST_RANK(), SUM_RANK(),...
+            List<long[]> skylineValues = new List<long[]>();
+
             //Write object in datatable
             foreach (object[] row in listResult)
             {
@@ -43,10 +47,17 @@ namespace prefSQL.SQLSkyline
                 Array.Copy(row, operatorsArray.GetUpperBound(0) + 1, resultArray, 0, validDataFrom);
                 dataTableReturn.Rows.Add(resultArray);
 
+                //Copy skyline values to special array (needed for special sorting functions)
+                long[] sValues = new long[operatorsArray.GetUpperBound(0) + 1];
+                for(int i=0;i < operatorsArray.GetUpperBound(0) + 1; i++) {
+                    sValues[i] = (long)row[i];
+                }
+                skylineValues.Add(sValues);
+
             }
 
-            //TODO: Special orderings need the skyline values. Store it in a property
-            //SkylineValues = resultCollection;
+            //Special orderings need the skyline values. Store it in a property
+            SkylineValues = skylineValues;
 
             return dataTableReturn;
         }

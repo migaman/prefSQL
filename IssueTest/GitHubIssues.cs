@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using prefSQL.SQLParser;
 using prefSQL.SQLSkyline;
 using System.Data;
+using System.Data.SqlClient;
 
 namespace IssueTest
 {
@@ -163,8 +164,47 @@ namespace IssueTest
                 Assert.IsFalse(true);
             }
         }
-        
 
+
+
+        //TemplateStrategy.SkylineValues not set for algorithms other than BNL
+        //https://github.com/migaman/prefSQL/issues/67
+        [TestMethod]
+        [TestCategory("UnitTest")]
+        public void TestIssue67()
+        {
+            string prefSQL = "SELECT c.Title as Name, c.Price, co.Name As Color  "
+                            + "FROM Cars c "
+                            + "LEFT OUTER JOIN Colors co ON c.Color_Id = co.Id "
+                            + "SKYLINE OF c.Price HIGH, co.Name ('pink' >> 'black' >> OTHERS EQUAL)  "
+                            + "ORDER BY BEST_RANK()";
+
+
+            SQLCommon common = new SQLCommon();
+            common.SkylineType = new SkylineDQ(); 
+
+            try
+            {
+                //If there is no exception in the execution of this query the test is successful
+                DataTable dtStandalone = common.ParseAndExecutePrefSQL(Helper.ConnectionString, Helper.ProviderName, prefSQL);
+
+                String sql = common.ParsePreferenceSQL(prefSQL);
+                SqlConnection cnnSQL = new SqlConnection(Helper.ConnectionString); //for CLR performance tets
+                cnnSQL.Open();
+                SqlDataAdapter dap = new SqlDataAdapter(sql, cnnSQL);
+                DataTable dtCLR = new DataTable();
+                dap.Fill(dtCLR);
+
+                Assert.AreEqual(dtStandalone.Rows.Count, dtCLR.Rows.Count);
+            }
+            catch
+            {
+                Assert.IsFalse(true);
+            }
+        }
+
+
+        
 
     }
 }
