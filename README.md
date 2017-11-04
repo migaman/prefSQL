@@ -1,4 +1,4 @@
-# [prefSQL] (https://abiz.ch/ecom)
+# [prefSQL](https://abiz.ch/ecom)
 
 [![Build Status](https://ci.appveyor.com/api/projects/status/458h4u5v0qbh2tr7?svg=true)](https://ci.appveyor.com/project/migaman/prefsql)
 
