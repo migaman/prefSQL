@@ -1,8 +1,8 @@
-# [prefSQL](https://abiz.ch/ecom)
+# prefSQL
 
 [![Build Status](https://ci.appveyor.com/api/projects/status/458h4u5v0qbh2tr7?svg=true)](https://ci.appveyor.com/project/migaman/prefsql)
 
-prefSQL is a framework for preference-driven querying of relational databases. It allows to query for preferences (soft criteria) instead of knockout criteria.
+[prefSQL](https://abiz.ch/ecom) is a framework for preference-driven querying of relational databases. It allows to query for preferences (soft criteria) instead of knockout criteria.
 To get started, check out <https://abiz.ch/ecom>!
 
 ### What's included
